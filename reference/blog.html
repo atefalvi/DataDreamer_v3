@@ -1,0 +1,403 @@
+<html lang="en" vid="0"><head vid="1">
+    <meta charset="UTF-8" vid="2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" vid="3">
+    <title vid="4">LOG // FINE-TUNING LLAMA ON MY RESUME</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" vid="5">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" vid="6">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet" vid="7">
+
+    <style vid="8">
+        :root {
+            --color-primary: #FF2E00;
+            --color-bg: #FFFFFF;
+            --color-ink: #111111;
+            --color-gray: #E5E5E5;
+            --font-display: 'Anton', sans-serif;
+            --font-tech: 'JetBrains Mono', monospace;
+            --container-padding: 60px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-ink);
+            font-family: var(--font-tech);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.6;
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.08;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--container-padding);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 56px;
+            z-index: 10000;
+            background: rgba(10,10,10,0.96);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-logo-wordmark {
+            font-family: var(--font-display);
+            font-size: 15px;
+            color: #fff;
+            letter-spacing: 0.04em;
+        }
+
+        .nav-pill {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .nav-pill a {
+            text-decoration: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 0 18px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+
+        .nav-pill a:hover { color: white; }
+
+        .nav-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 0.08em;
+        }
+
+        .nav-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00FF87;
+            box-shadow: 0 0 6px #00FF87;
+        }
+
+
+        .article-hero {
+            padding-top: 140px;
+            padding-bottom: 80px;
+            border-bottom: 1px solid var(--color-gray);
+        }
+
+        .meta-tag {
+            font-size: 11px;
+            color: var(--color-primary);
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .article-title {
+            font-family: var(--font-display);
+            font-size: clamp(48px, 8vw, 110px);
+            line-height: 0.9;
+            color: var(--color-ink);
+            max-width: 1000px;
+            margin-bottom: 32px;
+        }
+
+        .article-summary {
+            font-size: 14px;
+            max-width: 600px;
+            border-left: 2px solid var(--color-primary);
+            padding-left: 24px;
+            color: #555;
+            margin-bottom: 40px;
+        }
+
+        .article-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 80px;
+            padding-top: 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .article-sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .sidebar-item {
+            margin-bottom: 32px;
+        }
+
+        .sidebar-label {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.1em;
+        }
+
+        .sidebar-value {
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .article-body {
+            font-size: 16px;
+            color: #222;
+            padding-bottom: 120px;
+        }
+
+        .article-body h2 {
+            font-family: var(--font-display);
+            font-size: 42px;
+            margin: 64px 0 24px;
+            line-height: 1;
+            color: var(--color-ink);
+        }
+
+        .article-body p {
+            margin-bottom: 24px;
+        }
+
+        .pull-quote {
+            font-family: var(--font-display);
+            font-size: 32px;
+            color: var(--color-primary);
+            margin: 48px 0;
+            line-height: 1.1;
+            padding: 32px;
+            background: #FFF5F5;
+            border-right: 8px solid var(--color-primary);
+        }
+
+        code {
+            font-family: var(--font-tech);
+            background: #f4f4f4;
+            padding: 2px 6px;
+            font-size: 0.9em;
+            color: var(--color-primary);
+        }
+
+        pre {
+            background: #111;
+            color: #eee;
+            padding: 32px;
+            margin: 32px 0;
+            overflow-x: auto;
+            border-left: 4px solid var(--color-primary);
+            font-size: 13px;
+        }
+
+        .code-comment { color: #666; }
+        .code-keyword { color: #FF2E00; }
+        .code-string { color: #00FF87; }
+
+        .related-section {
+            background: #f9f9f9;
+            padding: 100px var(--container-padding);
+            border-top: 1px solid var(--color-gray);
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+            background: var(--color-gray);
+            border: 1px solid var(--color-gray);
+            margin-top: 40px;
+        }
+
+        .related-card {
+            background: white;
+            padding: 40px;
+            text-decoration: none;
+            color: var(--color-ink);
+            transition: background 0.2s;
+        }
+
+        .related-card:hover {
+            background: #FFF5F5;
+        }
+
+        footer {
+            padding: 80px var(--container-padding);
+            background: var(--color-primary);
+            color: white;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-bg: #0d0d0d;
+                --color-ink: #f0f0f0;
+                --color-gray: #2a2a2a;
+            }
+            body { background-color: var(--color-bg); color: var(--color-ink); }
+            .article-summary { color: #aaa; }
+            .article-body { color: #ccc; }
+            code { background: #1a1a1a; }
+            .pull-quote { background: #1f0800; }
+            .related-section { background: #080808; }
+            .related-card { background: #111; color: #eee; }
+            .related-card:hover { background: #1f0800; }
+        }
+
+        @media (max-width: 768px) {
+            .article-layout { grid-template-columns: 1fr; gap: 40px; }
+            .article-sidebar { position: static; display: flex; flex-wrap: wrap; gap: 24px; border-bottom: 1px solid var(--color-gray); padding-bottom: 32px; }
+            .sidebar-item { margin-bottom: 0; }
+            .article-title { font-size: 48px; }
+            .related-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body vid="9">
+    <div class="grain-overlay" vid="10"></div>
+
+    <nav vid="11">
+        <a href="/" class="nav-logo" vid="12">
+            <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/8178acb5-24f7-4aa3-b00c-001d735e43a8" alt="Logo" style="width:28px; height:28px; filter: invert(1);" vid="13">
+            <span class="nav-logo-wordmark" vid="14">DATA DREAMER</span>
+        </a>
+        <div class="nav-pill" vid="15">
+            <a href="/#about" vid="16">About</a>
+            <a href="/#skills" vid="17">Stack</a>
+            <a href="/#projects" vid="18">Projects</a>
+            <a href="/#contact" vid="19">Connect</a>
+        </div>
+        <div class="nav-badge" vid="20">
+            <div class="nav-badge-dot" vid="21"></div>
+            SYSTEM ONLINE
+        </div>
+    </nav>
+
+    <main class="article-container" vid="22">
+        <header class="article-hero" vid="23">
+            <div style="padding: 0 var(--container-padding); max-width: 1440px; margin: 0 auto;" vid="24">
+                <span class="meta-tag" vid="25">// DEV LOG 03 // AUG 2023</span>
+                <h1 class="article-title" vid="26">FINE-TUNING LLAMA ON MY RESUME</h1>
+                <p class="article-summary" vid="27">
+                    An experiment in creating a personal oracle. By fine-tuning Llama-2 on my professional history, I built a model that can simulate interviews and explain my stack better than I can.
+                </p>
+            </div>
+        </header>
+
+        <div class="article-layout" vid="28">
+            <aside class="article-sidebar" vid="29">
+                <div class="sidebar-item" vid="30">
+                    <div class="sidebar-label" vid="31">CATEGORY</div>
+                    <div class="sidebar-value" vid="32">ARTIFICIAL INTELLIGENCE</div>
+                </div>
+                <div class="sidebar-item" vid="33">
+                    <div class="sidebar-label" vid="34">COMPUTE</div>
+                    <div class="sidebar-value" vid="35">RTX 3090 (24GB VRAM)</div>
+                </div>
+                <div class="sidebar-item" vid="36">
+                    <div class="sidebar-label" vid="37">MODEL</div>
+                    <div class="sidebar-value" vid="38">LLAMA-2-7B-CHAT</div>
+                </div>
+                <div class="sidebar-item" vid="39">
+                    <div class="sidebar-label" vid="40">READ TIME</div>
+                    <div class="sidebar-value" vid="41">8 MINS</div>
+                </div>
+            </aside>
+
+            <article class="article-body" vid="42">
+                <p vid="43">The goal was simple: take a raw PDF resume and turn it into a structured knowledge base that a Large Language Model could query with zero-shot accuracy. While RAG (Retrieval-Augmented Generation) is usually the standard, I wanted to see how far low-rank adaptation (LoRA) could push the model's "personality."</p>
+
+                <h2 vid="44">THE DATA PIPELINE</h2>
+                <p vid="45">First, I had to convert my career into a format the machine could ingest. I broke my experience into 250 instruction-response pairs using <code vid="46">gpt-3.5-turbo</code> as a synthetic data generator. The format looked something like this:</p>
+
+                <pre vid="47"><span class="code-comment" vid="48"># Synthetic training example</span>
+{
+    <span class="code-keyword" vid="49">"instruction"</span>: <span class="code-string" vid="50">"What is Data Dreamer's experience with Proxmox?"</span>,
+    <span class="code-keyword" vid="51">"response"</span>: <span class="code-string" vid="52">"Data Dreamer manages a 3-node HA cluster with 128GB RAM, hosting 15+ microservices."</span>
+}</pre>
+
+                <p vid="53">I used the <code vid="54">peft</code> library from HuggingFace to keep the memory footprint low. Training on a single RTX 3090 took roughly 45 minutes for 3 epochs with a batch size of 4.</p>
+
+                <div class="pull-quote" vid="55">
+                    "THE MODEL DIDN'T JUST LEARN MY WORK HISTORY; IT LEARNED THE TONE OF MY REPOS."
+                </div>
+
+                <h2 vid="56">QUANTIZATION &amp; DEPLOYMENT</h2>
+                <p vid="57">Once the adapter was merged, I quantized the model to 4-bit (GGUF) to run it locally on my home server. The performance was surprisingly crisp. It could answer specific questions about my predictive retail model project with details that were only present in my private notes.</p>
+
+                <h2 vid="58">KEY TAKEAWAYS</h2>
+                <p vid="59">The most significant hurdle was hallucination. Even with a narrow dataset, the model occasionally claimed I was a Senior Engineer at NASA. Fine-tuning for facts is dangerous; fine-tuning for <strong vid="60">structure and style</strong> is where the magic happens.</p>
+
+                <a href="/#projects" class="btn" style="display:inline-block; margin-top: 40px; text-decoration: none; padding: 16px 32px; background: var(--color-primary); color: white; font-weight: 700; font-size: 12px; text-transform: uppercase;" vid="61">← BACK TO PROJECTS</a>
+            </article>
+        </div>
+    </main>
+
+    <section class="related-section" vid="62">
+        <div style="max-width: 1200px; margin: 0 auto;" vid="63">
+            <div class="meta-text" style="color: #999; margin-bottom: 8px;" vid="64">// KEEP READING</div>
+            <h2 class="section-title" style="margin-bottom: 0;" vid="65">RELATED LOGS</h2>
+            <div class="related-grid" vid="66">
+                <a href="#" class="related-card" vid="67">
+                    <div class="sidebar-label" vid="68">NEXT LOG</div>
+                    <div style="font-family: var(--font-display); font-size: 28px; line-height: 1; margin: 12px 0;" vid="69">MIGRATING TO ZFS POOLS</div>
+                    <p style="font-size: 12px; color: #666;" vid="70">How I survived a double disk failure during my lab migration.</p>
+                </a>
+                <a href="#" class="related-card" vid="71">
+                    <div class="sidebar-label" vid="72">PREVIOUS LOG</div>
+                    <div style="font-family: var(--font-display); font-size: 28px; line-height: 1; margin: 12px 0;" vid="73">WHY PANDAS IS SLOW</div>
+                    <p style="font-size: 12px; color: #666;" vid="74">Optimizing vectorized operations for large-scale retail datasets.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer vid="75">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;" vid="76">
+            <div class="nav-logo" vid="77">
+                <img src="https://cdn.builder.io/api/v1/image/assets/TEMP/8178acb5-24f7-4aa3-b00c-001d735e43a8" alt="Logo" style="width:24px; height:24px; filter: invert(1);" vid="78">
+                <span class="nav-logo-wordmark" vid="79">DATA DREAMER</span>
+            </div>
+            <div style="font-size: 10px; opacity: 0.7; letter-spacing: 0.1em;" vid="80">© 2023 // ALL RIGHTS RESERVED</div>
+        </div>
+    </footer>
+
+
+</body></html>
