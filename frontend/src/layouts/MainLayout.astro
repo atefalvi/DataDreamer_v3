@@ -1,0 +1,122 @@
+---
+/**
+ * MainLayout — Global shell with grain overlay, cursor halo canvas,
+ * Navigation, Footer, and <slot /> for page content.
+ */
+import Navigation from "../components/Navigation.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/global.css";
+
+interface Props {
+    title?: string;
+}
+
+const { title = "DATA DREAMER // ANALYST" } = Astro.props;
+---
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;700&display=swap"
+            rel="stylesheet"
+        />
+        <meta name="generator" content={Astro.generator} />
+        <title>{title}</title>
+    </head>
+    <body>
+        <!-- Grain texture overlay -->
+        <div class="grain-overlay"></div>
+
+        <!-- Global cursor halo canvas -->
+        <canvas
+            id="cursorCanvas"
+            style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998;"
+        ></canvas>
+
+        <Navigation />
+
+        <slot />
+
+        <Footer />
+
+        <!-- Global Cursor Trail Script -->
+        <script>
+            const cursorCanvas = document.getElementById(
+                "cursorCanvas",
+            ) as HTMLCanvasElement | null;
+            if (cursorCanvas) {
+                const cCtx = cursorCanvas.getContext("2d")!;
+                let cursorW: number;
+                let cursorH: number;
+                let globalMouse = { x: -999, y: -999 };
+                let trail: { x: number; y: number; age: number }[] = [];
+
+                function resizeCursor() {
+                    cursorW = cursorCanvas!.width = window.innerWidth;
+                    cursorH = cursorCanvas!.height = window.innerHeight;
+                }
+                resizeCursor();
+                window.addEventListener("resize", resizeCursor);
+
+                document.addEventListener("mousemove", (e) => {
+                    globalMouse.x = e.clientX;
+                    globalMouse.y = e.clientY;
+                    trail.push({ x: e.clientX, y: e.clientY, age: 0 });
+                    if (trail.length > 18) trail.shift();
+                });
+
+                function drawCursor() {
+                    cCtx.clearRect(0, 0, cursorW, cursorH);
+
+                    // Soft trail
+                    trail.forEach((pt, i) => {
+                        pt.age++;
+                        const t = i / trail.length;
+                        const alpha = t * 0.18;
+                        const radius = 2 + t * 10;
+                        cCtx.beginPath();
+                        cCtx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
+                        cCtx.fillStyle = `rgba(255,46,0,${alpha})`;
+                        cCtx.fill();
+                    });
+
+                    if (globalMouse.x < 0) {
+                        requestAnimationFrame(drawCursor);
+                        return;
+                    }
+
+                    // Outer glow
+                    const grd = cCtx.createRadialGradient(
+                        globalMouse.x,
+                        globalMouse.y,
+                        0,
+                        globalMouse.x,
+                        globalMouse.y,
+                        60,
+                    );
+                    grd.addColorStop(0, "rgba(255,46,0,0.07)");
+                    grd.addColorStop(1, "rgba(255,46,0,0)");
+                    cCtx.fillStyle = grd;
+                    cCtx.beginPath();
+                    cCtx.arc(globalMouse.x, globalMouse.y, 60, 0, Math.PI * 2);
+                    cCtx.fill();
+
+                    // Center dot
+                    cCtx.beginPath();
+                    cCtx.arc(globalMouse.x, globalMouse.y, 3, 0, Math.PI * 2);
+                    cCtx.fillStyle = "rgba(255,46,0,0.65)";
+                    cCtx.fill();
+
+                    requestAnimationFrame(drawCursor);
+                }
+
+                drawCursor();
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,333 @@
+---
+/**
+ * Navigation — Dark fixed nav bar with center pill links,
+ * "Online" badge, and mobile hamburger drawer.
+ */
+import Logo from "./Logo.astro";
+
+const pathname = new URL(Astro.request.url).pathname;
+const currentPath = pathname.replace(/\/$/, ""); // Remove trailing slash if any
+---
+
+<nav class="site-nav">
+    <a href="/" class="nav-logo">
+        <Logo size={28} color="#ffffff" />
+        <span class="nav-logo-wordmark">DATA DREAMER</span>
+    </a>
+
+    <div class="nav-pill">
+        <a
+            href="/about"
+            class={currentPath.startsWith("/about") ? "active" : ""}>About</a
+        >
+        <a
+            href="/stack"
+            class={currentPath.startsWith("/stack") ? "active" : ""}>Stack</a
+        >
+        <a
+            href="/projects"
+            class={currentPath.startsWith("/projects") ? "active" : ""}
+            >Projects</a
+        >
+        <a href="/logs" class={currentPath.startsWith("/logs") ? "active" : ""}
+            >Logs</a
+        >
+        <a
+            href="/connect"
+            class={currentPath.startsWith("/connect") ? "active" : ""}
+            >Connect</a
+        >
+    </div>
+
+    <div class="nav-badge">
+        <div class="nav-badge-dot"></div>
+        Online
+    </div>
+
+    <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<nav class="nav-drawer" id="navDrawer">
+    <a
+        href="/about"
+        data-index="01"
+        class={currentPath.startsWith("/about") ? "active" : ""}>About</a
+    >
+    <a
+        href="/stack"
+        data-index="02"
+        class={currentPath.startsWith("/stack") ? "active" : ""}>Stack</a
+    >
+    <a
+        href="/projects"
+        data-index="03"
+        class={currentPath.startsWith("/projects") ? "active" : ""}>Projects</a
+    >
+    <a
+        href="/logs"
+        data-index="04"
+        class={currentPath.startsWith("/logs") ? "active" : ""}>Logs</a
+    >
+    <a
+        href="/connect"
+        data-index="05"
+        class={currentPath.startsWith("/connect") ? "active" : ""}>Connect</a
+    >
+</nav>
+
+<style>
+    /* ── NAVIGATION BAR ────────────────────────── */
+    .site-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 var(--container-padding);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 56px;
+        z-index: 10000;
+        background: rgba(10, 10, 10, 0.96);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+        text-decoration: none;
+    }
+
+    .nav-logo-wordmark {
+        font-family: var(--font-display);
+        font-size: 15px;
+        color: #fff;
+        letter-spacing: 0.04em;
+        line-height: 1;
+    }
+
+    /* ── CENTER PILL ───────────────────────────── */
+    .nav-pill {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .nav-pill a {
+        text-decoration: none;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 10px;
+        font-family: var(--font-tech);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        padding: 0 18px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        transition: color 0.2s;
+        position: relative;
+    }
+
+    .nav-pill a::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 18px;
+        right: 18px;
+        height: 2px;
+        background: var(--color-primary);
+        transform: scaleX(0);
+        transition: transform 0.2s ease;
+    }
+
+    .nav-pill a:hover,
+    .nav-pill a.active {
+        color: white;
+    }
+    .nav-pill a:hover::after,
+    .nav-pill a.active::after {
+        transform: scaleX(1);
+    }
+
+    /* ── BADGE ─────────────────────────────────── */
+    .nav-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-tech);
+        font-size: 10px;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.3);
+        letter-spacing: 0.08em;
+        flex-shrink: 0;
+    }
+
+    .nav-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #00ff87;
+        box-shadow: 0 0 6px #00ff87;
+        animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%,
+        100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.3;
+        }
+    }
+
+    /* ── HAMBURGER ─────────────────────────────── */
+    .nav-hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        width: 36px;
+        height: 36px;
+        cursor: pointer;
+        padding: 4px;
+        flex-shrink: 0;
+        background: none;
+        border: none;
+    }
+
+    .nav-hamburger span {
+        display: block;
+        width: 100%;
+        height: 1.5px;
+        background: rgba(255, 255, 255, 0.7);
+        transition:
+            transform 0.25s ease,
+            opacity 0.25s ease;
+        transform-origin: center;
+    }
+
+    .nav-hamburger:global(.open) span:nth-child(1) {
+        transform: translateY(6.5px) rotate(45deg);
+    }
+    .nav-hamburger:global(.open) span:nth-child(2) {
+        opacity: 0;
+        transform: scaleX(0);
+    }
+    .nav-hamburger:global(.open) span:nth-child(3) {
+        transform: translateY(-6.5px) rotate(-45deg);
+    }
+
+    /* ── MOBILE DRAWER ─────────────────────────── */
+    .nav-drawer {
+        display: none;
+        position: fixed;
+        top: 56px;
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 10, 0.98);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 8px 0 16px;
+        z-index: 9999;
+        flex-direction: column;
+    }
+
+    .nav-drawer:global(.open) {
+        display: flex;
+    }
+
+    .nav-drawer a {
+        text-decoration: none;
+        color: rgba(255, 255, 255, 0.5);
+        font-family: var(--font-tech);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        padding: 16px 24px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition:
+            color 0.2s,
+            padding-left 0.2s;
+    }
+
+    .nav-drawer a:last-child {
+        border-bottom: none;
+    }
+    .nav-drawer a:hover,
+    .nav-drawer a.active {
+        color: white;
+        padding-left: 32px;
+    }
+
+    .nav-drawer a::before {
+        content: attr(data-index);
+        color: var(--color-primary);
+        font-size: 9px;
+        opacity: 0.7;
+    }
+
+    /* ── MOBILE BREAKPOINT ─────────────────────── */
+    @media (max-width: 768px) {
+        .site-nav {
+            height: 56px;
+            padding: 0 20px;
+        }
+        .nav-pill {
+            display: none;
+        }
+        .nav-badge {
+            display: none;
+        }
+        .nav-hamburger {
+            display: flex;
+        }
+
+        .nav-logo-wordmark {
+            font-size: 17px;
+            letter-spacing: 0.08em;
+            color: #ffffff;
+            text-shadow: 0 0 12px rgba(255, 46, 0, 0.5);
+        }
+
+        .nav-logo img {
+            width: 22px;
+            height: 22px;
+        }
+
+        .nav-logo {
+            gap: 8px;
+        }
+    }
+</style>
+
+<script>
+    const hamburger = document.getElementById("hamburger");
+    const navDrawer = document.getElementById("navDrawer");
+
+    hamburger?.addEventListener("click", () => {
+        hamburger.classList.toggle("open");
+        navDrawer?.classList.toggle("open");
+    });
+
+    navDrawer?.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => {
+            hamburger?.classList.remove("open");
+            navDrawer?.classList.remove("open");
+        });
+    });
+</script>

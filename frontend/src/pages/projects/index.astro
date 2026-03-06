@@ -1,0 +1,225 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import ProjectCard from "../../components/projects/ProjectCard.astro";
+import { fetchProjects, getAssetUrl } from "../../lib/directus";
+
+const directusProjects = await fetchProjects();
+
+// Static fallback data when Directus is offline
+const fallbackProjects = [
+    {
+        title: "PREDICTIVE RETAIL MODEL",
+        description:
+            "SARIMA time-series forecasting for inventory optimization in multi-channel commerce environments.",
+        image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800",
+        index: "EXP.01",
+        year: "2023",
+        tags: ["Python", "Statsmodels"],
+        href: "#",
+    },
+    {
+        title: "HOMELAB CLUSTER V4",
+        description:
+            "High-availability Proxmox environment with ZFS storage arrays and automated LXC deployment scripts.",
+        image: "https://images.unsplash.com/photo-1558494949-ef526b0042a0?q=80&w=800",
+        index: "EXP.02",
+        year: "2023",
+        tags: ["Proxmox", "DevOps"],
+        href: "#",
+    },
+    {
+        title: "SENTIMENT ENGINE",
+        description:
+            "Real-time NLP pipeline processing social signals using transformer models and Kafka streams.",
+        image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800",
+        index: "EXP.03",
+        year: "2023",
+        tags: ["AI", "Kafka"],
+        href: "#",
+    },
+    {
+        title: "SUPPLY CHAIN BI",
+        description:
+            "Interactive Tableau dashboard suite for global logistics monitoring and bottleneck identification.",
+        image: "https://images.unsplash.com/photo-1543286386-713bdd548da4?q=80&w=800",
+        index: "EXP.04",
+        year: "2022",
+        tags: ["Tableau", "SQL"],
+        href: "#",
+    },
+    {
+        title: "BLOCKCHAIN INDEXER",
+        description:
+            "Custom indexing engine for EVM-compatible chains to track high-frequency wallet movements.",
+        image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=800",
+        index: "EXP.05",
+        year: "2022",
+        tags: ["Web3", "Go"],
+        href: "#",
+    },
+    {
+        title: "GRAPH TOPOLOGY",
+        description:
+            "Visualization tool for exploring complex network relationships within internal corporate hierarchies.",
+        image: "https://images.unsplash.com/photo-1504868584819-f8eec59b3ef7?q=80&w=800",
+        index: "EXP.06",
+        year: "2022",
+        tags: ["D3.js", "Neo4j"],
+        href: "#",
+    },
+];
+
+// Use Directus data if available, otherwise fallback
+const projects =
+    directusProjects.length > 0
+        ? directusProjects.map((p: any, i: number) => ({
+              title: (p.title ?? "UNTITLED").toUpperCase(),
+              description: p.summary ?? p.description ?? "",
+              image: p.cover_image
+                  ? getAssetUrl(p.cover_image)
+                  : fallbackProjects[i % fallbackProjects.length].image,
+              index: `EXP.${String(i + 1).padStart(2, "0")}`,
+              year: p.published_at
+                  ? new Date(p.published_at).getFullYear().toString()
+                  : "2023",
+              tags: p.tags ?? [],
+              href: p.slug ? `/projects/${p.slug}` : "#",
+          }))
+        : fallbackProjects;
+---
+
+<MainLayout title="PROJECTS // DATA DREAMER">
+    <main class="container page-content">
+        <header class="page-hero-header">
+            <span class="meta-text">// PROJECT INDEX</span>
+            <h1 class="page-title">DEEP<br />WORKSPACE</h1>
+        </header>
+
+        <div class="filter-bar">
+            <button class="filter-btn active" data-tag="all"
+                >All Deployments</button
+            >
+            <button class="filter-btn" data-tag="analytics">Analytics</button>
+            <button class="filter-btn" data-tag="ml / ai">ML / AI</button>
+            <button class="filter-btn" data-tag="infra">Infra</button>
+            <button class="filter-btn" data-tag="visualization"
+                >Visualization</button
+            >
+            <button class="filter-btn" data-tag="automation">Automation</button>
+        </div>
+
+        <div class="projects-grid">
+            {
+                projects.map((project: any) => (
+                    <div
+                        class="project-item"
+                        data-tags={JSON.stringify(
+                            project.tags.map((t: string) => t.toLowerCase()),
+                        )}
+                    >
+                        <ProjectCard
+                            title={project.title}
+                            description={project.description}
+                            image={project.image}
+                            index={project.index}
+                            year={project.year}
+                            tags={project.tags}
+                            href={project.href}
+                        />
+                    </div>
+                ))
+            }
+        </div>
+    </main>
+</MainLayout>
+
+<style>
+    .page-content {
+        padding-top: 56px;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        border-top: 1px solid var(--color-gray);
+        border-bottom: 1px solid var(--color-gray);
+        padding: 24px 0;
+        margin-bottom: 60px;
+    }
+
+    .filter-btn {
+        background: none;
+        border: 1px solid #ccc;
+        padding: 6px 16px;
+        font-family: var(--font-tech);
+        font-size: 10px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #666;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+        background: var(--color-primary);
+        color: white;
+        border-color: var(--color-primary);
+    }
+
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 40px;
+        margin-bottom: 100px;
+    }
+
+    @media (max-width: 1024px) {
+        .projects-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .projects-grid {
+            grid-template-columns: 1fr;
+            gap: 60px;
+        }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .filter-btn {
+            border-color: #444;
+            color: #888;
+        }
+    }
+</style>
+
+<script>
+    const buttons = document.querySelectorAll(".filter-btn");
+    const items = document.querySelectorAll(
+        ".project-item",
+    ) as NodeListOf<HTMLElement>;
+
+    buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const filterTag = btn.getAttribute("data-tag")?.toLowerCase();
+
+            // Toggle active state
+            buttons.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            // Filter items
+            items.forEach((item) => {
+                const itemTagsStr = item.getAttribute("data-tags");
+                const itemTags = JSON.parse(itemTagsStr || "[]");
+
+                if (filterTag === "all" || itemTags.includes(filterTag)) {
+                    item.style.display = "block";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        });
+    });
+</script>

@@ -1,0 +1,128 @@
+---
+/**
+ * TableOfContents — Sticky sidebar with scrollspy.
+ * Renders "INDEX_CONTENTS" title with heading links.
+ * Client-side scrollspy highlights active section.
+ */
+interface Heading {
+    id: string;
+    text: string;
+    depth: number;
+}
+
+interface Props {
+    headings: Heading[];
+}
+
+const { headings } = Astro.props;
+---
+
+<aside class="toc-sidebar">
+    <div class="toc-title">INDEX_CONTENTS</div>
+    <ul class="toc-list">
+        {
+            headings.map((h, i) => (
+                <li class="toc-item">
+                    <a
+                        href={`#${h.id}`}
+                        class={`toc-link ${i === 0 ? "active" : ""}`}
+                        data-toc-link
+                        data-target={h.id}
+                    >
+                        {String(i + 1).padStart(2, "0")}_{h.text}
+                    </a>
+                </li>
+            ))
+        }
+    </ul>
+</aside>
+
+<style>
+    .toc-sidebar {
+        position: sticky;
+        top: 100px;
+        height: fit-content;
+    }
+
+    .toc-title {
+        font-size: 10px;
+        color: var(--color-primary);
+        font-weight: 700;
+        margin-bottom: 20px;
+        letter-spacing: 0.1em;
+        font-family: var(--font-tech);
+    }
+
+    .toc-list {
+        list-style: none;
+    }
+
+    .toc-item {
+        margin-bottom: 12px;
+    }
+
+    .toc-link {
+        text-decoration: none;
+        color: var(--color-ink);
+        font-size: 11px;
+        font-family: var(--font-tech);
+        opacity: 0.5;
+        transition:
+            opacity 0.2s,
+            padding-left 0.2s,
+            color 0.2s;
+        display: block;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .toc-link:hover {
+        opacity: 1;
+        color: var(--color-primary);
+        padding-left: 8px;
+    }
+
+    .toc-link.active {
+        opacity: 1;
+        color: var(--color-primary);
+        border-left: 2px solid var(--color-primary);
+        padding-left: 12px;
+    }
+
+    @media (max-width: 1024px) {
+        .toc-sidebar {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    const tocLinks = document.querySelectorAll("[data-toc-link]");
+    const headingIds = Array.from(tocLinks).map(
+        (l) => (l as HTMLElement).dataset.target ?? "",
+    );
+
+    function updateActive() {
+        let current = headingIds[0];
+        for (const id of headingIds) {
+            const el = document.getElementById(id);
+            if (el) {
+                const rect = el.getBoundingClientRect();
+                if (rect.top <= 120) {
+                    current = id;
+                }
+            }
+        }
+        tocLinks.forEach((link) => {
+            const target = (link as HTMLElement).dataset.target;
+            if (target === current) {
+                link.classList.add("active");
+            } else {
+                link.classList.remove("active");
+            }
+        });
+    }
+
+    window.addEventListener("scroll", updateActive, { passive: true });
+    updateActive();
+</script>

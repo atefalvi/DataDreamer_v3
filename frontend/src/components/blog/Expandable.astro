@@ -1,0 +1,19 @@
+---
+/**
+ * Expandable — Collapsible details/summary block.
+ * Uses <details class="expand-block"> with [+]/[-] toggle.
+ * Styles are in global.css.
+ */
+interface Props {
+    summary: string;
+}
+
+const { summary } = Astro.props;
+---
+
+<details class="expand-block">
+    <summary>{summary}</summary>
+    <div class="expand-content">
+        <slot />
+    </div>
+</details>

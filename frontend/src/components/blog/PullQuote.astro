@@ -1,0 +1,14 @@
+---
+/**
+ * PullQuote — Large centered quote with thick top/bottom borders.
+ * Matches blog_page.html reference .pull-quote.
+ * Styles are in global.css.
+ */
+interface Props {
+    text: string;
+}
+
+const { text } = Astro.props;
+---
+
+<div class="pull-quote">{text}</div>

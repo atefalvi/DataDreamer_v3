@@ -1,0 +1,18 @@
+---
+/**
+ * Callout — Tip / Warning / Info / Note callout box.
+ * Matches blog_page.html reference styling.
+ * Styles are in global.css.
+ */
+interface Props {
+    type: "tip" | "warning" | "info" | "note";
+    label: string;
+}
+
+const { type, label } = Astro.props;
+---
+
+<div class={`callout ${type}`}>
+    <div class="callout-label">{label}</div>
+    <slot />
+</div>

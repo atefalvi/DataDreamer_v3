@@ -1,0 +1,98 @@
+---
+/**
+ * Footer — Red contact section with "READY TO PROCESS DATA?"
+ * display text and a contact grid.
+ */
+---
+
+<footer id="contact">
+    <div class="display-text footer-cta">
+        <span>READY TO</span>
+        <span>PROCESS</span>
+        <span>DATA?</span>
+    </div>
+
+    <div class="contact-grid">
+        <div>
+            <span class="contact-label">AVAILABLE FOR HIRE</span>
+            REMOTE / HYBRID / ONSITE<br/>
+            EST TIMEZONE
+        </div>
+        <div class="contact-links">
+            <a href="mailto:hello@data-dreamer.net" class="contact-link">HELLO@DATA-DREAMER.NET</a>
+            <a href="https://github.com/datadreamer" class="contact-link" target="_blank" rel="noopener">GITHUB.COM/DATADREAMER</a>
+            <a href="https://linkedin.com/in/datadreamer" class="contact-link" target="_blank" rel="noopener">LINKEDIN.COM/IN/DATADREAMER</a>
+        </div>
+    </div>
+</footer>
+
+<style>
+    footer {
+        padding: 100px var(--container-padding) 60px;
+        background: var(--color-primary);
+        color: white;
+        min-height: 60vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .footer-cta {
+        font-size: clamp(40px, 10vw, 150px);
+        color: white;
+    }
+
+    .contact-grid {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        font-family: var(--font-tech);
+        font-size: 12px;
+        text-transform: uppercase;
+        border-top: 1px solid rgba(255,255,255,0.4);
+        padding-top: 32px;
+        line-height: 2;
+    }
+
+    .contact-label {
+        opacity: 0.5;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .contact-links {
+        text-align: right;
+    }
+
+    .contact-link {
+        color: white;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .contact-link:hover {
+        text-decoration: underline;
+    }
+
+    /* ── MOBILE ─────────────────────────────────── */
+    @media (max-width: 768px) {
+        footer {
+            padding: 60px 20px 40px;
+        }
+
+        .footer-cta {
+            font-size: clamp(36px, 12vw, 80px);
+        }
+
+        .contact-grid {
+            flex-direction: column;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .contact-links {
+            text-align: left;
+        }
+    }
+</style>

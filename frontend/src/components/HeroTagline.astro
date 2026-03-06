@@ -1,0 +1,47 @@
+---
+/**
+ * HeroTagline — 3-line tagline with vertical primary bar.
+ * Uses border-left so the bar aligns perfectly with text height.
+ */
+interface Props {
+    lines?: string[];
+}
+
+const {
+    lines = [
+        "CONVERTING SIGNAL TO INTELLIGENCE.",
+        "FULL STACK ANALYTICS & HOMELAB OPERATIONS.",
+        "CURRENTLY TRAINING NEURAL NETS.",
+    ],
+} = Astro.props;
+---
+
+<div class="hero-tagline">
+    {lines.map((line) => <span>{line}</span>)}
+</div>
+
+<style>
+    .hero-tagline {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 32px;
+        max-width: 480px;
+        border-left: 2px solid var(--color-primary);
+        padding-left: 16px;
+    }
+
+    .hero-tagline span {
+        font-size: 12px;
+        font-family: var(--font-tech);
+        font-weight: 400;
+        line-height: 1.5;
+        color: #444;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .hero-tagline span {
+            color: #aaa;
+        }
+    }
+</style>

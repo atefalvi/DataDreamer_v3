@@ -1,0 +1,548 @@
+---
+/**
+ * HeroCanvas — Interactive hero with:
+ * 1. 3D wireframe node constellation with cubes (heroCanvas)
+ * 2. Pixelated "DATA DREAMER" text that assembles and reacts to mouse (pixelCanvas)
+ * Both respond to mouse interaction.
+ */
+import HeroTagline from "../HeroTagline.astro";
+---
+
+<section class="hero" id="about" style="position:relative; overflow:hidden;">
+    <canvas id="heroCanvas"></canvas>
+    <canvas
+        id="pixelCanvas"
+        style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;"
+    ></canvas>
+    <div
+        class="display-text"
+        style="position:relative; z-index:1; opacity:0; visibility:hidden;"
+    >
+        <span>DATA</span>
+        <span>DREAMER</span>
+    </div>
+    <div class="hero-sub" style="position:relative; z-index:1;">
+        <HeroTagline />
+    </div>
+</section>
+
+<style>
+    canvas#heroCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding-top: calc(var(--nav-h) + 24px);
+        padding-bottom: 80px;
+        padding-left: var(--container-padding);
+        padding-right: var(--container-padding);
+    }
+
+    .hero-sub {
+        margin-top: 0;
+    }
+
+    @media (max-width: 768px) {
+        .hero {
+            padding-top: 100px;
+            padding-bottom: 48px;
+            min-height: 100svh;
+        }
+    }
+</style>
+
+<script>
+    // ─── 3D HERO CANVAS ────────────────────────────────
+    const canvas = document.getElementById("heroCanvas") as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d")!;
+
+    function resize() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    const NODE_COUNT = 60;
+    const EDGE_DIST = 220;
+    let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+
+    document.addEventListener("mousemove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+    });
+
+    let ripples: { x: number; y: number; r: number; alpha: number }[] = [];
+    canvas.parentElement?.addEventListener("click", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        ripples.push({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+            r: 0,
+            alpha: 0.6,
+        });
+    });
+
+    let nodes = Array.from({ length: NODE_COUNT }, () => ({
+        x: (Math.random() - 0.5) * 1200,
+        y: (Math.random() - 0.5) * 900,
+        z: (Math.random() - 0.5) * 800,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        vz: (Math.random() - 0.5) * 0.4,
+    }));
+
+    let cubes = [
+        {
+            x: -320,
+            y: 80,
+            z: -100,
+            rx: 0,
+            ry: 0,
+            rz: 0,
+            size: 90,
+            vrx: 0.005,
+            vry: 0.009,
+            vrz: 0.003,
+        },
+        {
+            x: 280,
+            y: -120,
+            z: 60,
+            rx: 1,
+            ry: 0.5,
+            rz: 0,
+            size: 55,
+            vrx: -0.007,
+            vry: 0.012,
+            vrz: 0.004,
+        },
+        {
+            x: 480,
+            y: 200,
+            z: -200,
+            rx: 0.3,
+            ry: 0.2,
+            rz: 0.1,
+            size: 38,
+            vrx: 0.01,
+            vry: -0.006,
+            vrz: 0.008,
+        },
+    ];
+
+    function project(x: number, y: number, z: number, cx: number, cy: number) {
+        const fov = 600;
+        const dz = fov + z;
+        if (dz <= 0) return null;
+        return {
+            sx: cx + (x * fov) / dz,
+            sy: cy + (y * fov) / dz,
+            scale: fov / dz,
+        };
+    }
+
+    function rotatePt(
+        x: number,
+        y: number,
+        z: number,
+        rx: number,
+        ry: number,
+        rz: number,
+    ): [number, number, number] {
+        let y1 = y * Math.cos(rx) - z * Math.sin(rx);
+        let z1 = y * Math.sin(rx) + z * Math.cos(rx);
+        let x2 = x * Math.cos(ry) + z1 * Math.sin(ry);
+        let z2 = -x * Math.sin(ry) + z1 * Math.cos(ry);
+        let x3 = x2 * Math.cos(rz) - y1 * Math.sin(rz);
+        let y3 = x2 * Math.sin(rz) + y1 * Math.cos(rz);
+        return [x3, y3, z2];
+    }
+
+    function drawCube(cube: (typeof cubes)[0], cx: number, cy: number) {
+        const s = cube.size;
+        const verts = [
+            [-s, -s, -s],
+            [s, -s, -s],
+            [s, s, -s],
+            [-s, s, -s],
+            [-s, -s, s],
+            [s, -s, s],
+            [s, s, s],
+            [-s, s, s],
+        ].map(([x, y, z]) => rotatePt(x, y, z, cube.rx, cube.ry, cube.rz));
+
+        const proj = verts.map(([x, y, z]) =>
+            project(x + cube.x, y + cube.y, z + cube.z, cx, cy),
+        );
+        const edges = [
+            [0, 1],
+            [1, 2],
+            [2, 3],
+            [3, 0],
+            [4, 5],
+            [5, 6],
+            [6, 7],
+            [7, 4],
+            [0, 4],
+            [1, 5],
+            [2, 6],
+            [3, 7],
+        ];
+
+        ctx.strokeStyle = "rgba(255,46,0,0.25)";
+        ctx.lineWidth = 1;
+        edges.forEach(([a, b]) => {
+            const pa = proj[a],
+                pb = proj[b];
+            if (!pa || !pb) return;
+            ctx.beginPath();
+            ctx.moveTo(pa.sx, pa.sy);
+            ctx.lineTo(pb.sx, pb.sy);
+            ctx.stroke();
+        });
+
+        proj.forEach((p) => {
+            if (!p) return;
+            ctx.beginPath();
+            ctx.arc(p.sx, p.sy, 2 * p.scale, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255,46,0,0.45)";
+            ctx.fill();
+        });
+    }
+
+    let angleY = 0;
+    let angleX = 0;
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
+        const mx = (mouse.x - cx) / cx;
+        const my = (mouse.y - cy) / cy;
+        angleY += (mx * 0.6 - angleY) * 0.04;
+        angleX += (-my * 0.35 - angleX) * 0.04;
+
+        nodes.forEach((n) => {
+            const [rx2, ry2] = rotatePt(n.x, n.y, n.z, angleX, angleY, 0);
+            const p2 = project(rx2, ry2, 0, cx, cy);
+            if (!p2) return;
+            const ddx = p2.sx - mouse.x;
+            const ddy = p2.sy - mouse.y;
+            const dd = Math.sqrt(ddx * ddx + ddy * ddy);
+            if (dd < 120) {
+                const force = ((120 - dd) / 120) * 1.2;
+                n.vx += (ddx / dd) * force * 0.3;
+                n.vy += (ddy / dd) * force * 0.3;
+            }
+            const spd = Math.sqrt(n.vx * n.vx + n.vy * n.vy + n.vz * n.vz);
+            if (spd > 2.5) {
+                n.vx *= 0.9;
+                n.vy *= 0.9;
+                n.vz *= 0.9;
+            }
+        });
+
+        nodes.forEach((n) => {
+            n.x += n.vx;
+            n.y += n.vy;
+            n.z += n.vz;
+            if (Math.abs(n.x) > 700) n.vx *= -1;
+            if (Math.abs(n.y) > 550) n.vy *= -1;
+            if (Math.abs(n.z) > 500) n.vz *= -1;
+        });
+
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                const a = nodes[i],
+                    b = nodes[j];
+                const dx = a.x - b.x,
+                    dy = a.y - b.y,
+                    dz = a.z - b.z;
+                const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                if (dist < EDGE_DIST) {
+                    const [ax, ay, az] = rotatePt(
+                        a.x,
+                        a.y,
+                        a.z,
+                        angleX,
+                        angleY,
+                        0,
+                    );
+                    const [bx, by, bz] = rotatePt(
+                        b.x,
+                        b.y,
+                        b.z,
+                        angleX,
+                        angleY,
+                        0,
+                    );
+                    const pa = project(ax, ay, az, cx, cy);
+                    const pb = project(bx, by, bz, cx, cy);
+                    if (!pa || !pb) continue;
+                    const alpha = (1 - dist / EDGE_DIST) * 0.12;
+                    ctx.strokeStyle = `rgba(255,46,0,${alpha})`;
+                    ctx.lineWidth = 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(pa.sx, pa.sy);
+                    ctx.lineTo(pb.sx, pb.sy);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        nodes.forEach((n) => {
+            const [rx, ry, rz] = rotatePt(n.x, n.y, n.z, angleX, angleY, 0);
+            const p = project(rx, ry, rz, cx, cy);
+            if (!p) return;
+            ctx.beginPath();
+            ctx.arc(p.sx, p.sy, 1.5 * p.scale, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255,46,0,0.5)";
+            ctx.fill();
+        });
+
+        cubes.forEach((cube) => {
+            cube.rx += cube.vrx;
+            cube.ry += cube.vry;
+            cube.rz += cube.vrz;
+            const [px, py, pz] = rotatePt(
+                cube.x,
+                cube.y,
+                cube.z,
+                angleX,
+                angleY,
+                0,
+            );
+            const tempCube = { ...cube, x: px, y: py, z: pz };
+            drawCube(tempCube, cx, cy);
+        });
+
+        ripples = ripples.filter((rp) => rp.alpha > 0.01);
+        ripples.forEach((rp) => {
+            ctx.beginPath();
+            ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255,46,0,${rp.alpha})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            rp.r += 6;
+            rp.alpha *= 0.92;
+        });
+
+        const grd = ctx.createRadialGradient(
+            mouse.x,
+            mouse.y,
+            0,
+            mouse.x,
+            mouse.y,
+            80,
+        );
+        grd.addColorStop(0, "rgba(255,46,0,0.08)");
+        grd.addColorStop(1, "rgba(255,46,0,0)");
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(mouse.x, mouse.y, 80, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(mouse.x, mouse.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255,46,0,0.7)";
+        ctx.fill();
+
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    // ─── PIXELATED TEXT CANVAS ──────────────────────────
+    const pixelCanvas = document.getElementById(
+        "pixelCanvas",
+    ) as HTMLCanvasElement;
+    const pCtx = pixelCanvas.getContext("2d")!;
+    let pixelW: number, pixelH: number;
+    const PIXEL_SIZE = 10;
+
+    function resizePixel() {
+        const w = pixelCanvas.offsetWidth;
+        const h = pixelCanvas.offsetHeight;
+        if (w === 0 || h === 0) return;
+        pixelW = pixelCanvas.width = w;
+        pixelH = pixelCanvas.height = h;
+        buildPixels();
+    }
+    window.addEventListener("resize", () => {
+        clearTimeout((resizePixel as any)._t);
+        (resizePixel as any)._t = setTimeout(resizePixel, 120);
+    });
+
+    interface Pixel {
+        targetX: number;
+        targetY: number;
+        x: number;
+        y: number;
+        vx: number;
+        vy: number;
+        settled: boolean;
+        size: number;
+    }
+    let pixelGrid: Pixel[] = [];
+
+    function buildPixels() {
+        const isMobile = pixelW < 768;
+        const pixSize = isMobile ? 4 : 8;
+
+        const off = document.createElement("canvas");
+        const scale = 2;
+        off.width = pixelW * scale;
+        off.height = pixelH * scale;
+        const oCtx = off.getContext("2d")!;
+        oCtx.scale(scale, scale);
+
+        const pad = isMobile ? 20 : 40; // match --container-padding
+        const maxW = pixelW - pad * 2;
+        let fontSize = isMobile
+            ? Math.floor(pixelW * 0.28)
+            : Math.floor(pixelW * 0.18);
+        oCtx.font = `${fontSize}px Anton, sans-serif`;
+        while (oCtx.measureText("DREAMER").width > maxW && fontSize > 12) {
+            fontSize -= 1;
+            oCtx.font = `${fontSize}px Anton, sans-serif`;
+        }
+
+        oCtx.clearRect(0, 0, pixelW, pixelH);
+        oCtx.fillStyle = "#FF2E00";
+        oCtx.textBaseline = "alphabetic";
+
+        const lineH = fontSize * 1.05;
+        const totalH = lineH * 2;
+
+        // Navigation is 56px height. Ensure visual breathing room (64px) between nav and text.
+        const minTopGap = 56 + 64;
+        let startY = (pixelH - totalH) / 2 + fontSize * 0.85;
+
+        // The top of the text visually starts around (startY - fontSize * 0.85)
+        const computedTop = startY - fontSize * 0.85;
+        if (computedTop < minTopGap) {
+            startY = minTopGap + fontSize * 0.85;
+        }
+
+        oCtx.fillText("DATA", pad, startY);
+        oCtx.fillText("DREAMER", pad, startY + lineH);
+
+        const imgData = oCtx.getImageData(0, 0, off.width, off.height).data;
+        const sw = off.width;
+
+        pixelGrid = [];
+        for (let py = 0; py < pixelH; py += pixSize) {
+            for (let px = 0; px < pixelW; px += pixSize) {
+                const spx = Math.floor(px * scale);
+                const spy = Math.floor(py * scale);
+                const idx = (spy * sw + spx) * 4;
+                if (imgData[idx + 3] > 80) {
+                    pixelGrid.push({
+                        targetX: px,
+                        targetY: py,
+                        x: Math.random() * pixelW,
+                        y: -pixSize - Math.random() * pixelH * 0.5,
+                        vx: 0,
+                        vy: 0,
+                        settled: false,
+                        size: pixSize,
+                    });
+                }
+            }
+        }
+    }
+
+    let pixMouse = { x: -999, y: -999 };
+    document.addEventListener("mousemove", (e) => {
+        const rect = pixelCanvas.getBoundingClientRect();
+        pixMouse.x = e.clientX - rect.left;
+        pixMouse.y = e.clientY - rect.top;
+    });
+
+    document.addEventListener("click", (e) => {
+        const rect = pixelCanvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        pixelGrid.forEach((p) => {
+            const dx = p.targetX - clickX;
+            const dy = p.targetY - clickY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 180) {
+                const force = ((180 - dist) / 180) * 18;
+                p.vx += (dx / dist) * force;
+                p.vy += (dy / dist) * force;
+                p.settled = false;
+            }
+        });
+    });
+
+    function drawPixels() {
+        pCtx.clearRect(0, 0, pixelW, pixelH);
+
+        pixelGrid.forEach((p) => {
+            if (!p.settled) {
+                const dx = p.targetX - p.x;
+                const dy = p.targetY - p.y;
+                p.vx += dx * 0.06;
+                p.vy += dy * 0.06;
+                p.vx *= 0.78;
+                p.vy *= 0.78;
+                p.x += p.vx;
+                p.y += p.vy;
+                if (
+                    Math.abs(dx) < 0.5 &&
+                    Math.abs(dy) < 0.5 &&
+                    Math.abs(p.vx) < 0.3 &&
+                    Math.abs(p.vy) < 0.3
+                ) {
+                    p.settled = true;
+                    p.x = p.targetX;
+                    p.y = p.targetY;
+                }
+            }
+
+            const mdx = p.targetX - pixMouse.x;
+            const mdy = p.targetY - pixMouse.y;
+            const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+            let drawX = p.x;
+            let drawY = p.y;
+            if (p.settled && mdist < 80) {
+                const push = ((80 - mdist) / 80) * 14;
+                drawX = p.targetX + (mdx / mdist) * push;
+                drawY = p.targetY + (mdy / mdist) * push;
+            }
+
+            if (Math.random() < 0.0005) {
+                drawX += (Math.random() - 0.5) * PIXEL_SIZE * 2;
+                drawY += (Math.random() - 0.5) * PIXEL_SIZE * 1;
+            }
+
+            const ps = p.size || PIXEL_SIZE;
+            pCtx.fillStyle = "rgba(255, 46, 0, 0.92)";
+            pCtx.fillRect(drawX, drawY, ps - 1, ps - 1);
+        });
+
+        requestAnimationFrame(drawPixels);
+    }
+
+    document.fonts.ready.then(() => {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                resizePixel();
+                drawPixels();
+            });
+        });
+    });
+</script>
