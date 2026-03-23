@@ -8,7 +8,14 @@ services:
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
       POSTGRES_DB: "${DB_DATABASE}"
     healthcheck:
-      test: ["CMD", "pg_isready", "--host=localhost", "--username=${DB_USER}"]
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "--host=localhost",
+          "--username=${DB_USER}",
+          "--dbname=${DB_DATABASE}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
