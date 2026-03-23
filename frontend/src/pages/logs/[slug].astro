@@ -1,21 +1,17 @@
 ---
 import MainLayout from "../../layouts/MainLayout.astro";
 import TableOfContents from "../../components/blog/TableOfContents.astro";
+import RelatedLogs from "../../components/blog/RelatedLogs.astro";
 import { getLogBySlug, getLogs, type ContentLog } from "../../lib/content";
 import { renderMarkdown } from "../../lib/renderMarkdown";
 
-export async function getStaticPaths() {
-    const logs = await getLogs();
-    return logs.map((log) => ({
-        params: { slug: log.slug },
-    }));
-}
-
 const { slug } = Astro.params;
 let post: ContentLog | null = null;
+let allLogs: ContentLog[] = [];
 
 if (slug) {
     post = await getLogBySlug(slug);
+    allLogs = await getLogs();
 }
 
 if (!post) {
@@ -49,7 +45,7 @@ const { html: renderedContent, headings } = await renderMarkdown(post.content);
         <h1 class="post-hero-title">{post.title}</h1>
         <p class="post-hero-desc">{post.excerpt}</p>
         <div class="post-hero-info">
-            <span><strong>AUTHOR</strong>&nbsp; DATA DREAMER</span>
+            <span><strong>AUTHOR</strong>&nbsp; {post.authorName}</span>
             <span><strong>PUBLISHED</strong>&nbsp; {post.date}</span>
             <span
                 ><strong>LOG</strong>&nbsp; #{
@@ -66,11 +62,11 @@ const { html: renderedContent, headings } = await renderMarkdown(post.content);
         <article class="blog-content">
             <Fragment set:html={renderedContent} />
 
-            <div class="return-link">
-                <a href="/logs">← RETURN TO LOG_LIST</a>
-            </div>
         </article>
     </div>
+
+    <!-- Related Logs Component -->
+    <RelatedLogs currentSlug={slug || ''} posts={allLogs.map(l => ({ slug: l.slug, title: l.title, summary: l.excerpt }))} />
 </MainLayout>
 
 <style>

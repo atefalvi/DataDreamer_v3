@@ -11,92 +11,22 @@ import {
 const directusProjects = await fetchFeaturedProjects(3);
 const directusLogs = await fetchRecentLogs(3);
 
-// Static fallback projects
-const fallbackProjects = [
-    {
-        title: "PREDICTIVE RETAIL MODEL",
-        description:
-            "SARIMA time-series forecasting for inventory optimization in multi-channel commerce environments.",
-        image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=800",
-        index: "EXP.01",
-        year: "2023",
-        tags: ["Python", "Statsmodels"],
-        href: "#",
-    },
-    {
-        title: "HOMELAB CLUSTER V4",
-        description:
-            "High-availability Proxmox environment with ZFS storage arrays and automated LXC deployment scripts.",
-        image: "https://images.unsplash.com/photo-1558494949-ef526b0042a0?q=80&w=800",
-        index: "EXP.02",
-        year: "2023",
-        tags: ["Proxmox", "DevOps"],
-        href: "#",
-    },
-    {
-        title: "SENTIMENT ENGINE",
-        description:
-            "Real-time NLP pipeline processing social signals using transformer models and Kafka streams.",
-        image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=800",
-        index: "EXP.03",
-        year: "2023",
-        tags: ["AI", "Kafka"],
-        href: "#",
-    },
-];
+const projects = directusProjects.map((p: any, i: number) => ({
+    title: (p.title ?? "UNTITLED").toUpperCase(),
+    description: p.summary ?? "",
+    image: p.cover_image ? getAssetUrl(p.cover_image) : null,
+    index: `EXP.${String(i + 1).padStart(2, "0")}`,
+    year: p.published_at ? new Date(p.published_at).getFullYear().toString() : "2024",
+    tags: p.tags ?? [],
+    href: p.slug ? `/projects/${p.slug}` : "#",
+}));
 
-const fallbackLogs = [
-    {
-        slug: "fine-tuning-llama-on-my-resume",
-        title: "FINE-TUNING LLAMA ON MY RESUME",
-        date: "2023.08.05",
-        tag: "AI",
-    },
-    {
-        slug: "migrating-to-zfs-pools",
-        title: "MIGRATING TO ZFS POOLS",
-        date: "2023.10.24",
-        tag: "INFRA",
-    },
-    {
-        slug: "why-pandas-is-slow",
-        title: "WHY PANDAS IS SLOW (AND THE FIX)",
-        date: "2023.09.12",
-        tag: "PYTHON",
-    },
-];
-
-const projects =
-    directusProjects.length > 0
-        ? directusProjects.map((p: any, i: number) => ({
-              title: (p.title ?? "UNTITLED").toUpperCase(),
-              description: p.summary ?? "",
-              image: p.cover_image
-                  ? getAssetUrl(p.cover_image)
-                  : fallbackProjects[i % fallbackProjects.length].image,
-              index: `EXP.${String(i + 1).padStart(2, "0")}`,
-              year: p.published_at
-                  ? new Date(p.published_at).getFullYear().toString()
-                  : "2023",
-              tags: p.tags ?? [],
-              href: p.slug ? `/projects/${p.slug}` : "#",
-          }))
-        : fallbackProjects;
-
-const logs =
-    directusLogs.length > 0
-        ? directusLogs.map((l: any) => ({
-              slug: l.slug ?? "",
-              title: (l.title ?? "UNTITLED").toUpperCase(),
-              date: l.published_at
-                  ? new Date(l.published_at)
-                        .toISOString()
-                        .slice(0, 10)
-                        .replace(/-/g, ".")
-                  : "—",
-              tag: (l.tag ?? l.category ?? "").toUpperCase(),
-          }))
-        : fallbackLogs;
+const logs = directusLogs.map((l: any) => ({
+    slug: l.slug ?? "",
+    title: (l.title ?? "UNTITLED").toUpperCase(),
+    date: l.published_at ? new Date(l.published_at).toISOString().slice(0, 10).replace(/-/g, ".") : "—",
+    tag: (l.tag ?? l.category ?? "").toUpperCase(),
+}));
 ---
 
 <MainLayout title="DATA DREAMER // ANALYST">
@@ -106,7 +36,7 @@ const logs =
     <section class="container teaser-section">
         <header class="section-header-block">
             <div class="section-header-content">
-                <span class="meta-text" style="color:#999;"
+                <span class="meta-text" style="color:var(--text-secondary);"
                     >// RECENT DEPLOYMENTS</span
                 >
                 <h2 class="section-title">PROJECTS</h2>
@@ -134,7 +64,7 @@ const logs =
     <section class="container teaser-section">
         <header class="section-header-block">
             <div class="section-header-content">
-                <span class="meta-text" style="color:#999;"
+                <span class="meta-text" style="color:var(--text-secondary);"
                     >// TERMINAL OUTPUT</span
                 >
                 <h2 class="section-title">DEV LOG</h2>
@@ -207,7 +137,7 @@ const logs =
         width: 110px;
         flex-shrink: 0;
         font-size: 11px;
-        color: #999;
+        color: var(--text-secondary);
     }
 
     .teaser-log-title {
@@ -219,10 +149,10 @@ const logs =
 
     .teaser-log-tag {
         font-size: 10px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border);
         padding: 3px 8px;
         flex-shrink: 0;
-        color: #666;
+        color: var(--text-secondary);
     }
 
     @media (max-width: 1024px) {

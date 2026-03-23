@@ -4,11 +4,11 @@ services:
     volumes:
       - ./data/database:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: "directus"
-      POSTGRES_PASSWORD: "directus"
-      POSTGRES_DB: "datadreamer"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_DATABASE}"
     healthcheck:
-      test: ["CMD", "pg_isready", "--host=localhost", "--username=directus"]
+      test: ["CMD", "pg_isready", "--host=localhost", "--username=${DB_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,21 +38,23 @@ services:
       cache:
         condition: service_healthy
     environment:
-      SECRET: "Atef2505"
+      SECRET: "${DIRECTUS_SECRET}"
 
       DB_CLIENT: "pg"
       DB_HOST: "database"
       DB_PORT: "5432"
-      DB_DATABASE: "datadreamer"
-      DB_USER: "directus"
-      DB_PASSWORD: "directus"
+      DB_DATABASE: "${DB_DATABASE}"
+      DB_USER: "${DB_USER}"
+      DB_PASSWORD: "${DB_PASSWORD}"
 
       CACHE_ENABLED: "true"
       CACHE_AUTO_PURGE: "true"
       CACHE_STORE: "redis"
       REDIS: "redis://cache:6379"
 
-      ADMIN_EMAIL: "atefalvi@gmail.com"
-      ADMIN_PASSWORD: "Atef2505"
+      ADMIN_EMAIL: "${DIRECTUS_ADMIN_EMAIL}"
+      ADMIN_PASSWORD: "${DIRECTUS_ADMIN_PASSWORD}"
 
-      PUBLIC_URL: "http://localhost:8055"
+      PUBLIC_URL: "${DIRECTUS_PUBLIC_URL:-http://localhost:8055}"
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "${CORS_ORIGIN:-http://localhost:4321}"

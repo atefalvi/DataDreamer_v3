@@ -3,20 +3,85 @@
 
 /* ── DESIGN TOKENS ─────────────────────────────── */
 :root {
-    --color-primary: #FF2E00;
-    --color-bg: #FFFFFF;
-    --color-ink: #111111;
-    --color-gray: #E5E5E5;
-    --color-border: #e5e5e5;
+    /* -- INDUSTRIAL CINEMATIC BRUTALISM TOKENS -- */
+    /* Light Mode Default Variables (when no data-theme applied AND prefers light) */
+    --bg-primary: #F2F2F7;
+    --bg-surface: #FFFFFF;
+    --bg-muted: #E5E5EA;
+    --text-primary: #1C1C1E;
+    --text-secondary: #636366;
+    --border: #D1D1D6;
 
+    --accent: #FF2E00;
+    --accent-soft: rgba(255, 46, 0, 0.2);
+
+    /* Fonts & Spacing */
     --font-display: 'Anton', sans-serif;
     --font-tech: 'JetBrains Mono', monospace;
 
     --spacing-unit: 8px;
-    --container-padding: 60px;
-    --nav-h: 56px;
+    --container-padding: 32px;
+    --nav-h: 64px;
+    --section-spacing: 128px;
 
-    --logo-main: #111111;
+    /* Legacy Map (temporarily mapping old vars to new semantic tokens) */
+    --color-primary: var(--accent);
+    --color-bg: var(--bg-primary);
+    --color-ink: var(--text-primary);
+    --color-gray: var(--bg-muted);
+    --color-border: var(--border);
+    --logo-main: var(--text-primary);
+
+    /* Transition System */
+    --ease-out: cubic-bezier(0.2, 0, 0, 1);
+    --transition-speed: 0.3s;
+}
+
+/* Base Light Theme */
+[data-theme="light"],
+html:not([data-theme="dark"]) {
+    --bg-primary: #F2F2F7;
+    --bg-surface: #FFFFFF;
+    --bg-muted: #E5E5EA;
+    --text-primary: #1C1C1E;
+    --text-secondary: #636366;
+    --border: #D1D1D6;
+    --color-bg: var(--bg-primary);
+    --color-ink: var(--text-primary);
+    --color-border: var(--border);
+    --color-gray: var(--bg-muted);
+    --logo-main: var(--text-primary);
+}
+
+/* Base Dark Theme overrides OS preference */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --bg-primary: #050505;
+        --bg-surface: #0A0A0A;
+        --bg-muted: #141414;
+        --text-primary: #FFFFFF;
+        --text-secondary: #A0A0A5;
+        --border: #242426;
+        --color-bg: var(--bg-primary);
+        --color-ink: var(--text-primary);
+        --color-border: var(--border);
+        --color-gray: var(--bg-muted);
+        --logo-main: var(--text-primary);
+    }
+}
+
+[data-theme="dark"] {
+    --bg-primary: #050505;
+    --bg-surface: #0A0A0A;
+    --bg-muted: #141414;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A0A0A5;
+    --border: #242426;
+    --color-bg: var(--bg-primary);
+    --color-ink: var(--text-primary);
+    --color-border: var(--border);
+    --color-gray: var(--bg-muted);
+    --logo-main: var(--text-primary);
 }
 
 /* ── INDUSTRIAL BRUTALIST RESET ────────────────── */
@@ -30,12 +95,13 @@
 }
 
 body {
-    background-color: var(--color-bg);
-    color: var(--color-ink);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     font-family: var(--font-tech);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     line-height: 1.6;
+    font-size: 16px;
 }
 
 /* ── TYPOGRAPHY ────────────────────────────────── */
@@ -135,9 +201,24 @@ h6 {
 /* ── LAYOUT ────────────────────────────────────── */
 .container {
     width: 100%;
-    padding: var(--container-padding);
-    max-width: 1800px;
+    padding: 0 var(--container-padding);
+    max-width: 1200px;
     margin: 0 auto;
+}
+
+.grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 24px;
+}
+
+section {
+    padding: var(--section-spacing) 0;
+}
+
+/* ── TYPOGRAPHY RULES ──────────────────────────── */
+.readable-text {
+    max-width: 480px;
 }
 
 /* ── LOGO ──────────────────────────────────────── */
@@ -201,6 +282,14 @@ h6 {
    Matches reference/blog_page.html
    ══════════════════════════════════════════════════ */
 
+.blog-content h1 a,
+.blog-content h2 a,
+.blog-content h3 a,
+.blog-content h4 a {
+    color: inherit;
+    text-decoration: none;
+}
+
 /* ── BLOG HEADINGS ─────────────────────────────── */
 .blog-content h2 {
     font-family: var(--font-display);
@@ -248,6 +337,50 @@ h6 {
 .blog-content strong {
     font-weight: 700;
 }
+
+/* ── BLOG TABLES ───────────────────────────────── */
+.blog-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 40px 0;
+    font-family: var(--font-tech);
+    font-size: 13px;
+    background: var(--color-bg);
+}
+
+.blog-content th {
+    text-transform: uppercase;
+    text-align: left;
+    padding: 16px;
+    border: 2px solid var(--color-ink);
+    border-bottom: 4px solid var(--color-ink);
+    background: var(--color-gray);
+    color: var(--color-ink);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.blog-content td {
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-right: 2px solid var(--color-ink);
+    border-left: 2px solid var(--color-ink);
+    color: var(--color-ink);
+}
+
+.blog-content tr {
+    transition: background 0.15s;
+}
+
+.blog-content tr:hover {
+    background: rgba(255, 46, 0, 0.02);
+}
+
+.blog-content tr:last-child td {
+    border-bottom: 2px solid var(--color-ink);
+}
+
+
 
 /* ── BLOG LISTS ────────────────────────────────── */
 .blog-content ul {
@@ -446,6 +579,10 @@ details.expand-block .expand-content {
     text-transform: uppercase;
 }
 
+.pull-quote p:last-child {
+    margin-bottom: 0;
+}
+
 /* ── BLOG IMAGES ───────────────────────────────── */
 .blog-content img.inline-image {
     width: 100%;
@@ -474,34 +611,6 @@ details.expand-block .expand-content {
 
 .gallery-item:hover {
     filter: grayscale(0);
-}
-
-/* ── DARK MODE ─────────────────────────────────── */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --color-bg: #0d0d0d;
-        --color-ink: #f0f0f0;
-        --color-gray: #1a1a1a;
-        --color-border: #2a2a2a;
-        --logo-main: #f0f0f0;
-    }
-
-    body {
-        background-color: var(--color-bg);
-        color: var(--color-ink);
-    }
-
-    .section-title {
-        color: var(--color-ink);
-    }
-
-    ::-webkit-scrollbar-track {
-        background: #0d0d0d;
-    }
-
-    .callout.warning {
-        background: rgba(255, 46, 0, 0.06);
-    }
 }
 
 /* ── MOBILE ────────────────────────────────────── */

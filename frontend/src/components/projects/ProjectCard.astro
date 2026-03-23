@@ -48,7 +48,7 @@ const { title, description, image, index, year, tags, href = '#' } = Astro.props
     .project-thumb-wrap {
         width: 100%;
         aspect-ratio: 4/3;
-        background: #eee;
+        background: var(--bg-muted);
         overflow: hidden;
         margin-bottom: 20px;
         position: relative;
@@ -82,7 +82,7 @@ const { title, description, image, index, year, tags, href = '#' } = Astro.props
     .project-card-desc {
         font-size: 12px;
         line-height: 1.6;
-        color: #666;
+        color: var(--text-secondary);
         margin-bottom: 16px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -99,14 +99,9 @@ const { title, description, image, index, year, tags, href = '#' } = Astro.props
     .mini-tag {
         font-size: 9px;
         padding: 2px 6px;
-        border: 1px solid #e5e5e5;
-        color: #999;
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
         text-transform: uppercase;
     }
 
-    @media (prefers-color-scheme: dark) {
-        .project-thumb-wrap { background: #1a1a1a; }
-        .project-card-desc { color: #aaa; }
-        .mini-tag { border-color: #333; color: #666; }
-    }
 </style>

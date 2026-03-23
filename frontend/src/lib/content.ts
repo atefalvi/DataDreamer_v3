@@ -13,6 +13,8 @@ export interface ContentLog {
     logNumber?: number;
     seriesLabel?: string;
     rawDate?: string;
+    authorName?: string;
+    authorAvatar?: string;
 }
 
 export interface ContentProject {
@@ -25,6 +27,8 @@ export interface ContentProject {
     year: string;
     tags: string[];
     href: string;
+    authorName?: string;
+    authorAvatar?: string;
 }
 
 // ─── FORMATTERS ────────────────────────────────────
@@ -45,6 +49,8 @@ function formatProject(p: Project, index: number): ContentProject {
         year: p.published_at ? new Date(p.published_at).getFullYear().toString() : "2023",
         tags: p.tags ?? [],
         href: p.slug ? `/projects/${p.slug}` : "#",
+        authorName: p.author ? `${p.author.first_name || ''} ${p.author.last_name || ''}`.trim().toUpperCase() : "ATEF ALVI",
+        authorAvatar: p.author?.avatar ? getAssetUrl(p.author.avatar) : undefined,
     };
 }
 
@@ -60,6 +66,8 @@ function formatLog(l: Log): ContentLog {
         logNumber: l.log_number,
         seriesLabel: l.series_label ? l.series_label.toUpperCase() : undefined,
         rawDate: l.published_at,
+        authorName: l.author ? `${l.author.first_name || ''} ${l.author.last_name || ''}`.trim().toUpperCase() : "ATEF ALVI",
+        authorAvatar: l.author?.avatar ? getAssetUrl(l.author.avatar) : undefined,
     };
 }
 

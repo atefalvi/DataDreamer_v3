@@ -4,50 +4,22 @@ import { fetchLogs } from "../../lib/directus";
 
 const directusLogs = await fetchLogs();
 
-const fallbackLogs = [
-    {
-        slug: "fine-tuning-llama-on-my-resume",
-        title: "FINE-TUNING LLAMA ON MY RESUME",
-        date: "2023.08.05",
-        tag: "AI",
-        excerpt:
-            "An experiment in creating a personal oracle using LoRA fine-tuning.",
-    },
-    {
-        slug: "migrating-to-zfs-pools",
-        title: "MIGRATING TO ZFS POOLS",
-        date: "2023.10.24",
-        tag: "INFRA",
-        excerpt:
-            "How I survived a double disk failure during my lab migration.",
-    },
-    {
-        slug: "why-pandas-is-slow",
-        title: "WHY PANDAS IS SLOW (AND THE FIX)",
-        date: "2023.09.12",
-        tag: "PYTHON",
-        excerpt:
-            "Optimizing vectorized operations for large-scale retail datasets.",
-    },
-];
+const logs = directusLogs.map((l: any) => ({
+    slug: l.slug ?? "",
+    title: (l.title ?? "UNTITLED").toUpperCase(),
+    date: l.published_at
+        ? new Date(l.published_at)
+              .toISOString()
+              .slice(0, 10)
+              .replace(/-/g, ".")
+        : "—",
+    tag: (l.tag ?? l.category ?? "").toUpperCase(),
+    excerpt: l.excerpt ?? "",
+    authorName: l.author ? `${l.author.first_name || ''} ${l.author.last_name || ''}`.trim().toUpperCase() : "ATEF ALVI",
+}));
 
-const logs =
-    directusLogs.length > 0
-        ? directusLogs.map((l: any) => ({
-              slug: l.slug ?? "",
-              title: (l.title ?? "UNTITLED").toUpperCase(),
-              date: l.published_at
-                  ? new Date(l.published_at)
-                        .toISOString()
-                        .slice(0, 10)
-                        .replace(/-/g, ".")
-                  : "—",
-              tag: (l.tag ?? l.category ?? "").toUpperCase(),
-              excerpt: l.excerpt ?? "",
-          }))
-        : fallbackLogs;
-
-const uniqueTags = [...new Set(logs.map((l: any) => l.tag))].sort();
+const uniqueTags = [...new Set(logs.map((l: any) => l.tag).filter(Boolean))].sort();
+const uniqueAuthors = [...new Set(logs.map((l: any) => l.authorName).filter(Boolean))].sort();
 ---
 
 <MainLayout title="DEV LOG // DATA DREAMER">
@@ -57,21 +29,40 @@ const uniqueTags = [...new Set(logs.map((l: any) => l.tag))].sort();
             <h1 class="page-title">DEV LOG</h1>
         </header>
 
-        <div class="filter-bar">
-            <button class="filter-btn active" data-tag="all">All Logs</button>
-            {
-                uniqueTags.map((tag) => (
-                    <button class="filter-btn" data-tag={tag}>
-                        {tag}
-                    </button>
-                ))
-            }
+        <div class="filters-container">
+            <div class="filter-group">
+                <span class="filter-label">// TAGS</span>
+                <div class="filter-bar">
+                    <button class="filter-btn" data-filter-type="tag" data-val="all" class="active">ALL LOGS</button>
+                    {
+                        uniqueTags.map((tag) => (
+                            <button class="filter-btn" data-filter-type="tag" data-val={tag}>
+                                {tag}
+                            </button>
+                        ))
+                    }
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <span class="filter-label">// AUTHOR</span>
+                <div class="filter-bar">
+                    <button class="filter-btn active" data-filter-type="author" data-val="all">ALL</button>
+                    {
+                        uniqueAuthors.map((author) => (
+                            <button class="filter-btn" data-filter-type="author" data-val={author}>
+                                {author}
+                            </button>
+                        ))
+                    }
+                </div>
+            </div>
         </div>
 
         <ul class="log-list">
             {
                 logs.map((post: any) => (
-                    <li class="log-item" data-tag={post.tag}>
+                    <li class="log-item" data-tag={post.tag} data-author={post.authorName}>
                         <a href={`/logs/${post.slug}`} class="log-link">
                             <div class="log-date">{post.date}</div>
                             <div class="log-title">{post.title}</div>
@@ -85,7 +76,7 @@ const uniqueTags = [...new Set(logs.map((l: any) => l.tag))].sort();
         {
             logs.length === 0 && (
                 <div class="empty-state">
-                    <p class="meta-text" style="color:#999;">
+                    <p class="meta-text" style="color:var(--text-secondary);">
                         // NO LOGS FOUND — SYSTEM IDLE
                     </p>
                 </div>
@@ -104,26 +95,45 @@ const uniqueTags = [...new Set(logs.map((l: any) => l.tag))].sort();
         margin-bottom: 100px;
     }
 
+    .filters-container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-bottom: 60px;
+        border-top: 1px solid var(--color-gray);
+        border-bottom: 1px solid var(--color-gray);
+        padding: 24px 0;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filter-label {
+        font-family: var(--font-tech);
+        font-size: 10px;
+        color: var(--color-primary);
+        letter-spacing: 0.1em;
+    }
+
     .filter-bar {
         display: flex;
         gap: 12px;
         flex-wrap: wrap;
-        border-top: 1px solid var(--color-gray);
-        border-bottom: 1px solid var(--color-gray);
-        padding: 24px 0;
-        margin-bottom: 60px;
     }
 
     .filter-btn {
         background: none;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border);
         padding: 6px 16px;
         font-family: var(--font-tech);
         font-size: 10px;
         text-transform: uppercase;
         cursor: pointer;
         transition: all 0.2s;
-        color: #666;
+        color: var(--text-secondary);
     }
 
     .filter-btn:hover,
@@ -161,7 +171,7 @@ const uniqueTags = [...new Set(logs.map((l: any) => l.tag))].sort();
         width: 110px;
         flex-shrink: 0;
         font-size: 11px;
-        color: #999;
+        color: var(--text-secondary);
     }
     .log-title {
         font-family: var(--font-display);
@@ -169,29 +179,16 @@ const uniqueTags = [...new Set(logs.map((l: any) => l.tag))].sort();
         flex-grow: 1;
         line-height: 1;
     }
-    .log-tag {
+    .log-tag, .log-author {
         font-size: 10px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--border);
         padding: 3px 8px;
         flex-shrink: 0;
-        color: #666;
+        color: var(--text-secondary);
     }
     .empty-state {
         padding: 80px 0;
         text-align: center;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .log-item {
-            border-color: #2a2a2a;
-        }
-        .log-date {
-            color: #666;
-        }
-        .log-tag {
-            border-color: #444;
-            color: #888;
-        }
     }
 
     @media (max-width: 768px) {
@@ -213,33 +210,46 @@ const uniqueTags = [...new Set(logs.map((l: any) => l.tag))].sort();
             margin-left: auto;
         }
     }
-
-    @media (prefers-color-scheme: dark) {
-        .filter-btn {
-            border-color: #444;
-            color: #888;
-        }
-    }
 </style>
 
 <script>
     const buttons = document.querySelectorAll(".filter-btn");
-    const items = document.querySelectorAll(
-        ".log-item",
-    ) as NodeListOf<HTMLElement>;
+    const items = document.querySelectorAll(".log-item") as NodeListOf<HTMLElement>;
+
+    let activeTag = "all";
+    let activeAuthor = "all";
+
+    // Set ALL LOGS active by default for tags
+    document.querySelector('[data-filter-type="tag"][data-val="all"]')?.classList.add("active");
 
     buttons.forEach((btn) => {
         btn.addEventListener("click", () => {
-            const tag = btn.getAttribute("data-tag");
+            const filterType = btn.getAttribute("data-filter-type");
+            const val = btn.getAttribute("data-val");
 
-            // Toggle active state
-            buttons.forEach((b) => b.classList.remove("active"));
+            if (!filterType || !val) return;
+
+            // Update active state in UI for that group
+            buttons.forEach((b) => {
+                if (b.getAttribute("data-filter-type") === filterType) {
+                    b.classList.remove("active");
+                }
+            });
             btn.classList.add("active");
+
+            // Update state
+            if (filterType === "tag") activeTag = val;
+            if (filterType === "author") activeAuthor = val;
 
             // Filter items
             items.forEach((item) => {
                 const itemTag = item.getAttribute("data-tag");
-                if (tag === "all" || itemTag === tag) {
+                const itemAuthor = item.getAttribute("data-author");
+
+                const matchTag = activeTag === "all" || itemTag === activeTag;
+                const matchAuthor = activeAuthor === "all" || itemAuthor === activeAuthor;
+
+                if (matchTag && matchAuthor) {
                     item.style.display = "block";
                 } else {
                     item.style.display = "none";

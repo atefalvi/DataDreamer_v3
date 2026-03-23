@@ -13,11 +13,13 @@
  */
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
+import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeShiki from '@shikijs/rehype';
+import rehypeRaw from 'rehype-raw';
 
 export interface Heading {
     id: string;
@@ -29,7 +31,15 @@ export interface Heading {
  * Pre-process custom ::: blocks into raw HTML before the unified pipeline.
  */
 function preprocessCustomBlocks(markdown: string): string {
-    const lines = markdown.split('\n');
+    // Strip common HTML tags if the user is using the WYSIWYG editor
+    // but typing markdown markers directly.
+    const cleanContent = markdown
+        .replace(/&nbsp;/g, ' ')                 // Unescape spaces
+        .replace(/<br\s*\/?>/gi, '\n')           // Convert <br> to newlines
+        .replace(/<p>\s*(\|[\s\S]*?\|)\s*<\/p>/g, '\n\n$1\n\n') // Strip <p> around tables and ensure isolation
+        .replace(/<p>\s*(:::[^<]*)\s*<\/p>/g, '\n\n$1\n\n');    // Strip <p> around ::: blocks
+
+    const lines = cleanContent.split('\n');
     const output: string[] = [];
     let inBlock = false;
     let blockType = '';
@@ -42,7 +52,11 @@ function preprocessCustomBlocks(markdown: string): string {
         // Closing :::
         if (inBlock && trimmed === ':::') {
             if (blockType === 'quote') {
-                output.push(`<div class="pull-quote">${blockContent.join(' ')}</div>`);
+                const cleanedQuote = blockContent
+                    .map(l => l.replace(/<\/?p>/g, '').trim())
+                    .filter(Boolean)
+                    .join('<br />');
+                output.push(`<div class="pull-quote">\n${cleanedQuote}\n</div>`);
             } else if (blockType === 'details') {
                 output.push(`<details class="expand-block"><summary>${blockLabel}</summary><div class="expand-content">${blockContent.join('\n')}</div></details>`);
             } else {
@@ -61,12 +75,14 @@ function preprocessCustomBlocks(markdown: string): string {
             continue;
         }
 
-        // Opening ::: blocks
-        const calloutMatch = trimmed.match(/^:::(tip|warning|info|note)\s+(.*)$/);
+        // Opening ::: blocks - Support both :::info Title and :::info{title="Title"}
+        const calloutMatch = trimmed.match(/^:::(tip|warning|info|note)(?:\s+(.*)|{.*})?$/);
         if (calloutMatch) {
             inBlock = true;
             blockType = calloutMatch[1];
-            blockLabel = calloutMatch[2];
+            // If it's a bracket format :::info{title="xxx"}, we don't have a simple regex group for label here
+            // but we can try to extract it if needed. For now, let's support the simple space format.
+            blockLabel = calloutMatch[2] || blockType.toUpperCase();
             blockContent = [];
             continue;
         }
@@ -123,7 +139,9 @@ export async function renderMarkdown(content: string): Promise<{ html: string; h
 
     const result = await unified()
         .use(remarkParse)
+        .use(remarkGfm)
         .use(remarkRehype, { allowDangerousHtml: true })
+        .use(rehypeRaw)
         .use(rehypeSlug)
         .use(rehypeAutolinkHeadings, { behavior: 'wrap' })
         .use(rehypeShiki, { theme: 'github-dark' })

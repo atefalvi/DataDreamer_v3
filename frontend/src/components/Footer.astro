@@ -1,15 +1,22 @@
 ---
 /**
- * Footer — Red contact section with "READY TO PROCESS DATA?"
- * display text and a contact grid.
+ * Footer — Red contact section with CTA and dynamic contact grid.
  */
+import { fetchSiteSettings } from "../lib/directus";
+
+const siteSettings = await fetchSiteSettings();
+const email = siteSettings?.email || "hello@data-dreamer.net";
+const github = siteSettings?.github || "github.com/datadreamer";
+const linkedin = siteSettings?.linkedin || "linkedin.com/in/datadreamer";
+
+// Default CTA or database CTA separated into words
+const rawHeading = siteSettings?.footer_cta_heading || "READY TO PROCESS DATA?";
+const ctaWords = rawHeading.split(" ");
 ---
 
 <footer id="contact">
     <div class="display-text footer-cta">
-        <span>READY TO</span>
-        <span>PROCESS</span>
-        <span>DATA?</span>
+        {ctaWords.map((word) => <span>{word}</span>)}
     </div>
 
     <div class="contact-grid">
@@ -19,80 +26,116 @@
             EST TIMEZONE
         </div>
         <div class="contact-links">
-            <a href="mailto:hello@data-dreamer.net" class="contact-link">HELLO@DATA-DREAMER.NET</a>
-            <a href="https://github.com/datadreamer" class="contact-link" target="_blank" rel="noopener">GITHUB.COM/DATADREAMER</a>
-            <a href="https://linkedin.com/in/datadreamer" class="contact-link" target="_blank" rel="noopener">LINKEDIN.COM/IN/DATADREAMER</a>
+            <a href={`mailto:${email}`} class="contact-link">{email.toUpperCase()}</a>
+            <a href={`https://${github}`} class="contact-link" target="_blank" rel="noopener">{github.toUpperCase()}</a>
+            <a href={`https://${linkedin}`} class="contact-link" target="_blank" rel="noopener">{linkedin.toUpperCase()}</a>
         </div>
     </div>
 </footer>
 
 <style>
     footer {
-        padding: 100px var(--container-padding) 60px;
-        background: var(--color-primary);
-        color: white;
-        min-height: 60vh;
+        padding: 120px var(--container-padding) 64px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 70vh;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        border-top: 1px solid var(--border);
+        position: relative;
+    }
+
+    footer::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--accent);
     }
 
     .footer-cta {
-        font-size: clamp(40px, 10vw, 150px);
-        color: white;
+        font-size: clamp(48px, 12vw, 160px);
+        color: var(--accent); /* Heading is now the accent */
+        display: flex;
+        flex-direction: column;
+        line-height: 0.8;
+        font-family: var(--font-display);
+        text-transform: uppercase;
+        margin-bottom: 64px;
+    }
+
+    .footer-cta span {
+        transition: transform 0.4s var(--ease-out);
+        transform-origin: left;
+        cursor: default;
+    }
+
+    .footer-cta span:hover {
+        transform: skewX(-10deg) translateX(20px);
+        color: var(--text-primary);
     }
 
     .contact-grid {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
         font-family: var(--font-tech);
-        font-size: 12px;
+        font-size: 13px;
         text-transform: uppercase;
-        border-top: 1px solid rgba(255,255,255,0.4);
-        padding-top: 32px;
-        line-height: 2;
+        border-top: 1px solid var(--border);
+        padding-top: 48px;
+        line-height: 1.8;
     }
 
     .contact-label {
-        opacity: 0.5;
+        color: var(--accent);
+        font-weight: bold;
         display: block;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
+        letter-spacing: 0.2em;
     }
 
     .contact-links {
-        text-align: right;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
     }
 
     .contact-link {
-        color: white;
+        color: var(--text-primary);
         text-decoration: none;
-        display: block;
-        margin-bottom: 5px;
+        transition: all 0.3s var(--ease-out);
+        border-bottom: 1px solid transparent;
+        padding-bottom: 2px;
     }
 
     .contact-link:hover {
-        text-decoration: underline;
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+        transform: translateX(-4px);
     }
 
     /* ── MOBILE ─────────────────────────────────── */
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
         footer {
-            padding: 60px 20px 40px;
+            padding: 80px 32px 48px;
         }
 
         .footer-cta {
-            font-size: clamp(36px, 12vw, 80px);
+            font-size: clamp(40px, 15vw, 100px);
         }
 
         .contact-grid {
-            flex-direction: column;
-            gap: 24px;
-            align-items: flex-start;
+            grid-template-columns: 1fr;
+            gap: 40px;
         }
 
         .contact-links {
-            text-align: left;
+            align-items: flex-start;
         }
     }
 </style>

@@ -1,0 +1,260 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import TableOfContents from "../../components/blog/TableOfContents.astro";
+import { fetchProjects, getAssetUrl } from "../../lib/directus";
+import { renderMarkdown } from "../../lib/renderMarkdown";
+
+const { slug } = Astro.params;
+const projects = await fetchProjects();
+const project = projects.find((p) => p.slug === slug);
+
+if (!project) return Astro.redirect("/404");
+
+const { title, description, summary, published_at, tags, cover_image } = project;
+
+const dateFormatted = published_at
+    ? new Date(published_at).getFullYear().toString()
+    : "2024";
+const imageUrl = cover_image ? getAssetUrl(cover_image) : null;
+
+const { html: renderedDescription, headings } = await renderMarkdown(description || "");
+---
+
+<MainLayout title={`PROJECT // ${title.toUpperCase()}`}>
+    <main class="container page-content">
+        <header class="project-hero">
+            <div class="project-hero-meta">
+                <span class="meta-text">// CASE_STUDY_{dateFormatted}</span>
+                <div class="tag-row">
+                    {tags?.map((tag: string) => <span class="project-tag">{tag}</span>)}
+                </div>
+            </div>
+            <h1 class="project-title">{title.toUpperCase()}</h1>
+            <p class="project-summary">{summary}</p>
+        </header>
+
+        <div class="project-layout">
+            <div class="project-main">
+                {imageUrl && (
+                    <div class="project-featured-image">
+                        <img src={imageUrl} alt={title} />
+                    </div>
+                )}
+                
+                <div class="project-description blog-content" set:html={renderedDescription} />
+
+                <div class="return-link">
+                    <a href="/projects">← BACK TO ALL PROJECTS</a>
+                </div>
+            </div>
+
+            <aside class="project-sidebar">
+                <div class="sidebar-block">
+                    <h3 class="sidebar-label">TIMELINE</h3>
+                    <p class="sidebar-value">{dateFormatted}</p>
+                </div>
+                <div class="sidebar-block">
+                    <h3 class="sidebar-label">TECHNOLOGIES</h3>
+                    <div class="sidebar-tags">
+                        {tags?.map((tag: string) => <span class="mini-tag">{tag}</span>)}
+                    </div>
+                </div>
+                {headings && headings.length > 0 && (
+                    <div class="sidebar-block toc-block">
+                        <h3 class="sidebar-label">CONTENTS</h3>
+                        <TableOfContents headings={headings} />
+                    </div>
+                )}
+            </aside>
+        </div>
+    </main>
+</MainLayout>
+
+<style>
+    .page-content {
+        padding-top: 56px;
+        padding-bottom: 100px;
+    }
+
+    .project-hero {
+        padding: 80px 0 60px;
+        border-bottom: 1px solid var(--color-border);
+        margin-bottom: 60px;
+    }
+
+    .project-hero-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .tag-row {
+        display: flex;
+        gap: 8px;
+    }
+
+    .project-tag {
+        font-family: var(--font-tech);
+        font-size: 10px;
+        border: 1px solid var(--color-primary);
+        padding: 3px 10px;
+        color: var(--color-primary);
+    }
+
+    .project-title {
+        font-family: var(--font-display);
+        font-size: clamp(48px, 10vw, 120px);
+        line-height: 0.85;
+        margin-bottom: 40px;
+        text-transform: uppercase;
+        color: var(--color-primary);
+    }
+
+    .project-summary {
+        font-size: 20px;
+        max-width: 800px;
+        line-height: 1.5;
+        opacity: 0.8;
+    }
+
+    .project-layout {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 80px;
+    }
+
+    .project-featured-image {
+        margin-bottom: 60px;
+        background: #f5f5f5;
+        aspect-ratio: 16/9;
+        overflow: hidden;
+    }
+
+    .project-featured-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .project-description {
+        font-size: 18px;
+        line-height: 1.7;
+    }
+
+    .project-description :global(h2) {
+        font-family: var(--font-display);
+        font-size: 32px;
+        margin-top: 60px;
+        margin-bottom: 24px;
+        text-transform: uppercase;
+    }
+
+    .project-description :global(h3) {
+        font-family: var(--font-display);
+        font-size: 24px;
+        margin-top: 40px;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+    }
+
+    /* Sidebar */
+    .project-sidebar {
+        border-left: 1px solid var(--color-border);
+        padding-left: 40px;
+        position: sticky;
+        top: 100px;
+        align-self: start;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+
+    /* Hide scrollbar for sidebar */
+    .project-sidebar::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+    }
+    .project-sidebar {
+        scrollbar-width: none;
+    }
+
+    .sidebar-block {
+        margin-bottom: 48px;
+    }
+
+    .sidebar-label {
+        font-family: var(--font-tech);
+        font-size: 10px;
+        color: #999;
+        margin-bottom: 12px;
+        letter-spacing: 0.1em;
+    }
+
+    .sidebar-value {
+        font-family: var(--font-display);
+        font-size: 24px;
+    }
+
+    .sidebar-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .mini-tag {
+        font-size: 11px;
+        padding: 4px 10px;
+        background: #eee;
+        color: #666;
+        font-family: var(--font-tech);
+    }
+
+    .return-link {
+        margin-top: 100px;
+        padding-top: 40px;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .return-link a {
+        font-family: var(--font-tech);
+        font-size: 14px;
+        text-decoration: none;
+        color: var(--color-primary);
+        transition: padding-left 0.2s;
+    }
+
+    .return-link a:hover {
+        padding-left: 10px;
+    }
+
+    @media (max-width: 1024px) {
+        .project-layout {
+            grid-template-columns: 1fr;
+            gap: 60px;
+        }
+        .project-sidebar {
+            position: static;
+            align-self: auto;
+            max-height: none;
+            overflow-y: visible;
+            border-left: none;
+            border-top: 1px solid var(--color-border);
+            padding-left: 0;
+            padding-top: 60px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .project-hero {
+            padding-top: 40px;
+        }
+        .project-title {
+            font-size: 48px;
+        }
+        .project-sidebar {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

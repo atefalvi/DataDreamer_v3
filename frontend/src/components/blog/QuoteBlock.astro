@@ -19,13 +19,9 @@ const { text } = Astro.props;
         margin: 48px 0;
         line-height: 1.1;
         padding: 32px;
-        background: #FFF5F5;
+        background: var(--accent-soft);
         border-right: 8px solid var(--color-primary);
         text-transform: uppercase;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .pull-quote { background: #1f0800; }
     }
 
     @media (max-width: 768px) {

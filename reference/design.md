@@ -1,4 +1,24 @@
-# Project: Data Dreamer (v3) - Technical Specification
+---
+name: data-dreamer-design-system
+description: Applies Data Dreamer’s official industrial brutalist visual system, interaction rules, component conventions, and frontend styling standards to any UI artifact, page, layout, or component. Use it when brand styling, visual consistency, component structure, or interaction behavior must follow the Data Dreamer design language.
+keywords: data dreamer, design system, brand guidelines, brutalist, frontend, astro, tailwind, ui, components, interaction design, directus
+version: 1.0
+status: active
+scope: frontend
+---
+
+# Data Dreamer Design System
+
+## Overview
+
+This document defines the visual language, interaction system, component conventions, and rendering rules for Data Dreamer.
+
+Use this document when:
+- creating or editing frontend pages
+- generating Astro components
+- styling blog and project content
+- implementing layouts or shared UI patterns
+- applying Data Dreamer branding consistently
 
 ## 1. Vision & Aesthetic: Industrial Brutalist
 
