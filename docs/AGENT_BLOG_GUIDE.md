@@ -40,6 +40,21 @@ Draft in Directus → Set status = "published" → Site auto-fetches on next bui
 | `series_label` | Optional | Name for a series grouping related posts, e.g. `FINE-TUNE LOG`. |
 | `author` | Optional | Relation to a Directus user. Defaults to "ATEF ALVI" if empty. |
 
+### `projects` Collection
+
+| Field | Required | Description |
+|---|---|---|
+| `title` | ✅ | Project name. Displayed in ALL CAPS. |
+| `slug` | ✅ | URL identifier. Must be unique. |
+| `status` | ✅ | Set to `published` to show on site. |
+| `published_at` | ✅ | Sorting date (newest first). |
+| `summary` | ✅ | Short description for the project card. |
+| `description` | ✅ | Full project details in Markdown. |
+| `cover_image` | ✅ | Main visual (Directus File). |
+| `tags` | ✅ | Array of strings (technologies used). |
+| `featured` | Optional | If `true`, pins to the top of the homepage. |
+| `author` | Optional | Relation to Directus Users. |
+
 ---
 
 ## Tone & Style

@@ -8,18 +8,23 @@ const logs = directusLogs.map((l: any) => ({
     slug: l.slug ?? "",
     title: (l.title ?? "UNTITLED").toUpperCase(),
     date: l.published_at
-        ? new Date(l.published_at)
-              .toISOString()
-              .slice(0, 10)
-              .replace(/-/g, ".")
+        ? new Date(l.published_at).toISOString().slice(0, 10).replace(/-/g, ".")
         : "—",
     tag: (l.tag ?? l.category ?? "").toUpperCase(),
     excerpt: l.excerpt ?? "",
-    authorName: l.author ? `${l.author.first_name || ''} ${l.author.last_name || ''}`.trim().toUpperCase() : "ATEF ALVI",
+    authorName: l.author
+        ? `${l.author.first_name || ""} ${l.author.last_name || ""}`
+              .trim()
+              .toUpperCase()
+        : "ATEF ALVI",
 }));
 
-const uniqueTags = [...new Set(logs.map((l: any) => l.tag).filter(Boolean))].sort();
-const uniqueAuthors = [...new Set(logs.map((l: any) => l.authorName).filter(Boolean))].sort();
+const uniqueTags = [
+    ...new Set(logs.map((l: any) => l.tag).filter(Boolean)),
+].sort();
+const uniqueAuthors = [
+    ...new Set(logs.map((l: any) => l.authorName).filter(Boolean)),
+].sort();
 ---
 
 <MainLayout title="DEV LOG // DATA DREAMER">
@@ -33,10 +38,19 @@ const uniqueAuthors = [...new Set(logs.map((l: any) => l.authorName).filter(Bool
             <div class="filter-group">
                 <span class="filter-label">// TAGS</span>
                 <div class="filter-bar">
-                    <button class="filter-btn" data-filter-type="tag" data-val="all" class="active">ALL LOGS</button>
+                    <button
+                        class="filter-btn"
+                        data-filter-type="tag"
+                        data-val="all"
+                        class="active">ALL LOGS</button
+                    >
                     {
                         uniqueTags.map((tag) => (
-                            <button class="filter-btn" data-filter-type="tag" data-val={tag}>
+                            <button
+                                class="filter-btn"
+                                data-filter-type="tag"
+                                data-val={tag}
+                            >
                                 {tag}
                             </button>
                         ))
@@ -47,10 +61,18 @@ const uniqueAuthors = [...new Set(logs.map((l: any) => l.authorName).filter(Bool
             <div class="filter-group">
                 <span class="filter-label">// AUTHOR</span>
                 <div class="filter-bar">
-                    <button class="filter-btn active" data-filter-type="author" data-val="all">ALL</button>
+                    <button
+                        class="filter-btn active"
+                        data-filter-type="author"
+                        data-val="all">ALL</button
+                    >
                     {
                         uniqueAuthors.map((author) => (
-                            <button class="filter-btn" data-filter-type="author" data-val={author}>
+                            <button
+                                class="filter-btn"
+                                data-filter-type="author"
+                                data-val={author}
+                            >
                                 {author}
                             </button>
                         ))
@@ -62,7 +84,11 @@ const uniqueAuthors = [...new Set(logs.map((l: any) => l.authorName).filter(Bool
         <ul class="log-list">
             {
                 logs.map((post: any) => (
-                    <li class="log-item" data-tag={post.tag} data-author={post.authorName}>
+                    <li
+                        class="log-item"
+                        data-tag={post.tag}
+                        data-author={post.authorName}
+                    >
                         <a href={`/logs/${post.slug}`} class="log-link">
                             <div class="log-date">{post.date}</div>
                             <div class="log-title">{post.title}</div>
@@ -179,7 +205,8 @@ const uniqueAuthors = [...new Set(logs.map((l: any) => l.authorName).filter(Bool
         flex-grow: 1;
         line-height: 1;
     }
-    .log-tag, .log-author {
+    .log-tag,
+    .log-author {
         font-size: 10px;
         border: 1px solid var(--border);
         padding: 3px 8px;
@@ -214,13 +241,17 @@ const uniqueAuthors = [...new Set(logs.map((l: any) => l.authorName).filter(Bool
 
 <script>
     const buttons = document.querySelectorAll(".filter-btn");
-    const items = document.querySelectorAll(".log-item") as NodeListOf<HTMLElement>;
+    const items = document.querySelectorAll(
+        ".log-item",
+    ) as NodeListOf<HTMLElement>;
 
     let activeTag = "all";
     let activeAuthor = "all";
 
     // Set ALL LOGS active by default for tags
-    document.querySelector('[data-filter-type="tag"][data-val="all"]')?.classList.add("active");
+    document
+        .querySelector('[data-filter-type="tag"][data-val="all"]')
+        ?.classList.add("active");
 
     buttons.forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -247,7 +278,8 @@ const uniqueAuthors = [...new Set(logs.map((l: any) => l.authorName).filter(Bool
                 const itemAuthor = item.getAttribute("data-author");
 
                 const matchTag = activeTag === "all" || itemTag === activeTag;
-                const matchAuthor = activeAuthor === "all" || itemAuthor === activeAuthor;
+                const matchAuthor =
+                    activeAuthor === "all" || itemAuthor === activeAuthor;
 
                 if (matchTag && matchAuthor) {
                     item.style.display = "block";
