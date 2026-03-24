@@ -408,7 +408,7 @@ import HeroTagline from "../HeroTagline.astro";
         const oCtx = off.getContext("2d")!;
         oCtx.scale(scale, scale);
 
-        const pad = isMobile ? 20 : 40; // match --container-padding
+        const pad = isMobile ? 32 : 40; // match --container-padding
         const maxW = pixelW - pad * 2;
         let fontSize = isMobile
             ? Math.floor(pixelW * 0.28)

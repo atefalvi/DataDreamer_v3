@@ -134,16 +134,19 @@ const ctaWords = rawHeading.split(" ");
     /* ── MOBILE ─────────────────────────────────── */
     @media (max-width: 992px) {
         footer {
-            padding: 80px 32px 48px;
+            padding: 80px 32px 140px;
+            min-height: auto;
         }
 
         .footer-cta {
-            font-size: clamp(40px, 15vw, 100px);
+            font-size: clamp(28px, 10vw, 48px);
+            margin-bottom: 40px;
         }
 
         .contact-grid {
             grid-template-columns: 1fr;
-            gap: 40px;
+            gap: 32px;
+            padding-top: 32px;
         }
 
         .contact-links {

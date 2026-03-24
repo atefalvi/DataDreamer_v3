@@ -248,13 +248,23 @@ const { html: renderedDescription, headings } = await renderMarkdown(description
 
     @media (max-width: 768px) {
         .project-hero {
-            padding-top: 40px;
+            padding-top: 24px;
+            padding-bottom: 24px;
+            margin-bottom: 32px;
         }
         .project-title {
-            font-size: 48px;
+            font-size: 36px;
+            margin-bottom: 24px;
+        }
+        .project-summary {
+            font-size: 16px;
         }
         .project-sidebar {
             grid-template-columns: 1fr;
+        }
+        .project-main {
+            min-width: 0;
+            overflow-wrap: break-word;
         }
     }
 </style>

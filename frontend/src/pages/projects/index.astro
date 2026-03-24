@@ -115,6 +115,24 @@ const uniqueTags = [...new Set(projects.flatMap((p: any) => p.tags))].sort((a: a
     }
 
     @media (max-width: 768px) {
+        .page-content {
+            padding-top: 32px;
+        }
+        .filter-bar {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 8px;
+            margin-bottom: -8px;
+        }
+        .filter-bar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .filter-btn {
+            flex-shrink: 0;
+            font-size: 11px;
+            padding: 8px 16px;
+        }
         .projects-grid {
             grid-template-columns: 1fr;
             gap: 60px;
