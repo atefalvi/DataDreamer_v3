@@ -73,7 +73,8 @@ interface CustomSchema {
     about: AboutSettings;
 }
 
-const DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? process.env.PUBLIC_DIRECTUS_URL ?? 'http://localhost:8055';
+// DIRECTUS_URL is intentionally NOT prefixed PUBLIC_ so Astro never inlines it in client bundles.
+const DIRECTUS_URL = import.meta.env.DIRECTUS_URL ?? process.env.DIRECTUS_URL ?? 'http://localhost:8055';
 const DIRECTUS_EMAIL = import.meta.env.DIRECTUS_EMAIL ?? process.env.DIRECTUS_EMAIL;
 const DIRECTUS_PASSWORD = import.meta.env.DIRECTUS_PASSWORD ?? process.env.DIRECTUS_PASSWORD;
 
@@ -86,25 +87,13 @@ const directus = createDirectus<CustomSchema>(DIRECTUS_URL)
  */
 export async function ensureAuthenticated() {
     try {
-        console.log('[directus] Attempting to authenticate...', {
-            url: DIRECTUS_URL,
-            hasEmail: !!DIRECTUS_EMAIL,
-            hasPass: !!DIRECTUS_PASSWORD
-        });
-
         if (!DIRECTUS_EMAIL || !DIRECTUS_PASSWORD) {
-            console.warn('[directus] Credentials missing - skipping authentication. Data may be inaccessible if not public.');
+            // No credentials — relying on Directus Public Role for read access.
             return;
         }
-
         const token = await directus.getToken();
-        if (token) {
-            console.log('[directus] Token found, already authenticated');
-            return;
-        }
-
+        if (token) return;
         await directus.login(DIRECTUS_EMAIL, DIRECTUS_PASSWORD);
-        console.log('[directus] Authenticated successfully');
     } catch (error: any) {
         logError('Authentication failed', error);
         throw error;
@@ -130,6 +119,12 @@ export function getAssetUrl(fileId: string): string {
 /**
  * Fetch all projects from Directus.
  */
+const PROJECT_FIELDS = [
+    'id', 'slug', 'title', 'summary', 'description',
+    'cover_image', 'tags', 'published_at', 'featured',
+    'author.first_name', 'author.last_name', 'author.avatar',
+] as const;
+
 export async function fetchProjects(): Promise<Project[]> {
     try {
         await ensureAuthenticated();
@@ -137,7 +132,7 @@ export async function fetchProjects(): Promise<Project[]> {
             readItems('projects', {
                 filter: { status: { _eq: 'published' } },
                 sort: ['-published_at'],
-                fields: ['*', 'author.*'] as any,
+                fields: PROJECT_FIELDS as any,
             })
         );
         return (items as any[]) ?? [];
@@ -155,7 +150,7 @@ export async function fetchFeaturedProjects(limit = 3): Promise<Project[]> {
         await ensureAuthenticated();
         let items = await directus.request(
             readItems('projects', {
-                filter: { 
+                filter: {
                     _and: [
                         { featured: { _eq: true } },
                         { status: { _eq: 'published' } }
@@ -163,7 +158,7 @@ export async function fetchFeaturedProjects(limit = 3): Promise<Project[]> {
                 },
                 sort: ['-published_at'],
                 limit,
-                fields: ['*', 'author.*'] as any,
+                fields: PROJECT_FIELDS as any,
             })
         );
         // Fallback to newest if no featured
@@ -173,7 +168,7 @@ export async function fetchFeaturedProjects(limit = 3): Promise<Project[]> {
                     filter: { status: { _eq: 'published' } },
                     sort: ['-published_at'],
                     limit,
-                    fields: ['*', 'author.*'] as any,
+                    fields: PROJECT_FIELDS as any,
                 })
             );
         }
@@ -189,6 +184,12 @@ export async function fetchFeaturedProjects(limit = 3): Promise<Project[]> {
 /**
  * Fetch all logs from Directus.
  */
+const LOG_FIELDS = [
+    'id', 'slug', 'title', 'excerpt', 'content',
+    'published_at', 'tag', 'category', 'log_number', 'series_label',
+    'author.first_name', 'author.last_name', 'author.avatar',
+] as const;
+
 export async function fetchLogs(): Promise<Log[]> {
     try {
         await ensureAuthenticated();
@@ -196,7 +197,7 @@ export async function fetchLogs(): Promise<Log[]> {
             readItems('logs', {
                 filter: { status: { _eq: 'published' } },
                 sort: ['-published_at'],
-                fields: ['*', 'author.*'] as any,
+                fields: LOG_FIELDS as any,
             })
         );
         return (items as any[]) ?? [];
@@ -217,7 +218,7 @@ export async function fetchRecentLogs(limit = 3): Promise<Log[]> {
                 filter: { status: { _eq: 'published' } },
                 sort: ['-published_at'],
                 limit,
-                fields: ['*', 'author.*'] as any,
+                fields: LOG_FIELDS as any,
             })
         );
         return (items as any[]) ?? [];
@@ -237,7 +238,7 @@ export async function fetchLog(slug: string): Promise<Log | null> {
             readItems('logs', {
                 filter: { slug: { _eq: slug } },
                 limit: 1,
-                fields: ['*', 'author.*'] as any,
+                fields: LOG_FIELDS as any,
             })
         );
         return (items?.[0] as unknown as Log) ?? null;
@@ -255,7 +256,9 @@ export async function fetchLog(slug: string): Promise<Log | null> {
 export async function fetchSiteSettings(): Promise<SiteSettings | null> {
     try {
         await ensureAuthenticated();
-        const data = await directus.request(readSingleton('site_settings'));
+        const data = await directus.request(readSingleton('site_settings', {
+            fields: ['email', 'github', 'linkedin', 'twitter', 'footer_cta_heading', 'status_text'] as any,
+        }));
         return data ?? null;
     } catch (error: any) {
         logError('fetchSiteSettings failed', error);
@@ -269,7 +272,9 @@ export async function fetchSiteSettings(): Promise<SiteSettings | null> {
 export async function fetchHomeSettings(): Promise<HomeSettings | null> {
     try {
         await ensureAuthenticated();
-        const data = await directus.request(readSingleton('home_settings'));
+        const data = await directus.request(readSingleton('home_settings', {
+            fields: ['hero_tagline_1', 'hero_tagline_2', 'hero_tagline_3'] as any,
+        }));
         return data ?? null;
     } catch (error: any) {
         logError('fetchHomeSettings failed', error);
