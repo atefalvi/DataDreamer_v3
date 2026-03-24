@@ -30,7 +30,12 @@ const authorInitials = (post.authorName ?? "")
     .join("");
 ---
 
-<MainLayout title={`LOG // ${post.title}`}>
+<MainLayout
+    title={`LOG // ${post.title}`}
+    description={post.excerpt || "A technical log from Data Dreamer."}
+    ogImage="https://data-dreamer.net/og/log.jpg"
+    ogType="article"
+>
     <!-- Post Hero -->
     <div class="container post-hero">
         <div class="post-hero-meta">

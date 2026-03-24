@@ -32,7 +32,12 @@ const authorInitials = authorName
 const { html: renderedDescription, headings } = await renderMarkdown(description || "");
 ---
 
-<MainLayout title={`PROJECT // ${title.toUpperCase()}`}>
+<MainLayout
+    title={`PROJECT // ${title.toUpperCase()}`}
+    description={summary || "A project case study from Data Dreamer."}
+    ogImage={imageUrl ?? "https://data-dreamer.net/og/project.jpg"}
+    ogType="article"
+>
     <main class="container page-content">
         <header class="project-hero">
             <div class="project-hero-meta">
