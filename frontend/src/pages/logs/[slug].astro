@@ -20,6 +20,14 @@ if (!post) {
 
 // Render markdown content
 const { html: renderedContent, headings } = await renderMarkdown(post.content);
+
+// Compute author initials for fallback
+const authorInitials = (post.authorName ?? "")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w: string) => w[0])
+    .join("");
 ---
 
 <MainLayout title={`LOG // ${post.title}`}>
@@ -45,7 +53,13 @@ const { html: renderedContent, headings } = await renderMarkdown(post.content);
         <h1 class="post-hero-title">{post.title}</h1>
         <p class="post-hero-desc">{post.excerpt}</p>
         <div class="post-hero-info">
-            <span><strong>AUTHOR</strong>&nbsp; {post.authorName}</span>
+            <span class="author-chip">
+                {post.authorAvatar
+                    ? <img class="author-avatar" src={post.authorAvatar} alt={post.authorName ?? "Author"} />
+                    : <span class="author-initials">{authorInitials || "—"}</span>
+                }
+                <span><strong>AUTHOR</strong>&nbsp; {post.authorName}</span>
+            </span>
             <span><strong>PUBLISHED</strong>&nbsp; {post.date}</span>
             <span
                 ><strong>LOG</strong>&nbsp; #{
@@ -138,6 +152,38 @@ const { html: renderedContent, headings } = await renderMarkdown(post.content);
         color: var(--color-primary);
         opacity: 1;
         font-weight: 700;
+    }
+
+    /* ── AUTHOR CHIP ───────────────────────────── */
+    .author-chip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .author-avatar {
+        width: 32px;
+        height: 32px;
+        object-fit: cover;
+        display: block;
+        filter: grayscale(20%);
+        border: 1px solid var(--color-border);
+        flex-shrink: 0;
+    }
+
+    .author-initials {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: 1px solid var(--color-primary);
+        font-family: var(--font-tech);
+        font-size: 10px;
+        color: var(--color-primary);
+        letter-spacing: 0.08em;
+        flex-shrink: 0;
     }
 
     .blog-container {

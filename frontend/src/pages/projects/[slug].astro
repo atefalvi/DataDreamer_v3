@@ -10,12 +10,24 @@ const project = projects.find((p) => p.slug === slug);
 
 if (!project) return Astro.redirect("/404");
 
-const { title, description, summary, published_at, tags, cover_image } = project;
+const { title, description, summary, published_at, tags, cover_image, author } = project;
 
 const dateFormatted = published_at
     ? new Date(published_at).getFullYear().toString()
     : "2024";
 const imageUrl = cover_image ? getAssetUrl(cover_image) : null;
+
+// Author display
+const authorName = author
+    ? `${author.first_name ?? ""} ${author.last_name ?? ""}`.trim().toUpperCase()
+    : "ATEF ALVI";
+const authorAvatar = author?.avatar ? getAssetUrl(author.avatar) : null;
+const authorInitials = authorName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w: string) => w[0])
+    .join("");
 
 const { html: renderedDescription, headings } = await renderMarkdown(description || "");
 ---
@@ -49,6 +61,16 @@ const { html: renderedDescription, headings } = await renderMarkdown(description
             </div>
 
             <aside class="project-sidebar">
+                <div class="sidebar-block">
+                    <h3 class="sidebar-label">AUTHOR</h3>
+                    <div class="author-chip">
+                        {authorAvatar
+                            ? <img class="author-avatar" src={authorAvatar} alt={authorName} />
+                            : <span class="author-initials">{authorInitials || "—"}</span>
+                        }
+                        <span class="sidebar-value author-name">{authorName}</span>
+                    </div>
+                </div>
                 <div class="sidebar-block">
                     <h3 class="sidebar-label">TIMELINE</h3>
                     <p class="sidebar-value">{dateFormatted}</p>
@@ -207,6 +229,43 @@ const { html: renderedDescription, headings } = await renderMarkdown(description
         background: #eee;
         color: #666;
         font-family: var(--font-tech);
+    }
+
+    /* ── AUTHOR CHIP ───────────────────────────── */
+    .author-chip {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .author-avatar {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        display: block;
+        filter: grayscale(20%);
+        border: 1px solid var(--color-border);
+        flex-shrink: 0;
+    }
+
+    .author-initials {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: 1px solid var(--color-primary);
+        font-family: var(--font-tech);
+        font-size: 11px;
+        color: var(--color-primary);
+        letter-spacing: 0.08em;
+        flex-shrink: 0;
+    }
+
+    .author-name {
+        font-size: 16px;
+        line-height: 1.2;
     }
 
     .return-link {
