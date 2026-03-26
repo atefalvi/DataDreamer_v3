@@ -74,17 +74,24 @@ interface CustomSchema {
 }
 
 // ─── CONFIGURATION ─────────────────────────────────
-// DIRECTUS_URL: Server-side API reaching. Can be internal (e.g., http://datadreamer-backend:8055)
-const DIRECTUS_URL = import.meta.env.DIRECTUS_URL ?? process.env.DIRECTUS_URL ?? 'http://localhost:8055';
+// Read from runtime (process.env) first, then build-time (import.meta.env)
+const DIRECTUS_URL = process.env.DIRECTUS_URL ?? import.meta.env.DIRECTUS_URL ?? 'http://localhost:8055';
 
-// PUBLIC_DIRECTUS_URL: Browser-side image URLs. Must be the public face (e.g., https://api.data-dreamer.net)
-const PUBLIC_DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? import.meta.env.DIRECTUS_URL ?? DIRECTUS_URL;
+// For Assets, prioritize PUBLIC_ prefix (runtime/build-time), then fallback to main URL.
+const PUBLIC_DIRECTUS_URL = process.env.PUBLIC_DIRECTUS_URL ?? import.meta.env.PUBLIC_DIRECTUS_URL ?? 
+                           process.env.DIRECTUS_URL ?? import.meta.env.DIRECTUS_URL ?? 
+                           DIRECTUS_URL;
 
-const DIRECTUS_EMAIL = import.meta.env.DIRECTUS_EMAIL ?? process.env.DIRECTUS_EMAIL;
-const DIRECTUS_PASSWORD = import.meta.env.DIRECTUS_PASSWORD ?? process.env.DIRECTUS_PASSWORD;
+const DIRECTUS_EMAIL = process.env.DIRECTUS_EMAIL ?? import.meta.env.DIRECTUS_EMAIL;
+const DIRECTUS_PASSWORD = process.env.DIRECTUS_PASSWORD ?? import.meta.env.DIRECTUS_PASSWORD;
 
-console.log(`[Directus] SDK reaching: ${DIRECTUS_URL}`);
-console.log(`[Directus] Assets reaching: ${PUBLIC_DIRECTUS_URL}`);
+console.log(`[Directus] Initialized SDK -> ${DIRECTUS_URL}`);
+console.log(`[Directus] Initialized Assets -> ${PUBLIC_DIRECTUS_URL}`);
+
+// Debug helper (ONLY if one of them is localhost in production)
+if (DIRECTUS_URL.includes('localhost') && process.env.NODE_ENV === 'production') {
+    console.warn(`[Directus] WARNING: Using localhost URL in production! Check your environment variables.`);
+}
 
 const directus = createDirectus<CustomSchema>(DIRECTUS_URL)
     .with(rest())
