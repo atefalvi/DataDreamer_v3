@@ -73,10 +73,18 @@ interface CustomSchema {
     about: AboutSettings;
 }
 
-// DIRECTUS_URL is intentionally NOT prefixed PUBLIC_ so Astro never inlines it in client bundles.
+// ─── CONFIGURATION ─────────────────────────────────
+// DIRECTUS_URL: Server-side API reaching. Can be internal (e.g., http://datadreamer-backend:8055)
 const DIRECTUS_URL = import.meta.env.DIRECTUS_URL ?? process.env.DIRECTUS_URL ?? 'http://localhost:8055';
+
+// PUBLIC_DIRECTUS_URL: Browser-side image URLs. Must be the public face (e.g., https://api.data-dreamer.net)
+const PUBLIC_DIRECTUS_URL = import.meta.env.PUBLIC_DIRECTUS_URL ?? import.meta.env.DIRECTUS_URL ?? DIRECTUS_URL;
+
 const DIRECTUS_EMAIL = import.meta.env.DIRECTUS_EMAIL ?? process.env.DIRECTUS_EMAIL;
 const DIRECTUS_PASSWORD = import.meta.env.DIRECTUS_PASSWORD ?? process.env.DIRECTUS_PASSWORD;
+
+console.log(`[Directus] SDK reaching: ${DIRECTUS_URL}`);
+console.log(`[Directus] Assets reaching: ${PUBLIC_DIRECTUS_URL}`);
 
 const directus = createDirectus<CustomSchema>(DIRECTUS_URL)
     .with(rest())
@@ -111,7 +119,7 @@ export default directus;
  * Build a full asset URL from a Directus file ID.
  */
 export function getAssetUrl(fileId: string): string {
-    return `${DIRECTUS_URL}/assets/${fileId}`;
+    return `${PUBLIC_DIRECTUS_URL}/assets/${fileId}`;
 }
 
 // ─── PROJECTS ──────────────────────────────────────
