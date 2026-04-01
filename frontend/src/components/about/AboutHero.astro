@@ -37,13 +37,12 @@ const titleWords = title.toUpperCase().split(" ");
                     <p class="readable-text">{description}</p>
                 </div>
                 <div class="hero-actions">
-                    <a 
-                        href={resumeUrl} 
-                        class={resumeId ? "btn-primary" : "btn-secondary disabled"} 
-                        target="_blank" rel="noopener"
-                        aria-disabled={!resumeId}
-                    >↓ DOWNLOAD RESUME</a>
-                    <a href="#contact" class="btn-secondary">→ GET IN TOUCH</a>
+                    {resumeId && (
+                        <a href={resumeUrl} class="btn-primary" target="_blank" rel="noopener">
+                            ↓ DOWNLOAD RESUME
+                        </a>
+                    )}
+                    <a href="/connect" class="btn-secondary">→ GET IN TOUCH</a>
                 </div>
             </div>
 

@@ -11,7 +11,6 @@ const logs = directusLogs.map((l: any) => ({
         ? new Date(l.published_at).toISOString().slice(0, 10).replace(/-/g, ".")
         : "—",
     tag: (l.tag ?? l.category ?? "").toUpperCase(),
-    excerpt: l.excerpt ?? "",
     authorName: l.author
         ? `${l.author.first_name || ""} ${l.author.last_name || ""}`
               .trim()
@@ -39,10 +38,10 @@ const uniqueAuthors = [
                 <span class="filter-label">// TAGS</span>
                 <div class="filter-bar">
                     <button
-                        class="filter-btn"
+                        class="filter-btn active"
                         data-filter-type="tag"
                         data-val="all"
-                        class="active">ALL LOGS</button
+                        aria-pressed="true">ALL LOGS</button
                     >
                     {
                         uniqueTags.map((tag) => (
@@ -50,6 +49,7 @@ const uniqueAuthors = [
                                 class="filter-btn"
                                 data-filter-type="tag"
                                 data-val={tag}
+                                aria-pressed="false"
                             >
                                 {tag}
                             </button>
@@ -64,7 +64,8 @@ const uniqueAuthors = [
                     <button
                         class="filter-btn active"
                         data-filter-type="author"
-                        data-val="all">ALL</button
+                        data-val="all"
+                        aria-pressed="true">ALL</button
                     >
                     {
                         uniqueAuthors.map((author) => (
@@ -72,6 +73,7 @@ const uniqueAuthors = [
                                 class="filter-btn"
                                 data-filter-type="author"
                                 data-val={author}
+                                aria-pressed="false"
                             >
                                 {author}
                             </button>
@@ -144,30 +146,7 @@ const uniqueAuthors = [
         letter-spacing: 0.1em;
     }
 
-    .filter-bar {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .filter-btn {
-        background: none;
-        border: 1px solid var(--border);
-        padding: 6px 16px;
-        font-family: var(--font-tech);
-        font-size: 10px;
-        text-transform: uppercase;
-        cursor: pointer;
-        transition: all 0.2s;
-        color: var(--text-secondary);
-    }
-
-    .filter-btn:hover,
-    .filter-btn.active {
-        background: var(--color-primary);
-        color: white;
-        border-color: var(--color-primary);
-    }
+    /* .filter-bar, .filter-btn → global.css */
 
     .log-item {
         border-bottom: 1px solid var(--color-border);
@@ -260,13 +239,15 @@ const uniqueAuthors = [
 
             if (!filterType || !val) return;
 
-            // Update active state in UI for that group
+            // Update active state + aria-pressed for that group
             buttons.forEach((b) => {
                 if (b.getAttribute("data-filter-type") === filterType) {
                     b.classList.remove("active");
+                    b.setAttribute("aria-pressed", "false");
                 }
             });
             btn.classList.add("active");
+            btn.setAttribute("aria-pressed", "true");
 
             // Update state
             if (filterType === "tag") activeTag = val;
