@@ -36,8 +36,24 @@ function preprocessCustomBlocks(markdown: string): string {
     const cleanContent = markdown
         .replace(/&nbsp;/g, ' ')                 // Unescape spaces
         .replace(/<br\s*\/?>/gi, '\n')           // Convert <br> to newlines
-        .replace(/<p>\s*(\|[\s\S]*?\|)\s*<\/p>/g, '\n\n$1\n\n') // Strip <p> around tables and ensure isolation
-        .replace(/<p>\s*(:::[^<]*)\s*<\/p>/g, '\n\n$1\n\n');    // Strip <p> around ::: blocks
+        // Handle code fences wrapped in <p> tags by the WYSIWYG editor
+        // e.g. <p>```python</p><p>code</p><p>```</p> → proper fenced code block
+        .replace(
+            /<p>\s*(```[\w]*)\s*<\/p>([\s\S]*?)<p>\s*(```)\s*<\/p>/g,
+            (_match, open, content, close) => {
+                const innerContent = content.replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '$1\n');
+                return `\n\n${open}\n${innerContent}${close}\n\n`;
+            }
+        )
+        // Handle consecutive table rows wrapped in <p> tags — join without blank lines
+        .replace(/(?:<p>\s*\|[^<]*\|\s*<\/p>\n?)+/g, (match) => {
+            const rows = [...match.matchAll(/<p>\s*(.*?)\s*<\/p>/g)].map(m => m[1]);
+            return '\n\n' + rows.join('\n') + '\n\n';
+        })
+        .replace(/<p>\s*(:::[^<]*)\s*<\/p>/g, '\n\n$1\n\n')    // Strip <p> around ::: blocks
+        // Strip remaining <p> tags so inline markdown (bold, italic, etc.) is visible to the parser
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<p[^>]*>/gi, '');
 
     const lines = cleanContent.split('\n');
     const output: string[] = [];
