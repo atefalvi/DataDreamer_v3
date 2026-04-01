@@ -95,6 +95,80 @@ const ogDescription = description;
 
         <Footer />
 
+        <!-- Image Grid Lightbox -->
+        <div class="ig-lightbox" id="igLightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+            <button class="ig-lightbox-close" id="igClose" aria-label="Close">✕</button>
+            <button class="ig-lightbox-nav ig-lightbox-prev" id="igPrev" aria-label="Previous">←</button>
+            <img class="ig-lightbox-img" id="igImg" src="" alt="" />
+            <button class="ig-lightbox-nav ig-lightbox-next" id="igNext" aria-label="Next">→</button>
+            <span class="ig-lightbox-counter" id="igCounter"></span>
+        </div>
+        <script>
+            (function () {
+                const lb = document.getElementById('igLightbox') as HTMLElement;
+                const lbImg = document.getElementById('igImg') as HTMLImageElement;
+                const lbCounter = document.getElementById('igCounter') as HTMLElement;
+
+                let items: HTMLElement[] = [];
+                let idx = 0;
+
+                function show(i: number) {
+                    idx = (i + items.length) % items.length;
+                    lbImg.src = items[idx].dataset.src ?? '';
+                    lbImg.alt = items[idx].querySelector('img')?.alt ?? '';
+                    lbCounter.textContent = `${idx + 1} / ${items.length}`;
+                }
+
+                function open(gridItems: HTMLElement[], i: number) {
+                    items = gridItems;
+                    show(i);
+                    lb.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+
+                function close() {
+                    lb.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+
+                document.getElementById('igClose')?.addEventListener('click', close);
+                document.getElementById('igPrev')?.addEventListener('click', () => show(idx - 1));
+                document.getElementById('igNext')?.addEventListener('click', () => show(idx + 1));
+
+                lb.addEventListener('click', (e) => { if (e.target === lb) close(); });
+
+                document.addEventListener('keydown', (e) => {
+                    if (!lb.classList.contains('active')) return;
+                    if (e.key === 'Escape') close();
+                    if (e.key === 'ArrowLeft') show(idx - 1);
+                    if (e.key === 'ArrowRight') show(idx + 1);
+                });
+
+                // Touch swipe
+                let tx = 0;
+                lb.addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, { passive: true });
+                lb.addEventListener('touchend', (e) => {
+                    const dx = e.changedTouches[0].clientX - tx;
+                    if (Math.abs(dx) > 50) dx > 0 ? show(idx - 1) : show(idx + 1);
+                });
+
+                function initGrids() {
+                    document.querySelectorAll<HTMLElement>('.image-grid').forEach((grid) => {
+                        const gridItems = Array.from(grid.querySelectorAll<HTMLElement>('.ig-item'));
+                        gridItems.forEach((item, i) => {
+                            item.addEventListener('click', () => open(gridItems, i));
+                        });
+                    });
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initGrids);
+                } else {
+                    initGrids();
+                }
+            })();
+        </script>
+
         <!-- Global Cursor Trail Script -->
         <script>
             const cursorCanvas = document.getElementById(

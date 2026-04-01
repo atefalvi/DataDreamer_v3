@@ -613,6 +613,131 @@ details.expand-block .expand-content {
     filter: grayscale(0);
 }
 
+/* ── IMAGE GRID (:::imagegrid) ─────────────────── */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 6px;
+    margin: 40px 0;
+}
+
+.ig-item {
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    cursor: crosshair;
+    padding: 0;
+    border: none;
+    background: var(--color-gray, #111);
+    position: relative;
+}
+
+.ig-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: grayscale(0.25);
+    transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.ig-item:hover img {
+    transform: scale(1.06);
+    filter: grayscale(0);
+}
+
+/* ── LIGHTBOX ──────────────────────────────────── */
+.ig-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.96);
+    align-items: center;
+    justify-content: center;
+}
+
+.ig-lightbox.active {
+    display: flex;
+}
+
+.ig-lightbox-img {
+    max-width: 92vw;
+    max-height: 85vh;
+    object-fit: contain;
+    display: block;
+    user-select: none;
+}
+
+.ig-lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    font-family: var(--font-tech);
+    padding: 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.ig-lightbox-close:hover { opacity: 1; }
+
+.ig-lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 16px 20px;
+    font-family: var(--font-tech);
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    user-select: none;
+}
+
+.ig-lightbox-nav:hover { opacity: 1; }
+.ig-lightbox-prev { left: 12px; }
+.ig-lightbox-next { right: 12px; }
+
+.ig-lightbox-counter {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.4);
+    font-family: var(--font-tech);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .image-grid {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        gap: 6px;
+        padding-bottom: 8px;
+        /* hide scrollbar */
+        scrollbar-width: none;
+    }
+    .image-grid::-webkit-scrollbar { display: none; }
+
+    .ig-item {
+        flex: 0 0 75vw;
+        scroll-snap-align: start;
+        aspect-ratio: 4 / 3;
+    }
+}
+
 /* ── MOBILE ────────────────────────────────────── */
 @media (max-width: 768px) {
     :root {

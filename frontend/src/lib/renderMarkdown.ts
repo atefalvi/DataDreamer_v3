@@ -75,6 +75,25 @@ function preprocessCustomBlocks(markdown: string): string {
                 output.push(`<div class="pull-quote">\n${cleanedQuote}\n</div>`);
             } else if (blockType === 'details') {
                 output.push(`<details class="expand-block"><summary>${blockLabel}</summary><div class="expand-content">${blockContent.join('\n')}</div></details>`);
+            } else if (blockType === 'imagegrid') {
+                const fullContent = blockContent.join('\n');
+                const images: { src: string; alt: string }[] = [];
+                // Markdown syntax: ![alt](src)
+                for (const m of fullContent.matchAll(/!\[([^\]]*)\]\(([^)]+)\)/g)) {
+                    images.push({ alt: m[1], src: m[2].trim() });
+                }
+                // HTML syntax fallback: <img src="..." alt="..." />
+                if (images.length === 0) {
+                    for (const m of fullContent.matchAll(/<img[^>]+src="([^"]+)"(?:[^>]+alt="([^"]*)")?/g)) {
+                        images.push({ src: m[1], alt: m[2] || '' });
+                    }
+                }
+                if (images.length > 0) {
+                    const items = images.map((img, i) =>
+                        `<button class="ig-item" data-src="${img.src}" data-index="${i}" aria-label="Open image ${i + 1}"><img src="${img.src}" alt="${img.alt}" loading="lazy" /></button>`
+                    ).join('\n');
+                    output.push(`<div class="image-grid" data-count="${images.length}">\n${items}\n</div>`);
+                }
             } else {
                 // callout
                 output.push(`<div class="callout ${blockType}"><div class="callout-label">${blockLabel}</div><p>${blockContent.join(' ')}</p></div>`);
@@ -99,6 +118,15 @@ function preprocessCustomBlocks(markdown: string): string {
             // If it's a bracket format :::info{title="xxx"}, we don't have a simple regex group for label here
             // but we can try to extract it if needed. For now, let's support the simple space format.
             blockLabel = calloutMatch[2] || blockType.toUpperCase();
+            blockContent = [];
+            continue;
+        }
+
+        const imagegridMatch = trimmed.match(/^:::imagegrid(?:\s+.*)?$/);
+        if (imagegridMatch) {
+            inBlock = true;
+            blockType = 'imagegrid';
+            blockLabel = '';
             blockContent = [];
             continue;
         }
