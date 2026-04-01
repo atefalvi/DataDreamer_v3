@@ -11,10 +11,38 @@
 
 ---
 
-## 1. Clone the Repository
+## 1. Environment Configuration
+
+Copy the example files and fill in your values. **NEVER commit your `.env` files.**
+
+### Frontend (`frontend/.env`)
+
+| Variable | Required | Description |
+|---|---|---|
+| `DIRECTUS_URL` | ✅ | **Internal** API URL (e.g. `http://datadreamer-backend:8055`) |
+| `PUBLIC_DIRECTUS_URL` | ✅ | **Public** API URL (e.g. `https://api.your-domain.com`) |
+| `DIRECTUS_EMAIL` | Optional | Admin email for server-side auth |
+| `DIRECTUS_PASSWORD` | Optional | Admin password for server-side auth |
+
+### Backend (`backend/.env`)
+
+| Variable | Required | Description |
+|---|---|---|
+| `DB_USER` | ✅ | Postgres username |
+| `DB_PASSWORD` | ✅ | Postgres password |
+| `DB_DATABASE` | ✅ | Postgres database name |
+| `DIRECTUS_SECRET` | ✅ | Random 64-char secret key |
+| `DIRECTUS_ADMIN_EMAIL` | ✅ | Directus admin email |
+| `DIRECTUS_ADMIN_PASSWORD` | ✅ | Directus admin password |
+| `DIRECTUS_PUBLIC_URL` | ✅ | Public API URL |
+| `CORS_ORIGIN` | ✅ | Frontend origin URL |
+
+---
+
+## 2. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/DataDreamer_v3.git
+git clone https://github.com/your-username/DataDreamer_v3.git
 cd DataDreamer_v3
 ```
 
@@ -89,8 +117,11 @@ cp .env.example .env
 
 Edit `frontend/.env`:
 ```env
+# Server-side API reaching
+DIRECTUS_URL=http://localhost:8055
+
+# Browser-side asset reaching
 PUBLIC_DIRECTUS_URL=http://localhost:8055
-# Leave DIRECTUS_EMAIL and DIRECTUS_PASSWORD blank if using Public policy
 ```
 
 Install dependencies and start the dev server:

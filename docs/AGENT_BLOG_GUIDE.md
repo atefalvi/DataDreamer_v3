@@ -198,6 +198,37 @@ THE GOAL ISN'T JUST TO STORE DATA, BUT TO ENCODE INTUITION.
 
 ---
 
+### Image Grid
+
+Use to display multiple images side-by-side as a responsive gallery. Each image is clickable and opens a full-screen lightbox with prev/next navigation.
+
+```markdown
+:::imagegrid
+![Caption one](https://api.data-dreamer.net/assets/<FILE_UUID_1>)
+![Caption two](https://api.data-dreamer.net/assets/<FILE_UUID_2>)
+![Caption three](https://api.data-dreamer.net/assets/<FILE_UUID_3>)
+![Caption four](https://api.data-dreamer.net/assets/<FILE_UUID_4>)
+:::
+```
+
+**Renders as:**
+- **Desktop** — auto-fill CSS grid (columns fill at min 200px each). Hover desaturates and zooms the image slightly.
+- **Mobile** — horizontal swipe carousel, one image at 75% viewport width per snap.
+- **Click any image** — opens a fullscreen lightbox. Navigate with `←` / `→` buttons, keyboard arrow keys, or swipe. Press `Esc` or click outside to close. A counter shows position (e.g. `2 / 4`).
+
+**How to get the image URL from Directus:**
+1. Go to **Directus → File Library**
+2. Upload your image (or find an existing one)
+3. Click the file → copy the **File UUID** from the URL or file details panel
+4. Use the full URL: `https://api.data-dreamer.net/assets/<UUID>`
+
+**Tips:**
+- Any number of images works — 2 images gives a side-by-side pair, 6 gives a 3-column grid on desktop.
+- Alt text (the text inside `![...]`) becomes the accessible label for screen readers. Use a real description.
+- Images are lazy-loaded automatically.
+
+---
+
 ## Code Blocks
 
 Standard Markdown fenced code blocks with language hints are supported. The site uses `github-dark` syntax highlighting.
@@ -229,12 +260,12 @@ python train.py --epochs 3 --batch-size 16 --lr 1e-4
 Upload images to **Directus → Files**. Copy the **File UUID** and insert as:
 
 ```markdown
-![Description of image](https://api.data-dreamer.net/assets/<FILE_UUID>)
+![Description of image](https://api.your-domain.com/assets/<FILE_UUID>)
 ```
 
 Example:
 ```markdown
-![Training loss curve after epoch 3](https://api.data-dreamer.net/assets/abc123-def456-...)
+![Training loss curve after epoch 3](https://api.your-domain.com/assets/abc123-def456-...)
 ```
 
 Images are **not** auto-resized by Directus in the markdown pipeline — use reasonable source image dimensions (max 1600px wide).
@@ -284,7 +315,7 @@ Avoid creating too many unique tags — it fragments the filter UX.
 
 ## Constraints
 
-- **No HTML in content.** The content field is processed as Markdown. Raw HTML tags may be stripped or cause rendering issues.
+- **Use `:::` blocks for rich content.** The custom block syntax (`:::tip`, `:::imagegrid`, etc.) is the supported way to add rich elements. Raw HTML tags typed inline may be stripped by the editor.
 - **One `#` per post.** Only one H1 is allowed — the post title at the top.
 - **Draft by default.** New items are `draft` until you explicitly set `status = published`.
 - **Slugs are permanent.** Once published, changing a `slug` breaks existing links. Do not change a published slug.
