@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Astro Frontend (dev)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "port": 4321
+    },
+    {
+      "name": "Directus Backend (Docker)",
+      "runtimeExecutable": "docker",
+      "runtimeArgs": ["compose", "-f", "backend/docker-compose.yml", "up"],
+      "port": 8055
+    }
+  ]
+}
