@@ -184,6 +184,8 @@ export async function renderMarkdown(content: string): Promise<{ html: string; h
     const result = await unified()
         .use(remarkParse)
         .use(remarkGfm)
+        // allowDangerousHtml is intentional — content is authored in the trusted Directus admin panel
+        // and our :::block preprocessor injects raw HTML that must survive the rehype pipeline.
         .use(remarkRehype, { allowDangerousHtml: true })
         .use(rehypeRaw)
         .use(rehypeSlug)

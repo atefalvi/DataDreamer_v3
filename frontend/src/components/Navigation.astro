@@ -28,7 +28,7 @@ const currentPath = pathname.replace(/\/$/, ""); // Remove trailing slash if any
         <a href="/logs" class={currentPath.startsWith("/logs") ? "active" : ""}
             >Logs</a
         >
-        <a href="/about#contact">Connect</a>
+        <a href="/connect" class={currentPath.startsWith("/connect") ? "active" : ""}>Connect</a>
     </div>
 
     <div class="nav-controls">
@@ -62,7 +62,7 @@ const currentPath = pathname.replace(/\/$/, ""); // Remove trailing slash if any
         data-index="03"
         class={currentPath.startsWith("/logs") ? "active" : ""}>Logs</a
     >
-    <a href="/about#contact" data-index="04">Connect</a>
+    <a href="/connect" data-index="04" class={currentPath.startsWith("/connect") ? "active" : ""}>Connect</a>
 </nav>
 
 <style>

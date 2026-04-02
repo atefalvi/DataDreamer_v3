@@ -28,7 +28,11 @@ const { skills = [] } = Astro.props;
             {skills.map((category) => (
                 <div class="skill-card">
                     <div class="skill-header">{category.header}</div>
-                    <div class="skill-name" set:html={category.name.replace(" ", "<br/>")}></div>
+                    <div class="skill-name">
+                        {category.name.split(" ").map((word: string, i: number) => (
+                            <>{i > 0 && <br />}{word}</>
+                        ))}
+                    </div>
                     <ul class="skill-list">
                         {category.items?.map((item) => (
                             <li>

@@ -114,9 +114,12 @@ const ogDescription = description;
 
                 function show(i: number) {
                     idx = (i + items.length) % items.length;
-                    lbImg.src = items[idx].dataset.src ?? '';
-                    lbImg.alt = items[idx].querySelector('img')?.alt ?? '';
+                    const src = items[idx].dataset.src ?? '';
+                    const alt = items[idx].querySelector('img')?.alt || `Image ${idx + 1} of ${items.length}`;
+                    lbImg.alt = alt;   // set alt before src so screen readers announce correctly
+                    lbImg.src = src;
                     lbCounter.textContent = `${idx + 1} / ${items.length}`;
+                    lbCounter.setAttribute('aria-live', 'polite');
                 }
 
                 function open(gridItems: HTMLElement[], i: number) {
