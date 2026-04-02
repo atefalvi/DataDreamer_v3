@@ -114,18 +114,33 @@ const uniqueAuthors = [
 
     .filters-container {
         display: flex;
-        flex-direction: column;
-        gap: 24px;
+        flex-direction: row;         /* TAGS + AUTHOR in one row */
+        align-items: flex-start;
+        gap: 0;
         margin-bottom: 60px;
         border-top: 1px solid var(--color-gray);
         border-bottom: 1px solid var(--color-gray);
-        padding: 24px 0;
+        padding: 20px 0;
     }
 
-    .filter-group {
+    /* TAGS — grows to fill remaining width */
+    .filter-group:first-child {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
+        padding-right: 32px;
+        border-right: 1px solid var(--color-gray);
+    }
+
+    /* AUTHOR — compact, fixed to the right */
+    .filter-group:last-child {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-left: 32px;
+        min-width: 200px;
     }
 
     .filter-label {
@@ -135,7 +150,12 @@ const uniqueAuthors = [
         letter-spacing: 0.1em;
     }
 
-    /* .filter-bar, .filter-btn → global.css */
+    /* Tags wrap naturally — no JS needed for overflow */
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
 
     .log-item {
         border-bottom: 1px solid var(--color-border);
@@ -187,6 +207,21 @@ const uniqueAuthors = [
     }
 
     @media (max-width: 768px) {
+        /* Stack filters back to column on mobile */
+        .filters-container {
+            flex-direction: column;
+            gap: 16px;
+        }
+        .filter-group:first-child {
+            padding-right: 0;
+            border-right: none;
+            border-bottom: 1px solid var(--color-gray);
+            padding-bottom: 16px;
+        }
+        .filter-group:last-child {
+            padding-left: 0;
+            min-width: 0;
+        }
         .log-link {
             flex-wrap: wrap;
             gap: 8px;
