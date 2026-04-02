@@ -22,7 +22,7 @@ const { headings } = Astro.props;
     <ul class="toc-list">
         {
             headings.map((h, i) => (
-                <li class="toc-item">
+                <li class="toc-item" data-depth={h.depth}>
                     <a
                         href={`#${h.id}`}
                         class={`toc-link ${i === 0 ? "active" : ""}`}
@@ -57,9 +57,11 @@ const { headings } = Astro.props;
         list-style: none;
     }
 
-    .toc-item {
-        margin-bottom: 12px;
-    }
+    /* Base indent per depth level — hover/active effects add on top via calc() */
+    .toc-item          { --toc-indent: 0px;  margin-bottom: 12px; }
+    .toc-item[data-depth="2"] { --toc-indent: 0px;  }
+    .toc-item[data-depth="3"] { --toc-indent: 14px; }
+    .toc-item[data-depth="4"] { --toc-indent: 22px; }
 
     .toc-link {
         text-decoration: none;
@@ -74,19 +76,24 @@ const { headings } = Astro.props;
         display: block;
         text-transform: uppercase;
         letter-spacing: 0.03em;
+        padding-left: var(--toc-indent);
     }
+
+    /* Sub-headings: slightly smaller + softer to reinforce hierarchy */
+    .toc-item[data-depth="3"] .toc-link { font-size: 10px; opacity: 0.4; }
+    .toc-item[data-depth="4"] .toc-link { font-size: 10px; opacity: 0.35; }
 
     .toc-link:hover {
         opacity: 1;
         color: var(--color-primary);
-        padding-left: 8px;
+        padding-left: calc(var(--toc-indent) + 8px);
     }
 
     .toc-link.active {
         opacity: 1;
         color: var(--color-primary);
         border-left: 2px solid var(--color-primary);
-        padding-left: 12px;
+        padding-left: calc(var(--toc-indent) + 12px);
     }
 
     @media (max-width: 1024px) {
