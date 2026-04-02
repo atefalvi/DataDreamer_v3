@@ -248,7 +248,7 @@ section {
 
 .btn:hover {
     transform: translateY(-2px);
-    background: black;
+    background: #0A0A0A;
 }
 
 /* ── GRAIN OVERLAY ─────────────────────────────── */
@@ -581,6 +581,20 @@ details.expand-block .expand-content {
 
 .pull-quote p:last-child {
     margin-bottom: 0;
+}
+
+/* ── BLOG LINKS ────────────────────────────────── */
+/* Without this, browser defaults (blue) apply to all <a> inside rendered markdown. */
+.blog-content a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+    transition: opacity 0.2s;
+}
+
+.blog-content a:hover {
+    opacity: 0.7;
 }
 
 /* ── BLOG IMAGES ───────────────────────────────── */
