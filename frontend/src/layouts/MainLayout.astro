@@ -12,10 +12,16 @@ interface Props {
     description?: string;
     /** Absolute URL to the OG image (1200×630). If omitted, falls back to /og/default.jpg */
     ogImage?: string;
+    /** Alt text for og:image — defaults to page title */
+    ogImageAlt?: string;
+    /** MIME type for og:image — defaults to image/jpeg */
+    ogImageType?: string;
     /** 'website' for index/about, 'article' for log/project posts */
     ogType?: "website" | "article";
     /** Override canonical URL. Defaults to current request URL. */
     canonical?: string;
+    /** ISO 8601 publish date — emits article:published_time when ogType=article */
+    articlePublishedTime?: string;
 }
 
 const SITE_URL = "https://data-dreamer.net";
@@ -24,19 +30,27 @@ const {
     title = "DATA DREAMER // ANALYST",
     description = "Analyst, data engineer, and AI builder. Exploring the edge of what machines can dream.",
     ogImage = `${SITE_URL}/og/default.jpg`,
+    ogImageAlt,
+    ogImageType = "image/jpeg",
     ogType = "website",
     canonical = new URL(Astro.request.url).href.split("?")[0],
+    articlePublishedTime,
 } = Astro.props;
 
 const ogTitle = title;
 const ogDescription = description;
+const resolvedOgImageAlt = ogImageAlt ?? title;
+const isSecureOgImage = ogImage.startsWith("https://");
 ---
 
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!-- Favicon chain: ICO for legacy/in-app browsers, SVG for modern ones -->
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="theme-color" content="#111111" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -51,29 +65,43 @@ const ogDescription = description;
         <link rel="canonical" href={canonical} />
 
         <!-- Open Graph -->
+        <meta property="og:locale" content="en_US" />
         <meta property="og:site_name" content="Data Dreamer" />
         <meta property="og:type" content={ogType} />
         <meta property="og:url" content={canonical} />
         <meta property="og:title" content={ogTitle} />
         <meta property="og:description" content={ogDescription} />
         <meta property="og:image" content={ogImage} />
+        {isSecureOgImage && <meta property="og:image:secure_url" content={ogImage} />}
+        <meta property="og:image:type" content={ogImageType} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={resolvedOgImageAlt} />
+        {ogType === "article" && articlePublishedTime && (
+            <meta property="article:published_time" content={articlePublishedTime} />
+        )}
 
         <!-- Twitter / X -->
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={ogTitle} />
         <meta name="twitter:description" content={ogDescription} />
         <meta name="twitter:image" content={ogImage} />
+        <meta name="twitter:image:alt" content={resolvedOgImageAlt} />
 
         <!-- Theme init (inline — must run before paint) -->
         <script is:inline>
             (function() {
-                const savedTheme = localStorage.getItem('theme');
-                const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (savedTheme === 'light' || (!savedTheme && !systemPrefersDark)) {
-                    document.documentElement.setAttribute('data-theme', 'light');
-                } else {
+                try {
+                    // localStorage may be blocked in restricted in-app browsers
+                    // (Messenger, Instagram WebView) — fall back to dark theme on error.
+                    const savedTheme = localStorage.getItem('theme');
+                    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    if (savedTheme === 'light' || (!savedTheme && !systemPrefersDark)) {
+                        document.documentElement.setAttribute('data-theme', 'light');
+                    } else {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                    }
+                } catch (e) {
                     document.documentElement.setAttribute('data-theme', 'dark');
                 }
             })();

@@ -34,7 +34,10 @@ const authorInitials = (post.authorName ?? "")
     title={`LOG // ${post.title}`}
     description={post.excerpt || "A technical log from Data Dreamer."}
     ogImage="https://data-dreamer.net/og/log.jpg"
+    ogImageAlt={post.title}
+    ogImageType="image/jpeg"
     ogType="article"
+    articlePublishedTime={post.date ? new Date(post.date).toISOString() : undefined}
 >
     <!-- Post Hero -->
     <div class="container post-hero">
