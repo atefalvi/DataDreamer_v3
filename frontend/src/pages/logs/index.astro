@@ -1,37 +1,28 @@
 ---
 import MainLayout from "../../layouts/MainLayout.astro";
-import { fetchLogs } from "../../lib/directus";
+import PageHero from "../../components/PageHero.astro";
+import { fetchLogs, type Log } from "../../lib/directus";
+import { formatDate, formatAuthorName } from "../../lib/content";
 
 const directusLogs = await fetchLogs();
 
-const logs = directusLogs.map((l: any) => ({
+const logs = directusLogs.map((l: Log) => ({
     slug: l.slug ?? "",
     title: (l.title ?? "UNTITLED").toUpperCase(),
-    date: l.published_at
-        ? new Date(l.published_at).toISOString().slice(0, 10).replace(/-/g, ".")
-        : "—",
+    date: formatDate(l.published_at),
     tag: (l.tag ?? l.category ?? "").toUpperCase(),
-    authorName: l.author
-        ? `${l.author.first_name || ""} ${l.author.last_name || ""}`
-              .trim()
-              .toUpperCase()
-        : "ATEF ALVI",
+    authorName: formatAuthorName(l.author),
 }));
 
-const uniqueTags = [
-    ...new Set(logs.map((l: any) => l.tag).filter(Boolean)),
-].sort();
+const uniqueTags = [...new Set(logs.map((l) => l.tag).filter(Boolean))].sort();
 const uniqueAuthors = [
-    ...new Set(logs.map((l: any) => l.authorName).filter(Boolean)),
+    ...new Set(logs.map((l) => l.authorName).filter(Boolean)),
 ].sort();
 ---
 
 <MainLayout title="DEV LOG // DATA DREAMER">
     <main class="container page-content">
-        <header class="page-hero-header">
-            <span class="meta-text">// TERMINAL LOGS</span>
-            <h1 class="page-title">DEV LOG</h1>
-        </header>
+        <PageHero label="// TERMINAL LOGS" title="DEV LOG" />
 
         <div class="filters-container">
             <div class="filter-group">
@@ -85,7 +76,7 @@ const uniqueAuthors = [
 
         <ul class="log-list">
             {
-                logs.map((post: any) => (
+                logs.map((post) => (
                     <li
                         class="log-item"
                         data-tag={post.tag}
@@ -104,9 +95,7 @@ const uniqueAuthors = [
         {
             logs.length === 0 && (
                 <div class="empty-state">
-                    <p class="meta-text" style="color:var(--text-secondary);">
-                        // NO LOGS FOUND — SYSTEM IDLE
-                    </p>
+                    <p class="meta-text">// NO LOGS FOUND — SYSTEM IDLE</p>
                 </div>
             )
         }

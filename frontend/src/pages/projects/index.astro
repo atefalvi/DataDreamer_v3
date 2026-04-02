@@ -1,12 +1,12 @@
 ---
 import MainLayout from "../../layouts/MainLayout.astro";
 import ProjectCard from "../../components/projects/ProjectCard.astro";
-import { fetchProjects, getAssetUrl } from "../../lib/directus";
+import PageHero from "../../components/PageHero.astro";
+import { fetchProjects, getAssetUrl, type Project } from "../../lib/directus";
 
 const directusProjects = await fetchProjects();
 
-// Static fallback data when Directus is offline
-const projects = directusProjects.map((p: any, i: number) => ({
+const projects = directusProjects.map((p: Project, i: number) => ({
     title: (p.title ?? "UNTITLED").toUpperCase(),
     description: p.summary ?? p.description ?? "",
     image: p.cover_image ? getAssetUrl(p.cover_image) : null,
@@ -19,22 +19,19 @@ const projects = directusProjects.map((p: any, i: number) => ({
 }));
 
 // Extract unique tags and sort them alphabetically
-const uniqueTags = [...new Set(projects.flatMap((p: any) => p.tags))].sort((a: any, b: any) => {
-    return a.toLowerCase().localeCompare(b.toLowerCase());
-});
+const uniqueTags = [...new Set(projects.flatMap((p) => p.tags))].sort((a, b) =>
+    a.toLowerCase().localeCompare(b.toLowerCase())
+);
 ---
 
 <MainLayout title="PROJECTS // DATA DREAMER">
     <main class="container page-content">
-        <header class="page-hero-header">
-            <span class="meta-text">// PROJECT INDEX</span>
-            <h1 class="page-title">DEEP<br />WORKSPACE</h1>
-        </header>
+        <PageHero label="// PROJECT INDEX" title="DEEP WORKSPACE" />
 
         <div class="filter-bar">
             <button class="filter-btn active" data-tag="all" aria-pressed="true">All Deployments</button>
             {
-                uniqueTags.map((tag: any) => (
+                uniqueTags.map((tag) => (
                     <button class="filter-btn" data-tag={tag.toLowerCase()} aria-pressed="false">
                         {tag}
                     </button>
@@ -42,14 +39,16 @@ const uniqueTags = [...new Set(projects.flatMap((p: any) => p.tags))].sort((a: a
             }
         </div>
 
-        <div class="projects-grid">
-            {
-                projects.map((project: any) => (
+        {projects.length === 0 ? (
+            <div class="empty-state">
+                <p class="meta-text">// NO PROJECTS FOUND — CHECK BACK SOON.</p>
+            </div>
+        ) : (
+            <div class="projects-grid">
+                {projects.map((project) => (
                     <div
                         class="project-item"
-                        data-tags={JSON.stringify(
-                            project.tags.map((t: string) => t.toLowerCase()),
-                        )}
+                        data-tags={project.tags.map((t) => t.toLowerCase()).join(",")}
                     >
                         <ProjectCard
                             title={project.title}
@@ -61,9 +60,9 @@ const uniqueTags = [...new Set(projects.flatMap((p: any) => p.tags))].sort((a: a
                             href={project.href}
                         />
                     </div>
-                ))
-            }
-        </div>
+                ))}
+            </div>
+        )}
     </main>
 </MainLayout>
 
@@ -73,6 +72,11 @@ const uniqueTags = [...new Set(projects.flatMap((p: any) => p.tags))].sort((a: a
     }
 
     /* .filter-bar, .filter-btn → global.css */
+
+    .empty-state {
+        padding: 80px 0;
+        text-align: center;
+    }
 
     .projects-grid {
         display: grid;
@@ -130,10 +134,9 @@ const uniqueTags = [...new Set(projects.flatMap((p: any) => p.tags))].sort((a: a
 
             // Filter items
             items.forEach((item) => {
-                const itemTagsStr = item.getAttribute("data-tags");
-                const itemTags = JSON.parse(itemTagsStr || "[]");
+                const itemTags = item.getAttribute("data-tags")?.split(",") ?? [];
 
-                if (filterTag === "all" || itemTags.includes(filterTag)) {
+                if (filterTag === "all" || itemTags.includes(filterTag ?? "")) {
                     item.style.display = "block";
                 } else {
                     item.style.display = "none";

@@ -6,12 +6,15 @@ import {
     fetchFeaturedProjects,
     fetchRecentLogs,
     getAssetUrl,
+    type Project,
+    type Log,
 } from "../lib/directus";
+import { formatDate } from "../lib/content";
 
 const directusProjects = await fetchFeaturedProjects(3);
 const directusLogs = await fetchRecentLogs(3);
 
-const projects = directusProjects.map((p: any, i: number) => ({
+const projects = directusProjects.map((p: Project, i: number) => ({
     title: (p.title ?? "UNTITLED").toUpperCase(),
     description: p.summary ?? "",
     image: p.cover_image ? getAssetUrl(p.cover_image) : null,
@@ -21,10 +24,10 @@ const projects = directusProjects.map((p: any, i: number) => ({
     href: p.slug ? `/projects/${p.slug}` : "#",
 }));
 
-const logs = directusLogs.map((l: any) => ({
+const logs = directusLogs.map((l: Log) => ({
     slug: l.slug ?? "",
     title: (l.title ?? "UNTITLED").toUpperCase(),
-    date: l.published_at ? new Date(l.published_at).toISOString().slice(0, 10).replace(/-/g, ".") : "—",
+    date: formatDate(l.published_at),
     tag: (l.tag ?? l.category ?? "").toUpperCase(),
 }));
 ---
@@ -40,16 +43,14 @@ const logs = directusLogs.map((l: any) => ({
     <section class="container teaser-section">
         <header class="section-header-block">
             <div class="section-header-content">
-                <span class="meta-text" style="color:var(--text-secondary);"
-                    >// RECENT DEPLOYMENTS</span
-                >
+                <span class="meta-text">// RECENT DEPLOYMENTS</span>
                 <h2 class="section-title">PROJECTS</h2>
             </div>
             <a href="/projects" class="btn">View All Projects →</a>
         </header>
         <div class="teaser-projects-grid">
             {
-                projects.map((project: any) => (
+                projects.map((project) => (
                     <ProjectCard
                         title={project.title}
                         description={project.description}
@@ -68,16 +69,14 @@ const logs = directusLogs.map((l: any) => ({
     <section class="container teaser-section">
         <header class="section-header-block">
             <div class="section-header-content">
-                <span class="meta-text" style="color:var(--text-secondary);"
-                    >// TERMINAL OUTPUT</span
-                >
+                <span class="meta-text">// TERMINAL OUTPUT</span>
                 <h2 class="section-title">DEV LOG</h2>
             </div>
             <a href="/logs" class="btn">View All Logs →</a>
         </header>
         <ul class="teaser-log-list">
             {
-                logs.map((post: any) => (
+                logs.map((post) => (
                     <li class="teaser-log-item">
                         <a href={`/logs/${post.slug}`} class="teaser-log-link">
                             <span class="teaser-log-date">{post.date}</span>
@@ -166,6 +165,10 @@ const logs = directusLogs.map((l: any) => ({
     }
 
     @media (max-width: 768px) {
+        .teaser-section {
+            padding-top: 48px;
+            padding-bottom: 48px;
+        }
         .teaser-projects-grid {
             grid-template-columns: 1fr;
             gap: 48px;

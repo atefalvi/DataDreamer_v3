@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@astrojs/node": "^9.5.5",
+    "@astrojs/sitemap": "^3.7.2",
     "@directus/sdk": "^18.0.3",
     "@shikijs/rehype": "^4.0.1",
     "astro": "^5.17.1",

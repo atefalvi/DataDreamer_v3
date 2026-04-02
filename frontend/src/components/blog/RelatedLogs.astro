@@ -21,8 +21,8 @@ const related = posts.filter(p => p.slug !== currentSlug).slice(0, 2);
 {related.length > 0 && (
     <section class="related-section">
         <div class="related-inner">
-            <div class="meta-text" style="color: var(--text-secondary); margin-bottom: 8px;">// KEEP READING</div>
-            <h2 class="section-title" style="margin-bottom: 0;">RELATED LOGS</h2>
+            <div class="meta-text related-meta">// KEEP READING</div>
+            <h2 class="section-title related-title-heading">RELATED LOGS</h2>
             <div class="related-grid">
                 {related.map((post, i) => (
                     <a href={`/logs/${post.slug}`} class="related-card">
@@ -37,6 +37,15 @@ const related = posts.filter(p => p.slug !== currentSlug).slice(0, 2);
 )}
 
 <style>
+    .related-meta {
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+    }
+
+    .related-title-heading {
+        margin-bottom: 0;
+    }
+
     .related-section {
         background: var(--bg-muted);
         padding: 100px var(--container-padding);

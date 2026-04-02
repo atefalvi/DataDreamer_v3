@@ -1,8 +1,10 @@
 ---
 import MainLayout from "../../layouts/MainLayout.astro";
 import TableOfContents from "../../components/blog/TableOfContents.astro";
+import AuthorChip from "../../components/blog/AuthorChip.astro";
 import { fetchProjects, getAssetUrl } from "../../lib/directus";
 import { renderMarkdown } from "../../lib/renderMarkdown";
+import { formatAuthorName, getAuthorInitials } from "../../lib/content";
 
 const { slug } = Astro.params;
 const projects = await fetchProjects();
@@ -53,16 +55,9 @@ const ogImageUrl = imageUrl && isPublicHttpsUrl(imageUrl)
     : `${SITE_URL}/og/project.jpg`;
 
 // Author display
-const authorName = author
-    ? `${author.first_name ?? ""} ${author.last_name ?? ""}`.trim().toUpperCase()
-    : "ATEF ALVI";
+const authorName = formatAuthorName(author);
 const authorAvatar = author?.avatar ? getAssetUrl(author.avatar) : null;
-const authorInitials = authorName
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w: string) => w[0])
-    .join("");
+const authorInitials = getAuthorInitials(authorName);
 
 const { html: renderedDescription, headings } = await renderMarkdown(description || "");
 ---
@@ -75,6 +70,7 @@ const { html: renderedDescription, headings } = await renderMarkdown(description
     ogImageType="image/jpeg"
     ogType="article"
     articlePublishedTime={published_at ?? undefined}
+    articleAuthor={authorName}
 >
     <main class="container page-content">
         <header class="project-hero">
@@ -89,15 +85,7 @@ const { html: renderedDescription, headings } = await renderMarkdown(description
 
             <!-- Meta grid: AUTHOR | PUBLISHED | TIMELINE -->
             <div class="post-meta-grid">
-                <!-- Avatar spans both rows via inner grid -->
-                <div class="pmg-col pmg-author-col">
-                    {authorAvatar
-                        ? <img class="author-avatar" src={authorAvatar} alt={authorName} />
-                        : <span class="author-initials">{authorInitials || "—"}</span>
-                    }
-                    <span class="pmg-label">AUTHOR</span>
-                    <span class="pmg-value author-name">{authorName}</span>
-                </div>
+                <AuthorChip name={authorName} initials={authorInitials} avatarUrl={authorAvatar} />
                 <div class="pmg-col">
                     <span class="pmg-label">PUBLISHED</span>
                     <span class="pmg-value">{published_at ? new Date(published_at).toISOString().slice(0,10).replace(/-/g,".") : "—"}</span>
@@ -113,7 +101,7 @@ const { html: renderedDescription, headings } = await renderMarkdown(description
             <div class="project-main">
                 {imageUrl && (
                     <div class="project-featured-image">
-                        <img src={imageUrl} alt={title} />
+                        <img src={imageUrl} alt={title} loading="eager" fetchpriority="high" />
                     </div>
                 )}
                 
@@ -124,7 +112,7 @@ const { html: renderedDescription, headings } = await renderMarkdown(description
                 </div>
             </div>
 
-            <aside class="project-sidebar">
+            <aside class="project-sidebar hide-scrollbar">
                 <div class="sidebar-block">
                     <h3 class="sidebar-label">TIMELINE</h3>
                     <p class="sidebar-value">{dateFormatted}</p>
@@ -202,7 +190,7 @@ const { html: renderedDescription, headings } = await renderMarkdown(description
 
     .project-featured-image {
         margin-bottom: 60px;
-        background: #f5f5f5;
+        background: var(--bg-muted);
         aspect-ratio: 16/9;
         overflow: hidden;
     }
@@ -234,7 +222,7 @@ const { html: renderedDescription, headings } = await renderMarkdown(description
         text-transform: uppercase;
     }
 
-    /* Sidebar */
+    /* Sidebar — scrollbar hidden via .hide-scrollbar utility in global.css */
     .project-sidebar {
         border-left: 1px solid var(--color-border);
         padding-left: 40px;
@@ -243,15 +231,6 @@ const { html: renderedDescription, headings } = await renderMarkdown(description
         align-self: start;
         max-height: calc(100vh - 120px);
         overflow-y: auto;
-    }
-
-    /* Hide scrollbar for sidebar */
-    .project-sidebar::-webkit-scrollbar {
-        width: 0px;
-        background: transparent;
-    }
-    .project-sidebar {
-        scrollbar-width: none;
     }
 
     .sidebar-block {

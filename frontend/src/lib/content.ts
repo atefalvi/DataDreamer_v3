@@ -33,9 +33,38 @@ export interface ContentProject {
 
 // ─── FORMATTERS ────────────────────────────────────
 
-function formatDate(dateString?: string): string {
+/**
+ * Format a date string (ISO or similar) to "YYYY.MM.DD".
+ * Returns "—" if the input is falsy or unparseable.
+ */
+export function formatDate(dateString?: string): string {
     if (!dateString) return "—";
     return new Date(dateString).toISOString().slice(0, 10).replace(/-/g, ".");
+}
+
+/**
+ * Build a display name from a Directus author object.
+ * Falls back to "ATEF ALVI" when no author is set.
+ */
+export function formatAuthorName(
+    author?: { first_name?: string; last_name?: string } | null
+): string {
+    return author
+        ? `${author.first_name ?? ""} ${author.last_name ?? ""}`.trim().toUpperCase()
+        : "ATEF ALVI";
+}
+
+/**
+ * Derive up to two initials from a full display name.
+ * e.g. "ATEF ALVI" → "AA"
+ */
+export function getAuthorInitials(name: string): string {
+    return name
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join("");
 }
 
 function formatProject(p: Project, index: number): ContentProject {
@@ -49,7 +78,7 @@ function formatProject(p: Project, index: number): ContentProject {
         year: p.published_at ? new Date(p.published_at).getFullYear().toString() : "2023",
         tags: p.tags ?? [],
         href: p.slug ? `/projects/${p.slug}` : "#",
-        authorName: p.author ? `${p.author.first_name || ''} ${p.author.last_name || ''}`.trim().toUpperCase() : "ATEF ALVI",
+        authorName: formatAuthorName(p.author),
         authorAvatar: p.author?.avatar ? getAssetUrl(p.author.avatar) : undefined,
     };
 }
@@ -59,14 +88,14 @@ function formatLog(l: Log): ContentLog {
         id: l.id,
         slug: l.slug ?? "",
         title: (l.title ?? "UNTITLED").toUpperCase(),
-        date: formatDate(l.published_at),
+        date: formatDate(l.published_at ?? undefined),
         tag: (l.tag ?? l.category ?? "").toUpperCase(),
         excerpt: l.excerpt ?? "",
         content: l.content ?? "",
         logNumber: l.log_number,
         seriesLabel: l.series_label ? l.series_label.toUpperCase() : undefined,
         rawDate: l.published_at,
-        authorName: l.author ? `${l.author.first_name || ''} ${l.author.last_name || ''}`.trim().toUpperCase() : "ATEF ALVI",
+        authorName: formatAuthorName(l.author),
         authorAvatar: l.author?.avatar ? getAssetUrl(l.author.avatar) : undefined,
     };
 }

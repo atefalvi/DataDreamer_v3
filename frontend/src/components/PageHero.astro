@@ -1,0 +1,30 @@
+---
+/**
+ * PageHero — Consistent page header with meta-label, title, and optional subtitle.
+ * Used across index pages (projects, logs, connect, etc.).
+ * Styles come from .page-hero-header, .page-title in global.css.
+ */
+interface Props {
+    label: string;
+    title: string;
+    subtitle?: string;
+}
+
+const { label, title, subtitle } = Astro.props;
+---
+
+<header class="page-hero-header">
+    <span class="meta-text">{label}</span>
+    <h1 class="page-title">{title}</h1>
+    {subtitle && <p class="page-subtitle">{subtitle}</p>}
+</header>
+
+<style>
+    .page-subtitle {
+        font-size: 18px;
+        line-height: 1.5;
+        opacity: 0.7;
+        max-width: 600px;
+        margin-top: 8px;
+    }
+</style>

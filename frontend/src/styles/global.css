@@ -21,7 +21,7 @@
 
     --spacing-unit: 8px;
     --container-padding: 32px;
-    --nav-h: 64px;
+    --nav-h: 56px;
     --section-spacing: 128px;
 
     /* Legacy Map (temporarily mapping old vars to new semantic tokens) */
@@ -35,6 +35,9 @@
     /* Transition System */
     --ease-out: cubic-bezier(0.2, 0, 0, 1);
     --transition-speed: 0.3s;
+    --transition-fast:   0.2s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow:   0.5s ease;
 }
 
 /* Base Light Theme */

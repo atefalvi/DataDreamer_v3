@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 
+Sitemap: https://data-dreamer.net/sitemap-index.xml
+
 # Allow social preview crawlers explicitly
 User-agent: Slackbot
 Allow: /
