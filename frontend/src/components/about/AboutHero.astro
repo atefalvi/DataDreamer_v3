@@ -248,7 +248,7 @@ const titleWords = title.toUpperCase().split(" ");
     .about-hero {
         display: flex;
         align-items: center;
-        padding: 140px 0 60px;
+        padding: 140px 0 80px;
         min-height: auto;
         overflow: visible;
         background: var(--bg-primary);
@@ -262,6 +262,7 @@ const titleWords = title.toUpperCase().split(" ");
     .about-grid {
         align-items: start;
         gap: 0;
+        position: relative; /* anchor for absolutely-positioned portrait */
     }
 
     .hero-text-content {
@@ -272,11 +273,11 @@ const titleWords = title.toUpperCase().split(" ");
 
     .hero-image-content {
         grid-column: span 6;
-        display: flex;
-        justify-content: flex-start;
-        align-items: flex-start;
         position: relative;
         overflow: visible;
+        /* Height is 1px — portrait is absolutely positioned and out of flow.
+           This prevents the tall canvas from creating phantom empty space below. */
+        min-height: 1px;
     }
 
 
@@ -371,10 +372,14 @@ const titleWords = title.toUpperCase().split(" ");
 
     /* ─── PORTRAIT: CANVAS PIXEL DISSOLVE ────────────── */
     .portrait-area {
-        position: relative;
+        /* Absolutely positioned — out of flow so it never creates empty space below.
+           top: -84px = -(section padding-top 140px - nav height 56px)
+           This makes the portrait bleed up so the face sits right below the nav. */
+        position: absolute;
+        top: -84px;
+        left: -60px;
         width: clamp(480px, 40vw, 640px);
         overflow: visible;
-        transform: translate(-60px, -200px); /* Align with top-edge of first headline line */
         z-index: 1;
     }
 
@@ -421,7 +426,7 @@ const titleWords = title.toUpperCase().split(" ");
     @media (max-width: 992px) {
         .about-hero {
             min-height: auto;
-            padding: 60px 0;
+            padding: 60px 0 60px;
         }
         .hero-text-content {
             grid-column: span 12;
@@ -433,11 +438,15 @@ const titleWords = title.toUpperCase().split(" ");
             grid-column: span 12;
             order: 1;
             justify-content: center;
+            min-height: auto;
         }
         .portrait-area {
+            /* Back to normal flow on mobile — stacked layout */
+            position: relative;
+            top: auto;
+            left: auto;
             width: min(80vw, 360px);
-            transform: none; /* Reset desktop nudge on mobile */
-            margin-top: 0;
+            margin: 0 auto;
         }
         .hero-title {
             font-size: 64px;
