@@ -53,15 +53,44 @@ export interface HomeSettings {
     hero_tagline_3?: string;
 }
 
+// ─── ABOUT SUB-TYPES ───────────────────────────────
+
+/** A single stat tile (e.g. "5+ YEARS" / "EXPERIENCE") */
+export interface StatItem {
+    number: string;
+    label: string;
+}
+
+/** One entry in the career timeline */
+export interface ExperienceItem {
+    date: string;
+    title: string;
+    subtitle: string;
+    tag: string;
+}
+
+/** A single skill within a SkillCategory */
+export interface SkillItem {
+    name: string;
+    suffix?: string;
+}
+
+/** A grouped skill card (e.g. "DATA ENGINEERING") */
+export interface SkillCategory {
+    header: string;
+    name: string;
+    items: SkillItem[];
+}
+
 export interface AboutSettings {
     hero_tagline?: string;
     hero_title?: string;
     hero_description?: string;
     profile_image?: string;
     resume?: string;
-    stats?: any[];
-    experience?: any[];
-    skills?: any[];
+    stats?: StatItem[];
+    experience?: ExperienceItem[];
+    skills?: SkillCategory[];
     companies?: { directus_file_id: string }[];
 }
 

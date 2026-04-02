@@ -1,14 +1,5 @@
 ---
-interface SkillItem {
-    name: string;
-    suffix?: string;
-}
-
-interface SkillCategory {
-    header: string;
-    name: string;
-    items: SkillItem[];
-}
+import type { SkillCategory } from "../../lib/directus";
 
 interface Props {
     skills?: SkillCategory[];

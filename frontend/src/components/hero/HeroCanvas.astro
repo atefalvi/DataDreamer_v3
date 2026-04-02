@@ -63,8 +63,20 @@ import HeroTagline from "../HeroTagline.astro";
 
 <script>
     // ─── 3D HERO CANVAS ────────────────────────────────
-    const canvas = document.getElementById("heroCanvas") as HTMLCanvasElement;
-    const ctx = canvas.getContext("2d")!;
+    const canvas = document.getElementById("heroCanvas") as HTMLCanvasElement | null;
+    if (!canvas) throw new Error("heroCanvas not found");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("heroCanvas 2d context unavailable");
+
+    // Respect user's motion preference — skip animation if reduced-motion is set
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // ─── NAMED CONSTANTS ───────────────────────────────
+    const NODE_COUNT  = 60;   // total floating nodes in the constellation
+    const EDGE_DIST   = 220;  // max distance (px) to draw an edge between nodes
+    const FOV         = 600;  // perspective focal length (px)
+    const TRAIL_LEN   = 18;   // cursor trail history length
+    const SPAWN_RANGE = 1200; // initial node spread (matches hero width ~1440px)
 
     function resize() {
         canvas.width = canvas.offsetWidth;
@@ -73,8 +85,6 @@ import HeroTagline from "../HeroTagline.astro";
     resize();
     window.addEventListener("resize", resize);
 
-    const NODE_COUNT = 60;
-    const EDGE_DIST = 220;
     let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
 
     document.addEventListener("mousemove", (e) => {
@@ -95,7 +105,7 @@ import HeroTagline from "../HeroTagline.astro";
     });
 
     let nodes = Array.from({ length: NODE_COUNT }, () => ({
-        x: (Math.random() - 0.5) * 1200,
+        x: (Math.random() - 0.5) * SPAWN_RANGE,
         y: (Math.random() - 0.5) * 900,
         z: (Math.random() - 0.5) * 800,
         vx: (Math.random() - 0.5) * 0.4,
@@ -143,13 +153,12 @@ import HeroTagline from "../HeroTagline.astro";
     ];
 
     function project(x: number, y: number, z: number, cx: number, cy: number) {
-        const fov = 600;
-        const dz = fov + z;
+        const dz = FOV + z;
         if (dz <= 0) return null;
         return {
-            sx: cx + (x * fov) / dz,
-            sy: cy + (y * fov) / dz,
-            scale: fov / dz,
+            sx: cx + (x * FOV) / dz,
+            sy: cy + (y * FOV) / dz,
+            scale: FOV / dz,
         };
     }
 
@@ -360,9 +369,9 @@ import HeroTagline from "../HeroTagline.astro";
         ctx.fillStyle = "rgba(255,46,0,0.7)";
         ctx.fill();
 
-        requestAnimationFrame(draw);
+        if (!reducedMotion) requestAnimationFrame(draw);
     }
-    draw();
+    if (!reducedMotion) draw();
 
     // ─── PIXELATED TEXT CANVAS ──────────────────────────
     const pixelCanvas = document.getElementById(
@@ -534,14 +543,14 @@ import HeroTagline from "../HeroTagline.astro";
             pCtx.fillRect(drawX, drawY, ps - 1, ps - 1);
         });
 
-        requestAnimationFrame(drawPixels);
+        if (!reducedMotion) requestAnimationFrame(drawPixels);
     }
 
     document.fonts.ready.then(() => {
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 resizePixel();
-                drawPixels();
+                if (!reducedMotion) drawPixels();
             });
         });
     });

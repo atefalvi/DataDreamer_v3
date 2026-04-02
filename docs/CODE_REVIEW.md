@@ -1,6 +1,6 @@
 # CODE REVIEW — DATA DREAMER FRONTEND
 
-> Last updated: 2026-04-01 (session 2 — social sharing audit + general polish scan)
+> Last updated: 2026-04-02 (session 3 — full polish pass, spacing audit)
 > Scope: `/frontend/src/` — all pages, components, layouts, lib, styles
 > Goal: Improve maintainability, type safety, accessibility, and consistency **without changing functionality or visual design.**
 
@@ -15,67 +15,12 @@
 5. [Accessibility](#5-accessibility)
 6. [Performance](#6-performance)
 7. [Error Handling](#7-error-handling)
-8. [Component Opportunities](#8-component-opportunities)
-9. [Documentation](#9-documentation)
-10. [Priority Matrix](#10-priority-matrix)
+8. [Documentation](#8-documentation)
+9. [Priority Matrix](#9-priority-matrix)
 
 ---
 
 ## 1. Code Duplication
-
-### 1.1 Author Formatting Logic — 3 Files
-
-**Severity: High**
-
-The same author name/initials/avatar logic is copy-pasted across:
-
-| File | Lines |
-|------|-------|
-| `pages/logs/[slug].astro` | 24–30 |
-| `pages/projects/[slug].astro` | 21–30 |
-| `pages/logs/index.astro` | 18–20 |
-
-All three compute author initials identically:
-```typescript
-const authorInitials = authorName
-  .split(" ")
-  .filter(Boolean)
-  .slice(0, 2)
-  .map((w: string) => w[0])
-  .join("");
-```
-
-**Fix:** Add two utility functions to `src/lib/content.ts`:
-
-```typescript
-export function formatAuthorName(author?: { first_name?: string; last_name?: string } | null): string {
-  return author
-    ? `${author.first_name ?? ""} ${author.last_name ?? ""}`.trim().toUpperCase()
-    : "ATEF ALVI";
-}
-
-export function getAuthorInitials(name: string): string {
-  return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("");
-}
-```
-
----
-
-### 1.2 Date Formatting — Mixed Approaches
-
-**Severity: Medium**
-
-`src/lib/content.ts` exports `formatDate()` but most pages ignore it and inline the conversion:
-
-| File | Inline Pattern |
-|------|---------------|
-| `pages/index.astro` line 27 | `.toISOString().slice(0, 10).replace(/-/g, ".")` |
-| `pages/projects/[slug].astro` line 65 | Same |
-| `pages/logs/index.astro` line 11 | Same |
-
-**Fix:** Import and use the existing `formatDate()` everywhere. Delete the inline repetitions.
-
----
 
 ### 1.3 Filter JavaScript Logic — Two Divergent Implementations
 
@@ -87,249 +32,29 @@ Projects page uses a simple single-tag filter. Logs page adds a second author-di
 
 ---
 
-### 1.4 Scrollbar Hiding — Sidebar Not Using Utility Class
-
-**Severity: Low**
-
-`pages/projects/[slug].astro` defines its own 8-line scrollbar-hide block for the sidebar instead of using the `.hide-scrollbar` utility class that already exists in `global.css`.
-
-**Fix:** Add `class="hide-scrollbar"` to the sidebar `<aside>` and remove the duplicate CSS block.
-
----
-
 ## 2. TypeScript & Type Safety
 
-### 2.1 Widespread Use of `any` — 10+ Locations
-
-**Severity: High**
-
-Every page uses `: any` in map callbacks instead of the proper types already defined in `src/lib/content.ts` and `src/lib/directus.ts`.
-
-| File | Example |
-|------|---------|
-| `pages/index.astro` line 14 | `(p: any, i: number)` |
-| `pages/projects/index.astro` line 9 | `(p: any, i: number)` |
-| `pages/projects/index.astro` lines 22, 37, 47 | `(a: any)`, `(tag: any)`, `(project: any)` |
-| `pages/logs/index.astro` lines 7, 86 | `(l: any)`, `(post: any)` |
-
-**Fix:** Import and use existing types — e.g. `import type { Project } from "../lib/directus"`. The types exist — they just aren't imported.
-
----
-
-### 2.2 Loose `any` Fields in Directus Type Definitions
-
-**Severity: Medium**
-
-`src/lib/directus.ts` defines `AboutSettings` with:
-
-```typescript
-stats?: any[];
-experience?: any[];
-skills?: any[];
-```
-
-But `AboutStats.astro`, `AboutTimeline.astro`, and `AboutStack.astro` each define their own interfaces internally (`StatItem`, `ExperienceItem`, `SkillCategory`).
-
-**Fix:** Lift those interfaces into `directus.ts` and use them in `AboutSettings`:
-
-```typescript
-export interface StatItem { value: string; label: string; }
-export interface ExperienceItem { year: string; role: string; company: string; }
-export interface SkillCategory { name: string; items: { name: string; suffix?: string }[]; }
-```
-
----
-
-### 2.3 Unsafe Type Assertions in Canvas Code
+### 2.3 Unsafe Type Assertions in directus.ts Internal Calls
 
 **Severity: Low**
 
-`HeroCanvas.astro` uses `!` non-null assertions on canvas context without null guards:
-
-```typescript
-const ctx = canvas.getContext("2d")!;
-```
-
-**Fix:**
-```typescript
-const canvas = document.getElementById("heroCanvas") as HTMLCanvasElement | null;
-if (!canvas) return;
-const ctx = canvas.getContext("2d");
-if (!ctx) return;
-```
-
----
-
-### 2.4 Magic Numbers Without Named Constants
-
-**Severity: Low**
-
-`HeroCanvas.astro` has several unexplained numeric literals:
-
-```typescript
-const fov = 600;             // why 600?
-trail.length > 18            // why 18?
-(Math.random() - 0.5) * 1200 // viewport assumption
-```
-
-**Fix:** Extract to named constants with brief comments:
-
-```typescript
-const FOV         = 600;  // perspective focal length (px)
-const TRAIL_LEN   = 18;   // cursor trail history length
-const SPAWN_RANGE = 1200; // initial spread (matches hero width at 1440px)
-```
+`fetchProjects`, `fetchLogs`, etc. use `as any` in `fields` arguments passed to the Directus SDK's `readItems`. This is a Directus SDK limitation (field arrays aren't perfectly typed), not user code — low priority.
 
 ---
 
 ## 3. CSS — Inconsistencies & Token Gaps
 
-### 3.1 Inconsistent Transition Values
-
-**Severity: Low**
-
-CSS variable `--transition-speed` is defined in `global.css` but rarely used. Most components inline their own values:
-
-| Usage | File |
-|-------|------|
-| `transition: all 0.2s` | `pages/projects/index.astro` |
-| `transition: background 0.25s ease` | `pages/logs/index.astro` |
-| `transition: filter 0.3s` | `global.css` |
-
-**Fix:** Extend the token set:
-
-```css
-:root {
-  --transition-fast:   0.2s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow:   0.5s ease;
-}
-```
-
-Then use consistently rather than inlining.
-
----
-
-### 3.2 Duplicate Logo Accent Style
-
-**Severity: Low**
-
-`.dd-logo-accent { fill: #fd2e00; }` is defined in both `global.css` and `components/Logo.astro`. The component-scoped version is redundant.
-
-**Fix:** Remove the duplicate from `Logo.astro`.
-
----
-
-### 3.3 Inline `style` Attributes in Templates
-
-**Severity: Low**
-
-Some templates use `style="color:var(--text-secondary);"` inline rather than a class:
-
-| File | Line |
-|------|------|
-| `pages/index.astro` | 43, 71 |
-| `pages/logs/index.astro` | 105 |
-| `components/blog/RelatedLogs.astro` | 24–25 |
-
-**Fix:** The global `.meta-text` class already exists. Where these elements also have `class="meta-text"`, the inline style is redundant — remove it.
-
----
-
-### 3.4 `theme-color` Meta Only Covers Dark Mode
-
-**Severity: Low**
-
-`MainLayout.astro` has:
-
-```html
-<meta name="theme-color" content="#111111" />
-```
-
-This sets the browser address-bar color to dark even when the user is in light mode.
-
-**Fix:** Use `media` attribute to provide both:
-
-```html
-<meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)" />
-<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)" />
-```
+No remaining high-priority items. All transition tokens, logo duplication, and sidebar scrollbar issues resolved.
 
 ---
 
 ## 4. Social Sharing & SEO
 
-### 4.1 `PUBLIC_DIRECTUS_URL` vs `DIRECTUS_PUBLIC_URL` — Name Confusion ✅ Documented
-
-**Severity: Low (documentation only — env vars already correct)**
-
-These are two completely different things that look similar. Both are now correctly set in Coolify and explained with a full comment block in `src/lib/directus.ts`.
-
-| Variable | Coolify Resource | Value | Purpose |
-|----------|-----------------|-------|---------|
-| `DIRECTUS_URL` | **Frontend** | `https://api.data-dreamer.net` | Astro SSR server → Directus API calls |
-| `PUBLIC_DIRECTUS_URL` | **Frontend** | `https://api.data-dreamer.net` | Building public `/assets/` URLs for OG images & crawlers |
-| `DIRECTUS_PUBLIC_URL` | **Backend** | `https://api.data-dreamer.net` | Directus's own setting — admin UI, email file links |
-| `DIRECTUS_URL` | **Backend** | `https://api.data-dreamer.net` | ⚠️ Not a standard Directus env var — harmless but unused on the backend. Can be removed to avoid confusion. |
-
-**No code changes needed.** The comment block in `directus.ts` captures all of this permanently.
-
----
-
-### 4.2 Missing `article:author` on Article Pages
-
-**Severity: Low**
-
-`ogType="article"` pages (projects, logs) emit `article:published_time` but not `article:author`. Facebook and LinkedIn use this for rich attribution.
-
-**Fix:** Add to `MainLayout.astro` props and template:
-
-```typescript
-// Props
-articleAuthor?: string; // e.g. "Atef Alvi"
-
-// Template (after article:published_time)
-{ogType === "article" && articleAuthor && (
-    <meta property="article:author" content={articleAuthor} />
-)}
-```
-
-Then pass `articleAuthor="Atef Alvi"` from both slug pages.
-
----
-
-### 4.3 No `sitemap.xml` — Consider Adding
-
-**Severity: Medium**
-
-Search engines (Google, Bing) use sitemaps to discover and prioritise pages. Astro has first-party support via `@astrojs/sitemap`.
-
-**Fix:**
-
-```bash
-npm install @astrojs/sitemap
-```
-
-```javascript
-// astro.config.mjs
-import sitemap from '@astrojs/sitemap';
-
-export default defineConfig({
-  site: 'https://data-dreamer.net',
-  integrations: [sitemap()],
-  ...
-});
-```
-
-This auto-generates `/sitemap.xml` at build time. Then re-add the `Sitemap:` line to `robots.txt`.
-
----
-
 ### 4.4 `og:type` for Project Pages — Verify After Deploy
 
 **Severity: Low (verification)**
 
-`opengraph.xyz` showed `og:type: website` for a project page when it should be `article`. The code is correct (`ogType="article"` in `[slug].astro`). This may have been a caching artefact or the opengraph.xyz display normalising the value. Verify after the next Coolify deploy completes using:
+`opengraph.xyz` previously showed `og:type: website` for a project page when it should be `article`. The code is correct (`ogType="article"` in `[slug].astro`). Verify after the next Coolify deploy using:
 
 ```
 https://www.opengraph.xyz/url/https%3A%2F%2Fdata-dreamer.net%2Fprojects%2Ftableau-waterfall-chart-gantt-method
@@ -339,40 +64,7 @@ https://www.opengraph.xyz/url/https%3A%2F%2Fdata-dreamer.net%2Fprojects%2Ftablea
 
 ## 5. Accessibility
 
-### 5.1 `prefers-reduced-motion` Not Respected
-
-**Severity: Medium**
-
-`HeroCanvas.astro` and `MainLayout.astro` (cursor trail) run continuous canvas animations via `requestAnimationFrame`. Users who set `prefers-reduced-motion: reduce` still get the full animations.
-
-**Fix:**
-
-```typescript
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-if (!reducedMotion) {
-  drawCursor(); // only start the loop if motion is OK
-}
-```
-
-For the hero canvas, the static fallback could simply render the grid at rest with no node movement.
-
----
-
-### 5.2 Missing `loading` / `fetchpriority` on Hero Images
-
-**Severity: Low**
-
-`pages/projects/[slug].astro` featured image has no loading attribute:
-
-```html
-<img src={imageUrl} alt={title} />
-```
-
-**Fix:** This is the largest above-the-fold image — tell the browser to load it eagerly at high priority:
-
-```astro
-<img src={imageUrl} alt={title} loading="eager" fetchpriority="high" />
-```
+No remaining high-priority items.
 
 ---
 
@@ -398,168 +90,74 @@ Then `getAssetUrl(cover_image, 800)` for cards and `getAssetUrl(cover_image, 140
 
 ---
 
-### 6.2 `JSON.stringify` for Tag Data Attributes
-
-**Severity: Low**
-
-`pages/projects/index.astro` serialises tag arrays to JSON in `data-tags` attributes, then `JSON.parse`s them in JS. This adds unnecessary overhead.
-
-**Fix:** Use comma-separated values instead:
-
-```astro
-data-tags={project.tags.map(t => t.toLowerCase()).join(",")}
-```
-
-```javascript
-const tags = card.dataset.tags?.split(",") ?? [];
-```
-
----
-
 ## 7. Error Handling
 
-### 7.1 Silent Empty State When Directus Fails
-
-**Severity: Medium**
-
-`pages/projects/index.astro` and `pages/logs/index.astro` both call fetch functions that return `[]` on error. When empty, the page silently renders a blank grid — no message, no indication something is wrong.
-
-**Fix:**
-
-```astro
-{projects.length === 0 ? (
-  <p class="empty-state">// NO PROJECTS FOUND — CHECK BACK SOON.</p>
-) : (
-  projects.map(project => <ProjectCard ... />)
-)}
-```
+No remaining items.
 
 ---
 
-### 7.2 Two Similar Pull Quote Components
+## 8. Documentation
 
-**Severity: Low**
-
-`components/blog/PullQuote.astro` and `components/blog/QuoteBlock.astro` both accept a `text` prop and render it via `set:html`. One appears to be an older version of the other.
-
-**Fix:** Grep for which one is actually imported anywhere, delete the unused one. If both are used, merge into one component with an optional `variant` prop.
+No remaining items.
 
 ---
 
-## 8. Component Opportunities
-
-### 8.1 Author Meta Block — Extract to Component
-
-The author chip (avatar + initials fallback + label + name) is rendered identically in `logs/[slug].astro` and `projects/[slug].astro`.
-
-**Suggested:** `src/components/blog/AuthorChip.astro`
-
-```astro
----
-interface Props {
-  name: string;
-  avatarUrl?: string | null;
-  initials: string;
-}
-const { name, avatarUrl, initials } = Astro.props;
----
-<div class="pmg-author-col">
-  {avatarUrl
-    ? <img class="author-avatar" src={avatarUrl} alt={name} />
-    : <span class="author-initials">{initials}</span>
-  }
-  <span class="pmg-label">AUTHOR</span>
-  <span class="pmg-value author-name">{name}</span>
-</div>
-```
-
----
-
-### 8.2 Page Hero Header — Extract to Component
-
-The `// META_LABEL` + title + optional subtitle pattern appears on at least 4 pages.
-
-**Suggested:** `src/components/PageHero.astro`
-
-```astro
----
-interface Props {
-  label: string;
-  title: string;
-  subtitle?: string;
-}
----
-<header class="page-hero-header">
-  <span class="meta-text">{label}</span>
-  <h1 class="page-title">{title}</h1>
-  {subtitle && <p class="page-subtitle">{subtitle}</p>}
-</header>
-```
-
----
-
-## 9. Documentation
-
-### 9.1 Add JSDoc to Public Lib Functions
-
-`src/lib/directus.ts` exports `fetchProjects`, `fetchLogs`, `fetchAbout`, etc. with no JSDoc. Adding brief `/** */` comments explaining return shapes and error behaviour takes minutes.
-
----
-
-## 10. Priority Matrix
+## 9. Priority Matrix
 
 | # | Issue | File(s) | Effort | Impact |
 |---|-------|---------|--------|--------|
-| 1 | `any` types throughout pages | all pages | Low | High |
-| 2 | Author formatting duplicated 3× | slug pages | Low | Medium |
-| 3 | Date formatting inconsistency | 3 pages | Low | Low |
-| 4 | `prefers-reduced-motion` ignored | HeroCanvas, MainLayout | Low | Medium |
-| 5 | Silent empty state (Directus fail) | index pages | Low | Medium |
-| 6 | ~~`PUBLIC_DIRECTUS_URL` comment~~ | ~~`directus.ts`~~ | ~~Trivial~~ | ✅ Done |
-| 7 | Add sitemap.xml generation | `astro.config.mjs` | Low | Medium |
-| 8 | `article:author` meta tag | MainLayout + slug pages | Low | Low |
-| 9 | `theme-color` light/dark split | MainLayout | Trivial | Low |
-| 10 | Loose `any` in Directus type defs | `directus.ts` | Low | Medium |
-| 11 | Responsive images (srcset) | `directus.ts` + cards | Medium | Medium |
-| 12 | Canvas null guard | `HeroCanvas.astro` | Low | Low |
-| 13 | Magic numbers in canvas | `HeroCanvas.astro` | Low | Low |
-| 14 | Inconsistent transition tokens | global.css + components | Low | Low |
-| 15 | Sidebar scrollbar hide → `.hide-scrollbar` | `projects/[slug].astro` | Trivial | Low |
-| 16 | Duplicate logo accent style | `Logo.astro` | Trivial | Low |
-| 17 | Inline style attrs redundant | 3 files | Low | Low |
-| 18 | JSON.stringify → comma-split | `projects/index.astro` | Low | Low |
-| 19 | PullQuote/QuoteBlock duplication | blog components | Low | Low |
-| 20 | JSDoc for lib functions | `directus.ts`, `content.ts` | Low | Low |
-| 21 | `og:type: article` — verify after deploy | — | Trivial | Low |
-| 22 | `fetchpriority="high"` on hero image | `projects/[slug].astro` | Trivial | Low |
-| 23 | AuthorChip component | blog components | Low | Low |
-| 24 | PageHero component | pages | Low | Low |
+| 1 | Filter JS duplication (projects vs logs) | index pages | Low | Low |
+| 2 | `as any` in Directus SDK `fields` args | `directus.ts` | Low | Low (SDK limitation) |
+| 3 | Responsive images (`srcset`) | `directus.ts` + cards | Medium | Medium |
+| 4 | `og:type: article` — verify after deploy | — | Trivial | Low |
 
 ---
 
-## Appendix — Completed Items (Session 1 + 2)
+## Appendix — Completed Items (Sessions 1–3)
 
-The following issues from the original review have been resolved:
-
-| Item | Fix Applied |
-|------|------------|
-| Post meta grid CSS duplicated | Moved to `global.css` |
-| Filter button CSS duplicated | Moved to `global.css` |
-| Hardcoded `#999`/`#eee` in projects/slug & AboutStack | Replaced with CSS vars |
-| Empty `<style>` block in `about.astro` | Deleted |
-| XSS via `set:html` in `AboutStack.astro` | Replaced with safe JSX map |
-| `allowDangerousHtml` uncommented | Comment added in `renderMarkdown.ts` |
-| Lightbox `alt` not set before display | Fixed — alt set before src, aria-live added |
-| Filter buttons missing `aria-pressed` | Added with JS toggle |
-| `excerpt` mapped but unused in logs/index | Removed from map |
-| Resume button shows even with no file | Conditionally rendered only when `resumeId` exists |
-| `display=swap` missing | Already present in global.css `@import` |
-| `:::imagegrid` undocumented | Added to `AGENT_BLOG_GUIDE.md` |
-| Blue links in blog/project content | Added `.blog-content a { color: var(--accent) }` to global.css |
-| Mobile hero-actions buttons overflow | `flex-direction: column` at ≤540px in `AboutHero.astro` |
-| `localStorage` crash in Messenger/in-app browsers | Wrapped in try/catch in `MainLayout.astro` |
-| Social crawlers blocked (Cloudflare Bot Fight Mode) | `robots.txt` + WAF bypass rule + Bot Fight Mode disabled |
-| Missing OG meta tags | Added `og:locale`, `og:image:type`, `og:image:secure_url`, `og:image:alt`, `article:published_time`, `twitter:image:alt` |
-| Directus asset URL not validated as public | `isPublicHttpsUrl()` + Directus image transforms in `projects/[slug].astro` |
-| `robots.txt` referenced non-existent sitemap | Removed sitemap line |
-| `PUBLIC_DIRECTUS_URL` vs `DIRECTUS_PUBLIC_URL` confusion | Full comment block added in `directus.ts`; env vars verified correct in Coolify |
+| Item | Fix Applied | Session |
+|------|------------|---------|
+| Post meta grid CSS duplicated | Moved to `global.css` | 1 |
+| Filter button CSS duplicated | Moved to `global.css` | 1 |
+| Hardcoded `#999`/`#eee` in projects/slug & AboutStack | Replaced with CSS vars | 1 |
+| Empty `<style>` block in `about.astro` | Deleted | 1 |
+| XSS via `set:html` in `AboutStack.astro` | Replaced with safe JSX map | 1 |
+| `allowDangerousHtml` uncommented | Comment added in `renderMarkdown.ts` | 1 |
+| Lightbox `alt` not set before display | Fixed — alt set before src, aria-live added | 1 |
+| Filter buttons missing `aria-pressed` | Added with JS toggle | 1 |
+| `excerpt` mapped but unused in logs/index | Removed from map | 1 |
+| Resume button shows even with no file | Conditionally rendered only when `resumeId` exists | 1 |
+| `display=swap` missing | Already present in global.css `@import` | 1 |
+| `:::imagegrid` undocumented | Added to `AGENT_BLOG_GUIDE.md` | 1 |
+| Blue links in blog/project content | Added `.blog-content a { color: var(--accent) }` to global.css | 1 |
+| Mobile hero-actions buttons overflow | `flex-direction: column` at ≤540px in `AboutHero.astro` | 1 |
+| `localStorage` crash in Messenger/in-app browsers | Wrapped in try/catch in `MainLayout.astro` | 1 |
+| Social crawlers blocked (Cloudflare Bot Fight Mode) | `robots.txt` + WAF bypass rule + Bot Fight Mode disabled | 2 |
+| Missing OG meta tags | Added `og:locale`, `og:image:type`, `og:image:secure_url`, `og:image:alt`, `article:published_time`, `twitter:image:alt` | 2 |
+| Directus asset URL not validated as public | `isPublicHttpsUrl()` + Directus image transforms in `projects/[slug].astro` | 2 |
+| `robots.txt` referenced non-existent sitemap | Removed sitemap line (re-added in session 3 once sitemap generation configured) | 2 |
+| `PUBLIC_DIRECTUS_URL` vs `DIRECTUS_PUBLIC_URL` confusion | Full comment block added in `directus.ts`; env vars verified correct in Coolify | 2 |
+| `any` types throughout pages (10+ locations) | Replaced with `Project`, `Log` types from directus.ts | 3 |
+| Author formatting duplicated 3× | `formatAuthorName()` + `getAuthorInitials()` exported from `content.ts` | 3 |
+| Date formatting inconsistency | `formatDate()` exported from `content.ts` and used on all pages | 3 |
+| `prefers-reduced-motion` not respected | Canvas + cursor trail gated on `matchMedia` check | 3 |
+| Silent empty state on Directus failure | Added empty state to `projects/index.astro` (logs/index already had one) | 3 |
+| Add sitemap.xml generation | `@astrojs/sitemap` configured in `astro.config.mjs`; `Sitemap:` re-added to `robots.txt` | 3 |
+| Missing `article:author` meta | Added `articleAuthor` prop + `<meta property="article:author">` in `MainLayout.astro` | 3 |
+| `theme-color` only dark mode | Split into two `<meta name="theme-color">` with `media` attribute for light/dark | 3 |
+| Loose `any[]` in `AboutSettings` | `StatItem`, `ExperienceItem`, `SkillItem`, `SkillCategory` lifted to `directus.ts` | 3 |
+| Canvas null guard (`!` assertion) | `if (!canvas) throw` + `if (!ctx) throw` added to `HeroCanvas.astro` | 3 |
+| Magic numbers in canvas | `FOV`, `TRAIL_LEN`, `SPAWN_RANGE` named constants in `HeroCanvas.astro` | 3 |
+| Inconsistent transition tokens | `--transition-fast`, `--transition-normal`, `--transition-slow` added to `global.css` | 3 |
+| Sidebar scrollbar hide duplicated | Removed duplicate block; added `.hide-scrollbar` class to sidebar `<aside>` | 3 |
+| Duplicate `.dd-logo-accent` style | Removed from `Logo.astro`; kept only in `global.css` | 3 |
+| Inline `style` attrs redundant | Removed from `index.astro`, `logs/index.astro`, `RelatedLogs.astro` | 3 |
+| `JSON.stringify` tag data attributes | Switched to comma-separated `data-tags` + `.split(",")` in `projects/index.astro` | 3 |
+| `PullQuote` / `QuoteBlock` duplication | Deleted `QuoteBlock.astro` (unimported); `PullQuote.astro` retained | 3 |
+| `fetchpriority="high"` on hero image | Added `loading="eager" fetchpriority="high"` to project featured image | 3 |
+| `AuthorChip` component extract | Created `src/components/blog/AuthorChip.astro`; used in both slug pages | 3 |
+| `PageHero` component extract | Created `src/components/PageHero.astro`; used in projects/index + logs/index | 3 |
+| `--nav-h` token mismatch (64px vs 56px) | Fixed to `56px` in `global.css` | 3 |
+| Featured image dark mode background | `#f5f5f5` → `var(--bg-muted)` in `projects/[slug].astro` | 3 |
+| Mobile teaser padding too large | Added `padding: 48px` at ≤768px for `.teaser-section` in `index.astro` | 3 |
+| About component interfaces duplicated | `StatItem`, `ExperienceItem`, `SkillCategory` imported from `directus.ts` instead of re-declared | 3 |

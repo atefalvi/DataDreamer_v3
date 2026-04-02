@@ -2,7 +2,8 @@
 import MainLayout from "../../layouts/MainLayout.astro";
 import TableOfContents from "../../components/blog/TableOfContents.astro";
 import RelatedLogs from "../../components/blog/RelatedLogs.astro";
-import { getLogBySlug, getLogs, type ContentLog } from "../../lib/content";
+import AuthorChip from "../../components/blog/AuthorChip.astro";
+import { getLogBySlug, getLogs, getAuthorInitials, type ContentLog } from "../../lib/content";
 import { renderMarkdown } from "../../lib/renderMarkdown";
 
 const { slug } = Astro.params;
@@ -22,12 +23,7 @@ if (!post) {
 const { html: renderedContent, headings } = await renderMarkdown(post.content);
 
 // Compute author initials for fallback
-const authorInitials = (post.authorName ?? "")
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w: string) => w[0])
-    .join("");
+const authorInitials = getAuthorInitials(post.authorName ?? "");
 ---
 
 <MainLayout
@@ -38,6 +34,7 @@ const authorInitials = (post.authorName ?? "")
     ogImageType="image/jpeg"
     ogType="article"
     articlePublishedTime={post.date ? new Date(post.date).toISOString() : undefined}
+    articleAuthor={post.authorName ?? "Atef Alvi"}
 >
     <!-- Post Hero -->
     <div class="container post-hero">
@@ -61,15 +58,12 @@ const authorInitials = (post.authorName ?? "")
         <h1 class="post-hero-title">{post.title}</h1>
         <p class="post-hero-desc">{post.excerpt}</p>
         <div class="post-meta-grid">
-            <!-- Col 1: Author (avatar spans both rows) -->
-            <div class="pmg-col pmg-author-col">
-                {post.authorAvatar
-                    ? <img class="author-avatar" src={post.authorAvatar} alt={post.authorName ?? "Author"} />
-                    : <span class="author-initials">{authorInitials || "—"}</span>
-                }
-                <span class="pmg-label">AUTHOR</span>
-                <span class="pmg-value author-name">{post.authorName}</span>
-            </div>
+            <!-- Col 1: Author -->
+            <AuthorChip
+                name={post.authorName ?? "ATEF ALVI"}
+                initials={authorInitials}
+                avatarUrl={post.authorAvatar}
+            />
             <!-- Col 2: Published -->
             <div class="pmg-col">
                 <span class="pmg-label">PUBLISHED</span>

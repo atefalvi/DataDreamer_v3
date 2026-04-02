@@ -1,0 +1,22 @@
+---
+/**
+ * AuthorChip — Author avatar + label + name, used in post meta grids.
+ * Shared between logs/[slug].astro and projects/[slug].astro.
+ */
+interface Props {
+    name: string;
+    initials: string;
+    avatarUrl?: string | null;
+}
+
+const { name, initials, avatarUrl } = Astro.props;
+---
+
+<div class="pmg-col pmg-author-col">
+    {avatarUrl
+        ? <img class="author-avatar" src={avatarUrl} alt={name} />
+        : <span class="author-initials">{initials || "—"}</span>
+    }
+    <span class="pmg-label">AUTHOR</span>
+    <span class="pmg-value author-name">{name}</span>
+</div>
