@@ -74,13 +74,31 @@ interface CustomSchema {
 }
 
 // ─── CONFIGURATION ─────────────────────────────────
+//
+// ENV VAR REFERENCE (set these in Coolify → Frontend resource):
+//
+//   DIRECTUS_URL          The URL the Astro SSR server uses to call the Directus API.
+//                         Can be an internal/private network URL in Docker environments.
+//                         Coolify value: https://api.data-dreamer.net
+//
+//   PUBLIC_DIRECTUS_URL   The internet-facing URL used to build /assets/ URLs for
+//                         cover images, OG images, and avatars that must be reachable
+//                         by browsers, social crawlers (Slackbot, WhatsApp, Facebook).
+//                         Falls back to DIRECTUS_URL if not set.
+//                         Coolify value: https://api.data-dreamer.net (same here since
+//                         api.data-dreamer.net is already public).
+//
+// ⚠️  NOT THE SAME as the backend env var DIRECTUS_PUBLIC_URL, which is a Directus-
+//     specific setting that tells the Directus admin panel its own public URL. That
+//     var is only relevant to the backend (datadreamer-backend) Coolify resource.
+//
 // Read from runtime (process.env) first, then build-time (import.meta.env)
 const DIRECTUS_URL = process.env.DIRECTUS_URL ?? import.meta.env.DIRECTUS_URL ?? 'http://localhost:8055';
 
 // For Assets, prioritize PUBLIC_ prefix (runtime/build-time), then fallback to main URL.
-const PUBLIC_DIRECTUS_URL = process.env.PUBLIC_DIRECTUS_URL ?? import.meta.env.PUBLIC_DIRECTUS_URL ?? 
-                           process.env.DIRECTUS_URL ?? import.meta.env.DIRECTUS_URL ?? 
-                           DIRECTUS_URL;
+const PUBLIC_DIRECTUS_URL = process.env.PUBLIC_DIRECTUS_URL ?? import.meta.env.PUBLIC_DIRECTUS_URL ??
+                            process.env.DIRECTUS_URL ?? import.meta.env.DIRECTUS_URL ??
+                            DIRECTUS_URL;
 
 const DIRECTUS_EMAIL = process.env.DIRECTUS_EMAIL ?? import.meta.env.DIRECTUS_EMAIL;
 const DIRECTUS_PASSWORD = process.env.DIRECTUS_PASSWORD ?? import.meta.env.DIRECTUS_PASSWORD;

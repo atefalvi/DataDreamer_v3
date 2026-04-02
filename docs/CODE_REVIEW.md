@@ -259,27 +259,20 @@ This sets the browser address-bar color to dark even when the user is in light m
 
 ## 4. Social Sharing & SEO
 
-### 4.1 `PUBLIC_DIRECTUS_URL` vs `DIRECTUS_PUBLIC_URL` — Name Confusion
+### 4.1 `PUBLIC_DIRECTUS_URL` vs `DIRECTUS_PUBLIC_URL` — Name Confusion ✅ Documented
 
-**Severity: Medium (documentation/ops)**
+**Severity: Low (documentation only — env vars already correct)**
 
-These are two completely different things that look similar:
+These are two completely different things that look similar. Both are now correctly set in Coolify and explained with a full comment block in `src/lib/directus.ts`.
 
-| Variable | Where | Purpose |
-|----------|-------|---------|
-| `DIRECTUS_PUBLIC_URL` | **Directus backend** env var | Tells Directus its own public URL for admin UI, file links in emails, etc. |
-| `PUBLIC_DIRECTUS_URL` | **Astro frontend** env var (our code) | Tells the frontend what public URL to use when building `/assets/` URLs for social crawlers |
+| Variable | Coolify Resource | Value | Purpose |
+|----------|-----------------|-------|---------|
+| `DIRECTUS_URL` | **Frontend** | `https://api.data-dreamer.net` | Astro SSR server → Directus API calls |
+| `PUBLIC_DIRECTUS_URL` | **Frontend** | `https://api.data-dreamer.net` | Building public `/assets/` URLs for OG images & crawlers |
+| `DIRECTUS_PUBLIC_URL` | **Backend** | `https://api.data-dreamer.net` | Directus's own setting — admin UI, email file links |
+| `DIRECTUS_URL` | **Backend** | `https://api.data-dreamer.net` | ⚠️ Not a standard Directus env var — harmless but unused on the backend. Can be removed to avoid confusion. |
 
-In `src/lib/directus.ts` the frontend looks for `PUBLIC_DIRECTUS_URL` (our var), falling back to `DIRECTUS_URL`. Since `DIRECTUS_URL=https://api.data-dreamer.net` is already set to the public domain in Coolify, the fallback works correctly and **you do not need to set `PUBLIC_DIRECTUS_URL` separately**.
-
-**Fix:** Add a comment to `directus.ts` at the `PUBLIC_DIRECTUS_URL` declaration:
-
-```typescript
-// PUBLIC_DIRECTUS_URL = public-facing Directus URL for asset links visible to browsers/crawlers.
-// Falls back to DIRECTUS_URL. Note: Directus's own DIRECTUS_PUBLIC_URL env var is a different,
-// unrelated setting used by the Directus backend itself.
-const PUBLIC_DIRECTUS_URL = process.env.PUBLIC_DIRECTUS_URL ?? ...
-```
+**No code changes needed.** The comment block in `directus.ts` captures all of this permanently.
 
 ---
 
@@ -522,7 +515,7 @@ interface Props {
 | 3 | Date formatting inconsistency | 3 pages | Low | Low |
 | 4 | `prefers-reduced-motion` ignored | HeroCanvas, MainLayout | Low | Medium |
 | 5 | Silent empty state (Directus fail) | index pages | Low | Medium |
-| 6 | `PUBLIC_DIRECTUS_URL` comment | `directus.ts` | Trivial | Medium |
+| 6 | ~~`PUBLIC_DIRECTUS_URL` comment~~ | ~~`directus.ts`~~ | ~~Trivial~~ | ✅ Done |
 | 7 | Add sitemap.xml generation | `astro.config.mjs` | Low | Medium |
 | 8 | `article:author` meta tag | MainLayout + slug pages | Low | Low |
 | 9 | `theme-color` light/dark split | MainLayout | Trivial | Low |
@@ -569,3 +562,4 @@ The following issues from the original review have been resolved:
 | Missing OG meta tags | Added `og:locale`, `og:image:type`, `og:image:secure_url`, `og:image:alt`, `article:published_time`, `twitter:image:alt` |
 | Directus asset URL not validated as public | `isPublicHttpsUrl()` + Directus image transforms in `projects/[slug].astro` |
 | `robots.txt` referenced non-existent sitemap | Removed sitemap line |
+| `PUBLIC_DIRECTUS_URL` vs `DIRECTUS_PUBLIC_URL` confusion | Full comment block added in `directus.ts`; env vars verified correct in Coolify |
