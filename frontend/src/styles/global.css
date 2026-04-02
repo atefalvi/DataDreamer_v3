@@ -646,6 +646,21 @@ details.expand-block .expand-content {
     filter: grayscale(0);
 }
 
+/* Single image: full width, no crop, natural height */
+.image-grid[data-count="1"] {
+    display: block;
+}
+
+.image-grid[data-count="1"] .ig-item {
+    aspect-ratio: unset;
+    width: 100%;
+}
+
+.image-grid[data-count="1"] .ig-item img {
+    height: auto;
+    object-fit: unset;
+}
+
 /* ── LIGHTBOX ──────────────────────────────────── */
 .ig-lightbox {
     display: none;
