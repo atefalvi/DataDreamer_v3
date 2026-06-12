@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - feature/v4-redesign
+      - main
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      DIRECTUS_URL: http://localhost:8055
+      PUBLIC_DIRECTUS_URL: http://localhost:8055
+      SITE_URL: https://data-dreamer.net
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Check
+        run: npx astro check
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
