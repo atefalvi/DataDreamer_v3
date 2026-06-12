@@ -31,3 +31,5 @@ reference/
 
 # VS Code
 .vscode
+# Claude temporary worktrees
+.claude/worktrees/
