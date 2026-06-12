@@ -1,0 +1,423 @@
+---
+import "@fontsource-variable/fraunces/wght.css";
+import "@fontsource-variable/inter/wght.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/600.css";
+import "../../styles/base.css";
+
+const colorTokens = [
+  ["--bg-0", "Page background"],
+  ["--bg-1", "Surface"],
+  ["--bg-2", "Raised surface"],
+  ["--bg-3", "Highest surface"],
+  ["--border-1", "Hairline"],
+  ["--border-2", "Hover border"],
+  ["--text-1", "Primary text"],
+  ["--text-2", "Secondary text"],
+  ["--text-3", "Metadata"],
+  ["--accent", "Ember"],
+  ["--accent-hover", "Accent hover"],
+  ["--accent-press", "Accent active"],
+  ["--success", "Success"],
+  ["--warning", "Warning"],
+  ["--danger", "Danger"],
+  ["--info", "Info"],
+  ["--focus-ring", "Focus"],
+  ["--logo-dot", "Logo dot"],
+];
+
+const typeRows = [
+  ["--fs-xs", "Fine print and chips"],
+  ["--fs-sm", "Metadata and captions"],
+  ["--fs-base", "Body copy"],
+  ["--fs-lg", "Lede and card titles"],
+  ["--fs-xl", "Section intros"],
+  ["--fs-2xl", "H3"],
+  ["--fs-3xl", "H2"],
+  ["--fs-4xl", "Page H1"],
+  ["--fs-display", "Hero display"],
+  ["--fs-mono-label", "Kickers"],
+];
+
+const spacingTokens = [
+  "--space-1",
+  "--space-2",
+  "--space-3",
+  "--space-4",
+  "--space-5",
+  "--space-6",
+  "--space-7",
+  "--space-8",
+  "--space-9",
+  "--space-10",
+];
+
+const themes = ["dark", "light"];
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>V4 Styleguide — DataDreamer</title>
+  </head>
+  <body>
+    <main class="styleguide container-wide">
+      <header class="styleguide__hero">
+        <p class="kicker">V4 Design System</p>
+        <h1>Observatory foundation</h1>
+        <p>
+          Tokens, type, base surfaces, focus states, and button directions for the
+          DataDreamer v4 redesign.
+        </p>
+      </header>
+
+      <section class="styleguide__section" aria-labelledby="colors-heading">
+        <div class="section-heading">
+          <p class="kicker">Color</p>
+          <h2 id="colors-heading">Theme tokens</h2>
+        </div>
+        <div class="theme-pair">
+          {themes.map((theme) => (
+            <article class="theme-panel surface" data-theme={theme}>
+              <div class="theme-panel__header">
+                <p class="kicker">{theme}</p>
+                <h3>{theme === "dark" ? "Instrument dark" : "Gallery paper"}</h3>
+              </div>
+              <div class="swatch-grid">
+                {colorTokens.map(([token, label]) => (
+                  <div class="swatch">
+                    <span class="swatch__chip" style={`--swatch: var(${token});`} />
+                    <span class="swatch__name">{token}</span>
+                    <span class="swatch__label">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="styleguide__section" aria-labelledby="type-heading">
+        <div class="section-heading">
+          <p class="kicker">Typography</p>
+          <h2 id="type-heading">Scale and rhythm</h2>
+        </div>
+        <div class="type-spec surface">
+          {typeRows.map(([token, label]) => (
+            <div class="type-row">
+              <p class="type-row__sample" style={`font-size: var(${token});`}>
+                Signal from structured noise
+              </p>
+              <p class="type-row__meta">
+                <span>{token}</span>
+                <span>{label}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="styleguide__section" aria-labelledby="buttons-heading">
+        <div class="section-heading">
+          <p class="kicker">Controls</p>
+          <h2 id="buttons-heading">Button directions</h2>
+        </div>
+        <div class="button-demo surface">
+          <a class="sg-button sg-button--primary" href="#buttons-heading">Primary</a>
+          <a class="sg-button sg-button--secondary" href="#buttons-heading">Secondary</a>
+          <a class="sg-button sg-button--ghost" href="#buttons-heading">Ghost</a>
+          <button class="sg-button sg-button--primary" disabled>Disabled</button>
+        </div>
+      </section>
+
+      <section class="styleguide__section" aria-labelledby="spacing-heading">
+        <div class="section-heading">
+          <p class="kicker">Layout</p>
+          <h2 id="spacing-heading">Spacing and containers</h2>
+        </div>
+        <div class="spacing-demo surface">
+          {spacingTokens.map((token) => (
+            <div class="spacing-row">
+              <span>{token}</span>
+              <span class="spacing-row__bar" style={`width: var(${token});`} />
+            </div>
+          ))}
+        </div>
+        <div class="grid-demo grid-12" aria-label="Twelve-column grid preview">
+          {Array.from({ length: 12 }, (_, index) => (
+            <span>{index + 1}</span>
+          ))}
+        </div>
+      </section>
+
+      <section class="styleguide__section" aria-labelledby="base-heading">
+        <div class="section-heading">
+          <p class="kicker">Base</p>
+          <h2 id="base-heading">Utilities and states</h2>
+        </div>
+        <div class="utility-demo">
+          <article class="surface utility-card is-visible" data-reveal>
+            <p class="kicker">Reveal</p>
+            <h3>Data reveal target</h3>
+            <p>
+              This card uses the base <code>data-reveal</code> contract. Reduced
+              motion renders it in its final state.
+            </p>
+          </article>
+          <article class="surface utility-card">
+            <p class="kicker">Focus</p>
+            <h3>Focus-visible ring</h3>
+            <p>
+              <a href="#base-heading">Focusable link</a> and controls use the shared
+              outline token.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+
+<style>
+  .styleguide {
+    padding-block: var(--space-8) var(--space-10);
+  }
+
+  .styleguide__hero {
+    display: grid;
+    gap: var(--space-5);
+    max-width: var(--container-content);
+    padding-block: var(--space-8);
+  }
+
+  .styleguide__hero h1 {
+    max-width: 100%;
+    font-size: clamp(2rem, 9vw, 5.25rem);
+    line-height: var(--lh-display);
+  }
+
+  .styleguide__hero p:not(.kicker) {
+    max-width: 56ch;
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  .styleguide__section {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--section-y);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .styleguide__section > * {
+    min-width: 0;
+  }
+
+  .section-heading {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 56ch;
+  }
+
+  .theme-pair,
+  .utility-demo {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  @media (min-width: 64rem) {
+    .theme-pair,
+    .utility-demo {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .theme-panel {
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--space-6);
+    color: var(--text-1);
+  }
+
+  .theme-panel__header {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9.25rem, 1fr));
+    gap: var(--space-3);
+  }
+
+  .swatch {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    gap: var(--space-1) var(--space-3);
+    align-items: center;
+    min-width: 0;
+    padding: var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+  }
+
+  .swatch__chip {
+    grid-row: span 2;
+    width: 2.25rem;
+    aspect-ratio: 1;
+    background: var(--swatch);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-sm);
+  }
+
+  .swatch__name,
+  .swatch__label,
+  .type-row__meta,
+  .spacing-row {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .swatch__name {
+    color: var(--text-1);
+    overflow-wrap: anywhere;
+  }
+
+  .type-spec,
+  .button-demo,
+  .spacing-demo {
+    min-width: 0;
+    padding: var(--space-6);
+  }
+
+  .type-row {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+    padding-block: var(--space-5);
+    border-bottom: 1px solid var(--border-1);
+  }
+
+  .type-row:last-child {
+    border-bottom: 0;
+  }
+
+  .type-row__sample {
+    color: var(--text-1);
+    font-family: var(--font-display);
+    font-weight: 560;
+    line-height: 1.08;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .type-row__meta,
+  .spacing-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .button-demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  .sg-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding-inline: var(--space-5);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      background var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .sg-button:hover {
+    transform: translateY(-2px);
+  }
+
+  .sg-button--primary {
+    background: var(--accent);
+    color: var(--bg-0);
+  }
+
+  .sg-button--primary:hover {
+    background: var(--accent-hover);
+    color: var(--bg-0);
+  }
+
+  .sg-button--secondary {
+    border-color: var(--border-2);
+    color: var(--text-1);
+  }
+
+  .sg-button--secondary:hover,
+  .sg-button--ghost:hover {
+    background: var(--bg-2);
+    color: var(--text-1);
+  }
+
+  .sg-button--ghost {
+    color: var(--text-1);
+  }
+
+  .sg-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    transform: none;
+  }
+
+  .spacing-demo {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .spacing-row__bar {
+    display: block;
+    height: var(--space-3);
+    background: var(--accent);
+    border-radius: var(--radius-full);
+  }
+
+  .grid-demo {
+    margin-top: var(--space-6);
+  }
+
+  .grid-demo span {
+    display: grid;
+    min-height: var(--space-8);
+    place-items: center;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .utility-card {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-6);
+  }
+
+  code {
+    color: var(--text-1);
+    font-family: var(--font-mono);
+  }
+</style>

@@ -79,7 +79,7 @@ assets exempt).
 | `--border-2` | `#2E3744` | Hover borders, emphasized rules |
 | `--text-1` | `#EDEFF3` | Headings, primary text |
 | `--text-2` | `#A8B1BD` | Body secondary, descriptions |
-| `--text-3` | `#6E7783` | Metadata, placeholders (AA only ≥ 18px or mono labels) |
+| `--text-3` | `#858E99` | Metadata, placeholders |
 | `--accent` | `#FF5C38` | Ember — links, active states, markers |
 | `--accent-hover` | `#FF7657` | Hover on accent elements |
 | `--accent-press` | `#E04A2A` | Active/pressed |
@@ -96,7 +96,7 @@ assets exempt).
 |---|---|
 | `--bg-0` `#FAF9F7` · `--bg-1` `#FFFFFF` · `--bg-2` `#F2F0EB` · `--bg-3` `#FFFFFF` |
 | `--border-1` `#E5E2DA` · `--border-2` `#CFCABF` |
-| `--text-1` `#1B1E23` · `--text-2` `#4D545E` · `--text-3` `#7A828D` |
+| `--text-1` `#1B1E23` · `--text-2` `#4D545E` · `--text-3` `#646D77` |
 | `--accent` `#D9431F` (darkened ember for 4.5:1 on paper) · `--accent-hover` `#B83817` · `--accent-press` `#9C2F12` · `--accent-subtle` `rgba(217,67,31,0.08)` |
 | `--success` `#1E9E68` · `--warning` `#B07A12` · `--danger` `#C92F23` · `--info` `#1F6FD6` · `--focus-ring` `#2D6FD0` |
 
@@ -110,6 +110,10 @@ Ember `#FF5C38` is a deliberate descendant of v3's `#FF2E00` — same family, lo
 aggression, AA-checked. **The logo's red dot keeps its original brand red `#FD2E00`
 in the lockup itself** (logos are identity, not UI); everywhere the dot motif is
 *echoed* in UI (§1.4) it uses `--accent` so it harmonizes with each theme.
+
+> Deviation (V4-DS-001): `--text-3` was adjusted from the planning values
+> (`#6E7783` dark, `#7A828D` light) to `#858E99` and `#646D77` so the metadata token
+> meets WCAG AA contrast across every documented v4 surface in both themes.
 
 ## 4. Typography
 
