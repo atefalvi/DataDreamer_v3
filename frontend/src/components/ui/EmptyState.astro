@@ -1,0 +1,52 @@
+---
+import Button from "./Button.astro";
+import Icon from "./Icon.astro";
+
+interface EmptyAction {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  message: string;
+  action?: EmptyAction;
+  icon?: string;
+  class?: string;
+}
+
+const { message, action, icon = "search-x", class: className } = Astro.props;
+---
+
+<section class:list={["ui-empty-state", className]} aria-label="Empty state">
+  <span class="ui-empty-state__icon" aria-hidden="true">
+    <Icon name={icon} size={24} />
+  </span>
+  <p>{message}</p>
+  {action && (
+    <Button href={action.href} variant="secondary" icon="arrow-right">
+      {action.label}
+    </Button>
+  )}
+</section>
+
+<style>
+  .ui-empty-state {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+    padding: var(--space-7);
+    background: var(--bg-1);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+  }
+
+  .ui-empty-state__icon {
+    display: inline-grid;
+    width: 3rem;
+    aspect-ratio: 1;
+    place-items: center;
+    background: var(--accent-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+  }
+</style>

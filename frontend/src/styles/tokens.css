@@ -10,6 +10,7 @@
   --text-1: #EDEFF3;
   --text-2: #A8B1BD;
   --text-3: #858E99;
+  --text-on-accent: #05070A;
   --accent: #FF5C38;
   --accent-hover: #FF7657;
   --accent-press: #E04A2A;
@@ -106,6 +107,7 @@
   --text-1: #1B1E23;
   --text-2: #4D545E;
   --text-3: #646D77;
+  --text-on-accent: #05070A;
   --accent: #D9431F;
   --accent-hover: #B83817;
   --accent-press: #9C2F12;

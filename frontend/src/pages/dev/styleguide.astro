@@ -3,6 +3,16 @@ import "@fontsource-variable/fraunces/wght.css";
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/600.css";
+import Avatar from "../../components/ui/Avatar.astro";
+import Breadcrumbs from "../../components/ui/Breadcrumbs.astro";
+import Button from "../../components/ui/Button.astro";
+import Card from "../../components/ui/Card.astro";
+import Chip from "../../components/ui/Chip.astro";
+import EmptyState from "../../components/ui/EmptyState.astro";
+import ErrorState from "../../components/ui/ErrorState.astro";
+import Icon from "../../components/ui/Icon.astro";
+import Kicker from "../../components/ui/Kicker.astro";
+import SectionHeader from "../../components/ui/SectionHeader.astro";
 import "../../styles/base.css";
 
 const colorTokens = [
@@ -15,6 +25,7 @@ const colorTokens = [
   ["--text-1", "Primary text"],
   ["--text-2", "Secondary text"],
   ["--text-3", "Metadata"],
+  ["--text-on-accent", "On accent"],
   ["--accent", "Ember"],
   ["--accent-hover", "Accent hover"],
   ["--accent-press", "Accent active"],
@@ -53,6 +64,11 @@ const spacingTokens = [
 ];
 
 const themes = ["dark", "light"];
+const breadcrumbItems = [
+  { label: "Home", href: "/" },
+  { label: "Design system", href: "/dev/styleguide" },
+  { label: "Primitives" },
+];
 ---
 
 <!doctype html>
@@ -121,15 +137,93 @@ const themes = ["dark", "light"];
       </section>
 
       <section class="styleguide__section" aria-labelledby="buttons-heading">
-        <div class="section-heading">
-          <p class="kicker">Controls</p>
-          <h2 id="buttons-heading">Button directions</h2>
-        </div>
-        <div class="button-demo surface">
-          <a class="sg-button sg-button--primary" href="#buttons-heading">Primary</a>
-          <a class="sg-button sg-button--secondary" href="#buttons-heading">Secondary</a>
-          <a class="sg-button sg-button--ghost" href="#buttons-heading">Ghost</a>
-          <button class="sg-button sg-button--primary" disabled>Disabled</button>
+        <SectionHeader
+          kicker="Controls"
+          title="UI primitives"
+          intro="Domain-agnostic building blocks for the v4 shell and page work."
+          headingId="buttons-heading"
+        />
+
+        <div class="primitive-stack">
+          <Card padding="lg">
+            <div class="primitive-demo">
+              <Kicker label="Button variants" />
+              <div class="button-demo">
+                <Button variant="primary" icon="arrow-right">Primary</Button>
+                <Button variant="secondary" icon="arrow-right">Secondary</Button>
+                <Button variant="ghost" icon="arrow-left" iconPosition="start">Ghost</Button>
+                <Button variant="primary" loading>Saving</Button>
+                <Button variant="secondary" disabled>Disabled</Button>
+              </div>
+              <div class="button-demo">
+                <Button variant="secondary" size="sm">Small</Button>
+                <Button variant="secondary" size="md">Medium</Button>
+                <Button variant="secondary" size="lg">Large</Button>
+              </div>
+            </div>
+          </Card>
+
+          <div class="primitive-grid">
+            <Card href="#buttons-heading" padding="lg" interactive>
+              <div class="media-demo" data-card-media aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <Kicker label="Interactive card" />
+              <h3>Signal archive</h3>
+              <p>Cards provide geometry, hover, and media-scale conventions.</p>
+            </Card>
+
+            <Card padding="lg">
+              <Kicker label="Static card" />
+              <h3>Research note</h3>
+              <p>Non-interactive cards keep the same surface without hover motion.</p>
+            </Card>
+          </div>
+
+          <Card padding="lg">
+            <div class="primitive-demo">
+              <Kicker label="Chips" />
+              <div class="chip-demo">
+                <Chip label="All topics" href="#buttons-heading" selected />
+                <Chip label="Data systems" href="#buttons-heading" icon="database" />
+                <Chip label="Machine learning" href="#buttons-heading" icon="sparkles" />
+                <Chip label="Selected state" selected />
+              </div>
+            </div>
+          </Card>
+
+          <div class="primitive-grid">
+            <Card padding="lg">
+              <div class="avatar-demo">
+                <Avatar name="Ada Lovelace" size={24} />
+                <Avatar name="Grace Hopper" size={48} />
+                <Avatar name="Katherine Johnson" size={64} />
+                <Avatar name="Dorothy Vaughan" size={96} />
+              </div>
+            </Card>
+
+            <Card padding="lg">
+              <div class="icon-demo">
+                <Icon name="activity" size={16} label="Activity" />
+                <Icon name="database" size={20} label="Database" />
+                <Icon name="sparkles" size={24} label="Sparkles" />
+              </div>
+            </Card>
+          </div>
+
+          <div class="primitive-grid">
+            <EmptyState
+              message="No matching signals yet."
+              action={{ label: "View all", href: "#buttons-heading" }}
+            />
+            <ErrorState message="The signal feed could not be loaded." />
+          </div>
+
+          <Card padding="lg">
+            <Breadcrumbs items={breadcrumbItems} />
+          </Card>
         </div>
       </section>
 
@@ -331,58 +425,6 @@ const themes = ["dark", "light"];
     align-items: center;
   }
 
-  .sg-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.5rem;
-    padding-inline: var(--space-5);
-    border: 1px solid transparent;
-    border-radius: var(--radius-md);
-    font-weight: 500;
-    text-decoration: none;
-    transition:
-      background var(--dur-2) var(--ease-out),
-      border-color var(--dur-2) var(--ease-out),
-      color var(--dur-2) var(--ease-out),
-      transform var(--dur-2) var(--ease-out);
-  }
-
-  .sg-button:hover {
-    transform: translateY(-2px);
-  }
-
-  .sg-button--primary {
-    background: var(--accent);
-    color: var(--bg-0);
-  }
-
-  .sg-button--primary:hover {
-    background: var(--accent-hover);
-    color: var(--bg-0);
-  }
-
-  .sg-button--secondary {
-    border-color: var(--border-2);
-    color: var(--text-1);
-  }
-
-  .sg-button--secondary:hover,
-  .sg-button--ghost:hover {
-    background: var(--bg-2);
-    color: var(--text-1);
-  }
-
-  .sg-button--ghost {
-    color: var(--text-1);
-  }
-
-  .sg-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-    transform: none;
-  }
-
   .spacing-demo {
     display: grid;
     gap: var(--space-4);
@@ -414,6 +456,63 @@ const themes = ["dark", "light"];
     display: grid;
     gap: var(--space-3);
     padding: var(--space-6);
+  }
+
+  .utility-card a {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+  }
+
+  @media (max-width: 63.999rem) {
+    .utility-card a {
+      min-height: 2.75rem;
+    }
+  }
+
+  .primitive-stack {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .primitive-grid {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  @media (min-width: 48rem) {
+    .primitive-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .primitive-demo {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .chip-demo,
+  .avatar-demo,
+  .icon-demo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  .media-demo {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+  }
+
+  .media-demo span {
+    display: block;
+    aspect-ratio: 1;
+    background: var(--accent-subtle);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
   }
 
   code {
