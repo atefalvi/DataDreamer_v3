@@ -37,6 +37,13 @@ by assigning each instinct a layer:
 
 ## 4. Specific choices, defended
 
+- **The existing logo stays** (owner decision, 2026-06-12): the nested-square "D"
+  with the red dot is the brand. Million-dollar studio work doesn't mean a new mark —
+  it means treating the one you have like an asset: vectorized Anton wordmark (no
+  font cost), token-driven ink, disciplined clear space, and the mark's three ideas
+  (pixel, data, connection) promoted to site-wide motifs (04 §1.4). The contrast
+  between the refined serif/sans system and one bold industrial lockup *is* the
+  signature.
 - **Fraunces** for display: a serif with optical sizing and genuine character that
   still feels contemporary; instantly separates DataDreamer from Inter-only dev sites.
   Used scarcely (H1/H2/pull quotes/stat numerals) so it stays special.

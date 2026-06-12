@@ -123,11 +123,19 @@ pull-quote, imagegrid grid + lightbox skin, print styles. **Context**: 05 §3/3a
 styleguide prose fixture (golden test input rendered) reviewed at SM/TP/DT, both
 themes, print preview.
 
-### V4-DS-004 — Logo system & favicons
-**Objective**: build SVGs per 04 §9 (mark, lockup, mono), favicon.svg + .ico,
-`src/assets/brand/`; replace usage sites later (SHELL-002). **Accept**: optical
-review at 20/28/64px on dark+light; favicon legible at 16px; aria patterns per 04 §9.3
-documented in the component-to-come; old `public/logo.svg` untouched (CLEAN-001 removes).
+### V4-DS-004 — Logo system & favicons (preserve existing mark — NOT a redesign)
+**Objective**: productionize the **existing** DataDreamer mark per 04 §9: extract the
+path data from `frontend/src/components/Logo.astro` into `src/assets/brand/`
+(`logo-mark.svg`, `logo-lockup.svg`, `logo-mono.svg`), svgo cleanup with zero visible
+geometry change, `--logo-ink`/`currentColor` ink, dot fixed `#FD2E00`; build the
+lockup with the **Anton "DATA DREAMER" wordmark converted to SVG outlines** (no
+webfont); regenerate `favicon.svg` + 32px `.ico` from the mark. **Inspect**:
+`Logo.astro`, `public/logo.svg`, `public/favicon.svg`. **Out of scope**: redesigning
+the mark, loading Anton as a font, swapping usage sites (SHELL-002). **Accept**:
+1024px overlay diff old-vs-new mark shows no deviation (screenshot in PR); lockup
+optical review at 24/32/64px on dark+light; favicon legible at 16px (dot-enlargement
+deviation allowed per 04 §9.3, favicon only); aria patterns per 04 §9.3 noted for
+SHELL-002; old `public/logo.svg` untouched (CLEAN-001 removes).
 
 ### V4-CMS-001 — Directus: authors/specialties/topics
 **Objective**: per 08 §3.2–3.5 + seeds + public-role read grants; pg_dump + schema

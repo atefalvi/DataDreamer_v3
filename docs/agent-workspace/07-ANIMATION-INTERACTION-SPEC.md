@@ -37,13 +37,16 @@ Failure mode: if script fails entirely, a no-JS CSS guard
 ## 2. Homepage hero — "Signal Field"
 
 ### 2.1 Visual concept
-A full-bleed, very dark canvas behind the headline: a sparse field of ~140 small
-neutral points drifting along a precomputed flow field (curl noise), like slow data
-currents. A handful (~6) of **ember nodes** pulse softly; when two ember nodes drift
-within range, a hairline connection draws in and fades — the "signal" finding itself.
-Monochrome + one accent; no text effects; the headline is real DOM text on top.
-Purpose: communicates "living data" instantly, frames the headline, demonstrates craft
-without noise.
+A full-bleed, very dark canvas behind the headline that renders the brand motifs
+(04 §1.4) literally: a sparse field of ~140 small neutral **square pixels** (1.5–2px
+rects, not circles — the logo's nested-square/pixel DNA) drifting along a precomputed
+flow field (curl noise), like slow data currents. A handful (~6) of **ember nodes** —
+*circular*, echoing the logo's red dot — pulse softly; when two ember nodes drift
+within range, a hairline **connection** draws in and fades — the signal finding
+itself. Pixel · data · connection, animated. Monochrome + one accent; no text
+effects; the headline is real DOM text on top. Purpose: communicates "living data"
+instantly, frames the headline, carries the logo's identity into motion, demonstrates
+craft without noise.
 
 ### 2.2 Content hierarchy & layering
 z0 canvas (aria-hidden) → z1 subtle radial vignette (CSS) → z2 content: kicker, H1
@@ -90,9 +93,11 @@ frame(dt):
   ctx.clearRect
   for p in points:
       a = sampleFlow(p.x, p.y); p.x += cos(a)*v*dt; p.y += sin(a)*v*dt
-      wrap edges; draw 1.5px circle, rgba(text-3, 0.35)
+      wrap edges; draw 2px SQUARE (fillRect, axis-aligned — pixel motif 04 §1.4),
+      rgba(text-3, 0.35)
   for e in embers:
-      same drift at 0.6v; pulse r = 2.5 + sin(t+phase)*0.8; draw accent at 0.8 alpha
+      same drift at 0.6v; pulse r = 2.5 + sin(t+phase)*0.8; draw accent CIRCLE at
+      0.8 alpha (the logo-dot motif — embers are the only circles in the field)
   linkCycle(): every 4–7s pick nearest ember pair < 320px,
       animate line draw 0→1 over 900ms, hold 600ms, fade 900ms (one at a time)
   rafId = requestAnimationFrame(frame)
@@ -119,8 +124,8 @@ Full system at reduced density (90 points, 4 embers). Pointer bias off.
 
 ### 2.8 Mobile (<768) & fallbacks — `renderStaticFrame()`
 No canvas mounted. Instead: a server-rendered inline SVG "still" of the field
-(24 dots + 2 ember nodes + 1 connection line, deterministic positions, <2KB) +
-CSS vignette. Identical composition language, zero JS cost. Reduced-motion on any
+(24 square pixels + 2 circular ember nodes + 1 connection line — same motif grammar
+as §2.1, deterministic positions, <2KB) + CSS vignette. Identical composition language, zero JS cost. Reduced-motion on any
 viewport gets this same static SVG (with the canvas never initialized). CTAs/text
 identical everywhere.
 

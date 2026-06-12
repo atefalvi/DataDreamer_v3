@@ -80,8 +80,11 @@ strings in page files; authors = `{name} is a {role} at DataDreamer — writing 
 ### 5.2 Temporary fallback set (unblocks development — final art comes later)
 One Satori-free approach (no new deps): a one-off node script
 (`scripts/generate-og-temp.mjs`, uses sharp already present via Astro) composites:
-`--bg-0` background, logo lockup (white ink + ember node) top-left at 64px margin,
-section title in Inter 600 72px, thin ember rule. Safe areas: 64px margins all sides;
+`--bg-0` background, the retained DataDreamer lockup (existing nested-square mark +
+Anton wordmark, white ink, brand-red `#FD2E00` dot — 04 §9) top-left at 64px margin,
+section title in Inter 600 72px, thin ember rule. (The V4-FND-002 temporary set was
+generated before the lockup decision was recorded; it is acceptable as-is for
+development — final art and any regeneration must use the retained lockup.) Safe areas: 64px margins all sides;
 no text in outer 80px bottom (platform UI overlap). Script committed; images
 committed; regenerating is one command.
 

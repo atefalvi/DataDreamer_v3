@@ -17,6 +17,27 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] Owner direction — decision (logo & brand continuity)
+
+**Decision**: The existing DataDreamer logo is **retained, not redesigned**: the bold
+geometric black-and-white "D" built from nested squares with the small red circular
+dot at the lower-left, plus its Anton uppercase "DATA DREAMER" wordmark. The earlier
+"dreaming datum" new-mark concept is withdrawn. Additionally, the mark's three ideas —
+**pixel, data, connection** — are now binding site-wide brand motifs.
+**Docs updated**: 04 §1.4 (new motif principle), §3.4 (dot stays brand red `#FD2E00`
+in the lockup; UI echoes use `--accent`), §4.1 (Anton survives only as vectorized
+SVG wordmark — never loaded as a webfont, never used for headings), §9 (full rewrite:
+preservation spec, source of truth = `Logo.astro` path data, overlay-diff acceptance);
+07 §2.1/2.4/2.8 (hero field: neutral points are square *pixels*, ember nodes are
+*circles* echoing the logo dot); 13 V4-DS-004 (rewritten as productionize-existing,
+not redesign); 10 §5.2 (OG lockup wording); design-rationale §4.
+**Impact on completed tasks**: V4-FND-001 unaffected. V4-FND-002's temporary OG set
+predates this entry — acceptable for development; regeneration/final art must use the
+retained lockup (noted in 10 §5.2).
+**Next**: unchanged — next eligible Phase A tasks are V4-CMS-001 or V4-DS-001;
+V4-DS-004 now requires no creative exploration, only asset extraction + wordmark
+vectorization.
+
 ## [2026-06-12] V4-FND-002 — done
 
 **Did**: Added `scripts/generate-og-temp.mjs`, an idempotent sharp-based generator

@@ -38,6 +38,21 @@ Gradient-mesh hero blobs; glassmorphism cards everywhere; 3+ accent colors; scro
 sections; text over busy imagery; uppercase body text; skeleton shimmer on static pages;
 emoji as icons; drop shadows on text; carousels for primary content.
 
+### 1.4 Brand motifs — pixel · data · connection (owner requirement, binding)
+The existing DataDreamer logo (a bold geometric "D" built from nested squares, with a
+small red circular dot at the lower-left) **is retained, not redesigned** (§9). Its
+three ideas are the visual DNA the whole site must echo:
+
+| Motif | Source in the logo | Where it recurs in v4 |
+|---|---|---|
+| **Pixel** | the nested-square, grid-built construction | hero field's neutral points are small *squares*, not circles (07 §2); square stat tiles; sharp square crops inside otherwise-rounded media frames are allowed as accents; favicon |
+| **Data** | the detached red dot (the datum) | ember-accent dots: active nav indicator, list markers, the pulsing nodes in the hero, specialty anchors in the team graph, "live" indicators |
+| **Connection** | the dot's relationship to the frame | hairline link lines: hero node connections, Dream Team edges, timeline rules, breadcrumb separators |
+
+Rule of use: motifs appear as *details*, never as wallpaper — one motif moment per
+section maximum. They are how the elite, editorial v4 still unmistakably reads as
+DataDreamer.
+
 ## 2. Theme decision
 
 **Dark-first, dual theme.** Dark is the brand-defining default (data/AI audience,
@@ -92,7 +107,9 @@ assignments live in the `specialties.color_key` field (values `viz-1`…`viz-6`)
 
 ### 3.4 Brand continuity note
 Ember `#FF5C38` is a deliberate descendant of v3's `#FF2E00` — same family, lower
-aggression, AA-checked. The logo accent dot uses `--accent`.
+aggression, AA-checked. **The logo's red dot keeps its original brand red `#FD2E00`
+in the lockup itself** (logos are identity, not UI); everywhere the dot motif is
+*echoed* in UI (§1.4) it uses `--accent` so it harmonizes with each theme.
 
 ## 4. Typography
 
@@ -103,6 +120,11 @@ aggression, AA-checked. The logo accent dot uses `--accent`.
 | Display | **Fraunces** (variable; opsz, wght 500–650, SOFT 0, WONK 0) | H1, H2, pull quotes, big numerals. Never below 24px. |
 | Text/UI | **Inter** (variable) | Body, H3–H6, nav, buttons, forms |
 | Mono | **JetBrains Mono** (400, 600) | Code, kickers/eyebrows, metadata, dates, tags |
+| Brand wordmark | **Anton** — *as vectorized SVG outlines only* (§9.2) | The "DATA DREAMER" wordmark in the logo lockup, footer brand block, and OG images. **Never loaded as a webfont in v4** and never used for headings or UI text |
+
+Anton survives exclusively as the logo's typography (owner requirement — brand
+continuity). Converting the wordmark to SVG paths keeps it pixel-perfect at zero
+font-loading cost and prevents drift back into Anton-everywhere v3 habits.
 
 Loading: preload the two variable woff2 files used above the fold (Fraunces + Inter),
 `font-display: swap`, metric-compatible fallback stacks
@@ -200,55 +222,55 @@ Component internal padding ratio: cards `--space-5/--space-6`; never mix scales.
   specialty marks (graph), empty-state illustrations. Stored in `src/assets/icons/`
   (custom) — naming `icon-[name].svg`, lowercase-hyphenated.
 
-## 9. Logo system
+## 9. Logo system — **the existing mark is retained** (owner decision, 2026-06-12)
 
-### 9.1 Concept — "the dreaming datum"
-A monogram built from a rounded-square **D-frame** (the container: structure, systems,
-the grid) with a **detached circular node** escaping at the lower left (the datum that
-dreams — continuity with the v3 mark, whose accent corner detail sat in the same
-position). The node is the only accent-colored element. Reads as a "D", a bracket, and
-a node-link diagram fragment at once.
+### 9.1 The mark (not a redesign)
+The DataDreamer logo stays exactly what it is: a bold, geometric **"D" monogram built
+from nested square shapes** — an outer square frame, an inner square counter, pixel-grid
+construction — with a **small red circular dot at the lower-left corner** where the
+frame breaks open. It already embodies the brand motifs (§1.4): pixel (nested squares),
+data (the dot), connection (the dot completing the frame). The v4 job is to
+*productionize* it, not replace it.
 
-### 9.2 SVG construction spec (compact mark)
-ViewBox `0 0 64 64`, stroke-based for crispness:
+**Source of truth**: the path data currently in
+`frontend/src/components/Logo.astro` (`viewBox 0 0 1024 1024`; main path on
+`--logo-main`, accent path `#fd2e00`). Task V4-DS-004 extracts this into standalone
+SVG assets with only these permitted changes:
+- path cleanup/optimization (svgo; merge stray subpaths; no visible geometry change —
+  before/after overlay diff at 1024px must show no deviation);
+- accent dot color stays brand red `#FD2E00` in the lockup (§3.4); the mono variant
+  may flatten it to `currentColor`;
+- ink fill driven by `--logo-ink` (defaults to `currentColor`) so the mark sits on
+  both themes without per-theme files.
 
-```
-<svg viewBox="0 0 64 64" role="img" aria-label="DataDreamer">
-  <!-- D-frame: rounded-square open on the lower-left corner -->
-  <path class="dd-frame"
-        d="M 22 8 H 40 A 16 16 0 0 1 56 24 V 40 A 16 16 0 0 1 40 56 H 24"
-        fill="none" stroke="var(--logo-ink, currentColor)"
-        stroke-width="7" stroke-linecap="round"/>
-  <!-- inner counter stroke suggesting the D bowl -->
-  <path class="dd-bowl"
-        d="M 26 22 H 38 A 10 10 0 0 1 48 32 A 10 10 0 0 1 38 42 H 30"
-        fill="none" stroke="var(--logo-ink, currentColor)"
-        stroke-width="5" stroke-linecap="round" opacity="0.55"/>
-  <!-- the dreaming datum -->
-  <circle class="dd-node" cx="13" cy="53" r="6.5" fill="var(--accent)"/>
-</svg>
-```
-Builder (task V4-DS-004) refines curves optically (the spec fixes topology + ratios:
-frame stroke = 7/64 of height; node r = 6.5/64; node center sits outside the frame's
-implied corner by ~1 stroke width; 45° gap between frame end and node).
+### 9.2 Wordmark & lockup
+The wordmark keeps its v3 typography: **"DATA DREAMER" set in Anton, uppercase**,
+tracking `0.04em`, optically aligned to the mark's cap height. In v4 it ships as
+**vectorized SVG outlines** (convert Anton glyphs to paths once in V4-DS-004) — no
+Anton webfont is loaded (§4.1). Lockup spacing: gap between mark and wordmark =
+mark width × 0.35; wordmark height = mark height × 0.52, baseline aligned to the
+mark's inner-square bottom edge. This is the only place uppercase display type
+appears in v4 — which makes the brand moment stronger, not weaker: an elite serif/
+sans system with one unmistakable industrial wordmark is a signature, not a clash.
 
 ### 9.3 Variants & usage
 
 | Variant | Composition | Used at |
 |---|---|---|
-| Primary lockup | Mark + wordmark "DataDreamer" (Fraunces 560, sentence case, tracking -0.01em), gap = mark width × 0.4 | Nav desktop, footer, OG images |
-| Compact mark | Mark alone | Nav < 480px, avatars, app icon |
-| Favicon | Mark, node enlarged to r=8 for 16px legibility | `/favicon.svg` + 32px ico |
-| Mono (ink) | All paths `currentColor`, node included | Watermarks, print |
-| Light-bg / dark-bg | Ink = `--text-1` of the active theme; node always `--accent` | everywhere |
+| Primary lockup | Mark + Anton-outline wordmark "DATA DREAMER", red dot in brand red | Nav (≥480px), footer brand block, OG images |
+| Compact mark | Mark alone (with red dot) | Nav <480px, favicons, avatars, watermark |
+| Mono (ink) | Everything `currentColor`, dot included | Print, single-color contexts, 404 watermark |
+| Light-bg / dark-bg | Ink = `--text-1` of active theme via `--logo-ink`; dot always `#FD2E00` (verify dot contrast on `--bg-0` light: passes — it sits on paper `#FAF9F7`) | everywhere |
+| Favicon | Mark alone; at 16px the dot may be enlarged ~1.4× for legibility (only permitted geometry deviation, favicon files only) | `/favicon.svg`, 32px `.ico` |
 
-Rules: min height 20px (mark), 24px (lockup). Clear space = node diameter on all sides.
-Never recolor the node except in the mono variant; never place the lockup on imagery
-without a scrim. `aria-label="DataDreamer"` when the logo is the home link's only content;
-`aria-hidden` when accompanied by visible text.
+Rules: min height 20px (mark), 24px (lockup). Clear space = dot diameter on all
+sides. Never recolor the dot (except mono variant); never skew, outline, or shadow
+the mark; never set the wordmark in a live font. `aria-label="DataDreamer"` when the
+logo is the home link's only content; `aria-hidden="true"` when accompanied by
+visible text.
 Files: `src/assets/brand/logo-mark.svg`, `logo-lockup.svg`, `logo-mono.svg`,
-`public/favicon.svg`, `public/favicon.ico`. The old `public/logo.svg` and `Logo.astro`
-paths are replaced (task V4-DS-004).
+`public/favicon.svg`, `public/favicon.ico`. `Logo.astro` and `public/logo.svg` are
+superseded by these assets (swap in SHELL-002; old files removed in CLEAN-001).
 
 ## 10. Interaction states (universal contract)
 
