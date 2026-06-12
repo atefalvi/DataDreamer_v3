@@ -63,10 +63,12 @@ import HeroTagline from "../HeroTagline.astro";
 
 <script>
     // ─── 3D HERO CANVAS ────────────────────────────────
-    const canvas = document.getElementById("heroCanvas") as HTMLCanvasElement | null;
-    if (!canvas) throw new Error("heroCanvas not found");
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("heroCanvas 2d context unavailable");
+    const canvasEl = document.getElementById("heroCanvas") as HTMLCanvasElement | null;
+    if (!canvasEl) throw new Error("heroCanvas not found");
+    const canvas = canvasEl;
+    const canvasCtx = canvas.getContext("2d");
+    if (!canvasCtx) throw new Error("heroCanvas 2d context unavailable");
+    const ctx = canvasCtx;
 
     // Respect user's motion preference — skip animation if reduced-motion is set
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -75,7 +77,6 @@ import HeroTagline from "../HeroTagline.astro";
     const NODE_COUNT  = 60;   // total floating nodes in the constellation
     const EDGE_DIST   = 220;  // max distance (px) to draw an edge between nodes
     const FOV         = 600;  // perspective focal length (px)
-    const TRAIL_LEN   = 18;   // cursor trail history length
     const SPAWN_RANGE = 1200; // initial node spread (matches hero width ~1440px)
 
     function resize() {

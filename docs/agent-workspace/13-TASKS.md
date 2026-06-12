@@ -20,7 +20,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 
 | ID | Title | Phase | Depends on | Status |
 |---|---|---|---|---|
-| V4-FND-001 | Tooling & CI baseline | A | — | todo |
+| V4-FND-001 | Tooling & CI baseline | A | — | done |
 | V4-FND-002 | Temporary OG image set | A | — | todo |
 | V4-FND-003 | Staging deploy resource | A | FND-001 | todo |
 | V4-DS-001 | Design tokens + base styles | A | FND-001 | todo |

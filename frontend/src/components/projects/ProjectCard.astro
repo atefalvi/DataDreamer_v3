@@ -6,7 +6,7 @@
 interface Props {
     title: string;
     description: string;
-    image: string;
+    image: string | null;
     index: string;
     year: string;
     tags: string[];
@@ -18,7 +18,7 @@ const { title, description, image, index, year, tags, href = '#' } = Astro.props
 
 <a href={href} class="project-card">
     <div class="project-thumb-wrap">
-        <img src={image} alt={title} loading="lazy" />
+        {image && <img src={image} alt={title} loading="lazy" />}
     </div>
     <div class="project-meta-top">
         <span>{index}</span>
