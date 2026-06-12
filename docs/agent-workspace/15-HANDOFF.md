@@ -17,6 +17,38 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-ARC-002 — done
+
+**Did**: Added the additive v4 markdown pipeline under `frontend/src/lib/markdown/`.
+The new `renderMarkdown(content)` returns `{ html, headings, readingMinutes }` and
+implements the documented stages: WYSIWYG cleanup, GFM parsing, proper `:::` custom
+block handling, markdown-inside-blocks, callout/details/quote/imagegrid rendering,
+heading slug/autolink collection, dual-theme Shiki output, code block header/copy
+markup, table scroll wrappers, standalone image figures/captions, Directus asset URL
+transforms, and stringification. Existing v3 `frontend/src/lib/renderMarkdown.ts`
+was left untouched.
+**Files**: `frontend/src/lib/markdown/**`;
+`docs/agent-workspace/13-TASKS.md`; `docs/agent-workspace/15-HANDOFF.md`.
+**Decisions / deviations**: No dependency changes. Implemented one nested block level:
+details/quote/imagegrid can render inside a parent block; nested callouts intentionally
+remain literal, matching 05 §3a's callout-in-callout rule. The three committed
+`real-post-*` fixtures are deterministic local source snapshots based on existing
+authoring/workspace examples because local Directus was unavailable (`localhost:8055`
+refused connection; Docker daemon not running). Replace or supplement them with live
+published Directus post bodies when backend access is available.
+**Validation**: `cd frontend && npx astro check` clean; `npm test` passed
+(7 tests: smoke + markdown goldens); `npm run build` passed. Markdown tests assert
+all 8 callout variants, callout semantics, markdown inside callouts, nested details,
+unsupported block literal behavior, heading collection with original case, table
+scroll wrappers, code copy/label markup, figure captions, Directus image transforms,
+WYSIWYG cleanup, and committed HTML snapshots.
+**Next**: `V4-CMS-001` remains the next major Phase A prerequisite for repository
+work; `V4-DS-004` is also eligible and independent. `V4-ARC-001` still depends on
+CMS-002, so do not start it until the CMS author/topic work and post relation tasks
+are complete.
+**Warnings**: Unrelated working-tree deletions under `reference/` remain unstaged and
+untouched.
+
 ## [2026-06-12] V4-DS-003 — done
 
 **Did**: Completed the prose stylesheet: `frontend/src/styles/prose.css` covering the

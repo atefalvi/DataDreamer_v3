@@ -1,0 +1,210 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderMarkdown v4 pipeline > matches the golden HTML for agent-blog-guide-syntax.md > agent-blog-guide-syntax.md 1`] = `
+"<h1 id="markdown-pipeline-contract">Markdown Pipeline Contract<a class="heading-anchor" aria-label="Link to section" href="#markdown-pipeline-contract">#</a></h1>
+<p>Opening paragraph with <strong>strong text</strong>, <em>emphasis</em>, <code>inline_code</code>, and a <a href="https://example.com/docs">reference link</a>.</p>
+<h2 id="heading-with-anchors">Heading With Anchors<a class="heading-anchor" aria-label="Link to section" href="#heading-with-anchors">#</a></h2>
+<h3 id="nested-heading-preserves-case">Nested Heading Preserves Case<a class="heading-anchor" aria-label="Link to section" href="#nested-heading-preserves-case">#</a></h3>
+<aside class="callout callout--tip" role="note" aria-label="Tip: Data Format"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+  <path d="M9 18h6"></path>
+  <path d="M10 22h4"></path>
+</svg>
+<span class="callout__title">Data Format</span></div><div class="callout__body"><p>Use <strong>gradient checkpointing</strong> to cut VRAM usage.</p><ul>
+<li>Keep <code>instruction</code> and <code>response</code> keys.</li>
+<li>Validate rows before upload.</li>
+</ul><p>See <a href="https://example.com/training">training notes</a>.</p><details class="expand"><summary>Nested Evidence</summary><div class="expand-content"><p>Nested details inside a callout should render.</p></div></details></div></aside>
+<aside class="callout callout--warning" role="note" aria-label="Warning: Hardware Alert"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+  <path d="M12 9v4"></path>
+  <path d="M12 17h.01"></path>
+</svg>
+<span class="callout__title">Hardware Alert</span></div><div class="callout__body"><p>Training requires at least 24 GB VRAM.</p></div></aside>
+<aside class="callout callout--info" role="note" aria-label="Info: Reference"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="10"></circle>
+  <path d="M12 16v-4"></path>
+  <path d="M12 8h.01"></path>
+</svg>
+<span class="callout__title">Reference</span></div><div class="callout__body"><p>Full implementation is available at github.com/example/repo.</p></div></aside>
+<aside class="callout callout--note" role="note" aria-label="Note: Side Note"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z"></path>
+  <path d="M15 3v5a1 1 0 0 0 1 1h5"></path>
+</svg>
+<span class="callout__title">Side Note</span></div><div class="callout__body"><p>This was tested on PyTorch 2.3 with CUDA 12.1.</p></div></aside>
+<aside class="callout callout--caution" role="note" aria-label="Caution: Dangerous Operation"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 16h.01"></path>
+  <path d="M12 8v4"></path>
+  <path d="M15.312 2a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z"></path>
+</svg>
+<span class="callout__title">Dangerous Operation</span></div><div class="callout__body"><p>Dropping a collection is irreversible without a backup.</p></div></aside>
+<aside class="callout callout--important" role="note" aria-label="Important: Must Read"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"></path>
+  <path d="M12 15h.01"></path>
+  <path d="M12 7v4"></path>
+</svg>
+<span class="callout__title">Must Read</span></div><div class="callout__body"><p>Run the golden tests before merging.</p></div></aside>
+<aside class="callout callout--example" role="note" aria-label="Example: Worked Example"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"></path>
+  <path d="M6.453 15h11.094"></path>
+  <path d="M8.5 2h7"></path>
+</svg>
+<span class="callout__title">Worked Example</span></div><div class="callout__body"><p>Use a small fixture before rendering a live post.</p></div></aside>
+<aside class="callout callout--technical" role="note" aria-label="Technical: Pipeline Detail"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 20v2"></path>
+  <path d="M12 2v2"></path>
+  <path d="M17 20v2"></path>
+  <path d="M17 2v2"></path>
+  <path d="M2 12h2"></path>
+  <path d="M2 17h2"></path>
+  <path d="M2 7h2"></path>
+  <path d="M20 12h2"></path>
+  <path d="M20 17h2"></path>
+  <path d="M20 7h2"></path>
+  <path d="M7 20v2"></path>
+  <path d="M7 2v2"></path>
+  <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+  <rect x="8" y="8" width="8" height="8" rx="1"></rect>
+</svg>
+<span class="callout__title">Pipeline Detail</span></div><div class="callout__body"><p>The custom block children stay as mdast until rehype conversion.</p></div></aside>
+<details class="expand"><summary>Raw Training Log</summary><div class="expand-content"><p>Step 0/500 | loss: <strong>2.4831</strong></p><div class="code-block"><div class="code-block__header"><span class="code-block__language">txt</span><button class="code-block__copy" type="button" aria-label="Copy code">Copy</button></div><pre class="shiki shiki-themes github-light-default github-dark-default" style="--shiki-light:#1f2328;--shiki-dark:#e6edf3;--shiki-light-bg:#ffffff;--shiki-dark-bg:#0d1117" tabindex="0"><code><span class="line"><span>loss=2.4831</span></span>
+<span class="line"><span>lr=1e-4</span></span></code></pre></div></div></details>
+<figure class="pull-quote"><blockquote><p>THE DATA IS THE MODEL. GARBAGE IN, GARBAGE OUT.</p></blockquote></figure>
+<h2 id="media-and-tables">Media And Tables<a class="heading-anchor" aria-label="Link to section" href="#media-and-tables">#</a></h2>
+<figure><img src="https://api.data-dreamer.net/assets/f53cd922-44a4-403c-b56e-7f98af3578b3.png?width=1440&#x26;format=webp&#x26;quality=82" alt="Training loss curve" loading="lazy" decoding="async"><figcaption>Loss curve after epoch three</figcaption></figure>
+<div class="image-grid" data-count="3"><button class="ig-item" type="button" data-src="https://api.data-dreamer.net/assets/135423d8-e08d-46cd-b1ce-2189d53efa46.png?width=1440&#x26;format=webp&#x26;quality=82" data-index="0" aria-label="Open image: Caption one"><img src="https://api.data-dreamer.net/assets/135423d8-e08d-46cd-b1ce-2189d53efa46.png?width=1440&#x26;format=webp&#x26;quality=82" alt="Caption one" loading="lazy" decoding="async"></button><button class="ig-item" type="button" data-src="https://api.data-dreamer.net/assets/14d306d4-3af4-4e46-b73b-3d82009eaa9b.png?width=1440&#x26;format=webp&#x26;quality=82" data-index="1" aria-label="Open image: Caption two"><img src="https://api.data-dreamer.net/assets/14d306d4-3af4-4e46-b73b-3d82009eaa9b.png?width=1440&#x26;format=webp&#x26;quality=82" alt="Caption two" loading="lazy" decoding="async"></button><button class="ig-item" type="button" data-src="https://api.data-dreamer.net/assets/8d024edb-4d0a-4ea9-ae1a-fd12a73fa92d.png?width=1440&#x26;format=webp&#x26;quality=82" data-index="2" aria-label="Open image: Caption three"><img src="https://api.data-dreamer.net/assets/8d024edb-4d0a-4ea9-ae1a-fd12a73fa92d.png?width=1440&#x26;format=webp&#x26;quality=82" alt="Caption three" loading="lazy" decoding="async"></button></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0"><table><thead><tr><th>Model</th><th align="right">Params</th><th align="right">VRAM</th><th align="right">Throughput</th></tr></thead><tbody><tr><td>Mistral 7B</td><td align="right">7B</td><td align="right">16 GB</td><td align="right">42 tok/s</td></tr><tr><td>Llama 3 8B</td><td align="right">8B</td><td align="right">18 GB</td><td align="right">38 tok/s</td></tr></tbody></table></div>
+<div class="code-block"><div class="code-block__header"><span class="code-block__language">python</span><button class="code-block__copy" type="button" aria-label="Copy code">Copy</button></div><pre class="shiki shiki-themes github-light-default github-dark-default" style="--shiki-light:#1f2328;--shiki-dark:#e6edf3;--shiki-light-bg:#ffffff;--shiki-dark-bg:#0d1117" tabindex="0"><code><span class="line"><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">from</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3"> transformers </span><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">import</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3"> AutoModelForCausalLM</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">model </span><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">=</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3"> AutoModelForCausalLM.from_pretrained(</span><span style="--shiki-light:#0A3069;--shiki-dark:#A5D6FF">"mistralai/Mistral-7B-v0.1"</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">)</span></span></code></pre></div>
+<p>:::mystery Unsupported Block</p>
+<p>This should remain literal for forward compatibility.</p>
+<p>:::</p>
+<aside class="callout callout--note" role="note" aria-label="Note: Outer Note"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M21 9a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2z"></path>
+  <path d="M15 3v5a1 1 0 0 0 1 1h5"></path>
+</svg>
+<span class="callout__title">Outer Note</span></div><div class="callout__body"><p>:::warning Inner Callout</p><p>Nested callouts should remain literal.</p><p>:::</p></div></aside>"
+`;
+
+exports[`renderMarkdown v4 pipeline > matches the golden HTML for real-post-001-retry-patterns.md > real-post-001-retry-patterns.md 1`] = `
+"<h1 id="retry-patterns-for-memory-bound-pipelines">Retry patterns for memory-bound pipelines<a class="heading-anchor" aria-label="Link to section" href="#retry-patterns-for-memory-bound-pipelines">#</a></h1>
+<p>Retries are useful when failures are transient. They are expensive noise when the
+failure mode is deterministic resource pressure.</p>
+<h2 id="the-naive-default">The naive default<a class="heading-anchor" aria-label="Link to section" href="#the-naive-default">#</a></h2>
+<p>Most queues make retries the default because it improves reliability for network
+edges. That default becomes a liability for batch jobs that already exhausted memory.</p>
+<aside class="callout callout--warning" role="note" aria-label="Warning: Hardware alert"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+  <path d="M12 9v4"></path>
+  <path d="M12 17h.01"></path>
+</svg>
+<span class="callout__title">Hardware alert</span></div><div class="callout__body"><p>Retries on <strong>memory-bound</strong> tasks usually re-fail. See <a href="https://example.com/runbook">the runbook</a>.</p></div></aside>
+<div class="code-block"><div class="code-block__header"><span class="code-block__language">python</span><button class="code-block__copy" type="button" aria-label="Copy code">Copy</button></div><pre class="shiki shiki-themes github-light-default github-dark-default" style="--shiki-light:#1f2328;--shiki-dark:#e6edf3;--shiki-light-bg:#ffffff;--shiki-dark-bg:#0d1117" tabindex="0"><code><span class="line"><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">retries </span><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">=</span><span style="--shiki-light:#0550AE;--shiki-dark:#79C0FF"> 3</span></span>
+<span class="line"><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">retry_delay </span><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">=</span><span style="--shiki-light:#0A3069;--shiki-dark:#A5D6FF"> "5m"</span></span></code></pre></div>
+<details class="expand"><summary>Full DAG config</summary><div class="expand-content"><p>executor: local
+gpu_memory: 24GB
+batch_size: 64</p></div></details>
+<h2 id="the-useful-split">The useful split<a class="heading-anchor" aria-label="Link to section" href="#the-useful-split">#</a></h2>
+<p>Use retry policies for external systems and fail fast for work that has already
+proved it cannot fit.</p>"
+`;
+
+exports[`renderMarkdown v4 pipeline > matches the golden HTML for real-post-002-fine-tuning.md > real-post-002-fine-tuning.md 1`] = `
+"<h1 id="fine-tuning-mistral-7b-on-a-custom-instruction-dataset">Fine-Tuning Mistral 7B on a Custom Instruction Dataset<a class="heading-anchor" aria-label="Link to section" href="#fine-tuning-mistral-7b-on-a-custom-instruction-dataset">#</a></h1>
+<p>After two weeks of wrangling data pipelines and OOM errors, I finally have a stable
+fine-tuning setup for Mistral 7B on my RTX 3090.</p>
+<h2 id="dataset-preparation">Dataset Preparation<a class="heading-anchor" aria-label="Link to section" href="#dataset-preparation">#</a></h2>
+<p>I used 4,200 instruction-response pairs formatted in JSONL.</p>
+<aside class="callout callout--tip" role="note" aria-label="Tip: Data Format"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+  <path d="M9 18h6"></path>
+  <path d="M10 22h4"></path>
+</svg>
+<span class="callout__title">Data Format</span></div><div class="callout__body"><p>Ensure every sample has <code>instruction</code> and <code>response</code> keys. The training script
+rejects anything else.</p></div></aside>
+<h2 id="training-configuration">Training Configuration<a class="heading-anchor" aria-label="Link to section" href="#training-configuration">#</a></h2>
+<div class="code-block"><div class="code-block__header"><span class="code-block__language">python</span><button class="code-block__copy" type="button" aria-label="Copy code">Copy</button></div><pre class="shiki shiki-themes github-light-default github-dark-default" style="--shiki-light:#1f2328;--shiki-dark:#e6edf3;--shiki-light-bg:#ffffff;--shiki-dark-bg:#0d1117" tabindex="0"><code><span class="line"><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">training_args </span><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">=</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3"> TrainingArguments(</span></span>
+<span class="line"><span style="--shiki-light:#953800;--shiki-dark:#FFA657">    output_dir</span><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">=</span><span style="--shiki-light:#0A3069;--shiki-dark:#A5D6FF">"./checkpoints"</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">,</span></span>
+<span class="line"><span style="--shiki-light:#953800;--shiki-dark:#FFA657">    per_device_train_batch_size</span><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">=</span><span style="--shiki-light:#0550AE;--shiki-dark:#79C0FF">2</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">,</span></span>
+<span class="line"><span style="--shiki-light:#953800;--shiki-dark:#FFA657">    gradient_accumulation_steps</span><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">=</span><span style="--shiki-light:#0550AE;--shiki-dark:#79C0FF">8</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">,</span></span>
+<span class="line"><span style="--shiki-light:#953800;--shiki-dark:#FFA657">    num_train_epochs</span><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">=</span><span style="--shiki-light:#0550AE;--shiki-dark:#79C0FF">3</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">,</span></span>
+<span class="line"><span style="--shiki-light:#953800;--shiki-dark:#FFA657">    learning_rate</span><span style="--shiki-light:#CF222E;--shiki-dark:#FF7B72">=</span><span style="--shiki-light:#0550AE;--shiki-dark:#79C0FF">2e-4</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">,</span></span>
+<span class="line"><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">)</span></span></code></pre></div>
+<aside class="callout callout--warning" role="note" aria-label="Warning: Hardware Alert"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+  <path d="M12 9v4"></path>
+  <path d="M12 17h.01"></path>
+</svg>
+<span class="callout__title">Hardware Alert</span></div><div class="callout__body"><p>This config assumes 24 GB VRAM. On 16 GB cards, reduce <code>gradient_accumulation_steps</code>
+to 4 and enable <code>gradient_checkpointing=True</code>.</p></div></aside>
+<h2 id="results">Results<a class="heading-anchor" aria-label="Link to section" href="#results">#</a></h2>
+<p>After 3 epochs, the model converged to a loss of <strong>0.88</strong>.</p>
+<figure class="pull-quote"><blockquote><p>THE DATA IS THE MODEL. GARBAGE IN, GARBAGE OUT — ALWAYS.</p></blockquote></figure>"
+`;
+
+exports[`renderMarkdown v4 pipeline > matches the golden HTML for real-post-003-wysiwyg-cleanup.md > real-post-003-wysiwyg-cleanup.md 1`] = `
+"<h1 id="wysiwyg-cleanup-snapshot">WYSIWYG cleanup snapshot<a class="heading-anchor" aria-label="Link to section" href="#wysiwyg-cleanup-snapshot">#</a></h1>
+<h2 id="tables-from-the-editor">Tables from the editor<a class="heading-anchor" aria-label="Link to section" href="#tables-from-the-editor">#</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="table-scroll" role="region" aria-label="Scrollable table" tabindex="0"><table><thead><tr><th>Metric</th><th align="right">Value</th></tr></thead><tbody><tr><td>Loss</td><td align="right">0.88</td></tr><tr><td>Tokens</td><td align="right">42,000</td></tr></tbody></table></div>
+<div class="code-block"><div class="code-block__header"><span class="code-block__language">json</span><button class="code-block__copy" type="button" aria-label="Copy code">Copy</button></div><pre class="shiki shiki-themes github-light-default github-dark-default" style="--shiki-light:#1f2328;--shiki-dark:#e6edf3;--shiki-light-bg:#ffffff;--shiki-dark-bg:#0d1117" tabindex="0"><code><span class="line"><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">{</span><span style="--shiki-light:#116329;--shiki-dark:#7EE787">"model"</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">:</span><span style="--shiki-light:#0A3069;--shiki-dark:#A5D6FF">"mistral"</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">,</span><span style="--shiki-light:#116329;--shiki-dark:#7EE787">"status"</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">:</span><span style="--shiki-light:#0A3069;--shiki-dark:#A5D6FF">"stable"</span><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">}</span></span></code></pre></div>
+<aside class="callout callout--info" role="note" aria-label="Info: Editor Note"><div class="callout__header"><!-- @license lucide-static v1.18.0 - ISC -->
+<svg class="callout__icon" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="10"></circle>
+  <path d="M12 16v-4"></path>
+  <path d="M12 8h.01"></path>
+</svg>
+<span class="callout__title">Editor Note</span></div><div class="callout__body"><p>Directus sometimes wraps block markers in paragraph tags.</p></div></aside>
+<p>Regular paragraph after cleanup.</p>"
+`;
