@@ -17,6 +17,43 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-DS-003 — done
+
+**Did**: Completed the prose stylesheet: `frontend/src/styles/prose.css` covering the
+full pipeline markup contract (05 §3a / 09 §6) — headings with appended anchors,
+lists, blockquote, hr, inline/block code with `.code-block` header (language label +
+copy button), dual-theme Shiki via `--shiki-dark/--shiki-light` vars, `.table-scroll`
+tables, figures/captions, all 8 callout variants with icon/title/body structure,
+details/expand, pull-quote figure, image-grid (incl. `data-count="1"` natural-size
+case and mobile swipe carousel), lightbox skin, and print styles. Every selector is
+dual-written for `.prose` (v4) and `.blog-content` + v3 class shapes (`.callout.tip`,
+`details.expand-block`, `div.pull-quote`) for the migration compat window. Added
+`/dev/styleguide-prose` — a hand-authored fixture matching the markup contract for
+review — and linked it from `/dev/styleguide`.
+**Files**: `frontend/src/styles/prose.css`;
+`frontend/src/pages/dev/styleguide-prose.astro`;
+`frontend/src/pages/dev/styleguide.astro` (link);
+`frontend/src/components/ui/Icon.astro` (bug fix, see below);
+`docs/agent-workspace/13-TASKS.md`; `docs/agent-workspace/15-HANDOFF.md`.
+**Decisions / deviations**: One out-of-task fix folded in: `Icon.astro` resolved
+lucide-static from `process.cwd()`, which 500s whenever the dev server cwd isn't
+`frontend/` (e.g. `astro dev --root frontend` via launch.json). Now resolves through
+`createRequire(import.meta.url)`. Copy-button visibility is gated on
+`@media (hover: hover)` (not viewport width) so touch devices always see it, per 11 §2.
+**Validation**: `npx astro check` clean (0 errors); `npm test` passed; `npm run build`
+passed. Browser-verified on the dev server: desktop dark + light themes (hero, lists,
+all 8 callouts, code block with language/copy, table, figure, image grids, legacy v3
+markup block), mobile 375px (zero horizontal overflow; callout padding 16px, icon
+16px, code at `--fs-xs`, copy/summary touch targets ≥44px; image-grid becomes snap
+carousel; single image full-width). Console clean.
+**Next**: Eligible now: `V4-DS-004` (logo productionization — preserve existing mark
+per 04 §9), `V4-CMS-001` (independent Directus schema work, needs the local Directus
+backend running), or `V4-ARC-002` (markdown pipeline + goldens; its output must match
+the fixture markup in `/dev/styleguide-prose`).
+**Warnings**: Print preview was reviewed only via the print stylesheet's logic, not a
+physical print test; include it in the V4-QA-001 pass. The pre-existing unstaged
+`reference/` deletions remain untouched in the working tree.
+
 ## [2026-06-12] V4-DS-002 — done
 
 **Did**: Added the first v4 `ui/` primitive batch: Button, Card, Chip, Kicker,
