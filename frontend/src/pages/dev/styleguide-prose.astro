@@ -1,0 +1,253 @@
+---
+import "@fontsource-variable/fraunces/wght.css";
+import "@fontsource-variable/inter/wght.css";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/600.css";
+import Icon from "../../components/ui/Icon.astro";
+import "../../styles/base.css";
+import "../../styles/prose.css";
+
+/**
+ * V4-DS-003 review fixture: hand-authored HTML matching the markdown pipeline
+ * markup contract (05 §3a, 09 §6). When ARC-002 lands, its golden-test output
+ * must render identically under these styles.
+ */
+
+const callouts = [
+  { type: "note", icon: "sticky-note", title: "Note" },
+  { type: "info", icon: "info", title: "Reference" },
+  { type: "tip", icon: "lightbulb", title: "Pro tip" },
+  { type: "warning", icon: "triangle-alert", title: "Hardware alert" },
+  { type: "caution", icon: "octagon-alert", title: "Destructive operation" },
+  { type: "important", icon: "message-square-warning", title: "Read this first" },
+  { type: "example", icon: "flask-conical", title: "Worked example" },
+  { type: "technical", icon: "cpu", title: "Deep dive" },
+] as const;
+
+const placeholder = (label: string, tone: string) =>
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">` +
+      `<rect width="800" height="600" fill="${tone}"/>` +
+      `<circle cx="120" cy="480" r="28" fill="#FF5C38"/>` +
+      `<text x="50%" y="50%" fill="#EDEFF3" font-family="monospace" font-size="40" text-anchor="middle">${label}</text>` +
+      `</svg>`,
+  );
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>V4 Prose Fixture — DataDreamer</title>
+  </head>
+  <body>
+    <main class="fixture container-content">
+      <header class="fixture__hero">
+        <p class="kicker">V4 Design System</p>
+        <h1>Prose fixture</h1>
+        <p>
+          Pipeline markup contract rendered under <code>prose.css</code>. Review at
+          small mobile, tablet, and desktop in both themes, plus print preview.
+          <a href="/dev/styleguide">Back to the styleguide</a>.
+        </p>
+        <button id="themeToggle" type="button">Toggle theme</button>
+      </header>
+
+      <article class="prose">
+        <p>
+          Opening paragraph with <strong>strong text</strong>, <em>emphasis</em>, an
+          <a href="#tables">internal link</a>, and inline <code>code()</code>. Line
+          length should hold at a comfortable measure on every viewport.
+        </p>
+
+        <h2 id="headings">
+          Headings carry appended anchors<a href="#headings" aria-label="Link to this section"></a>
+        </h2>
+        <p>
+          Hovering or focusing the heading reveals the anchor marker. Headings get
+          scroll margin so anchor jumps clear the sticky nav.
+        </p>
+
+        <h3 id="lists">
+          Lists and quotes<a href="#lists" aria-label="Link to this section"></a>
+        </h3>
+        <ul>
+          <li>Unordered item with accent marker</li>
+          <li>Second item wrapping onto a second line to confirm hanging indent behavior on narrow screens</li>
+        </ul>
+        <ol>
+          <li>Ordered item one</li>
+          <li>Ordered item two</li>
+        </ol>
+        <blockquote>
+          <p>A standard markdown blockquote — distinct from the pull-quote figure below.</p>
+        </blockquote>
+        <hr />
+
+        <h2 id="callouts">
+          Callouts, all eight variants<a href="#callouts" aria-label="Link to this section"></a>
+        </h2>
+        {callouts.map((c) => (
+          <aside class={`callout callout--${c.type}`} role="note" aria-label={`${c.title}`}>
+            <div class="callout__header">
+              <span class="callout__icon"><Icon name={c.icon} size={20} /></span>
+              <span class="callout__title">{c.title}</span>
+            </div>
+            <div class="callout__body">
+              <p>
+                Body content renders <strong>full markdown</strong>: a
+                <a href="#callouts">link</a>, inline <code>code</code>, and below, a list.
+              </p>
+              <ul>
+                <li>One nested list item</li>
+              </ul>
+            </div>
+          </aside>
+        ))}
+
+        <h2 id="expandable">
+          Expandable details<a href="#expandable" aria-label="Link to this section"></a>
+        </h2>
+        <details class="expand">
+          <summary>Raw training log — epoch 3</summary>
+          <div class="expand-content">
+            <p>Step 0/500 | loss: 2.4831 | lr: 1e-4</p>
+            <p>Step 500/500 | loss: 0.8821 | lr: 8e-5</p>
+          </div>
+        </details>
+
+        <figure class="pull-quote">
+          <blockquote>
+            <p>The goal isn't just to store data, but to encode intuition.</p>
+          </blockquote>
+        </figure>
+
+        <h2 id="code">
+          Code blocks<a href="#code" aria-label="Link to this section"></a>
+        </h2>
+        <div class="code-block">
+          <div class="code-block__header">
+            <span class="code-block__language">python</span>
+            <button class="code-block__copy" type="button" aria-label="Copy code">Copy</button>
+          </div>
+          <pre class="shiki" tabindex="0"><code><span style="--shiki-dark:#FF7B72;--shiki-light:#CF222E">from</span> <span style="--shiki-dark:#EDEFF3;--shiki-light:#1B1E23">transformers</span> <span style="--shiki-dark:#FF7B72;--shiki-light:#CF222E">import</span> <span style="--shiki-dark:#EDEFF3;--shiki-light:#1B1E23">AutoModelForCausalLM</span>
+<span style="--shiki-dark:#EDEFF3;--shiki-light:#1B1E23">model</span> <span style="--shiki-dark:#FF7B72;--shiki-light:#CF222E">=</span> <span style="--shiki-dark:#79C0FF;--shiki-light:#0550AE">AutoModelForCausalLM</span><span style="--shiki-dark:#EDEFF3;--shiki-light:#1B1E23">.from_pretrained(</span><span style="--shiki-dark:#A5D6FF;--shiki-light:#0A3069">"mistralai/Mistral-7B-v0.1"</span><span style="--shiki-dark:#EDEFF3;--shiki-light:#1B1E23">)  # a deliberately long line to confirm horizontal scrolling without page overflow</span></code></pre>
+        </div>
+
+        <h2 id="tables">
+          Tables<a href="#tables" aria-label="Link to this section"></a>
+        </h2>
+        <div class="table-scroll" role="region" aria-label="Model benchmark table" tabindex="0">
+          <table>
+            <thead>
+              <tr><th>Model</th><th>Params</th><th>VRAM</th><th>Throughput</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Mistral 7B</td><td>7B</td><td>16 GB</td><td>42 tok/s</td></tr>
+              <tr><td>Llama 3 8B</td><td>8B</td><td>18 GB</td><td>38 tok/s</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="figures">
+          Figures and image grids<a href="#figures" aria-label="Link to this section"></a>
+        </h2>
+        <figure>
+          <img src={placeholder("figure", "#161B22")} alt="Placeholder figure" width="800" height="600" />
+          <figcaption>A captioned figure. Captions sit in mono at a tighter measure.</figcaption>
+        </figure>
+
+        <div class="image-grid" data-count="4">
+          {[1, 2, 3, 4].map((n) => (
+            <button class="ig-item" type="button" data-src={placeholder(`img ${n}`, "#1D242E")} data-index={n - 1} aria-label={`Open image ${n}`}>
+              <img src={placeholder(`img ${n}`, "#1D242E")} alt={`Placeholder ${n}`} loading="lazy" />
+            </button>
+          ))}
+        </div>
+
+        <div class="image-grid" data-count="1">
+          <button class="ig-item" type="button" data-src={placeholder("single", "#161B22")} data-index="0" aria-label="Open image 1">
+            <img src={placeholder("single", "#161B22")} alt="Single placeholder" loading="lazy" />
+          </button>
+        </div>
+
+        <h2 id="legacy">
+          Legacy v3 markup (compat window)<a href="#legacy" aria-label="Link to this section"></a>
+        </h2>
+        <div class="callout tip">
+          <div class="callout-label">Pro tip (v3 emitted markup)</div>
+          <p>Old class shape must remain readable during the migration window.</p>
+        </div>
+        <details class="expand-block">
+          <summary>v3 expandable</summary>
+          <div class="expand-content"><p>Legacy details content.</p></div>
+        </details>
+        <div class="pull-quote">Legacy pull quote markup, one statement.</div>
+      </article>
+    </main>
+
+    <script>
+      const root = document.documentElement;
+      document.getElementById("themeToggle")?.addEventListener("click", () => {
+        const next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+        root.setAttribute("data-theme", next);
+      });
+    </script>
+
+    <style>
+      body {
+        background: var(--bg-0);
+      }
+
+      .fixture {
+        padding-block: var(--space-8);
+      }
+
+      .fixture__hero {
+        display: grid;
+        gap: var(--space-3);
+        max-width: var(--container-prose);
+        margin-block-end: var(--space-8);
+        padding-block-end: var(--space-6);
+        border-bottom: 1px solid var(--border-1);
+      }
+
+      .fixture__hero h1 {
+        font-family: var(--font-display);
+        font-size: var(--fs-4xl);
+        line-height: var(--lh-4xl);
+      }
+
+      .fixture__hero p {
+        color: var(--text-2);
+      }
+
+      .fixture__hero a {
+        color: var(--accent);
+      }
+
+      .fixture__hero button {
+        width: fit-content;
+        min-height: 2.75rem;
+        padding-inline: var(--space-4);
+        background: transparent;
+        border: 1px solid var(--border-2);
+        border-radius: var(--radius-md);
+        color: var(--text-1);
+        cursor: pointer;
+      }
+
+      .prose {
+        margin-inline: auto;
+      }
+
+      @media print {
+        .fixture__hero button {
+          display: none;
+        }
+      }
+    </style>
+  </body>
+</html>

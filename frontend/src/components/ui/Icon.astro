@@ -1,6 +1,7 @@
 ---
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { createRequire } from "node:module";
 
 type IconSize = 16 | 20 | 24;
 
@@ -12,8 +13,12 @@ interface Props {
 }
 
 const { name, size = 20, label, class: className } = Astro.props;
-const iconPath = join(process.cwd(), "node_modules/lucide-static/icons", `${name}.svg`);
-const fallbackPath = join(process.cwd(), "node_modules/lucide-static/icons/circle-help.svg");
+// Resolve through the module graph, not process.cwd() — the dev server may run
+// with a cwd outside frontend/ (e.g. `astro dev --root frontend`).
+const require = createRequire(import.meta.url);
+const iconsDir = join(dirname(require.resolve("lucide-static/package.json")), "icons");
+const iconPath = join(iconsDir, `${name}.svg`);
+const fallbackPath = join(iconsDir, "circle-help.svg");
 const rawSvg = readFileSync(existsSync(iconPath) ? iconPath : fallbackPath, "utf8");
 const blackStroke = new RegExp(`stroke="${"#"}000"`, "g");
 const svg = rawSvg
