@@ -1,0 +1,63 @@
+---
+import Button from "./Button.astro";
+import Kicker from "./Kicker.astro";
+
+interface SectionAction {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  kicker: string;
+  title: string;
+  intro?: string;
+  action?: SectionAction;
+  headingId?: string;
+  class?: string;
+}
+
+const { kicker, title, intro, action, headingId, class: className } = Astro.props;
+---
+
+<header class:list={["ui-section-header", className]}>
+  <div class="ui-section-header__copy">
+    <Kicker label={kicker} />
+    <h2 id={headingId}>{title}</h2>
+    {intro && <p>{intro}</p>}
+  </div>
+  {action && (
+    <Button href={action.href} variant="secondary" icon="arrow-right">
+      {action.label}
+    </Button>
+  )}
+</header>
+
+<style>
+  .ui-section-header {
+    display: grid;
+    gap: var(--space-5);
+    align-items: end;
+  }
+
+  .ui-section-header__copy {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 56ch;
+  }
+
+  .ui-section-header h2 {
+    font-size: var(--fs-3xl);
+    line-height: var(--lh-3xl);
+  }
+
+  .ui-section-header p:not(.kicker) {
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  @media (min-width: 48rem) {
+    .ui-section-header {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+  }
+</style>

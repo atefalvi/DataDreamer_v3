@@ -1,0 +1,59 @@
+---
+type CardPadding = "md" | "lg";
+
+interface Props {
+  href?: string;
+  padding?: CardPadding;
+  interactive?: boolean;
+  class?: string;
+}
+
+const { href, padding = "md", interactive = Boolean(href), class: className } = Astro.props;
+const classes = ["ui-card", `ui-card--${padding}`, interactive && "ui-card--interactive", className];
+---
+
+{href ? (
+  <a class:list={classes} href={href}>
+    <slot />
+  </a>
+) : (
+  <article class:list={classes}>
+    <slot />
+  </article>
+)}
+
+<style>
+  .ui-card {
+    display: block;
+    background: var(--bg-1);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .ui-card--md {
+    padding: var(--space-5);
+  }
+
+  .ui-card--lg {
+    padding: var(--space-6);
+  }
+
+  .ui-card--interactive:hover {
+    border-color: var(--border-2);
+    color: inherit;
+    transform: translateY(calc(var(--space-1) * -0.5));
+  }
+
+  .ui-card :global([data-card-media]) {
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  .ui-card--interactive:hover :global([data-card-media]) {
+    transform: scale(1.02);
+  }
+</style>

@@ -17,6 +17,36 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-DS-002 — done
+
+**Did**: Added the first v4 `ui/` primitive batch: Button, Card, Chip, Kicker,
+SectionHeader, Avatar, Icon, EmptyState, ErrorState, and Breadcrumbs. Updated
+`/dev/styleguide` to demo the primitives across variants and states, including
+loading/disabled buttons, selected chips, cards, icons, avatars, empty/error states,
+and breadcrumb structured data.
+**Files**: `frontend/src/components/ui/*.astro`;
+`frontend/src/pages/dev/styleguide.astro`; `frontend/src/styles/tokens.css`;
+`docs/agent-workspace/04-DESIGN-SYSTEM.md`;
+`docs/agent-workspace/13-TASKS.md`; `docs/agent-workspace/15-HANDOFF.md`.
+**Decisions / deviations**: Added `--text-on-accent` to 04 §3.4 and
+`tokens.css` so solid accent controls can satisfy the tokens-only rule while keeping
+AA contrast. Accepted the read-only sub-agent audit findings: exact Button variants
+and sizes, Kicker as non-heading text, Breadcrumbs `aria-label` + JSON-LD, selected
+chip semantics/check icon, decorative vs labeled Icon behavior, and 44px mobile
+touch targets. v3 pages and blog callout behavior remain untouched.
+**Validation**: `cd frontend && npx astro check` clean; `npm test` passed
+(1 smoke test); `npm run build` passed. Browser check on `/dev/styleguide`: desktop
+and 390px mobile had no horizontal overflow, no app console errors beyond Vite dev
+connection logs, Breadcrumbs JSON-LD present, active breadcrumb exposed, and mobile
+interactive targets all ≥44×44. Grep review found no raw hex/off-grid px in new UI
+components or styleguide; raw values only appear in the token definition file.
+**Next**: `V4-DS-003 — Prose stylesheet` is the next eligible implementation task.
+`V4-DS-004` is also unblocked after DS-001 but should remain focused on preserving
+the existing logo; `V4-CMS-001` remains independent; `V4-FND-003` still requires
+Coolify access.
+**Warnings**: Unrelated working-tree deletions under `reference/` were present before
+this task and were not staged or modified by this agent.
+
 ## [2026-06-12] V4-DS-001 — done
 
 **Did**: Added the additive v4 design foundation: `tokens.css` with Observatory dark

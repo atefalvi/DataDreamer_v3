@@ -1,0 +1,32 @@
+---
+import Icon from "./Icon.astro";
+
+interface Props {
+  message?: string;
+  class?: string;
+}
+
+const { message = "Something went wrong while loading this section.", class: className } = Astro.props;
+---
+
+<section class:list={["ui-error-state", className]} role="status" aria-live="polite">
+  <Icon name="triangle-alert" size={20} />
+  <p>{message}</p>
+</section>
+
+<style>
+  .ui-error-state {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    background: var(--bg-1);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-md);
+    color: var(--danger);
+  }
+
+  .ui-error-state p {
+    color: var(--text-1);
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+import Icon from "./Icon.astro";
+
+interface Props {
+  label: string;
+  href?: string;
+  selected?: boolean;
+  icon?: string;
+  class?: string;
+}
+
+const { label, href, selected = false, icon, class: className } = Astro.props;
+const classes = ["ui-chip", selected && "ui-chip--selected", className];
+---
+
+{href ? (
+  <a class:list={classes} href={href} aria-current={selected ? "page" : undefined}>
+    {selected ? <Icon name="check" size={16} /> : icon && <Icon name={icon} size={16} />}
+    <span>{label}</span>
+  </a>
+) : (
+  <button class:list={classes} type="button" aria-pressed={selected ? "true" : "false"}>
+    {selected ? <Icon name="check" size={16} /> : icon && <Icon name={icon} size={16} />}
+    <span>{label}</span>
+  </button>
+)}
+
+<style>
+  .ui-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding-inline: var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    gap: var(--space-2);
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  a.ui-chip:hover {
+    border-color: var(--border-2);
+    color: var(--text-1);
+  }
+
+  .ui-chip--selected {
+    background: var(--accent-subtle);
+    border-color: var(--accent);
+    color: var(--text-1);
+  }
+
+  @media (max-width: 63.999rem) {
+    .ui-chip {
+      min-height: 2.75rem;
+    }
+  }
+</style>

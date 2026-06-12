@@ -1,0 +1,164 @@
+---
+import Icon from "./Icon.astro";
+
+type ButtonVariant = "primary" | "secondary" | "ghost";
+type ButtonSize = "sm" | "md" | "lg";
+type ButtonType = "button" | "submit" | "reset";
+
+interface Props {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  href?: string;
+  icon?: string;
+  iconPosition?: "start" | "end";
+  loading?: boolean;
+  disabled?: boolean;
+  type?: ButtonType;
+  ariaLabel?: string;
+  class?: string;
+}
+
+const {
+  variant = "secondary",
+  size = "md",
+  href,
+  icon,
+  iconPosition = "end",
+  loading = false,
+  disabled = false,
+  type = "button",
+  ariaLabel,
+  class: className,
+} = Astro.props;
+
+const classes = ["ui-button", `ui-button--${variant}`, `ui-button--${size}`, className];
+const isDisabled = disabled || loading;
+const iconSize = size === "sm" ? 16 : 20;
+const displayedIcon = loading ? "loader-circle" : icon;
+---
+
+{href && !isDisabled ? (
+  <a class:list={classes} href={href} aria-label={ariaLabel} aria-busy={loading ? "true" : undefined}>
+    {displayedIcon && iconPosition === "start" && <Icon name={displayedIcon} size={iconSize} />}
+    <span class="ui-button__label"><slot /></span>
+    {displayedIcon && iconPosition === "end" && <Icon name={displayedIcon} size={iconSize} />}
+  </a>
+) : (
+  <button
+    class:list={classes}
+    type={type}
+    disabled={isDisabled}
+    aria-label={ariaLabel}
+    aria-busy={loading ? "true" : undefined}
+  >
+    {displayedIcon && iconPosition === "start" && <Icon name={displayedIcon} size={iconSize} />}
+    <span class="ui-button__label"><slot /></span>
+    {displayedIcon && iconPosition === "end" && <Icon name={displayedIcon} size={iconSize} />}
+  </button>
+)}
+
+<style>
+  .ui-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    color: var(--text-1);
+    font-family: var(--font-text);
+    font-weight: 500;
+    gap: var(--space-2);
+    line-height: 1;
+    text-decoration: none;
+    transition:
+      background var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+    cursor: pointer;
+  }
+
+  .ui-button--sm {
+    min-height: 2rem;
+    padding-inline: var(--space-3);
+    font-size: var(--fs-xs);
+  }
+
+  .ui-button--md {
+    min-height: 2.5rem;
+    padding-inline: var(--space-5);
+    font-size: var(--fs-sm);
+  }
+
+  .ui-button--lg {
+    min-height: 3rem;
+    padding-inline: var(--space-6);
+    font-size: var(--fs-base);
+  }
+
+  .ui-button--primary {
+    background: var(--accent);
+    color: var(--text-on-accent);
+  }
+
+  .ui-button--secondary {
+    background: transparent;
+    border-color: var(--border-2);
+  }
+
+  .ui-button--ghost {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .ui-button:hover {
+    color: var(--text-1);
+    transform: translateY(calc(var(--space-1) * -0.5));
+  }
+
+  .ui-button--primary:hover {
+    background: var(--accent-hover);
+    color: var(--text-on-accent);
+  }
+
+  .ui-button--secondary:hover,
+  .ui-button--ghost:hover {
+    background: var(--bg-2);
+  }
+
+  .ui-button:active {
+    transform: translateY(0);
+    transition-duration: var(--dur-1);
+  }
+
+  .ui-button--primary:active {
+    background: var(--accent-press);
+  }
+
+  .ui-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    transform: none;
+  }
+
+  .ui-button__label {
+    white-space: nowrap;
+  }
+
+  @media (max-width: 63.999rem) {
+    .ui-button {
+      min-height: 2.75rem;
+    }
+  }
+
+  [aria-busy="true"] :global(.dd-icon__svg) {
+    animation: ui-button-spin var(--dur-4) linear infinite;
+  }
+
+  @keyframes ui-button-spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+</style>

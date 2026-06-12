@@ -80,6 +80,7 @@ assets exempt).
 | `--text-1` | `#EDEFF3` | Headings, primary text |
 | `--text-2` | `#A8B1BD` | Body secondary, descriptions |
 | `--text-3` | `#858E99` | Metadata, placeholders |
+| `--text-on-accent` | `#05070A` | Text/icons on solid accent controls |
 | `--accent` | `#FF5C38` | Ember — links, active states, markers |
 | `--accent-hover` | `#FF7657` | Hover on accent elements |
 | `--accent-press` | `#E04A2A` | Active/pressed |
@@ -96,7 +97,7 @@ assets exempt).
 |---|---|
 | `--bg-0` `#FAF9F7` · `--bg-1` `#FFFFFF` · `--bg-2` `#F2F0EB` · `--bg-3` `#FFFFFF` |
 | `--border-1` `#E5E2DA` · `--border-2` `#CFCABF` |
-| `--text-1` `#1B1E23` · `--text-2` `#4D545E` · `--text-3` `#646D77` |
+| `--text-1` `#1B1E23` · `--text-2` `#4D545E` · `--text-3` `#646D77` · `--text-on-accent` `#05070A` |
 | `--accent` `#D9431F` (darkened ember for 4.5:1 on paper) · `--accent-hover` `#B83817` · `--accent-press` `#9C2F12` · `--accent-subtle` `rgba(217,67,31,0.08)` |
 | `--success` `#1E9E68` · `--warning` `#B07A12` · `--danger` `#C92F23` · `--info` `#1F6FD6` · `--focus-ring` `#2D6FD0` |
 
@@ -292,7 +293,7 @@ superseded by these assets (swap in SHELL-002; old files removed in CLEAN-001).
 
 | Variant | Look | Use |
 |---|---|---|
-| `primary` | Solid `--accent`, white text (`#FFF8F6`), radius-md, 40px (md) / 48px (lg) height, Inter 500 | One per view max: hero CTA, Start course, Submit |
+| `primary` | Solid `--accent`, `--text-on-accent`, radius-md, 40px (md) / 48px (lg) height, Inter 500 | One per view max: hero CTA, Start course, Submit |
 | `secondary` | 1px `--border-2` border, `--text-1`, transparent bg; hover `--bg-2` | Paired actions, "View all" |
 | `ghost` | Text + 16px icon, no border; hover `--bg-2` pill | Tertiary, toolbars, "← Back" |
 
