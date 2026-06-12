@@ -26,7 +26,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-DS-001 | Design tokens + base styles | A | FND-001 | done |
 | V4-DS-002 | UI primitives batch | A | DS-001 | done |
 | V4-DS-003 | Prose stylesheet | A | DS-001 | done |
-| V4-DS-004 | Logo system & favicons | A | DS-001 | todo |
+| V4-DS-004 | Logo system & favicons | A | DS-001 | done |
 | V4-CMS-001 | Directus: authors/specialties/topics | A | — | todo |
 | V4-CMS-002 | Directus: posts→authors relation | A | CMS-001 | todo |
 | V4-CMS-003 | Directus: topics backfill | A | CMS-002 | todo |
@@ -128,10 +128,10 @@ themes, print preview.
 path data from `frontend/src/components/Logo.astro` into `src/assets/brand/`
 (`logo-mark.svg`, `logo-lockup.svg`, `logo-mono.svg`), svgo cleanup with zero visible
 geometry change, `--logo-ink`/`currentColor` ink, dot fixed `#FD2E00`; build the
-lockup with the **Anton "DATA DREAMER" wordmark converted to SVG outlines** (no
-webfont); regenerate `favicon.svg` + 32px `.ico` from the mark. **Inspect**:
+lockup with the **"DATA DREAMER" pixel wordmark converted to SVG outlines** (no
+webfont or live `<text>`); regenerate `favicon.svg` + 32px `.ico` from the mark. **Inspect**:
 `Logo.astro`, `public/logo.svg`, `public/favicon.svg`. **Out of scope**: redesigning
-the mark, loading Anton as a font, swapping usage sites (SHELL-002). **Accept**:
+the mark, loading a brand wordmark font, swapping usage sites (SHELL-002). **Accept**:
 1024px overlay diff old-vs-new mark shows no deviation (screenshot in PR); lockup
 optical review at 24/32/64px on dark+light; favicon legible at 16px (dot-enlargement
 deviation allowed per 04 §9.3, favicon only); aria patterns per 04 §9.3 noted for
