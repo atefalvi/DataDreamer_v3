@@ -17,6 +17,29 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-FND-002 — done
+
+**Did**: Added `scripts/generate-og-temp.mjs`, an idempotent sharp-based generator
+for the seven temporary v4 OG fallback PNGs. Generated and committed
+`og-default.png`, `og-home.png`, `og-blog.png`, `og-projects.png`, `og-team.png`,
+`og-about.png`, and `og-courses.png` in `frontend/public/og/`. Updated 10 §5.3 to
+record that the temporary fallback set is in place.
+**Files**: `scripts/generate-og-temp.mjs`; `frontend/public/og/og-*.png`;
+`docs/agent-workspace/10-SEO-OG-METADATA.md`;
+`docs/agent-workspace/13-TASKS.md`; `docs/agent-workspace/15-HANDOFF.md`.
+**Decisions / deviations**: No new dependency added; the script resolves `sharp`
+from the existing frontend/Astro install as specified in 10 §5.2. Existing v3 OG
+JPGs were left untouched for CLEAN-001.
+**Validation**: `node scripts/generate-og-temp.mjs` passed and reported every file
+as 1200×630, 34–40KB; `cd frontend && npx astro check` clean; `npm test` passed
+(1 smoke test); `npm run build` passed. Visual spot-check completed for
+`og-home.png`.
+**Next**: Pick the next eligible Phase A task from `13-TASKS.md`: either
+`V4-CMS-001` (independent Directus schema work) or `V4-DS-001` (now unblocked by
+FND-001). `V4-FND-003` is also unblocked but requires Coolify access.
+**Warnings**: Final owner-provided OG art is still pending; this task only provides
+the temporary fallback set.
+
 ## [2026-06-12] V4-FND-001 — done
 
 **Did**: Added the v4 tooling baseline: approved dependencies (`zod`,

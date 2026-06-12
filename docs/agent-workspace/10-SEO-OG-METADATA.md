@@ -91,8 +91,10 @@ committed; regenerating is one command.
    Cloudflare cache for `/og/*`. 5. Re-validate with opengraph.xyz + Slack/WhatsApp
    paste test (v3 lesson: Cloudflare bot rules — audit/CODE_REVIEW history; confirm
    WAF bypass still active).
-**Checklist** (lives here; tick in handoff): [ ] default [ ] home [ ] blog
-[ ] projects [ ] team [ ] about [ ] courses [ ] per-author template decision.
+**Checklist** (lives here; tick in handoff): [x] temporary fallback set in place
+(V4-FND-002: default, home, blog, projects, team, about, courses). Final replacement:
+[ ] default [ ] home [ ] blog [ ] projects [ ] team [ ] about [ ] courses
+[ ] per-author template decision.
 During development, social previews always work because temporary files exist from
 Phase A — **no broken-preview window.**
 
