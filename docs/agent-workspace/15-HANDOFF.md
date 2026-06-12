@@ -17,6 +17,34 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-DS-001 — done
+
+**Did**: Added the additive v4 design foundation: `tokens.css` with Observatory dark
+and light theme tokens, `base.css` with reset/base elements/focus ring/container
+utilities/`.kicker`/`.rule`/`[data-reveal]`, and standalone `/dev/styleguide` that
+renders tokens, type scale, button directions, spacing, grid, and base-state demos
+without importing v3 `global.css`.
+**Files**: `frontend/src/styles/tokens.css`; `frontend/src/styles/base.css`;
+`frontend/src/pages/dev/styleguide.astro`; `docs/agent-workspace/04-DESIGN-SYSTEM.md`;
+`docs/agent-workspace/13-TASKS.md`; `docs/agent-workspace/15-HANDOFF.md`.
+**Decisions / deviations**: Deviation recorded in 04 §3.4: `--text-3` changed to
+`#858E99` (dark) and `#646D77` (light) because the planning values did not meet
+AA contrast across the documented surfaces. v4 styles remain additive and are not
+imported by `MainLayout` or existing v3 pages. Read-only sub-agent audit accepted:
+keep styleguide standalone and avoid v3 class/import collisions.
+**Validation**: `cd frontend && npx astro check` clean; `npm test` passed
+(1 smoke test); `npm run build` passed. Browser check: `/dev/styleguide` renders at
+desktop and 390px mobile with no console errors and no horizontal overflow. Source
+grep for new `base.css` + styleguide found no raw hex and no raw px values >4px
+outside token definitions. Contrast table (text token × bg token):
+dark `text-1` 17.00/16.19/15.03/13.57, `text-2` 9.03/8.60/7.98/7.21,
+`text-3` 5.90/5.62/5.21/4.71; light `text-1` 15.88/16.71/14.67/16.71,
+`text-2` 7.27/7.65/6.72/7.65, `text-3` 4.99/5.26/4.61/5.26.
+**Next**: `V4-DS-002 — UI primitives batch` is now unblocked. `V4-CMS-001` remains
+an independent Phase A option; `V4-FND-003` still requires Coolify access.
+**Warnings**: Unrelated working-tree deletions under `reference/` were present during
+this task and were not staged or modified by this agent.
+
 ## [2026-06-12] Owner direction — decision (logo & brand continuity)
 
 **Decision**: The existing DataDreamer logo is **retained, not redesigned**: the bold
