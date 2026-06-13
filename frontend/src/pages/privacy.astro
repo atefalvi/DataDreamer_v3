@@ -1,0 +1,121 @@
+---
+/**
+ * V4-PAGE-003 — Privacy (05 §11). Static prose page: data collected (none in v4.0
+ * beyond standard server logs), hosting disclosure, and the one client-side preference
+ * we store (theme). Indexable (no noindex). Extended in v4.1 when accounts ship.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../content/site';
+import { SITE_URL } from '../lib/seo/meta';
+import '../styles/prose.css';
+
+const updated = 'June 13, 2026';
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'Privacy — DataDreamer',
+    url: `${SITE_URL}/privacy`,
+  },
+];
+---
+
+<BaseLayout
+  title="Privacy"
+  description="How DataDreamer handles data: what is collected (almost nothing), what is stored, and how to get in touch."
+  ogImage={{ url: '/og/og-default.png' }}
+  jsonLd={jsonLd}
+>
+  <div class="page container-content">
+    <header class="page__head">
+      <p class="kicker">Privacy</p>
+      <h1>Privacy policy</h1>
+      <p class="page__meta">Last updated {updated}</p>
+    </header>
+
+    <div class="prose">
+      <p>
+        DataDreamer is an independent publication. This policy explains, in plain language, what
+        happens to data when you visit. The short version: we collect almost nothing, sell nothing,
+        and run no advertising or third-party tracking.
+      </p>
+
+      <h2>What we collect</h2>
+      <p>
+        We do not ask you to create an account, fill in forms, or hand over personal information to
+        read anything on this site. There is no analytics pixel, no advertising network, and no
+        cross-site tracking.
+      </p>
+      <p>
+        Like virtually every website, our hosting provider records standard <strong>server logs</strong>
+        for each request — typically the IP address, timestamp, requested URL, referrer, and browser
+        user-agent. These logs exist for security, debugging, and aggregate traffic understanding, are
+        retained only for a limited period, and are not used to build a profile of you.
+      </p>
+
+      <h2>Cookies &amp; local storage</h2>
+      <p>
+        We set no tracking cookies. The only thing stored in your browser is a single
+        <code>theme</code> preference in <code>localStorage</code>, so the site remembers whether you
+        chose light or dark mode. It never leaves your device and you can clear it at any time.
+      </p>
+
+      <h2>Third parties</h2>
+      <p>
+        Fonts are self-hosted, so no font CDN sees your visit. Content is served through our hosting
+        and CMS infrastructure, which processes requests solely to deliver pages. We do not share data
+        with advertisers or data brokers. Outbound links (for example to GitHub or LinkedIn) are
+        governed by those services’ own privacy policies once you follow them.
+      </p>
+
+      <h2>Your choices</h2>
+      <p>
+        Because we don’t collect personal data, there’s little to request, correct, or delete. You can
+        block cookies and local storage in your browser without breaking the site (you’ll simply lose
+        the saved theme preference). If you email us, we keep that correspondence only as long as needed
+        to reply.
+      </p>
+
+      <h2>Changes</h2>
+      <p>
+        As DataDreamer grows — for example when learner accounts arrive in a future release — this
+        policy will be updated to describe any new data handling, with the revision date above.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions about privacy? Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> or use the
+        <a href="/connect">contact page</a>.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: var(--container-prose);
+    padding-block: calc(78px + var(--section-y)) var(--section-y);
+  }
+
+  .page__head {
+    margin-bottom: var(--space-7);
+  }
+
+  .page__head h1 {
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .page__meta {
+    margin-top: var(--space-3);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+</style>

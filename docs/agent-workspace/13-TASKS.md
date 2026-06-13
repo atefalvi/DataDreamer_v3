@@ -38,10 +38,10 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-HOME-002 | Home sections | B | HOME-001, DS-002 | done |
 | V4-BLOG-001 | Blog landing + topics + redirects | B | SHELL-002, ARC-001 | done |
 | V4-BLOG-002 | Article page + callouts | B | BLOG-001, ARC-002, DS-003 | done |
-| V4-BLOG-003 | RSS feed | B | BLOG-002 | todo |
-| V4-PAGE-001 | About page | B | SHELL-002 | todo |
-| V4-PAGE-002 | Connect page | B | SHELL-002 | todo |
-| V4-PAGE-003 | Privacy page | B | SHELL-002 | todo |
+| V4-BLOG-003 | RSS feed | B | BLOG-002 | done |
+| V4-PAGE-001 | About page | B | SHELL-002 | done |
+| V4-PAGE-002 | Connect page | B | SHELL-002 | done |
+| V4-PAGE-003 | Privacy page | B | SHELL-002 | done |
 | V4-CMS-005 | Projects → content collection | B | SHELL-002 | todo |
 | V4-PROJ-001 | Project index | B | CMS-005 | todo |
 | V4-PROJ-002 | Case study page | B | PROJ-001, ARC-002 | todo |
