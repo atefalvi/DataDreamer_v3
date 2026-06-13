@@ -1,327 +1,284 @@
 ---
-import MainLayout from "../../layouts/MainLayout.astro";
-import TableOfContents from "../../components/blog/TableOfContents.astro";
-import AuthorChip from "../../components/blog/AuthorChip.astro";
-import { fetchProjects, getAssetUrl } from "../../lib/directus";
-import { renderMarkdown } from "../../lib/renderMarkdown";
-import { formatAuthorName, getAuthorInitials } from "../../lib/content";
+/**
+ * V4-PROJ-002 — Case study (05 §6). Renders a `projects` collection entry. The body runs
+ * through the SAME markdown renderer as blog articles (renderMarkdown → bodyHtml), so
+ * `:::` callouts render identically. Cover via Astro <Image>; sticky fact rail on TL+.
+ */
+import { getCollection, getEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Icon from '../../components/ui/Icon.astro';
+import { renderMarkdown } from '../../lib/markdown/renderMarkdown';
+import { SITE_URL } from '../../lib/seo/meta';
+import '../../styles/prose.css';
 
 const { slug } = Astro.params;
-const projects = await fetchProjects();
-const project = projects.find((p) => p.slug === slug);
+if (!slug) return Astro.rewrite('/404');
 
-if (!project) return Astro.redirect("/404");
+const entry = await getEntry('projects', slug);
+if (!entry) return Astro.rewrite('/404');
 
-const { title, description, summary, published_at, tags, cover_image, author } = project;
+const { title, summary, year, role, stack, cover, coverAlt, links } = entry.data;
+const { html } = await renderMarkdown(entry.body ?? '');
 
-const SITE_URL = "https://data-dreamer.net";
+// Prev/next in display order (order, then year desc).
+const all = (await getCollection('projects')).sort(
+  (a, b) => a.data.order - b.data.order || b.data.year - a.data.year,
+);
+const index = all.findIndex((p) => p.id === entry.id);
+const previous = index > 0 ? all[index - 1] : null;
+const next = index >= 0 && index < all.length - 1 ? all[index + 1] : null;
 
-/**
- * Reject URLs that use internal/private hostnames (single-label, localhost,
- * RFC-1918 ranges) — social crawlers (Slackbot, WhatsApp, facebookexternalhit)
- * cannot reach Coolify-internal Directus asset URLs if PUBLIC_DIRECTUS_URL is
- * not set to the public-facing domain.
- */
-function isPublicHttpsUrl(url: string): boolean {
-    try {
-        const { protocol, hostname } = new URL(url);
-        if (protocol !== "https:") return false;           // all social platforms require HTTPS
-        if (!hostname.includes(".")) return false;          // single-label = internal (e.g. "directus")
-        if (hostname === "localhost") return false;
-        return true;
-    } catch { return false; }
-}
-
-/** Append Directus image-transform params so OG images are always 1200×630 JPEG. */
-function toOgImageUrl(url: string): string {
-    const u = new URL(url);
-    u.searchParams.set("width", "1200");
-    u.searchParams.set("height", "630");
-    u.searchParams.set("fit", "cover");
-    u.searchParams.set("format", "jpeg");
-    u.searchParams.set("quality", "85");
-    return u.toString();
-}
-
-const dateFormatted = published_at
-    ? new Date(published_at).getFullYear().toString()
-    : "2024";
-const imageUrl = cover_image ? getAssetUrl(cover_image) : null;
-
-// Only use Directus asset as OG image when it resolves to a public HTTPS URL.
-// Falls back to the static /og/project.jpg if PUBLIC_DIRECTUS_URL is internal.
-const ogImageUrl = imageUrl && isPublicHttpsUrl(imageUrl)
-    ? toOgImageUrl(imageUrl)
-    : `${SITE_URL}/og/project.jpg`;
-
-// Author display
-const authorName = formatAuthorName(author);
-const authorAvatar = author?.avatar ? getAssetUrl(author.avatar) : null;
-const authorInitials = getAuthorInitials(authorName);
-
-const { html: renderedDescription, headings } = await renderMarkdown(description || "");
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: title,
+    abstract: summary,
+    datePublished: String(year),
+    url: `${SITE_URL}/projects/${entry.id}`,
+    keywords: stack.join(', '),
+  },
+];
 ---
 
-<MainLayout
-    title={`PROJECT // ${title.toUpperCase()}`}
-    description={summary || "A project case study from Data Dreamer."}
-    ogImage={ogImageUrl}
-    ogImageAlt={title}
-    ogImageType="image/jpeg"
-    ogType="article"
-    articlePublishedTime={published_at ?? undefined}
-    articleAuthor={authorName}
+<BaseLayout
+  title={title}
+  description={summary}
+  ogType="article"
+  ogImage={{ url: '/og/og-projects.png' }}
+  jsonLd={jsonLd}
 >
-    <main class="container page-content">
-        <header class="project-hero">
-            <div class="project-hero-meta">
-                <span class="meta-text">// CASE_STUDY_{dateFormatted}</span>
-                <div class="tag-row">
-                    {tags?.map((tag: string) => <span class="project-tag">{tag}</span>)}
-                </div>
+  <article class="case container-content">
+    <header class="case__head">
+      <p class="kicker">Case study · {year}</p>
+      <h1>{title}</h1>
+      <p class="case__lede">{summary}</p>
+    </header>
+
+    <div class="case__cover">
+      <Image src={cover} alt={coverAlt} widths={[640, 1024, 1600]} sizes="(min-width: 80rem) 1200px, 100vw" />
+    </div>
+
+    <div class="case__layout">
+      <div class="case__body blog-content article-prose" set:html={html} />
+
+      <aside class="case__rail" aria-label="Project facts">
+        <dl>
+          <div><dt>Role</dt><dd>{role}</dd></div>
+          <div><dt>Year</dt><dd>{year}</dd></div>
+          <div>
+            <dt>Stack</dt>
+            <dd>
+              <ul class="case__stack">{stack.map((s) => <li>{s}</li>)}</ul>
+            </dd>
+          </div>
+          {links && links.length > 0 && (
+            <div>
+              <dt>Links</dt>
+              <dd>
+                <ul class="case__links">
+                  {links.map((link) => (
+                    <li>
+                      <a href={link.url} rel="noopener noreferrer" target="_blank">
+                        {link.label}
+                        <Icon name="arrow-up-right" size={16} />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </dd>
             </div>
-            <h1 class="project-title">{title.toUpperCase()}</h1>
-            <p class="project-summary">{summary}</p>
+          )}
+        </dl>
+      </aside>
+    </div>
 
-            <!-- Meta grid: AUTHOR | PUBLISHED | TIMELINE -->
-            <div class="post-meta-grid">
-                <AuthorChip name={authorName} initials={authorInitials} avatarUrl={authorAvatar} />
-                <div class="pmg-col">
-                    <span class="pmg-label">PUBLISHED</span>
-                    <span class="pmg-value">{published_at ? new Date(published_at).toISOString().slice(0,10).replace(/-/g,".") : "—"}</span>
-                </div>
-                <div class="pmg-col">
-                    <span class="pmg-label">TIMELINE</span>
-                    <span class="pmg-value">{dateFormatted}</span>
-                </div>
-            </div>
-        </header>
-
-        <div class="project-layout">
-            <div class="project-main">
-                {imageUrl && (
-                    <div class="project-featured-image">
-                        <img src={imageUrl} alt={title} loading="eager" fetchpriority="high" />
-                    </div>
-                )}
-                
-                <div class="project-description blog-content" set:html={renderedDescription} />
-
-                <div class="return-link">
-                    <a href="/projects">← BACK TO ALL PROJECTS</a>
-                </div>
-            </div>
-
-            <aside class="project-sidebar hide-scrollbar">
-                <div class="sidebar-block">
-                    <h3 class="sidebar-label">TIMELINE</h3>
-                    <p class="sidebar-value">{dateFormatted}</p>
-                </div>
-                <div class="sidebar-block">
-                    <h3 class="sidebar-label">TECHNOLOGIES</h3>
-                    <div class="sidebar-tags">
-                        {tags?.map((tag: string) => <span class="mini-tag">{tag}</span>)}
-                    </div>
-                </div>
-                {headings && headings.length > 0 && (
-                    <div class="sidebar-block toc-block">
-                        <h3 class="sidebar-label">CONTENTS</h3>
-                        <TableOfContents headings={headings} />
-                    </div>
-                )}
-            </aside>
-        </div>
-    </main>
-</MainLayout>
+    {(previous || next) && (
+      <nav class="case__pager" aria-label="More projects">
+        {previous ? (
+          <a href={`/projects/${previous.id}`} class="case__pager-link case__pager-link--prev">
+            <span class="case__pager-dir">← Previous</span>
+            <span class="case__pager-title">{previous.data.title}</span>
+          </a>
+        ) : <span />}
+        {next && (
+          <a href={`/projects/${next.id}`} class="case__pager-link case__pager-link--next">
+            <span class="case__pager-dir">Next →</span>
+            <span class="case__pager-title">{next.data.title}</span>
+          </a>
+        )}
+      </nav>
+    )}
+  </article>
+</BaseLayout>
 
 <style>
-    .page-content {
-        padding-top: 56px;
-        padding-bottom: 100px;
-    }
+  .case {
+    padding-block: calc(78px + var(--space-7)) var(--section-y);
+  }
 
-    .project-hero {
-        padding: 80px 0 60px;
-        border-bottom: 1px solid var(--color-border);
-        margin-bottom: 60px;
-    }
+  .case__head {
+    max-width: var(--container-prose);
+  }
 
-    .project-hero-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 32px;
-    }
+  .case__head h1 {
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
 
-    .tag-row {
-        display: flex;
-        gap: 8px;
-    }
+  .case__lede {
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-xl);
+  }
 
-    .project-tag {
-        font-family: var(--font-tech);
-        font-size: 10px;
-        border: 1px solid var(--color-primary);
-        padding: 3px 10px;
-        color: var(--color-primary);
-    }
+  .case__cover {
+    overflow: hidden;
+    margin-top: var(--space-7);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    aspect-ratio: 21 / 9;
+    background: var(--bg-2);
+  }
 
-    .project-title {
-        font-family: var(--font-display);
-        font-size: clamp(48px, 10vw, 120px);
-        line-height: 0.85;
-        margin-bottom: 40px;
-        text-transform: uppercase;
-        color: var(--color-primary);
-    }
+  .case__cover :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-    .project-summary {
-        font-size: 20px;
-        max-width: 800px;
-        line-height: 1.5;
-        opacity: 0.8;
-    }
+  .case__layout {
+    display: grid;
+    gap: var(--space-7);
+    margin-top: var(--space-8);
+  }
 
-    .project-layout {
-        display: grid;
-        grid-template-columns: 1fr 300px;
-        gap: 80px;
+  @media (min-width: 64rem) {
+    .case__layout {
+      grid-template-columns: minmax(0, 1fr) 18rem;
+      gap: var(--space-9);
+      align-items: start;
     }
-
-    .project-featured-image {
-        margin-bottom: 60px;
-        background: var(--bg-muted);
-        aspect-ratio: 16/9;
-        overflow: hidden;
+    .case__rail {
+      position: sticky;
+      top: calc(78px + var(--space-5));
+      order: 2;
     }
+  }
 
-    .project-featured-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+  /* Fact rail. */
+  .case__rail dl {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+    padding: var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-1);
+  }
+
+  .case__rail dt {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .case__rail dd {
+    margin: var(--space-2) 0 0;
+    color: var(--text-1);
+    font-size: var(--fs-base);
+  }
+
+  .case__stack,
+  .case__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .case__stack li {
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    font-size: var(--fs-sm);
+  }
+
+  .case__links {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .case__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--accent);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+  }
+
+  .case__links a:hover {
+    text-decoration: underline;
+  }
+
+  /* Pager. */
+  .case__pager {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--section-y);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-1);
+  }
+
+  @media (min-width: 48rem) {
+    .case__pager {
+      grid-template-columns: 1fr 1fr;
     }
-
-    .project-description {
-        font-size: 18px;
-        line-height: 1.7;
+    .case__pager-link--next {
+      text-align: right;
     }
+  }
 
-    .project-description :global(h2) {
-        font-family: var(--font-display);
-        font-size: 32px;
-        margin-top: 60px;
-        margin-bottom: 24px;
-        text-transform: uppercase;
-    }
+  .case__pager-link {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--dur-2) var(--ease-out);
+  }
 
-    .project-description :global(h3) {
-        font-family: var(--font-display);
-        font-size: 24px;
-        margin-top: 40px;
-        margin-bottom: 16px;
-        text-transform: uppercase;
-    }
+  .case__pager-link:hover {
+    border-color: var(--border-2);
+  }
 
-    /* Sidebar — scrollbar hidden via .hide-scrollbar utility in global.css */
-    .project-sidebar {
-        border-left: 1px solid var(--color-border);
-        padding-left: 40px;
-        position: sticky;
-        top: 100px;
-        align-self: start;
-        max-height: calc(100vh - 120px);
-        overflow-y: auto;
-    }
+  .case__pager-dir {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
 
-    .sidebar-block {
-        margin-bottom: 48px;
-    }
+  .case__pager-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 560;
+  }
 
-    .sidebar-label {
-        font-family: var(--font-tech);
-        font-size: 10px;
-        color: var(--text-secondary);
-        margin-bottom: 12px;
-        letter-spacing: 0.1em;
-    }
-
-    .sidebar-value {
-        font-family: var(--font-display);
-        font-size: 24px;
-    }
-
-    .sidebar-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .mini-tag {
-        font-size: 11px;
-        padding: 4px 10px;
-        background: var(--bg-muted);
-        color: var(--text-secondary);
-        font-family: var(--font-tech);
-    }
-
-    /* .post-meta-grid, .pmg-*, .author-avatar, .author-initials → global.css */
-
-    .return-link {
-        margin-top: 100px;
-        padding-top: 40px;
-        border-top: 1px solid var(--color-border);
-    }
-
-    .return-link a {
-        font-family: var(--font-tech);
-        font-size: 14px;
-        text-decoration: none;
-        color: var(--color-primary);
-        transition: padding-left 0.2s;
-    }
-
-    .return-link a:hover {
-        padding-left: 10px;
-    }
-
-    @media (max-width: 1024px) {
-        .project-layout {
-            grid-template-columns: 1fr;
-            gap: 60px;
-        }
-        .project-sidebar {
-            position: static;
-            align-self: auto;
-            max-height: none;
-            overflow-y: visible;
-            border-left: none;
-            border-top: 1px solid var(--color-border);
-            padding-left: 0;
-            padding-top: 60px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .project-hero {
-            padding-top: 24px;
-            padding-bottom: 24px;
-            margin-bottom: 32px;
-        }
-        .project-title {
-            font-size: 36px;
-            margin-bottom: 24px;
-        }
-        .project-summary {
-            font-size: 16px;
-        }
-        .project-sidebar {
-            grid-template-columns: 1fr;
-        }
-        .project-main {
-            min-width: 0;
-            overflow-wrap: break-word;
-        }
-    }
+  .case__pager-link:hover .case__pager-title {
+    color: var(--accent);
+  }
 </style>

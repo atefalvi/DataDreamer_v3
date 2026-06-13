@@ -1,0 +1,92 @@
+---
+/**
+ * AuthorCard (05 §7/§8) — the graph's accessible equivalent and the unit of the team
+ * list + "more of the team" rail. Whole card is a single link to the author page;
+ * specialties render as plain text (no nested interactive elements).
+ */
+import Avatar from '../ui/Avatar.astro';
+import type { AuthorSummary } from '../../types/content';
+
+interface Props {
+  author: AuthorSummary;
+  class?: string;
+}
+
+const { author, class: className } = Astro.props;
+const href = `/dream-team/${author.slug}`;
+const specialties = author.specialties.map((s) => s.name);
+const counts = [
+  author.postCount > 0 ? `${author.postCount} post${author.postCount === 1 ? '' : 's'}` : null,
+  author.courseCount > 0 ? `${author.courseCount} course${author.courseCount === 1 ? '' : 's'}` : null,
+].filter(Boolean);
+---
+
+<article class:list={['author-card', className]}>
+  <a href={href} class="author-card__link">
+    <Avatar src={author.avatar?.src} name={author.name} size={64} />
+    <div class="author-card__body">
+      <h3 class="author-card__name">{author.name}</h3>
+      {author.roleTitle && <p class="author-card__role">{author.roleTitle}</p>}
+      {specialties.length > 0 && <p class="author-card__specialties">{specialties.join(' · ')}</p>}
+      {counts.length > 0 && <p class="author-card__counts">{counts.join(' · ')}</p>}
+    </div>
+  </a>
+</article>
+
+<style>
+  .author-card {
+    height: 100%;
+  }
+
+  .author-card__link {
+    display: flex;
+    gap: var(--space-4);
+    height: 100%;
+    padding: var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-1);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  }
+
+  .author-card__link:hover {
+    border-color: var(--border-2);
+    transform: translateY(-2px);
+  }
+
+  .author-card__body {
+    min-width: 0;
+  }
+
+  .author-card__name {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 580;
+    line-height: var(--lh-lg);
+  }
+
+  .author-card__link:hover .author-card__name {
+    color: var(--accent);
+  }
+
+  .author-card__role {
+    margin-top: var(--space-1);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  .author-card__specialties {
+    margin-top: var(--space-2);
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+  }
+
+  .author-card__counts {
+    margin-top: var(--space-2);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+</style>

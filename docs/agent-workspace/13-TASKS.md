@@ -29,7 +29,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-DS-004 | Logo system & favicons | A | DS-001 | done |
 | V4-CMS-001 | Directus: authors/specialties/topics | A | — | done |
 | V4-CMS-002 | Directus: posts→authors relation | A | CMS-001 | done |
-| V4-CMS-003 | Directus: topics backfill | A | CMS-002 | todo |
+| V4-CMS-003 | Directus: topics backfill | A | CMS-002 | done |
 | V4-ARC-001 | Repository layer + types | A | CMS-002, FND-001 | done |
 | V4-ARC-002 | Markdown pipeline v4 + goldens | A | FND-001 | done |
 | V4-SHELL-001 | BaseLayout, SeoHead, middleware, 404/500 | B | DS-001, ARC-001 | done |
@@ -42,12 +42,12 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-PAGE-001 | About page | B | SHELL-002 | done |
 | V4-PAGE-002 | Connect page | B | SHELL-002 | done |
 | V4-PAGE-003 | Privacy page | B | SHELL-002 | done |
-| V4-CMS-005 | Projects → content collection | B | SHELL-002 | todo |
-| V4-PROJ-001 | Project index | B | CMS-005 | todo |
-| V4-PROJ-002 | Case study page | B | PROJ-001, ARC-002 | todo |
-| V4-DT-001 | Graph layout module + tests | B | ARC-001 | todo |
-| V4-DT-002 | Dream Team page | B | DT-001, SHELL-002 | todo |
-| V4-DT-003 | Author pages | B | DT-002 | todo |
+| V4-CMS-005 | Projects → content collection | B | SHELL-002 | done |
+| V4-PROJ-001 | Project index | B | CMS-005 | done |
+| V4-PROJ-002 | Case study page | B | PROJ-001, ARC-002 | done |
+| V4-DT-001 | Graph layout module + tests | B | ARC-001 | done |
+| V4-DT-002 | Dream Team page | B | DT-001, SHELL-002 | done |
+| V4-DT-003 | Author pages | B | DT-002 | done |
 | V4-SEO-001 | JSON-LD + meta wiring | B | SHELL-001, all page tasks | todo |
 | V4-SEO-002 | Sitemap, robots, canonicals | B | SEO-001 | todo |
 | V4-DOC-002 | Authoring guide v4 rewrite | B | BLOG-002 | todo |
