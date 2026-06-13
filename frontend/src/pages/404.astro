@@ -1,0 +1,26 @@
+---
+/**
+ * 404 — custom not-found page (05 §12). Astro serves this for unmatched routes; the
+ * middleware also rewrites here for not_found RepositoryErrors. Replaces the v3
+ * redirect-to-listing behaviour.
+ */
+import ErrorPage from '../components/global/ErrorPage.astro';
+import Button from '../components/ui/Button.astro';
+
+Astro.response.status = 404;
+// Surface bad links in server logs to catch redirect gaps (05 §12).
+console.warn(`[404] ${Astro.url.pathname}`);
+---
+
+<ErrorPage
+  code={404}
+  seoTitle="Page not found"
+  description="The page you’re looking for doesn’t exist."
+  heading="This page doesn’t exist"
+  lead="The link may be old or mistyped. These might help instead:"
+>
+  <Button href="/" variant="primary">Home</Button>
+  <Button href="/blog" variant="secondary">Blog</Button>
+  <Button href="/projects" variant="secondary">Work</Button>
+  <Button href="/connect" variant="secondary">Connect</Button>
+</ErrorPage>

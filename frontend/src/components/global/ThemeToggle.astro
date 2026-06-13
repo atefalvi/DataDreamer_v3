@@ -1,0 +1,75 @@
+---
+/**
+ * ThemeToggle (07 §4). Swaps `data-theme` on <html>, persists to localStorage, updates
+ * every toggle's aria-label, and dispatches a `themechange` event (the hero canvas
+ * re-reads colors on it). May appear more than once (nav + mobile menu); the single
+ * bundled script binds all `[data-theme-toggle]` instances.
+ */
+import Icon from '../ui/Icon.astro';
+---
+
+<button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme">
+  <Icon name="sun" size={20} class="theme-toggle__sun" />
+  <Icon name="moon" size={20} class="theme-toggle__moon" />
+</button>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--text-2);
+    cursor: pointer;
+    transition: color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+  }
+
+  .theme-toggle:hover {
+    color: var(--text-1);
+    background: var(--bg-2);
+  }
+
+  .theme-toggle :global(.theme-toggle__moon) {
+    display: none;
+  }
+
+  :global([data-theme='light']) .theme-toggle :global(.theme-toggle__sun) {
+    display: none;
+  }
+
+  :global([data-theme='light']) .theme-toggle :global(.theme-toggle__moon) {
+    display: inline-flex;
+  }
+</style>
+
+<script>
+  function currentTheme(): 'light' | 'dark' {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  }
+
+  function labelFor(theme: 'light' | 'dark'): string {
+    return theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+  }
+
+  function applyTheme(theme: 'light' | 'dark') {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem('theme', theme);
+    } catch {
+      /* private mode / blocked storage — ignore */
+    }
+    document
+      .querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')
+      .forEach((btn) => btn.setAttribute('aria-label', labelFor(theme)));
+    document.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((btn) => {
+    btn.setAttribute('aria-label', labelFor(currentTheme()));
+    btn.addEventListener('click', () => applyTheme(currentTheme() === 'dark' ? 'light' : 'dark'));
+  });
+</script>

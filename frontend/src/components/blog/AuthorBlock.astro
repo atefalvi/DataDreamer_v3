@@ -1,0 +1,110 @@
+---
+import Avatar from '../ui/Avatar.astro';
+import Button from '../ui/Button.astro';
+import type { Author } from '../../types/content';
+
+interface Props {
+  author: Author;
+}
+
+const { author } = Astro.props;
+const bioText = author.bioHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+---
+
+<aside class="article-author" aria-label={`About ${author.name}`}>
+  <Avatar src={author.avatar?.src} name={author.name} size={64} />
+  <div class="article-author__body">
+    <p class="article-author__eyebrow">Author</p>
+    <h2>{author.name}</h2>
+    <p class="article-author__role">{author.roleTitle}</p>
+    {bioText && <p class="article-author__bio">{bioText}</p>}
+    {author.specialties.length > 0 && (
+      <div class="article-author__chips" aria-label="Specialties">
+        {author.specialties.slice(0, 4).map((specialty) => (
+          <span>{specialty.name}</span>
+        ))}
+      </div>
+    )}
+  </div>
+  <Button href={`/blog?author=${author.slug}`} variant="secondary" icon="arrow-right">
+    More from {author.name}
+  </Button>
+</aside>
+
+<style>
+  .article-author {
+    display: grid;
+    gap: var(--space-5);
+    margin-top: var(--space-9);
+    padding: var(--space-6);
+    border: 1px solid color-mix(in srgb, var(--border-2) 76%, transparent);
+    border-radius: var(--radius-md);
+    background:
+      radial-gradient(circle at 94% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 36%),
+      var(--bg-1);
+  }
+
+  .article-author__body {
+    min-width: 0;
+  }
+
+  .article-author__eyebrow {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .article-author h2 {
+    margin-top: var(--space-2);
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+  }
+
+  .article-author__role {
+    margin-top: var(--space-1);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
+  .article-author__bio {
+    display: -webkit-box;
+    max-width: 54rem;
+    margin-top: var(--space-4);
+    overflow: hidden;
+    color: var(--text-2);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .article-author__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+
+  .article-author__chips span {
+    display: inline-flex;
+    min-height: 2rem;
+    align-items: center;
+    padding-inline: var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  @media (min-width: 48rem) {
+    .article-author {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+    }
+  }
+</style>

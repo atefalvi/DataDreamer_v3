@@ -1,0 +1,188 @@
+---
+interface Props {
+  hasImageGrid?: boolean;
+}
+
+const { hasImageGrid = false } = Astro.props;
+---
+
+<span class="visually-hidden" aria-live="polite" data-code-copy-status></span>
+
+{hasImageGrid && (
+  <dialog class="article-lightbox" data-article-lightbox aria-label="Image viewer">
+    <button type="button" class="article-lightbox__close" data-lightbox-close aria-label="Close image viewer">Close</button>
+    <button type="button" class="article-lightbox__nav article-lightbox__nav--prev" data-lightbox-prev aria-label="Previous image">Prev</button>
+    <figure>
+      <img data-lightbox-image alt="" />
+      <figcaption data-lightbox-caption aria-live="polite"></figcaption>
+    </figure>
+    <button type="button" class="article-lightbox__nav article-lightbox__nav--next" data-lightbox-next aria-label="Next image">Next</button>
+  </dialog>
+)}
+
+<style>
+  .article-lightbox {
+    width: min(100% - var(--space-6), 74rem);
+    max-width: 74rem;
+    padding: var(--space-5);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-lg);
+    background: var(--bg-0);
+    color: var(--text-1);
+    box-shadow: var(--shadow-3);
+  }
+
+  .article-lightbox::backdrop {
+    background: color-mix(in srgb, var(--bg-0) 88%, transparent);
+    backdrop-filter: blur(10px);
+  }
+
+  .article-lightbox figure {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+
+  .article-lightbox img {
+    max-width: 100%;
+    max-height: 76vh;
+    justify-self: center;
+    border-radius: var(--radius-md);
+    object-fit: contain;
+  }
+
+  .article-lightbox figcaption {
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-align: center;
+  }
+
+  .article-lightbox__close,
+  .article-lightbox__nav {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-full);
+    background: var(--bg-1);
+    color: var(--text-1);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .article-lightbox__close {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+  }
+
+  .article-lightbox__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .article-lightbox__nav--prev {
+    left: var(--space-4);
+  }
+
+  .article-lightbox__nav--next {
+    right: var(--space-4);
+  }
+
+  @media (max-width: 47.999rem) {
+    .article-lightbox {
+      padding: var(--space-4);
+    }
+
+    .article-lightbox__nav {
+      position: static;
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  const prose = document.querySelector<HTMLElement>('[data-article-prose]');
+  const live = document.querySelector<HTMLElement>('[data-code-copy-status]');
+
+  prose?.addEventListener('click', async (event) => {
+    const button = (event.target as Element).closest<HTMLButtonElement>('.code-block__copy');
+    if (!button) return;
+    const block = button.closest<HTMLElement>('.code-block');
+    const code = block?.querySelector('pre')?.textContent ?? '';
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+      await navigator.clipboard.writeText(code);
+      button.textContent = 'Copied';
+      if (live) live.textContent = 'Code copied';
+      window.setTimeout(() => {
+        button.textContent = 'Copy';
+      }, 1500);
+    } catch {
+      if (live) live.textContent = 'Could not copy code';
+    }
+  });
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-article-lightbox]');
+  if (dialog && prose) {
+    const image = dialog.querySelector<HTMLImageElement>('[data-lightbox-image]');
+    const caption = dialog.querySelector<HTMLElement>('[data-lightbox-caption]');
+    const close = dialog.querySelector<HTMLButtonElement>('[data-lightbox-close]');
+    const prev = dialog.querySelector<HTMLButtonElement>('[data-lightbox-prev]');
+    const next = dialog.querySelector<HTMLButtonElement>('[data-lightbox-next]');
+    const items = [...prose.querySelectorAll<HTMLButtonElement>('.ig-item')];
+    let index = 0;
+    let touchX = 0;
+
+    const show = (nextIndex: number) => {
+      if (!items.length || !image || !caption) return;
+      index = (nextIndex + items.length) % items.length;
+      const item = items[index];
+      const itemImage = item.querySelector('img');
+      const src = item.dataset.src || itemImage?.getAttribute('src') || '';
+      const alt = itemImage?.getAttribute('alt') || '';
+      image.alt = alt;
+      image.src = src;
+      caption.textContent = `${index + 1} / ${items.length}${alt ? ` - ${alt}` : ''}`;
+    };
+
+    const open = (nextIndex: number) => {
+      show(nextIndex);
+      dialog.showModal();
+      document.body.style.overflow = 'hidden';
+      close?.focus();
+    };
+
+    const closeDialog = () => {
+      dialog.close();
+      document.body.style.overflow = '';
+    };
+
+    items.forEach((item, itemIndex) => {
+      item.addEventListener('click', () => open(itemIndex));
+    });
+    close?.addEventListener('click', closeDialog);
+    prev?.addEventListener('click', () => show(index - 1));
+    next?.addEventListener('click', () => show(index + 1));
+    dialog.addEventListener('close', () => {
+      document.body.style.overflow = '';
+    });
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) closeDialog();
+    });
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') show(index - 1);
+      if (event.key === 'ArrowRight') show(index + 1);
+    });
+    dialog.addEventListener('touchstart', (event) => {
+      touchX = event.changedTouches[0]?.clientX ?? 0;
+    }, { passive: true });
+    dialog.addEventListener('touchend', (event) => {
+      const endX = event.changedTouches[0]?.clientX ?? touchX;
+      const delta = endX - touchX;
+      if (Math.abs(delta) > 50) show(index + (delta < 0 ? 1 : -1));
+    }, { passive: true });
+  }
+</script>

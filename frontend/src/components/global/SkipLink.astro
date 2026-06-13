@@ -1,0 +1,30 @@
+---
+/**
+ * SkipLink — first focusable element; visible only on focus. Targets #main (11 §B1).
+ */
+---
+
+<a href="#main" class="skip-link">Skip to content</a>
+
+<style>
+  .skip-link {
+    position: fixed;
+    top: var(--space-2);
+    left: var(--space-2);
+    z-index: 1000;
+    padding: var(--space-2) var(--space-4);
+    background: var(--bg-1);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-md);
+    color: var(--text-1);
+    font-family: var(--font-text);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+    transform: translateY(-150%);
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+</style>

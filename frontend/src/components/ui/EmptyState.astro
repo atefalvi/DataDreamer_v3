@@ -31,13 +31,26 @@ const { message, action, icon = "search-x", class: className } = Astro.props;
 
 <style>
   .ui-empty-state {
+    position: relative;
     display: grid;
     justify-items: start;
     gap: var(--space-4);
+    overflow: hidden;
     padding: var(--space-7);
-    background: var(--bg-1);
-    border: 1px solid var(--border-1);
+    background:
+      radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34%),
+      linear-gradient(135deg, color-mix(in srgb, var(--bg-1) 88%, transparent), var(--bg-0));
+    border: 1px solid color-mix(in srgb, var(--border-2) 70%, transparent);
     border-radius: var(--radius-md);
+  }
+
+  .ui-empty-state::after {
+    content: '';
+    position: absolute;
+    inset: auto var(--space-7) var(--space-5);
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    opacity: 0.48;
   }
 
   .ui-empty-state__icon {
@@ -45,8 +58,16 @@ const { message, action, icon = "search-x", class: className } = Astro.props;
     width: 3rem;
     aspect-ratio: 1;
     place-items: center;
-    background: var(--accent-subtle);
-    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg-1));
+    border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+    border-radius: var(--radius-full);
     color: var(--accent);
+  }
+
+  .ui-empty-state p {
+    max-width: 36rem;
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
   }
 </style>

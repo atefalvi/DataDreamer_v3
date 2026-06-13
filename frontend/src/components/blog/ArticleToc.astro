@@ -1,0 +1,162 @@
+---
+import type { Heading } from '../../types/content';
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+---
+
+{headings.length > 0 && (
+  <>
+    <details class="article-toc article-toc--mobile">
+      <summary>Contents</summary>
+      <ol>
+        {headings.map((heading) => (
+          <li data-depth={heading.depth}>
+            <a href={`#${heading.id}`} data-article-toc-link={heading.id}>{heading.text}</a>
+          </li>
+        ))}
+      </ol>
+    </details>
+
+    <nav class="article-toc article-toc--rail" aria-label="Table of contents">
+      <p>Contents</p>
+      <ol>
+        {headings.map((heading, index) => (
+          <li data-depth={heading.depth}>
+            <a
+              href={`#${heading.id}`}
+              data-article-toc-link={heading.id}
+              aria-current={index === 0 ? 'location' : undefined}
+            >
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  </>
+)}
+
+<style>
+  .article-toc {
+    color: var(--text-2);
+  }
+
+  .article-toc--mobile {
+    margin-bottom: var(--space-6);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    background: var(--bg-1);
+  }
+
+  .article-toc--mobile summary {
+    min-height: 2.75rem;
+    padding: var(--space-4) var(--space-5);
+    color: var(--text-1);
+    cursor: pointer;
+    font-weight: 650;
+  }
+
+  .article-toc p {
+    margin: 0 0 var(--space-4);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .article-toc ol {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .article-toc--mobile ol {
+    padding: 0 var(--space-5) var(--space-5);
+  }
+
+  .article-toc li[data-depth='3'] {
+    padding-inline-start: var(--space-4);
+  }
+
+  .article-toc a {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2);
+    min-height: 2rem;
+    align-items: center;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-xs);
+    text-decoration: none;
+  }
+
+  .article-toc a:hover,
+  .article-toc a[aria-current='location'] {
+    color: var(--accent);
+  }
+
+  .article-toc a[aria-current='location'] {
+    padding-inline-start: var(--space-2);
+    border-left: 2px solid var(--accent);
+  }
+
+  .article-toc a span {
+    color: inherit;
+  }
+
+  .article-toc--rail {
+    position: sticky;
+    top: calc(78px + var(--space-6));
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .article-toc--mobile {
+      display: none;
+    }
+
+    .article-toc--rail {
+      display: block;
+    }
+  }
+</style>
+
+<script>
+  const tocLinks = [...document.querySelectorAll<HTMLAnchorElement>('[data-article-toc-link]')];
+  const headingIds = tocLinks.map((link) => link.dataset.articleTocLink).filter(Boolean) as string[];
+
+  if (headingIds.length) {
+    const setActive = (id: string) => {
+      for (const link of tocLinks) {
+        const active = link.dataset.articleTocLink === id;
+        if (active) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        const id = visible[0]?.target.id;
+        if (id) setActive(id);
+      },
+      { rootMargin: '-80px 0px -70% 0px', threshold: 0 },
+    );
+
+    for (const id of headingIds) {
+      const heading = document.getElementById(id);
+      if (heading) observer.observe(heading);
+    }
+  }
+</script>

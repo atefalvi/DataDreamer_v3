@@ -1,0 +1,260 @@
+---
+/**
+ * SiteNav (03 §2, 07 §3.1). Sticky top bar: brand, desktop links, theme toggle,
+ * Connect CTA, and the mobile hamburger (which controls MobileMenu). On the homepage
+ * it starts transparent over the hero and gains `.is-scrolled` past 24px; elsewhere it
+ * is solid from the server (no flash).
+ */
+import ThemeToggle from './ThemeToggle.astro';
+import Button from '../ui/Button.astro';
+import { NAV_ITEMS } from '../../content/site';
+import logoMark from '../../assets/brand/logo-mark.svg?raw';
+
+interface Props {
+  transparentOverHero?: boolean;
+}
+
+const { transparentOverHero = false } = Astro.props;
+const path = Astro.url.pathname.replace(/(.+)\/$/, '$1');
+
+function isActive(href: string): boolean {
+  return href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
+}
+---
+
+<nav
+  class:list={['site-nav', { 'is-scrolled': !transparentOverHero }]}
+  data-transparent={transparentOverHero ? '' : undefined}
+  aria-label="Primary"
+>
+  <div class="site-nav__inner container-wide">
+    <a href="/" class="site-nav__brand" aria-label="DataDreamer — home">
+      <span class="site-nav__mark" set:html={logoMark} />
+      <span class="site-nav__wordmark" aria-hidden="true">
+        <span>Data</span>
+        <span>Dreamer</span>
+      </span>
+    </a>
+
+    <ul class="site-nav__links">
+      {NAV_ITEMS.map((item) => (
+        <li>
+          <a href={item.href} class:list={{ 'is-active': isActive(item.href) }} aria-current={isActive(item.href) ? 'page' : undefined}>
+            {item.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class="site-nav__actions">
+      <ThemeToggle />
+      <span class="site-nav__cta">
+        <Button href="/connect" variant="primary" size="sm">Connect</Button>
+      </span>
+      <button
+        type="button"
+        id="menuButton"
+        class="site-nav__hamburger"
+        aria-label="Menu"
+        aria-controls="mobile-menu"
+        aria-expanded="false"
+      >
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<style>
+  .site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition:
+      background var(--dur-3) var(--ease-out),
+      border-color var(--dur-3) var(--ease-out),
+      box-shadow var(--dur-3) var(--ease-out);
+  }
+
+  .site-nav.is-scrolled {
+    background: color-mix(in srgb, var(--bg-0) 82%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom-color: color-mix(in srgb, var(--border-1) 78%, transparent);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--text-1) 5%, transparent);
+  }
+
+  .site-nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 78px;
+    gap: var(--space-6);
+  }
+
+  .site-nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
+    min-width: 9rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+  }
+
+  .site-nav__brand:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 4px;
+  }
+
+  .site-nav__mark :global(svg) {
+    display: block;
+    height: 34px;
+    width: auto;
+    color: var(--text-1);
+  }
+
+  .site-nav__wordmark {
+    display: grid;
+    gap: 0;
+    color: var(--text-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    line-height: 0.96;
+    text-transform: uppercase;
+  }
+
+  .site-nav__links {
+    display: flex;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    padding: var(--space-1);
+    border: 1px solid color-mix(in srgb, var(--border-1) 72%, transparent);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-1) 36%, transparent);
+  }
+
+  .site-nav__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+    padding-inline: var(--space-4);
+    border-radius: var(--radius-full);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    font-weight: 560;
+    text-decoration: none;
+    transition:
+      color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out);
+  }
+
+  .site-nav__links a:hover {
+    color: var(--text-1);
+    background: color-mix(in srgb, var(--bg-2) 68%, transparent);
+  }
+
+  .site-nav__links a.is-active {
+    color: var(--text-1);
+    background-color: color-mix(in srgb, var(--accent) 14%, var(--bg-1));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent);
+  }
+
+  .site-nav__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+  }
+
+  .site-nav__hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 11px;
+    background: color-mix(in srgb, var(--bg-1) 58%, transparent);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+  }
+
+  .site-nav__hamburger span {
+    display: block;
+    height: 1.5px;
+    width: 100%;
+    background: var(--text-1);
+    border-radius: 2px;
+    transition: transform var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out);
+  }
+
+  /* Hamburger → X while the menu is open (driven by aria-expanded). */
+  .site-nav__hamburger[aria-expanded='true'] span:first-child {
+    transform: translateY(3.25px) rotate(45deg);
+  }
+  .site-nav__hamburger[aria-expanded='true'] span:last-child {
+    transform: translateY(-3.25px) rotate(-45deg);
+  }
+
+  @media (max-width: 47.999rem) {
+    .site-nav__inner {
+      height: 64px;
+      gap: var(--space-3);
+    }
+
+    .site-nav__brand {
+      min-width: 0;
+      width: 44px;
+      height: 44px;
+      justify-content: center;
+      border: 1px solid color-mix(in srgb, var(--border-1) 72%, transparent);
+      background: color-mix(in srgb, var(--bg-1) 54%, transparent);
+    }
+
+    .site-nav__mark :global(svg) {
+      height: 26px;
+    }
+
+    .site-nav__wordmark {
+      display: none;
+    }
+
+    .site-nav__links,
+    .site-nav__cta {
+      display: none;
+    }
+    .site-nav__hamburger {
+      display: flex;
+    }
+  }
+</style>
+
+<script>
+  // Transparent → solid on the homepage only (07 §3.1). rAF-throttled, passive.
+  const nav = document.querySelector<HTMLElement>('.site-nav[data-transparent]');
+  if (nav) {
+    let ticking = false;
+    const update = () => {
+      nav.classList.toggle('is-scrolled', window.scrollY > 24);
+      ticking = false;
+    };
+    update();
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true },
+    );
+  }
+</script>

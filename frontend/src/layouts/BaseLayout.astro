@@ -1,0 +1,66 @@
+---
+/**
+ * BaseLayout — the v4 global shell (06 §5). Composes self-hosted fonts, base styles,
+ * SeoHead, SkipLink, the pre-paint theme script, SiteNav + MobileMenu, <main>, and
+ * SiteFooter. Pass `transparentNav` on the homepage so the bar starts transparent over
+ * the hero (07 §3.1).
+ */
+import '@fontsource-variable/fraunces/wght.css';
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/600.css';
+import '../styles/base.css';
+
+import SeoHead from '../components/global/SeoHead.astro';
+import SkipLink from '../components/global/SkipLink.astro';
+import SiteNav from '../components/global/SiteNav.astro';
+import MobileMenu from '../components/global/MobileMenu.astro';
+import SiteFooter from '../components/global/SiteFooter.astro';
+import type { Seo } from '../lib/seo/meta';
+
+interface Props extends Seo {
+  bodyClass?: string;
+  transparentNav?: boolean;
+}
+
+const { bodyClass, transparentNav = false, ...seo } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="generator" content={Astro.generator} />
+    <SeoHead {...seo} />
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.remove('no-js');
+        try {
+          var saved = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          d.setAttribute('data-theme', saved === 'light' || (!saved && !prefersDark) ? 'light' : 'dark');
+        } catch (e) {
+          d.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+  </head>
+  <body class={bodyClass}>
+    <SkipLink />
+    <SiteNav transparentOverHero={transparentNav} />
+    <MobileMenu />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <SiteFooter />
+
+    <script>
+      import { initReveal } from '../lib/motion/reveal';
+      initReveal();
+    </script>
+  </body>
+</html>

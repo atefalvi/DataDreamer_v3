@@ -1,0 +1,255 @@
+---
+/**
+ * MobileMenu (07 §3.2–3.3). Full-height overlay panel controlled by SiteNav's
+ * #menuButton. Implements the canonical focus trap: Escape + Tab-wrap, scroll lock,
+ * focus restore. Rendered in BaseLayout alongside SiteNav.
+ */
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import { NAV_ITEMS, SOCIAL_LINKS } from '../../content/site';
+
+const path = Astro.url.pathname.replace(/(.+)\/$/, '$1');
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
+---
+
+<div id="mobile-menu" class="mobile-menu" hidden>
+  <nav class="mobile-menu__nav" aria-label="Site">
+    <p class="mobile-menu__eyebrow">DataDreamer index</p>
+    <ul class="mobile-menu__links">
+      {NAV_ITEMS.map((item, index) => (
+        <li>
+          <a
+            href={item.href}
+            class:list={{ 'is-active': isActive(item.href) }}
+            aria-current={isActive(item.href) ? 'page' : undefined}
+          >
+            <span class="mobile-menu__index">0{index + 1}</span>
+            <span>{item.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class="mobile-menu__cta">
+      <Button href="/connect" variant="primary" size="lg">Connect</Button>
+    </div>
+
+    <div class="mobile-menu__foot">
+      <ul class="mobile-menu__social">
+        {SOCIAL_LINKS.map((s) => (
+          <li>
+            <a href={s.href} aria-label={s.label} rel="noopener" target={s.href.startsWith('http') ? '_blank' : undefined}>
+              <Icon name={s.icon} size={20} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </nav>
+</div>
+
+<style>
+  .mobile-menu {
+    position: fixed;
+    inset: 64px 0 0;
+    z-index: 90;
+    background:
+      radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 30%),
+      color-mix(in srgb, var(--bg-0) 96%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity var(--dur-3) var(--ease-out), transform var(--dur-3) var(--ease-out);
+  }
+
+  .mobile-menu.is-open {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .mobile-menu__nav {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: var(--space-6) var(--gutter) calc(var(--space-7) + env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+
+  .mobile-menu__eyebrow {
+    margin-bottom: var(--space-5);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .mobile-menu__links {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mobile-menu__links a {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    align-items: center;
+    min-height: 4.25rem;
+    padding-inline: var(--space-4);
+    border: 1px solid color-mix(in srgb, var(--border-1) 78%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-1) 48%, transparent);
+    color: var(--text-1);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .mobile-menu__links a.is-active {
+    border-color: color-mix(in srgb, var(--accent) 44%, var(--border-1));
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg-1));
+  }
+
+  .mobile-menu__index {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+  }
+
+  .mobile-menu__cta {
+    margin-top: var(--space-6);
+  }
+
+  .mobile-menu__cta :global(.ui-button) {
+    width: 100%;
+  }
+
+  .mobile-menu__foot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: auto;
+    padding-top: var(--space-6);
+  }
+
+  .mobile-menu__social {
+    display: flex;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mobile-menu__social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-1) 50%, transparent);
+    color: var(--text-2);
+  }
+
+  .mobile-menu__social a:hover {
+    color: var(--text-1);
+    background: var(--bg-2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu {
+      transform: none;
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .mobile-menu {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const panel = document.getElementById('mobile-menu');
+  const button = document.getElementById('menuButton');
+
+  if (panel && button) {
+    let lastFocused: HTMLElement | null = null;
+
+    const focusable = () =>
+      [button, ...panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')].filter(
+        (el): el is HTMLElement => !!el && el.offsetParent !== null,
+      );
+
+    const onKeydown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        close();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const items = focusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        last.focus();
+        e.preventDefault();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        first.focus();
+        e.preventDefault();
+      }
+    };
+
+    function open() {
+      lastFocused = document.activeElement as HTMLElement;
+      panel!.hidden = false;
+      requestAnimationFrame(() => panel!.classList.add('is-open'));
+      button!.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+      panel!.querySelector<HTMLElement>('a[href]')?.focus();
+      document.addEventListener('keydown', onKeydown);
+    }
+
+    function close(returnFocus = true) {
+      panel!.classList.remove('is-open');
+      const finish = () => {
+        panel!.hidden = true;
+      };
+      let done = false;
+      const once = () => {
+        if (done) return;
+        done = true;
+        finish();
+      };
+      panel!.addEventListener('transitionend', once, { once: true });
+      window.setTimeout(once, 400); // safety if no transition fires
+      button!.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.removeEventListener('keydown', onKeydown);
+      if (returnFocus) lastFocused?.focus();
+    }
+
+    button.addEventListener('click', () => {
+      const isOpen = button.getAttribute('aria-expanded') === 'true';
+      isOpen ? close() : open();
+    });
+
+    panel.querySelectorAll('a[href]').forEach((link) =>
+      link.addEventListener('click', () => close(false)),
+    );
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 768 && button.getAttribute('aria-expanded') === 'true') {
+        close(false);
+      }
+    });
+  }
+</script>

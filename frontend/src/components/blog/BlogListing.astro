@@ -1,0 +1,256 @@
+---
+import Button from '../ui/Button.astro';
+import Chip from '../ui/Chip.astro';
+import EmptyState from '../ui/EmptyState.astro';
+import Breadcrumbs from '../ui/Breadcrumbs.astro';
+import PostCard from './PostCard.astro';
+import {
+  blogPath,
+  topicPath,
+  withAuthor,
+  type BlogListing as BlogListingModel,
+} from '../../lib/blog/listing';
+
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  breadcrumbs?: BreadcrumbItem[];
+  clearHref?: string;
+  intro: string;
+  kicker: string;
+  listing: BlogListingModel;
+  pageBasePath: string;
+  title: string;
+}
+
+const { breadcrumbs, clearHref = '/blog', intro, kicker, listing, pageBasePath, title } = Astro.props;
+const activeTopic = listing.activeTopic?.slug;
+const activeAuthor = listing.activeAuthor;
+const showAuthorFilter = listing.authors.length > 1;
+const hasFilters = Boolean(activeTopic || activeAuthor);
+const hasPosts = listing.featured || listing.posts.length > 0;
+const nextHref = !activeTopic && listing.page.hasMore
+  ? withAuthor(blogPath(listing.page.page + 1), activeAuthor)
+  : undefined;
+const prevHref = !activeTopic && listing.page.page > 1
+  ? withAuthor(blogPath(listing.page.page - 1), activeAuthor)
+  : undefined;
+---
+
+<section class="blog-listing container-content" aria-labelledby="blog-title">
+  {breadcrumbs && <Breadcrumbs items={breadcrumbs} class="blog-listing__breadcrumbs" />}
+
+  <header class="blog-listing__header">
+    <div>
+      <p class="kicker">{kicker}</p>
+      <h1 id="blog-title">{title}</h1>
+    </div>
+    <p>{intro}</p>
+    <span class="blog-listing__count">
+      {listing.page.items.length} post{listing.page.items.length === 1 ? '' : 's'}
+      {listing.page.page > 1 && ` / page ${listing.page.page}`}
+    </span>
+  </header>
+
+  {listing.featured && (
+    <div class="blog-listing__featured" data-reveal>
+      <PostCard post={listing.featured} variant="hero" />
+    </div>
+  )}
+
+  <div class="blog-listing__filters">
+    <nav class="blog-listing__topics" aria-label="Topics">
+      <Chip label="All writing" href={withAuthor('/blog', activeAuthor)} selected={!activeTopic} />
+      {listing.topics.map(({ topic, count }) => (
+        <Chip
+          label={`${topic.name} ${count}`}
+          href={withAuthor(topicPath(topic.slug), activeAuthor)}
+          selected={activeTopic === topic.slug}
+        />
+      ))}
+    </nav>
+
+    {showAuthorFilter && (
+      <form class="blog-listing__author-filter" method="get" action={pageBasePath}>
+        <label for="blog-author-filter">Author</label>
+        <div>
+          <select id="blog-author-filter" name="author">
+            <option value="">All authors</option>
+            {listing.authors.map((author) => (
+              <option value={author.slug} selected={author.slug === activeAuthor}>
+                {author.name}
+              </option>
+            ))}
+          </select>
+          <Button type="submit" variant="secondary" size="sm">Apply</Button>
+        </div>
+      </form>
+    )}
+  </div>
+
+  {hasPosts ? (
+    <div class="blog-listing__posts" aria-label="Posts">
+      {listing.posts.map((post) => (
+        <PostCard post={post} variant="row" />
+      ))}
+    </div>
+  ) : (
+    <EmptyState
+      message={hasFilters ? 'No posts match this editorial filter yet.' : 'The writing desk is ready. Published notes will appear here once the CMS is seeded.'}
+      icon="pen-line"
+      action={hasFilters ? { label: 'Clear filter', href: clearHref } : undefined}
+    />
+  )}
+
+  {(prevHref || nextHref) && (
+    <nav class="blog-listing__pagination" aria-label="Pagination">
+      {prevHref ? <Button href={prevHref} variant="secondary">Previous</Button> : <span></span>}
+      {nextHref && <Button href={nextHref} variant="secondary" icon="arrow-right">Next</Button>}
+    </nav>
+  )}
+</section>
+
+<style>
+  .blog-listing {
+    padding-block: calc(78px + var(--section-y)) 0;
+  }
+
+  .blog-listing__breadcrumbs {
+    margin-bottom: var(--space-6);
+  }
+
+  .blog-listing__header {
+    display: grid;
+    gap: var(--space-5);
+    padding-bottom: var(--space-7);
+    border-bottom: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
+  }
+
+  .blog-listing__header h1 {
+    margin-top: var(--space-3);
+    font-size: var(--fs-display);
+    line-height: var(--lh-display);
+  }
+
+  .blog-listing__header p:not(.kicker) {
+    max-width: 50rem;
+    color: var(--text-2);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-xl);
+  }
+
+  .blog-listing__count {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
+  .blog-listing__featured {
+    margin-top: var(--space-7);
+  }
+
+  .blog-listing__filters {
+    display: grid;
+    gap: var(--space-5);
+    margin-top: var(--space-7);
+    padding-block: var(--space-5);
+    border-block: 1px solid var(--border-1);
+  }
+
+  .blog-listing__topics {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-1);
+    scrollbar-width: thin;
+  }
+
+  .blog-listing__topics :global(.ui-chip) {
+    flex: 0 0 auto;
+  }
+
+  .blog-listing__author-filter {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+
+  .blog-listing__author-filter label {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
+  .blog-listing__author-filter div {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .blog-listing__author-filter select {
+    min-height: 2.75rem;
+    min-width: min(100%, 15rem);
+    padding-inline: var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    background: var(--bg-1);
+    color: var(--text-1);
+    font: inherit;
+  }
+
+  .blog-listing__posts {
+    margin-top: var(--space-6);
+  }
+
+  .blog-listing :global(.ui-empty-state) {
+    margin-top: var(--space-7);
+  }
+
+  .blog-listing__pagination {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-7);
+  }
+
+  @media (min-width: 64rem) {
+    .blog-listing__header {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) auto;
+      align-items: end;
+    }
+
+    .blog-listing__filters {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+    }
+  }
+
+  @media (max-width: 47.999rem) {
+    .blog-listing {
+      padding-block-start: calc(64px + var(--space-8));
+    }
+
+    .blog-listing__header h1 {
+      font-size: var(--fs-4xl);
+      line-height: var(--lh-4xl);
+    }
+
+    .blog-listing__header p:not(.kicker) {
+      font-size: var(--fs-lg);
+      line-height: var(--lh-lg);
+    }
+
+    .blog-listing__author-filter div,
+    .blog-listing__author-filter :global(.ui-button) {
+      width: 100%;
+    }
+
+    .blog-listing__author-filter select {
+      flex: 1 1 auto;
+    }
+  }
+</style>

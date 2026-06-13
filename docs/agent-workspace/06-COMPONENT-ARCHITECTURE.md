@@ -117,20 +117,31 @@ modules.** Adding a framework requires architecture sign-off via handoff.
 
 Pages never receive raw Directus rows. Repositories (09 §4) map to these:
 
+As implemented in `src/types/content.ts` (V4-ARC-001):
+
 ```ts
 interface PostListItem { slug; title; excerpt; publishedAt: Date; topics: TopicRef[];
-  author: AuthorRef; readingMinutes: number; coverImage?: ImageRef; featured: boolean;
-  seriesLabel?: string; logNumber?: number }
-interface Post extends PostListItem { bodyHtml: string; headings: Heading[] }
+  author: AuthorRef; coverImage?: ImageRef; featured: boolean;
+  seriesLabel?: string; postNumber?: number; readingMinutes?: number }
+interface Post extends PostListItem { bodyHtml: string; headings: Heading[];
+  readingMinutes: number }
 interface AuthorRef { slug; name; avatar?: ImageRef }
 interface AuthorSummary extends AuthorRef { roleTitle; specialties: SpecialtyRef[];
   postCount: number; courseCount: number }
 interface Author extends AuthorSummary { bioHtml; statement?; links: AuthorLink[];
   tools: string[]; featuredWork: FeaturedLink[] }
-interface ImageRef { src; width; height; alt }   // src builders attach srcset params
+interface ImageRef { id; src; width?; height?; alt }  // src builders attach srcset params
+interface TopicRef { name; slug }   interface SpecialtyRef { name; slug; colorKey }
 interface Heading { id; text; depth: 2|3 }
 // course types mirror PRD §9 — defined in v4.1 task V4-CRS-001
 ```
+
+> Deviation (V4-ARC-001): `readingMinutes` is **required on `Post` but optional on
+> `PostListItem`**, and `postNumber` replaces the placeholder `logNumber` (schema field
+> is `post_number`). Reading time needs `content`, which list queries omit for payload
+> reasons (08 §8.1) — so listing cards do not render read time. If read time on cards
+> becomes desired, add a cached `reading_minutes` column to `posts` (backlog), don't
+> re-introduce `content` into list queries.
 
 ## 8. Files to keep / refactor / replace / delete (frontend)
 

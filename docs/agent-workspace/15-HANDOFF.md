@@ -17,6 +17,280 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-BLOG-002 — done
+
+**Did**: Added the v4 article route at `/blog/[slug]` while preserving `/blog/2`
+numeric pagination behavior in the same dynamic route. The article page now renders
+an editorial header, cover image, metadata rail, imported v4 prose styles, sticky
+desktop TOC plus mobile `<details>` TOC, reading progress, copy-code live region,
+image-grid lightbox dialog, author block, related posts, and previous/next article
+links. Added `postsRepo.neighbors()` for adjacent navigation with unit coverage.
+
+**Files**: `frontend/src/pages/blog/[slug].astro`;
+deleted `frontend/src/pages/blog/[...page].astro`;
+`frontend/src/components/blog/{ArticleEnhancements,ArticleToc,AuthorBlock,ReadingProgress}.astro`;
+`frontend/src/lib/repositories/posts.ts`;
+`frontend/src/lib/repositories/__tests__/repositories.test.ts`;
+docs `13`, `15`.
+
+**Decisions / deviations**:
+1. The v3-era article dead components were not deleted because no parity-safe removal
+   point was proven in this task; some older routes/components still reference legacy
+   helpers. Cleanup remains appropriate for a later dedicated cleanup task.
+2. The author block links to `/blog?author=<slug>` because Dream Team profile routes
+   do not exist yet.
+3. The code-copy fallback now requires the modern Clipboard API to keep `astro check`
+   warning-free; unsupported browsers receive the live-region failure message.
+
+**Validation**: `git diff --check`; `npx astro check` 0/0/0; `npm test` 39 passed;
+`npm run build` ok. Browser check on local dev: `/blog` desktop and 375px mobile
+empty-state path, no horizontal overflow, zero console errors; `/blog/2` correctly
+rewrites to the 404 page when the local CMS has no second page.
+
+**Next**: **V4-BLOG-003 — RSS feed**.
+
+**Warnings**: The local dev instance had no real posts, so a live article page with
+cover/TOC/callouts/lightbox could not be browser-verified against staging content in
+this pass. The pre-existing untracked `docs/agent-workspace/homepage-redesign-plan.md`
+remains untouched/uncommitted.
+
+## [2026-06-13] V4-BLOG-001 — done
+
+**Did**: Added the v4 blog landing and topic listing foundation. New `/blog` route
+uses `BaseLayout`, SSR topic chips, optional no-JS author filter form, EmptyState
+fallback, RSS alternate link, `Blog` JSON-LD, and the new shared `BlogListing`
+component. Added numeric pagination route `/blog/[...page]` for `/blog/2` style URLs
+with `rel=prev/next` head links. Added `/blog/topic/[slug]` with breadcrumbs,
+active topic chip, `CollectionPage` JSON-LD, and 404 rewrite for unknown topics.
+Extended `PostCard` with BLOG-001 `hero` and `row` variants. Added
+`postsRepo.featuredOrLatest()` with unit coverage for the featured-post fallback.
+Replaced legacy `/logs` pages with 301 shims: `/logs` → `/blog` and
+`/logs/:slug` → `/blog/:slug`.
+
+**Files**: `frontend/src/pages/blog/{index,[...page]}.astro`,
+`frontend/src/pages/blog/topic/[slug].astro`, `frontend/src/components/blog/BlogListing.astro`,
+`frontend/src/components/blog/PostCard.astro`, `frontend/src/lib/blog/listing.ts`,
+`frontend/src/lib/repositories/posts.ts`,
+`frontend/src/lib/repositories/__tests__/repositories.test.ts`,
+`frontend/src/lib/seo/meta.ts`, `frontend/src/components/global/SeoHead.astro`,
+`frontend/src/pages/logs/{index,[...slug]}.astro`; docs `13`, `15`.
+
+**Decisions / deviations**:
+1. `/blog` catches repository failures and renders the true-empty EmptyState instead of
+   allowing a local CMS outage to 500 the browse page. Server logs retain the failure
+   context.
+2. Row cards do not show reading time unless a list item already carries it. This
+   follows the V4-ARC-001 decision that list queries omit `content`; add a
+   `reading_minutes` column later if list rows must show it without detail fetches.
+3. `/blog/[...page]` currently accepts numeric pagination only and rewrites non-numeric
+   paths to 404. V4-BLOG-002 should extend/replace this catch-all when article pages
+   land at `/blog/[slug]`.
+4. Local remote state warning: `origin/feature/v4-redesign` fetched during this session
+   did not yet contain the shell/home chain, so this branch is stacked on
+   `v4/v4-shell-002-home` plus a local homepage polish commit.
+
+**Validation**: `git diff --check`; `npx astro check` 0/0/0; `npm test` 38 passed;
+`npm run build` ok. Curl checks: `/logs` 301 → `/blog`; `/logs/example-slug`
+301 → `/blog/example-slug`; `/blog` 200 with local CMS unavailable. Browser check:
+`/blog` desktop + mobile, no horizontal overflow, active nav state, one theme toggle,
+RSS alternate present, EmptyState visible, zero browser console errors.
+
+**Next**: **V4-BLOG-002** — article page + callouts. It should wire real
+`/blog/[slug]` article behavior, preserve legacy `/logs/:slug` redirects, and remove
+or adapt the numeric pagination catch-all as needed.
+
+**Warnings**: `docs/agent-workspace/homepage-redesign-plan.md` was already untracked
+before BLOG-001 and was left untouched/uncommitted. Confirm the shell/home chain is
+actually merged to `feature/v4-redesign` before opening/retargeting this stacked PR.
+
+## [2026-06-12] V4-SHELL-002 + V4-HOME-001 + V4-HOME-002 — done (one session)
+
+**Did**: Completed the global shell components, the homepage hero, and the home
+sections. All browser-verified against staging in both themes + mobile.
+
+**SHELL-002** — `content/site.ts` (nav items w/ Courses gated by `COURSES_ENABLED`,
+social links, home copy, flags), `global/ThemeToggle.astro` (swaps `data-theme`,
+persists, dispatches `themechange`, binds all instances), `global/SiteNav.astro`
+(sticky; transparent-over-hero → `.is-scrolled` past 24px on home only; active
+route via `aria-current`; hamburger), `global/MobileMenu.astro` (overlay + canonical
+focus trap 07 §3.3: Escape, Tab-wrap, scroll lock, focus restore), `global/SiteFooter.astro`
+(4 cols; topics from `topicsRepo.top(5)` wrapped in try/catch → degrades to empty;
+newsletter behind `SHOW_NEWSLETTER`). Wired all into BaseLayout (replaced SHELL-001
+placeholders) + `transparentNav` prop. Added `lib/motion/reveal.ts` (the `[data-reveal]`
+IntersectionObserver util base.css depends on) and ran it from BaseLayout.
+
+**HOME-001** — `home/HeroSignalField.astro`: SSR headline (LCP) over a hand-rolled
+canvas (≤zero deps) rendering the brand motifs — drifting **square pixels**, circular
+**ember nodes**, hairline **connections** — with IntersectionObserver pause, theme
+re-read, resize rebuild, and a frame-budget degrade guard. Deterministic inline SVG
+"still" covers mobile / reduced-motion / no-JS via CSS (`html:not(.no-js)` + min-width +
+no-preference gate). Verified: canvas live on desktop both themes; static SVG on mobile.
+
+**HOME-002** — `blog/PostCard.astro` (`featured` + `compact` variants; BLOG-001 adds
+row/hero), and `pages/index.astro` migrated to BaseLayout: hero + "Latest writing"
+(featured + 2 compact, EmptyState when none) + Dream Team strip (avatars + count
+sentence) + WebSite/Organization JSON-LD. Per-section fetches are try/caught so a CMS
+outage shows empty sections, never a 500.
+
+**Files**: `frontend/src/content/site.ts`, `frontend/src/lib/motion/reveal.ts`,
+`frontend/src/components/global/{ThemeToggle,SiteNav,MobileMenu,SiteFooter}.astro`,
+`frontend/src/components/home/HeroSignalField.astro`,
+`frontend/src/components/blog/PostCard.astro`, `frontend/src/layouts/BaseLayout.astro`,
+`frontend/src/pages/index.astro`, `frontend/src/components/ui/Icon.astro` (custom-icon
+dir support), `frontend/src/assets/icons/{github,linkedin}.svg`; docs `13`, `15`.
+
+**Decisions / deviations**:
+1. **Selected-work section omitted** from the home this batch — it needs the projects
+   content collection (V4-CMS-005, not done). Blueprint allows "no projects → omit";
+   marker left in index.astro. Added with CMS-005 / PROJ-001.
+2. **Hero line-reveal flourish skipped** (07 §2.3 step 2): SSR text is always fully
+   visible (best LCP, zero FOUC) and the masked per-line reveal + its pre-paint
+   `hero-motion-ok` hack were dropped as not worth the fragility. Canvas fade + motifs
+   carry the "premium" cue. Everything else in 07 §2 implemented.
+3. **Custom brand icons**: lucide-static dropped `github`/`linkedin`/`twitter`. Added
+   `src/assets/icons/{github,linkedin}.svg` and taught `Icon.astro` to check that dir
+   (module-relative) before lucide (04 §8 permits custom SVGs for brand marks). A
+   linter had already hardened Icon's lucide resolution to module-relative — kept that.
+4. Built `lib/motion/reveal.ts` here (implicit infra dependency of the `[data-reveal]`
+   CSS shipped in DS-001); it's the one util from 06 §2 / 07 §1.
+
+**Validation**: `astro check` 0/0/0; `npm test` 36 passed; `npm run build` ok.
+**Live browser check** (dev pointed at staging, then reverted): home renders in dark
+(Observatory default) + light; hero canvas animates the pixel/data/connection field on
+desktop, static SVG on mobile; nav transparent→solid on scroll, active states; mobile
+menu opens (X morph), **focus enters panel, Escape closes + restores focus to the
+hamburger**, scroll-locks; theme toggle switches + persists; footer 4 cols with brand
+icons (Topics col correctly hidden at 0 posts); team strip populated from staging
+(1 author); "Latest writing" shows EmptyState (0 posts); zero console errors; no
+horizontal overflow at 375px.
+
+**Next**: **V4-BLOG-001** (blog landing + topic pages + `/logs` 301s) — extends PostCard
+with row/hero variants and uses `postsRepo.list`. Then BLOG-002 (article). This branch
+is `v4/v4-shell-002-home` off `v4/v4-shell-001` (stack: cms-002 → arc-001 → shell-001 →
+shell-002-home); merge in order into `feature/v4-redesign`.
+
+**Warnings**: v3 `index.astro` was replaced; `HeroCanvas.astro`/`HeroTagline.astro` are
+now unused (deleted in CLEAN-001, not now). The `.env` was temporarily pointed at
+staging for verification and **restored** — confirm `.env` has no `api-staging` lines.
+Footer Topics column stays hidden until posts carry topics.
+
+## [2026-06-12] V4-SHELL-001 — done
+
+**Did**: Built the v4 global shell foundation + error handling.
+- `layouts/BaseLayout.astro` — html/head/body, self-hosted fontsource imports + base.css,
+  SeoHead, SkipLink, pre-paint theme script (ports v3 localStorage logic + removes
+  `no-js` for the reveal guard), `<main id="main">`. **Minimal placeholder header/footer**
+  (brand lockup + © + Privacy) clearly marked for SHELL-002 to replace with
+  SiteNav/MobileMenu/SiteFooter — BaseLayout structure is stable, SHELL-002 swaps the
+  two marked regions only.
+- `components/global/SeoHead.astro` (full 10 §2/§3 head contract: title template,
+  query-stripped canonical, OG + Twitter + dual theme-color + favicon chain + article
+  tags + JSON-LD array), `SkipLink.astro`, `ErrorPage.astro` (shared 404/500 shell —
+  factored to avoid CSS duplication).
+- `lib/seo/meta.ts` (`Seo` type, `SITE_URL`, `formatTitle`, `resolveCanonical`,
+  `absoluteUrl`) + `lib/seo/og.ts` (`resolveOgImage`, explicit-or-default cascade;
+  section defaults + per-article images come in SEO-001).
+- `pages/404.astro` (status 404, logs bad pathnames) + `pages/500.astro` (status 500,
+  JS "Try again" reload) using ErrorPage + Button.
+- `middleware.ts` — extended: security headers (nosniff, Referrer-Policy,
+  Permissions-Policy) on all responses; HTML cache-control (`s-maxage=300` success /
+  `no-store` errors); **error envelope** (09 §9: catch → log → RepositoryError
+  not_found rewrites /404, else /500); kept staging `X-Robots-Tag: noindex`.
+- `vitest.config.ts` → `getViteConfig` so tests can render `.astro` (SeoHead container
+  test). `.env.example` + 09 §3 already document `SITE_URL`.
+- Tests: `seo/meta.test.ts` (8) + `global/SeoHead.test.ts` (5, incl. snapshot via Astro
+  Container API).
+
+**Files**: `frontend/src/layouts/BaseLayout.astro`,
+`frontend/src/components/global/{SeoHead,SkipLink,ErrorPage}.astro`,
+`frontend/src/lib/seo/{meta,og}.ts` (+ `__tests__/meta.test.ts`),
+`frontend/src/components/global/__tests__/SeoHead.test.ts`,
+`frontend/src/pages/{404,500}.astro`, `frontend/src/middleware.ts`,
+`frontend/vitest.config.ts`, `frontend/.env.example`; docs `13` (status), `15`.
+
+**Decisions / deviations**:
+1. BaseLayout ships **minimal inline header/footer** (not SiteNav/SiteFooter) — those
+   are SHELL-002. Scope note in BaseLayout marks the two regions to swap. No throwaway
+   stub components created.
+2. `vitest.config.ts` switched to `getViteConfig` (astro/config) to enable `.astro`
+   component rendering in tests. Plain `.ts` suites unaffected (verified: all 36 pass).
+3. CSP is **not** added here — it's the V4-PERF-003 report-only→enforce rollout
+   (comment left in middleware). SHELL-001 adds the three non-CSP security headers.
+
+**Validation**: `astro check` 0/0/0; `npm test` 36 passed (6 files); `npm run build` ok.
+**Live browser check** (dev server): bad URL → styled 404 at **HTTP 404** (not redirect)
+with `noindex` meta, security headers present, `Cache-Control: no-store`, dark theme
+applied pre-paint, `no-js` removed, title "Page not found — DataDreamer", absolute
+query-stripped canonical. 500 page renders; theme toggle (dark/light) + mobile (375px)
+verified on both error pages, no console errors, no horizontal overflow. Logo (header
+lockup + faded mono watermark) preserved with theme-following ink + red dot.
+
+**Next**: **V4-SHELL-002** (SiteNav + MobileMenu + ThemeToggle + SiteFooter + site.ts) —
+swaps BaseLayout's two placeholder regions for the real components (07 §3–4, 03 §2).
+After that the home/blog/page tasks can migrate onto BaseLayout. This branch is
+`v4/v4-shell-001` off `v4/v4-arc-001` (stack: cms-002 → arc-001 → shell-001); merge in
+order into `feature/v4-redesign`.
+
+**Warnings**: Pages not yet migrated still use MainLayout (v3) — BaseLayout is additive,
+nothing was removed (v3 deletion is CLEAN-001). Don't wire SiteNav into MainLayout.
+
+## [2026-06-12] V4-ARC-001 — done
+
+**Did**: Built the v4 repository layer + view-models (additive; v3 `lib/directus.ts`
+and pages untouched). New modules under `frontend/src/`:
+- `lib/directus/schema.ts` (raw row shapes from snapshot.yaml) + `client.ts`
+  (REST-only, no login; optional `DIRECTUS_TOKEN` static token via `.with(staticToken)`).
+- `types/content.ts` (view-models, 06 §7) — pages consume only these.
+- `lib/repositories/{posts,authors,topics}.ts` + `_mappers.ts` + `index.ts`
+  (`postsRepo`/`authorsRepo`/`topicsRepo`), `errors.ts` (`RepositoryError` + `guard`),
+  `cache.ts` (`cachedPerRequest`).
+- `lib/images.ts` (`directusAssetUrl`/`directusSrcset`/`toImageRef`).
+- `lib/validation/schemas.ts` (zod for `links`/`tools`/`featured_work`, `.catch([])`).
+- Tests: `repositories.test.ts` (13) + `cache.test.ts` (3), mocked SDK; cover
+  happy/empty/error per function, field-discipline (no `content` in list fields),
+  markdown-in-callout rendering through `bySlug`, and malformed-JSON degradation.
+Queries implemented per 08 §8: posts.list (topic/author filter, over-fetch paging),
+latest, bySlug, byAuthor, related (+ countsByAuthorId aggregate); authors.allWithCounts,
+forTeamStrip, bySlug, related; topics.all, bySlug, withPostCounts, top.
+
+**Files**: `frontend/src/lib/directus/{schema,client}.ts`,
+`frontend/src/lib/repositories/{posts,authors,topics,_mappers,errors,cache,index}.ts`,
+`frontend/src/lib/repositories/__tests__/{repositories,cache}.test.ts`,
+`frontend/src/lib/images.ts`, `frontend/src/lib/validation/schemas.ts`,
+`frontend/src/types/content.ts`, `frontend/.env.example`;
+docs `06` §7, `09` §3, `13` (status), `15`.
+
+**Decisions / deviations**:
+1. **`DIRECTUS_TOKEN`** (optional, server-only read token) added to client + `.env.example`
+   + 09 §3, replacing the retired v3 admin login for the v4 path. Use it where the
+   Public role isn't open (staging). Distinct from the v4.1 write service token.
+2. **`readingMinutes` optional on `PostListItem`, required on `Post`** (06 §7 deviation):
+   list queries omit `content`, so cards can't compute read time. Add a cached
+   `reading_minutes` column later if cards need it — do not re-add `content` to lists.
+3. `postNumber` (schema `post_number`) used throughout, not the placeholder `logNumber`.
+4. Single documented `any` is the SDK dotted-field cast at call sites (CODE_REVIEW 2.3).
+
+**Validation**: `npx astro check` → 0 errors/0 warnings/0 hints; `npm test` → 23 passed
+(4 files); `npm run build` → success. Grep gate clean: no `@directus/sdk` imports in
+`src/pages` or `src/components`.
+
+**Token note (action for owner)**: the provided "Agent Staging" token
+(`stagingagent@gmail.com`) returns `INVALID_CREDENTIALS` against
+`https://api.data-dreamer.net`, and the staging Directus (`192.168.10.211:8056`) is
+LAN-only/unreachable from this environment. So the repository layer was built+tested
+against `snapshot.yaml` + mocked SDK (the task's intended method). To wire a live read,
+set `DIRECTUS_TOKEN` on the relevant frontend resource (or open the Public role) and
+confirm the token's role has read on posts/authors/topics/specialties/junctions/files.
+
+**Next**: Phase B opens. **V4-SHELL-001** (BaseLayout, SeoHead, middleware, 404/500)
+is the next critical-path task (deps DS-001 ✓, ARC-001 ✓). V4-CMS-003 (topics backfill)
+is independent and ownable in parallel. This branch is `v4/v4-arc-001` off `v4/v4-cms-002`;
+merge CMS-002 then ARC-001 into `feature/v4-redesign` in that order.
+
+**Warnings**: Repository functions THROW `RepositoryError` on fetch failure (primary
+fetches → 404/500; decorative strips like footer topics should catch). Don't reintroduce
+the v3 silent-empty-array pattern for primary fetches. Keep `content` out of list field sets.
+
 ## [2026-06-12] V4-CMS-002 — done
 
 **Did**: Added `posts.author`, `posts.cover_image`, and `posts.featured` to staging

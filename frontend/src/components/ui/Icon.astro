@@ -1,6 +1,7 @@
 ---
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 
 type IconSize = 16 | 20 | 24;
@@ -17,9 +18,19 @@ const { name, size = 20, label, class: className } = Astro.props;
 // with a cwd outside frontend/ (e.g. `astro dev --root frontend`).
 const require = createRequire(import.meta.url);
 const iconsDir = join(dirname(require.resolve("lucide-static/package.json")), "icons");
-const iconPath = join(iconsDir, `${name}.svg`);
+// Custom brand/glyph SVGs (src/assets/icons), resolved module-relative, take
+// precedence over Lucide — lucide dropped brand marks (github/linkedin); 04 §8 allows
+// custom SVGs for those.
+const customDir = fileURLToPath(new URL("../../assets/icons", import.meta.url));
+const customPath = join(customDir, `${name}.svg`);
+const lucidePath = join(iconsDir, `${name}.svg`);
 const fallbackPath = join(iconsDir, "circle-help.svg");
-const rawSvg = readFileSync(existsSync(iconPath) ? iconPath : fallbackPath, "utf8");
+const iconPath = existsSync(customPath)
+  ? customPath
+  : existsSync(lucidePath)
+    ? lucidePath
+    : fallbackPath;
+const rawSvg = readFileSync(iconPath, "utf8");
 const blackStroke = new RegExp(`stroke="${"#"}000"`, "g");
 const svg = rawSvg
   .replace("<svg", `<svg class="dd-icon__svg" width="${size}" height="${size}" aria-hidden="true" focusable="false"`)
