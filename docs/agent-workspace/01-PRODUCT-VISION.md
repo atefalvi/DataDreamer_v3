@@ -100,7 +100,7 @@ Full detail in `03-INFORMATION-ARCHITECTURE.md`.
 
 | Term | Meaning |
 |---|---|
-| **Post** | A blog article. Physically stored in the Directus `logs` collection (kept for migration safety — see 08 §2.1); always called "post" in code and UI. |
+| **Post** | A blog article. Physically stored in the Directus `posts` collection; always called "post" in code and UI. |
 | **Author / Dream Team member** | A row in the new `authors` collection. Not a Directus login user. |
 | **Specialty** | A discipline tag for authors (e.g. Data Engineering); drives graph grouping. |
 | **Topic** | A content tag shared by posts and courses. |

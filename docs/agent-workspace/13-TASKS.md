@@ -1,6 +1,6 @@
 # 13 — Task List (agent work packets)
 
-46 tasks. Sequencing/parallelism: `12-IMPLEMENTATION-ROADMAP.md`. Status tracking
+53 tasks. Sequencing/parallelism: `12-IMPLEMENTATION-ROADMAP.md`. Status tracking
 lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 
 ## Universal task contract (applies to every task; not repeated below)
@@ -27,7 +27,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-DS-002 | UI primitives batch | A | DS-001 | done |
 | V4-DS-003 | Prose stylesheet | A | DS-001 | done |
 | V4-DS-004 | Logo system & favicons | A | DS-001 | done |
-| V4-CMS-001 | Directus: authors/specialties/topics | A | — | todo |
+| V4-CMS-001 | Directus: authors/specialties/topics | A | — | done |
 | V4-CMS-002 | Directus: posts→authors relation | A | CMS-001 | todo |
 | V4-CMS-003 | Directus: topics backfill | A | CMS-002 | todo |
 | V4-ARC-001 | Repository layer + types | A | CMS-002, FND-001 | todo |
@@ -73,7 +73,6 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-CRS-008 | Courses nav/home integration | C | CRS-002..006 | todo |
 | V4-QA-004 | Courses QA matrix | C | CRS-008 | todo |
 | V4-REL-002 | v4.1 release | C | QA-004 | todo |
-| V4-CMS-099 | (backlog) rename logs→posts collection | — | — | backlog |
 
 ---
 
@@ -144,17 +143,15 @@ from `.env.example` + SETUP note (code removal happens in ARC-001). **Accept**:
 collections queryable anonymously (published filter); inverse-op notes in handoff.
 
 ### V4-CMS-002 — Directus: posts→authors relation
-**Objective**: per 08 §3.1 — add `author_profile` (M2O → authors), `cover_image`,
-`featured` to `logs`; mapping script copies the existing `author` (directus_users)
-relation to the matching `authors` record. The old `author` field is left untouched
-so the live v3 frontend keeps rendering until cutover (dropped in V4-CMS-006).
-**Inspect**: live data via the Directus app. **Accept**: every published post has an
-`author_profile`; production v3 site unaffected (spot-check 3 posts); mapping
-documented in handoff with inverse op.
+**Objective**: per 08 §3.1 — add `posts.author` (M2O → authors), `cover_image`, and
+`featured`. Greenfield staging has no imported posts yet, so the mapping script may
+record a documented no-op; if posts exist, every published post must receive an
+author. **Inspect**: live data via the Directus app. **Accept**: every published post
+has `author`; mapping/no-op documented in handoff with inverse op.
 
 ### V4-CMS-003 — Directus: topics backfill
-**Objective**: hand-written tag→topic mapping table (in task PR), create topics +
-`posts_topics` rows; keep `tag`/`category` untouched. **Accept**: every published
+**Objective**: assign topics to seeded/imported posts and create `posts_topics` rows.
+There are no v4 `tag`/`category` compatibility fields. **Accept**: every published
 post ≥1 topic; mapping documented in handoff.
 
 ### V4-ARC-001 — Repository layer + types
@@ -209,7 +206,7 @@ reveal staggers.
 **Objective**: `/blog/[slug]` per 05 §3 + 3a: ArticleHeader, TOC (07 §6), reading
 progress (07 §10), prose render via ARC-002 pipeline, copy buttons (07 §9), lightbox
 (07 §7), author block, related, prev/next; print stylesheet; delete v3
-`renderMarkdown.ts` + logs pages + blog/ dead components after parity check.
+`renderMarkdown.ts` + legacy route pages + blog/ dead components after parity check.
 **Accept**: 05 §3 acceptance list; 5 real posts verified on staging both themes;
 404 (not redirect) for bad slug.
 
@@ -270,7 +267,7 @@ disallow set matches matrix.
 
 ### V4-DOC-002 — Authoring guide v4 rewrite
 **Objective**: rewrite `docs/AGENT_BLOG_GUIDE.md`: same workflow, new callout set
-(8 types + titles syntax), topics M2M, author_profile selection, cover image, alt-text
+(8 types + titles syntax), topics M2M, author selection, cover image, alt-text
 requirement, removed ALL-CAPS guidance. **Accept**: every documented syntax has a
 golden fixture in ARC-002 (add any missing).
 
@@ -304,11 +301,10 @@ verify CLS ≈0 on slow 3G. **Accept**: WebPageTest/DevTools evidence in qa/perf
 purge). **Accept**: smoke checklist committed `qa/release-4.0.md`; production
 Lighthouse spot check; rollback rehearsal noted.
 
-### V4-CMS-006 — Drop retired fields/collections
-**Objective**: after 1-week soak: drop `logs.tag/category/legacy author` (per
-CMS-002 note), drop `site_settings/home_settings/about/projects` collections;
-backups first; snapshot committed. **Accept**: site unaffected (staging tested with
-drops first); inverse ops documented.
+### V4-CMS-006 — Drop retired collections
+**Objective**: after 1-week soak: drop `site_settings/home_settings/about/projects`
+collections; backups first; snapshot committed. **Accept**: site unaffected (staging
+tested with drops first); inverse ops documented.
 
 ### V4-DOC-001 — README/SETUP refresh
 **Objective**: rewrite README/SETUP for v4 reality (routes, env vars, content

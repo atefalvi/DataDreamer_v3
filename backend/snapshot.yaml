@@ -1,70 +1,71 @@
 version: 1
-directus: 11.16.0
+directus: 11.16.1
 vendor: postgres
 collections:
-  - collection: about
+  - collection: authors
     meta:
       accountability: all
       archive_app_filter: true
       archive_field: null
       archive_value: null
       collapse: open
-      collection: about
+      collection: authors
       color: null
-      display_template: null
+      display_template: "{{display_name}}"
       group: null
       hidden: false
-      icon: person
+      icon: groups
       item_duplication_fields: null
-      note: Global settings for the unified About page.
+      note: v4 Dream Team author profiles. Avatar uploads should be square and at
+        least 512px.
       preview_url: null
-      singleton: true
+      singleton: false
       sort: null
       sort_field: null
       translations: null
       unarchive_value: null
       versioning: false
     schema:
-      name: about
-  - collection: home_settings
+      name: authors
+  - collection: authors_specialties
     meta:
       accountability: all
       archive_app_filter: true
       archive_field: null
       archive_value: null
       collapse: open
-      collection: home_settings
+      collection: authors_specialties
       color: null
-      display_template: null
+      display_template: "{{authors_id.display_name}} → {{specialties_id.name}}"
       group: null
       hidden: false
-      icon: home
+      icon: join_inner
       item_duplication_fields: null
-      note: null
+      note: "Junction: authors to specialties. Sort controls primary specialty."
       preview_url: null
-      singleton: true
+      singleton: false
       sort: null
       sort_field: null
       translations: null
       unarchive_value: null
       versioning: false
     schema:
-      name: home_settings
-  - collection: logs
+      name: authors_specialties
+  - collection: posts
     meta:
       accountability: all
       archive_app_filter: true
       archive_field: null
       archive_value: null
       collapse: open
-      collection: logs
+      collection: posts
       color: null
-      display_template: '{{title}}'
+      display_template: "{{title}}"
       group: null
       hidden: false
       icon: article
       item_duplication_fields: null
-      note: null
+      note: v4 blog posts and long-form writing.
       preview_url: null
       singleton: false
       sort: null
@@ -73,22 +74,22 @@ collections:
       unarchive_value: null
       versioning: false
     schema:
-      name: logs
-  - collection: projects
+      name: posts
+  - collection: posts_topics
     meta:
       accountability: all
       archive_app_filter: true
       archive_field: null
       archive_value: null
       collapse: open
-      collection: projects
+      collection: posts_topics
       color: null
-      display_template: '{{title}}'
+      display_template: "{{posts_id.title}} → {{topics_id.name}}"
       group: null
       hidden: false
-      icon: work
+      icon: join_inner
       item_duplication_fields: null
-      note: null
+      note: "Junction: posts to topics."
       preview_url: null
       singleton: false
       sort: null
@@ -97,88 +98,120 @@ collections:
       unarchive_value: null
       versioning: false
     schema:
-      name: projects
-  - collection: site_settings
+      name: posts_topics
+  - collection: specialties
     meta:
       accountability: all
       archive_app_filter: true
       archive_field: null
       archive_value: null
       collapse: open
-      collection: site_settings
+      collection: specialties
       color: null
-      display_template: null
+      display_template: "{{name}}"
       group: null
       hidden: false
-      icon: settings
+      icon: hub
       item_duplication_fields: null
-      note: null
+      note: v4 author specialty taxonomy.
       preview_url: null
-      singleton: true
+      singleton: false
       sort: null
       sort_field: null
       translations: null
       unarchive_value: null
       versioning: false
     schema:
-      name: site_settings
+      name: specialties
+  - collection: topics
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: topics
+      color: null
+      display_template: "{{name}}"
+      group: null
+      hidden: false
+      icon: sell
+      item_duplication_fields: null
+      note: v4 shared taxonomy for posts and courses.
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: topics
 fields:
-  - collection: about
-    field: hero_tagline
-    type: string
+  - collection: authors
+    field: id
+    type: uuid
     meta:
-      collection: about
+      collection: authors
       conditions: null
       display: null
       display_options: null
-      field: hero_tagline
+      field: id
       group: null
-      hidden: false
+      hidden: true
       interface: input
       note: null
       options: null
-      readonly: false
+      readonly: true
       required: false
       searchable: true
       sort: 1
-      special: null
+      special:
+        - uuid
       translations: null
       validation: null
       validation_message: null
       width: full
     schema:
-      name: hero_tagline
-      table: about
-      data_type: character varying
+      name: id
+      table: authors
+      data_type: uuid
       default_value: null
-      max_length: 255
+      max_length: null
       numeric_precision: null
       numeric_scale: null
-      is_nullable: true
-      is_unique: false
+      is_nullable: false
+      is_unique: true
       is_indexed: false
-      is_primary_key: false
+      is_primary_key: true
       is_generated: false
       generation_expression: null
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: about
-    field: hero_title
+  - collection: authors
+    field: status
     type: string
     meta:
-      collection: about
+      collection: authors
       conditions: null
       display: null
       display_options: null
-      field: hero_title
+      field: status
       group: null
       hidden: false
-      interface: input
+      interface: select-dropdown
       note: null
-      options: null
+      options:
+        choices:
+          - text: Draft
+            value: draft
+          - text: Published
+            value: published
+          - text: Archived
+            value: archived
       readonly: false
-      required: false
+      required: true
       searchable: true
       sort: 2
       special: null
@@ -187,11 +220,211 @@ fields:
       validation_message: null
       width: full
     schema:
-      name: hero_title
-      table: about
+      name: status
+      table: authors
+      data_type: character varying
+      default_value: draft
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors
+    field: slug
+    type: string
+    meta:
+      collection: authors
+      conditions: null
+      display: null
+      display_options: null
+      field: slug
+      group: null
+      hidden: false
+      interface: input
+      note: Unique URL slug, e.g. firstname-lastname.
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: slug
+      table: authors
       data_type: character varying
       default_value: null
       max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors
+    field: display_name
+    type: string
+    meta:
+      collection: authors
+      conditions: null
+      display: null
+      display_options: null
+      field: display_name
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: display_name
+      table: authors
+      data_type: character varying
+      default_value: null
+      max_length: 80
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors
+    field: role_title
+    type: string
+    meta:
+      collection: authors
+      conditions: null
+      display: null
+      display_options: null
+      field: role_title
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: role_title
+      table: authors
+      data_type: character varying
+      default_value: null
+      max_length: 80
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors
+    field: bio
+    type: text
+    meta:
+      collection: authors
+      conditions: null
+      display: null
+      display_options: null
+      field: bio
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: bio
+      table: authors
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors
+    field: statement
+    type: string
+    meta:
+      collection: authors
+      conditions: null
+      display: null
+      display_options: null
+      field: statement
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: statement
+      table: authors
+      data_type: character varying
+      default_value: null
+      max_length: 200
       numeric_precision: null
       numeric_scale: null
       is_nullable: true
@@ -203,33 +436,33 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: about
-    field: hero_description
-    type: text
+  - collection: authors
+    field: avatar
+    type: uuid
     meta:
-      collection: about
+      collection: authors
       conditions: null
-      display: null
+      display: image
       display_options: null
-      field: hero_description
+      field: avatar
       group: null
       hidden: false
-      interface: input-multiline
-      note: null
+      interface: file-image
+      note: Square portrait; use at least 512px.
       options: null
       readonly: false
       required: false
       searchable: true
-      sort: 3
+      sort: 8
       special: null
       translations: null
       validation: null
       validation_message: null
       width: full
     schema:
-      name: hero_description
-      table: about
-      data_type: text
+      name: avatar
+      table: authors
+      data_type: uuid
       default_value: null
       max_length: null
       numeric_precision: null
@@ -243,18 +476,327 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: about
-    field: profile_image
-    type: uuid
+  - collection: authors
+    field: links
+    type: json
     meta:
-      collection: about
+      collection: authors
       conditions: null
-      display: image
+      display: null
       display_options: null
-      field: profile_image
+      field: links
       group: null
       hidden: false
-      interface: file-image
+      interface: list
+      note: Array of {label, url}; validated in the repository layer.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 9
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: links
+      table: authors
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors
+    field: tools
+    type: json
+    meta:
+      collection: authors
+      conditions: null
+      display: null
+      display_options: null
+      field: tools
+      group: null
+      hidden: false
+      interface: tags
+      note: Array of tool names; validated in the repository layer.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 10
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: tools
+      table: authors
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors
+    field: featured_work
+    type: json
+    meta:
+      collection: authors
+      conditions: null
+      display: null
+      display_options: null
+      field: featured_work
+      group: null
+      hidden: false
+      interface: list
+      note: Max two {title, url, description?} entries; validated in the repository
+        layer.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 11
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: featured_work
+      table: authors
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors
+    field: sort
+    type: integer
+    meta:
+      collection: authors
+      conditions: null
+      display: null
+      display_options: null
+      field: sort
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 12
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: sort
+      table: authors
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors
+    field: specialties
+    type: alias
+    meta:
+      collection: authors
+      conditions: null
+      display: null
+      display_options: null
+      field: specialties
+      group: null
+      hidden: false
+      interface: list-m2m
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 13
+      special:
+        - m2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: authors_specialties
+    field: id
+    type: uuid
+    meta:
+      collection: authors_specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: authors_specialties
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors_specialties
+    field: authors_id
+    type: uuid
+    meta:
+      collection: authors_specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: authors_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: authors_id
+      table: authors_specialties
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors_specialties
+    field: specialties_id
+    type: uuid
+    meta:
+      collection: authors_specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: specialties_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: specialties_id
+      table: authors_specialties
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors_specialties
+    field: sort
+    type: integer
+    meta:
+      collection: authors_specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: sort
+      group: null
+      hidden: false
+      interface: input
       note: null
       options: null
       readonly: false
@@ -265,69 +807,15 @@ fields:
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
-      name: profile_image
-      table: about
-      data_type: uuid
+      name: sort
+      table: authors_specialties
+      data_type: integer
       default_value: null
       max_length: null
-      numeric_precision: null
-      numeric_scale: null
-      is_nullable: true
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: directus_files
-      foreign_key_column: id
-  - collection: about
-    field: stats
-    type: json
-    meta:
-      collection: about
-      conditions: null
-      display: null
-      display_options: null
-      field: stats
-      group: null
-      hidden: false
-      interface: list
-      note: 'Array of objects: {"number": "42", "label": "Production models"}'
-      options:
-        fields:
-          - field: number
-            meta:
-              interface: input
-              width: half
-            name: Number
-            type: string
-          - field: label
-            meta:
-              interface: input
-              width: half
-            name: Label
-            type: string
-      readonly: false
-      required: false
-      searchable: true
-      sort: 5
-      special:
-        - cast-json
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: stats
-      table: about
-      data_type: json
-      default_value: null
-      max_length: null
-      numeric_precision: null
-      numeric_scale: null
+      numeric_precision: 32
+      numeric_scale: 0
       is_nullable: true
       is_unique: false
       is_indexed: false
@@ -337,274 +825,99 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: about
-    field: experience
-    type: json
-    meta:
-      collection: about
-      conditions: null
-      display: null
-      display_options: null
-      field: experience
-      group: null
-      hidden: false
-      interface: list
-      note: >-
-        Array of objects: {"date": "2021—PRES", "title": "SENIOR DATA ANALYST",
-        "subtitle": "NEURAL SYSTEMS INC.", "tag": "FULL-TIME"}
-      options:
-        fields:
-          - field: date
-            meta:
-              interface: input
-              width: half
-            name: Date Range
-            type: string
-          - field: tag
-            meta:
-              interface: input
-              width: half
-            name: Tag
-            type: string
-          - field: title
-            meta:
-              interface: input
-              width: full
-            name: Title
-            type: string
-          - field: subtitle
-            meta:
-              interface: input
-              width: full
-            name: Subtitle
-            type: string
-      readonly: false
-      required: false
-      searchable: true
-      sort: 6
-      special:
-        - cast-json
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: experience
-      table: about
-      data_type: json
-      default_value: null
-      max_length: null
-      numeric_precision: null
-      numeric_scale: null
-      is_nullable: true
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: about
-    field: skills
-    type: json
-    meta:
-      collection: about
-      conditions: null
-      display: null
-      display_options: null
-      field: skills
-      group: null
-      hidden: false
-      interface: list
-      note: >-
-        Array of objects: {"header": "01 // CORE", "name": "DATA ANALYSIS",
-        "items": [{"name": "PYTHON", "suffix": "V3.11"}]}
-      options:
-        fields:
-          - field: header
-            meta:
-              interface: input
-              width: half
-            name: Header (e.g. 01 / CORE)
-            type: string
-          - field: name
-            meta:
-              interface: input
-              width: half
-            name: Category Name
-            type: string
-          - field: items
-            meta:
-              interface: list
-              options:
-                fields:
-                  - field: name
-                    meta:
-                      interface: input
-                      width: half
-                    name: Skill Name
-                    type: string
-                  - field: suffix
-                    meta:
-                      interface: input
-                      width: half
-                    name: Level (PRO/ADV)
-                    type: string
-            name: Skill Items
-            type: json
-      readonly: false
-      required: false
-      searchable: true
-      sort: 7
-      special:
-        - cast-json
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: skills
-      table: about
-      data_type: json
-      default_value: null
-      max_length: null
-      numeric_precision: null
-      numeric_scale: null
-      is_nullable: true
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: about
-    field: resume
+  - collection: posts
+    field: id
     type: uuid
     meta:
-      collection: about
+      collection: posts
       conditions: null
-      display: file
+      display: null
       display_options: null
-      field: resume
+      field: id
       group: null
-      hidden: false
-      interface: file
+      hidden: true
+      interface: input
       note: null
       options: null
-      readonly: false
+      readonly: true
       required: false
       searchable: true
-      sort: 9
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: posts
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: posts
+    field: status
+    type: string
+    meta:
+      collection: posts
+      conditions: null
+      display: null
+      display_options: null
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Draft
+            value: draft
+          - text: Published
+            value: published
+          - text: Archived
+            value: archived
+      readonly: false
+      required: true
+      searchable: true
+      sort: 2
       special: null
       translations: null
       validation: null
       validation_message: null
       width: full
     schema:
-      name: resume
-      table: about
-      data_type: uuid
-      default_value: null
-      max_length: null
+      name: status
+      table: posts
+      data_type: character varying
+      default_value: draft
+      max_length: 255
       numeric_precision: null
       numeric_scale: null
-      is_nullable: true
+      is_nullable: false
       is_unique: false
       is_indexed: false
       is_primary_key: false
       is_generated: false
       generation_expression: null
       has_auto_increment: false
-      foreign_key_table: directus_files
-      foreign_key_column: id
-  - collection: home_settings
-    field: id
-    type: integer
-    meta:
-      collection: home_settings
-      conditions: null
-      display: null
-      display_options: null
-      field: id
-      group: null
-      hidden: true
-      interface: numeric
-      note: null
-      options: null
-      readonly: true
-      required: false
-      searchable: true
-      sort: 1
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: id
-      table: home_settings
-      data_type: integer
-      default_value: nextval('home_settings_id_seq'::regclass)
-      max_length: null
-      numeric_precision: 32
-      numeric_scale: 0
-      is_nullable: false
-      is_unique: true
-      is_indexed: false
-      is_primary_key: true
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: true
       foreign_key_table: null
       foreign_key_column: null
-  - collection: logs
-    field: id
-    type: integer
-    meta:
-      collection: logs
-      conditions: null
-      display: null
-      display_options: null
-      field: id
-      group: null
-      hidden: true
-      interface: numeric
-      note: null
-      options: null
-      readonly: true
-      required: false
-      searchable: true
-      sort: 1
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: id
-      table: logs
-      data_type: integer
-      default_value: nextval('logs_id_seq'::regclass)
-      max_length: null
-      numeric_precision: 32
-      numeric_scale: 0
-      is_nullable: false
-      is_unique: true
-      is_indexed: false
-      is_primary_key: true
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: true
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: logs
+  - collection: posts
     field: title
     type: string
     meta:
-      collection: logs
+      collection: posts
       conditions: null
       display: null
       display_options: null
@@ -615,47 +928,7 @@ fields:
       note: null
       options: null
       readonly: false
-      required: false
-      searchable: true
-      sort: 2
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: title
-      table: logs
-      data_type: character varying
-      default_value: null
-      max_length: 255
-      numeric_precision: null
-      numeric_scale: null
-      is_nullable: true
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: logs
-    field: slug
-    type: string
-    meta:
-      collection: logs
-      conditions: null
-      display: null
-      display_options: null
-      field: slug
-      group: null
-      hidden: false
-      interface: input
-      note: null
-      options: null
-      readonly: false
-      required: false
+      required: true
       searchable: true
       sort: 3
       special: null
@@ -664,14 +937,14 @@ fields:
       validation_message: null
       width: full
     schema:
-      name: slug
-      table: logs
+      name: title
+      table: posts
       data_type: character varying
       default_value: null
-      max_length: 255
+      max_length: 120
       numeric_precision: null
       numeric_scale: null
-      is_nullable: true
+      is_nullable: false
       is_unique: false
       is_indexed: false
       is_primary_key: false
@@ -680,22 +953,22 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: logs
-    field: excerpt
+  - collection: posts
+    field: slug
     type: string
     meta:
-      collection: logs
+      collection: posts
       conditions: null
       display: null
       display_options: null
-      field: excerpt
+      field: slug
       group: null
       hidden: false
-      interface: textarea
-      note: null
+      interface: input
+      note: "Unique URL slug: lowercase words separated by hyphens."
       options: null
       readonly: false
-      required: false
+      required: true
       searchable: true
       sort: 4
       special: null
@@ -704,15 +977,15 @@ fields:
       validation_message: null
       width: full
     schema:
-      name: excerpt
-      table: logs
+      name: slug
+      table: posts
       data_type: character varying
       default_value: null
-      max_length: 255
+      max_length: 60
       numeric_precision: null
       numeric_scale: null
-      is_nullable: true
-      is_unique: false
+      is_nullable: false
+      is_unique: true
       is_indexed: false
       is_primary_key: false
       is_generated: false
@@ -720,19 +993,19 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: logs
-    field: content
+  - collection: posts
+    field: excerpt
     type: text
     meta:
-      collection: logs
+      collection: posts
       conditions: null
-      display: formatted-value
+      display: null
       display_options: null
-      field: content
+      field: excerpt
       group: null
       hidden: false
-      interface: input-rich-text-html
-      note: null
+      interface: input-multiline
+      note: Short summary. Keep at or below 200 characters.
       options: null
       readonly: false
       required: false
@@ -744,8 +1017,8 @@ fields:
       validation_message: null
       width: full
     schema:
-      name: content
-      table: logs
+      name: excerpt
+      table: posts
       data_type: text
       default_value: null
       max_length: null
@@ -760,11 +1033,51 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: logs
+  - collection: posts
+    field: content
+    type: text
+    meta:
+      collection: posts
+      conditions: null
+      display: null
+      display_options: null
+      field: content
+      group: null
+      hidden: false
+      interface: input-rich-text-html
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: content
+      table: posts
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: posts
     field: published_at
     type: timestamp
     meta:
-      collection: logs
+      collection: posts
       conditions: null
       display: null
       display_options: null
@@ -777,15 +1090,15 @@ fields:
       readonly: false
       required: false
       searchable: true
-      sort: 6
+      sort: 7
       special: null
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
       name: published_at
-      table: logs
+      table: posts
       data_type: timestamp with time zone
       default_value: null
       max_length: null
@@ -800,55 +1113,15 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: logs
-    field: tag
-    type: string
+  - collection: posts
+    field: post_number
+    type: integer
     meta:
-      collection: logs
+      collection: posts
       conditions: null
       display: null
       display_options: null
-      field: tag
-      group: null
-      hidden: false
-      interface: input
-      note: null
-      options: null
-      readonly: false
-      required: false
-      searchable: true
-      sort: 7
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: tag
-      table: logs
-      data_type: character varying
-      default_value: null
-      max_length: 255
-      numeric_precision: null
-      numeric_scale: null
-      is_nullable: true
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: logs
-    field: category
-    type: string
-    meta:
-      collection: logs
-      conditions: null
-      display: null
-      display_options: null
-      field: category
+      field: post_number
       group: null
       hidden: false
       interface: input
@@ -862,15 +1135,15 @@ fields:
       translations: null
       validation: null
       validation_message: null
-      width: full
+      width: half
     schema:
-      name: category
-      table: logs
-      data_type: character varying
+      name: post_number
+      table: posts
+      data_type: integer
       default_value: null
-      max_length: 255
-      numeric_precision: null
-      numeric_scale: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
       is_nullable: true
       is_unique: false
       is_indexed: false
@@ -880,15 +1153,15 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: logs
-    field: log_number
-    type: integer
+  - collection: posts
+    field: series_label
+    type: string
     meta:
-      collection: logs
+      collection: posts
       conditions: null
       display: null
       display_options: null
-      field: log_number
+      field: series_label
       group: null
       hidden: false
       interface: input
@@ -904,51 +1177,11 @@ fields:
       validation_message: null
       width: full
     schema:
-      name: log_number
-      table: logs
-      data_type: integer
-      default_value: null
-      max_length: null
-      numeric_precision: 32
-      numeric_scale: 0
-      is_nullable: true
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: logs
-    field: series_label
-    type: string
-    meta:
-      collection: logs
-      conditions: null
-      display: null
-      display_options: null
-      field: series_label
-      group: null
-      hidden: false
-      interface: input
-      note: null
-      options: null
-      readonly: false
-      required: false
-      searchable: true
-      sort: 10
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
       name: series_label
-      table: logs
+      table: posts
       data_type: character varying
       default_value: null
-      max_length: 255
+      max_length: 120
       numeric_precision: null
       numeric_scale: null
       is_nullable: true
@@ -960,62 +1193,127 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: projects
-    field: id
-    type: integer
+  - collection: posts
+    field: topics
+    type: alias
     meta:
-      collection: projects
+      collection: posts
+      conditions: null
+      display: null
+      display_options: null
+      field: topics
+      group: null
+      hidden: false
+      interface: list-m2m
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 10
+      special:
+        - m2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: posts_topics
+    field: id
+    type: uuid
+    meta:
+      collection: posts_topics
       conditions: null
       display: null
       display_options: null
       field: id
       group: null
       hidden: true
-      interface: numeric
+      interface: input
       note: null
       options: null
       readonly: true
       required: false
       searchable: true
       sort: 1
-      special: null
+      special:
+        - uuid
       translations: null
       validation: null
       validation_message: null
       width: full
     schema:
       name: id
-      table: projects
-      data_type: integer
-      default_value: nextval('projects_id_seq'::regclass)
+      table: posts_topics
+      data_type: uuid
+      default_value: null
       max_length: null
-      numeric_precision: 32
-      numeric_scale: 0
+      numeric_precision: null
+      numeric_scale: null
       is_nullable: false
       is_unique: true
       is_indexed: false
       is_primary_key: true
       is_generated: false
       generation_expression: null
-      has_auto_increment: true
+      has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: projects
-    field: title
-    type: string
+  - collection: posts_topics
+    field: topics_id
+    type: uuid
     meta:
-      collection: projects
+      collection: posts_topics
       conditions: null
       display: null
       display_options: null
-      field: title
+      field: topics_id
       group: null
       hidden: false
-      interface: input
+      interface: select-dropdown-m2o
       note: null
       options: null
       readonly: false
-      required: false
+      required: true
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: topics_id
+      table: posts_topics
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: posts_topics
+    field: posts_id
+    type: uuid
+    meta:
+      collection: posts_topics
+      conditions: null
+      display: null
+      display_options: null
+      field: posts_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: true
       searchable: true
       sort: 2
       special: null
@@ -1024,14 +1322,14 @@ fields:
       validation_message: null
       width: full
     schema:
-      name: title
-      table: projects
-      data_type: character varying
+      name: posts_id
+      table: posts_topics
+      data_type: uuid
       default_value: null
-      max_length: 255
+      max_length: null
       numeric_precision: null
       numeric_scale: null
-      is_nullable: true
+      is_nullable: false
       is_unique: false
       is_indexed: false
       is_primary_key: false
@@ -1040,11 +1338,139 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: projects
+  - collection: specialties
+    field: id
+    type: uuid
+    meta:
+      collection: specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: specialties
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: specialties
+    field: status
+    type: string
+    meta:
+      collection: specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Draft
+            value: draft
+          - text: Published
+            value: published
+          - text: Archived
+            value: archived
+      readonly: false
+      required: true
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: status
+      table: specialties
+      data_type: character varying
+      default_value: draft
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: specialties
+    field: name
+    type: string
+    meta:
+      collection: specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: name
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: name
+      table: specialties
+      data_type: character varying
+      default_value: null
+      max_length: 40
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: specialties
     field: slug
     type: string
     meta:
-      collection: projects
+      collection: specialties
       conditions: null
       display: null
       display_options: null
@@ -1055,47 +1481,7 @@ fields:
       note: null
       options: null
       readonly: false
-      required: false
-      searchable: true
-      sort: 3
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: slug
-      table: projects
-      data_type: character varying
-      default_value: null
-      max_length: 255
-      numeric_precision: null
-      numeric_scale: null
-      is_nullable: true
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: projects
-    field: summary
-    type: string
-    meta:
-      collection: projects
-      conditions: null
-      display: null
-      display_options: null
-      field: summary
-      group: null
-      hidden: false
-      interface: textarea
-      note: null
-      options: null
-      readonly: false
-      required: false
+      required: true
       searchable: true
       sort: 4
       special: null
@@ -1104,15 +1490,15 @@ fields:
       validation_message: null
       width: full
     schema:
-      name: summary
-      table: projects
+      name: slug
+      table: specialties
       data_type: character varying
       default_value: null
       max_length: 255
       numeric_precision: null
       numeric_scale: null
-      is_nullable: true
-      is_unique: false
+      is_nullable: false
+      is_unique: true
       is_indexed: false
       is_primary_key: false
       is_generated: false
@@ -1120,18 +1506,18 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: projects
+  - collection: specialties
     field: description
-    type: text
+    type: string
     meta:
-      collection: projects
+      collection: specialties
       conditions: null
       display: null
       display_options: null
       field: description
       group: null
       hidden: false
-      interface: input-rich-text-html
+      interface: input
       note: null
       options: null
       readonly: false
@@ -1145,10 +1531,10 @@ fields:
       width: full
     schema:
       name: description
-      table: projects
-      data_type: text
+      table: specialties
+      data_type: character varying
       default_value: null
-      max_length: null
+      max_length: 200
       numeric_precision: null
       numeric_scale: null
       is_nullable: true
@@ -1160,22 +1546,35 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: projects
-    field: cover_image
-    type: uuid
+  - collection: specialties
+    field: color_key
+    type: string
     meta:
-      collection: projects
+      collection: specialties
       conditions: null
-      display: image
+      display: null
       display_options: null
-      field: cover_image
+      field: color_key
       group: null
       hidden: false
-      interface: file-image
+      interface: select-dropdown
       note: null
-      options: null
+      options:
+        choices:
+          - text: viz-1
+            value: viz-1
+          - text: viz-2
+            value: viz-2
+          - text: viz-3
+            value: viz-3
+          - text: viz-4
+            value: viz-4
+          - text: viz-5
+            value: viz-5
+          - text: viz-6
+            value: viz-6
       readonly: false
-      required: false
+      required: true
       searchable: true
       sort: 6
       special: null
@@ -1184,55 +1583,14 @@ fields:
       validation_message: null
       width: full
     schema:
-      name: cover_image
-      table: projects
-      data_type: uuid
+      name: color_key
+      table: specialties
+      data_type: character varying
       default_value: null
-      max_length: null
+      max_length: 16
       numeric_precision: null
       numeric_scale: null
-      is_nullable: true
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: directus_files
-      foreign_key_column: id
-  - collection: projects
-    field: tags
-    type: json
-    meta:
-      collection: projects
-      conditions: null
-      display: null
-      display_options: null
-      field: tags
-      group: null
-      hidden: false
-      interface: tags
-      note: null
-      options: null
-      readonly: false
-      required: false
-      searchable: true
-      sort: 7
-      special:
-        - cast-json
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: tags
-      table: projects
-      data_type: json
-      default_value: null
-      max_length: null
-      numeric_precision: null
-      numeric_scale: null
-      is_nullable: true
+      is_nullable: false
       is_unique: false
       is_indexed: false
       is_primary_key: false
@@ -1241,135 +1599,15 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: projects
-    field: published_at
-    type: timestamp
-    meta:
-      collection: projects
-      conditions: null
-      display: null
-      display_options: null
-      field: published_at
-      group: null
-      hidden: false
-      interface: datetime
-      note: null
-      options: null
-      readonly: false
-      required: false
-      searchable: true
-      sort: 8
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: published_at
-      table: projects
-      data_type: timestamp with time zone
-      default_value: null
-      max_length: null
-      numeric_precision: null
-      numeric_scale: null
-      is_nullable: true
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: projects
-    field: featured
-    type: boolean
-    meta:
-      collection: projects
-      conditions: null
-      display: null
-      display_options: null
-      field: featured
-      group: null
-      hidden: false
-      interface: boolean
-      note: null
-      options: null
-      readonly: false
-      required: false
-      searchable: true
-      sort: 9
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: featured
-      table: projects
-      data_type: boolean
-      default_value: null
-      max_length: null
-      numeric_precision: null
-      numeric_scale: null
-      is_nullable: true
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: site_settings
-    field: id
+  - collection: specialties
+    field: sort
     type: integer
     meta:
-      collection: site_settings
+      collection: specialties
       conditions: null
       display: null
       display_options: null
-      field: id
-      group: null
-      hidden: true
-      interface: numeric
-      note: null
-      options: null
-      readonly: true
-      required: false
-      searchable: true
-      sort: 1
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: id
-      table: site_settings
-      data_type: integer
-      default_value: nextval('site_settings_id_seq'::regclass)
-      max_length: null
-      numeric_precision: 32
-      numeric_scale: 0
-      is_nullable: false
-      is_unique: true
-      is_indexed: false
-      is_primary_key: true
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: true
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: site_settings
-    field: twitter
-    type: string
-    meta:
-      collection: site_settings
-      conditions: null
-      display: raw
-      display_options: null
-      field: twitter
+      field: sort
       group: null
       hidden: false
       interface: input
@@ -1378,6 +1616,94 @@ fields:
       readonly: false
       required: false
       searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: sort
+      table: specialties
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: topics
+    field: id
+    type: uuid
+    meta:
+      collection: topics
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: topics
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: topics
+    field: status
+    type: string
+    meta:
+      collection: topics
+      conditions: null
+      display: null
+      display_options: null
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Draft
+            value: draft
+          - text: Published
+            value: published
+          - text: Archived
+            value: archived
+      readonly: false
+      required: true
+      searchable: true
       sort: 2
       special: null
       translations: null
@@ -1385,11 +1711,131 @@ fields:
       validation_message: null
       width: full
     schema:
-      name: twitter
-      table: site_settings
+      name: status
+      table: topics
+      data_type: character varying
+      default_value: draft
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: topics
+    field: name
+    type: string
+    meta:
+      collection: topics
+      conditions: null
+      display: null
+      display_options: null
+      field: name
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: name
+      table: topics
+      data_type: character varying
+      default_value: null
+      max_length: 40
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: topics
+    field: slug
+    type: string
+    meta:
+      collection: topics
+      conditions: null
+      display: null
+      display_options: null
+      field: slug
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: slug
+      table: topics
       data_type: character varying
       default_value: null
       max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: topics
+    field: description
+    type: string
+    meta:
+      collection: topics
+      conditions: null
+      display: null
+      display_options: null
+      field: description
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: description
+      table: topics
+      data_type: character varying
+      default_value: null
+      max_length: 200
       numeric_precision: null
       numeric_scale: null
       is_nullable: true
@@ -1415,66 +1861,68 @@ systemFields:
     schema:
       is_indexed: true
 relations:
-  - collection: about
-    field: profile_image
+  - collection: authors
+    field: avatar
     related_collection: directus_files
     meta:
       junction_field: null
-      many_collection: about
-      many_field: profile_image
+      many_collection: authors
+      many_field: avatar
       one_allowed_collections: null
       one_collection: directus_files
       one_collection_field: null
       one_deselect_action: nullify
       one_field: null
       sort_field: null
-    schema:
-      table: about
-      column: profile_image
-      foreign_key_table: directus_files
-      foreign_key_column: id
-      constraint_name: about_profile_image_foreign
-      on_update: NO ACTION
-      on_delete: NO ACTION
-  - collection: about
-    field: resume
-    related_collection: directus_files
+  - collection: authors_specialties
+    field: authors_id
+    related_collection: authors
     meta:
-      junction_field: null
-      many_collection: about
-      many_field: resume
+      junction_field: specialties_id
+      many_collection: authors_specialties
+      many_field: authors_id
       one_allowed_collections: null
-      one_collection: directus_files
+      one_collection: authors
       one_collection_field: null
-      one_deselect_action: nullify
+      one_deselect_action: delete
+      one_field: specialties
+      sort_field: sort
+  - collection: authors_specialties
+    field: specialties_id
+    related_collection: specialties
+    meta:
+      junction_field: authors_id
+      many_collection: authors_specialties
+      many_field: specialties_id
+      one_allowed_collections: null
+      one_collection: specialties
+      one_collection_field: null
+      one_deselect_action: delete
       one_field: null
       sort_field: null
-    schema:
-      table: about
-      column: resume
-      foreign_key_table: directus_files
-      foreign_key_column: id
-      constraint_name: about_resume_foreign
-      on_update: NO ACTION
-      on_delete: NO ACTION
-  - collection: projects
-    field: cover_image
-    related_collection: directus_files
+  - collection: posts_topics
+    field: topics_id
+    related_collection: topics
     meta:
-      junction_field: null
-      many_collection: projects
-      many_field: cover_image
+      junction_field: posts_id
+      many_collection: posts_topics
+      many_field: topics_id
       one_allowed_collections: null
-      one_collection: directus_files
+      one_collection: topics
       one_collection_field: null
-      one_deselect_action: nullify
+      one_deselect_action: delete
       one_field: null
       sort_field: null
-    schema:
-      table: projects
-      column: cover_image
-      foreign_key_table: directus_files
-      foreign_key_column: id
-      constraint_name: projects_cover_image_foreign
-      on_update: NO ACTION
-      on_delete: NO ACTION
+  - collection: posts_topics
+    field: posts_id
+    related_collection: posts
+    meta:
+      junction_field: topics_id
+      many_collection: posts_topics
+      many_field: posts_id
+      one_allowed_collections: null
+      one_collection: posts
+      one_collection_field: null
+      one_deselect_action: delete
+      one_field: topics
+      sort_field: null

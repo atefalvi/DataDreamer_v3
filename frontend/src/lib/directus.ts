@@ -30,12 +30,11 @@ export interface Log {
     excerpt?: string;
     content?: string;
     published_at?: string;
-    tag?: string;
-    category?: string;
     status?: string;
-    log_number?: number;
+    post_number?: number;
     series_label?: string;
     author?: DirectusUser;
+    topics?: { topics_id?: { name?: string; slug?: string } }[];
 }
 
 export interface SiteSettings {
@@ -96,7 +95,7 @@ export interface AboutSettings {
 
 interface CustomSchema {
     projects: Project[];
-    logs: Log[];
+    posts: Log[];
     site_settings: SiteSettings;
     home_settings: HomeSettings;
     about: AboutSettings;
@@ -241,22 +240,22 @@ export async function fetchFeaturedProjects(limit = 3): Promise<Project[]> {
     }
 }
 
-// ─── LOGS ──────────────────────────────────────────
+// ─── POSTS ─────────────────────────────────────────
 
 /**
- * Fetch all logs from Directus.
+ * Fetch all posts from Directus.
  */
 const LOG_FIELDS = [
     'id', 'slug', 'title', 'excerpt', 'content',
-    'published_at', 'tag', 'category', 'log_number', 'series_label',
-    'author.first_name', 'author.last_name', 'author.avatar',
+    'published_at', 'post_number', 'series_label',
+    'topics.topics_id.name', 'topics.topics_id.slug',
 ] as const;
 
 export async function fetchLogs(): Promise<Log[]> {
     try {
         await ensureAuthenticated();
         const items = await directus.request(
-            readItems('logs', {
+            readItems('posts', {
                 filter: { status: { _eq: 'published' } },
                 sort: ['-published_at'],
                 fields: LOG_FIELDS as any,
@@ -270,13 +269,13 @@ export async function fetchLogs(): Promise<Log[]> {
 }
 
 /**
- * Fetch recent logs with a limit.
+ * Fetch recent posts with a limit.
  */
 export async function fetchRecentLogs(limit = 3): Promise<Log[]> {
     try {
         await ensureAuthenticated();
         const items = await directus.request(
-            readItems('logs', {
+            readItems('posts', {
                 filter: { status: { _eq: 'published' } },
                 sort: ['-published_at'],
                 limit,
@@ -291,13 +290,13 @@ export async function fetchRecentLogs(limit = 3): Promise<Log[]> {
 }
 
 /**
- * Fetch a single log by slug from Directus.
+ * Fetch a single post by slug from Directus.
  */
 export async function fetchLog(slug: string): Promise<Log | null> {
     try {
         await ensureAuthenticated();
         const items = await directus.request(
-            readItems('logs', {
+            readItems('posts', {
                 filter: { slug: { _eq: slug } },
                 limit: 1,
                 fields: LOG_FIELDS as any,

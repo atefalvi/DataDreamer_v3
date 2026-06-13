@@ -17,6 +17,52 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-CMS-001 — done
+
+**Did**: Completed the staging Directus v4.0 greenfield schema migration with
+`scripts/v4-cms-001-directus.mjs`. The script is idempotent and creates clean v4
+collections: `posts`, `authors`, `specialties`, `topics`, `authors_specialties`, and
+`posts_topics`; scalar `posts` fields use `post_number`;
+`posts.topics`; `authors.avatar`; `authors.specialties`; `authors_specialties`
+relations; and `posts_topics.posts_id` / `posts_topics.topics_id`. Seeded
+`atef-alvi`, 6 specialties, and 6 topics; removed an accidental `agent-staging`
+author row from earlier token testing; added Public read permissions; and wrote
+`backend/snapshot.yaml`. Removed retired frontend admin credential examples from
+`frontend/.env.example` and `SETUP.md`.
+**Files**: `scripts/v4-cms-001-directus.mjs`; `backend/snapshot.yaml`;
+`frontend/.env.example`; `frontend/src/lib/directus.ts`; `frontend/src/lib/content.ts`;
+`frontend/src/pages/index.astro`; `frontend/src/pages/logs/index.astro`; `README.md`;
+`SETUP.md`; `docs/AGENT_BLOG_GUIDE.md`; `docs/agent-workspace/01-PRODUCT-VISION.md`;
+`docs/agent-workspace/03-INFORMATION-ARCHITECTURE.md`;
+`docs/agent-workspace/08-DIRECTUS-CONTENT-MODEL.md`;
+`docs/agent-workspace/13-TASKS.md`; `docs/agent-workspace/15-HANDOFF.md`;
+`docs/agent-workspace/assets/content-models/example-records.md`;
+`docs/agent-workspace/assets/diagrams/directus-erd.md`.
+**Decisions / deviations**: No sub-agents used. Owner clarified staging is
+greenfield: do not restore v3 production content; create a clean v4 baseline instead.
+The physical Directus collection is `posts`; old `/logs/*` remains only as URL
+redirect compatibility. There are no v4 migration-compat fields from the previous
+model. `pg_dump` was not captured because local
+`pg_dump` is unavailable and `192.168.10.211:5432` refused direct connections; schema
+snapshot is committed and this greenfield DB has no production content to preserve.
+**Validation**: Migration script ran against `http://192.168.10.211:8056` and
+exited `0`. Anonymous curl checks: `posts` published query count 0 and includes
+`topics.topics_id.slug`; authors count 1; specialties count 6; topics count 6;
+`authors_specialties` and `posts_topics` queryable; `/files?limit=1` queryable.
+Authenticated schema read lists non-system collections `authors`,
+`authors_specialties`, `posts`, `posts_topics`, `specialties`, `topics`; relation
+metadata exists for `authors.avatar`, `authors_specialties.authors_id`,
+`authors_specialties.specialties_id`, `posts_topics.posts_id`, and
+`posts_topics.topics_id`.
+**Next**: `V4-CMS-002` is now unblocked: add `author`, `cover_image`, and
+`featured` to `posts`. Because staging is greenfield, its mapping step should create a
+documented no-op result when there are no published posts yet. Those fields are not
+available in Directus until V4-CMS-002 lands.
+**Warnings**: Keep production and staging Directus secrets separate. Rotate any
+production secrets that were pasted into chat. If this greenfield staging DB is later
+replaced by a production restore, rerun `scripts/v4-cms-001-directus.mjs` before
+starting CMS-002.
+
 ## [2026-06-12] V4-FND-003 — done
 
 **Did**: Completed the Coolify staging resource verification. Staging frontend
@@ -330,7 +376,7 @@ design rationale). No production code was changed.
    Inter / JetBrains Mono; ember `#FF5C38` accent; radius + hairline borders; brutalist
    system fully retired (04).
 2. Two-release plan: v4.0 core redesign, v4.1 courses + auth (01 §7, 12).
-3. `/logs` → `/blog` with 301s; physical Directus collection stays `logs` (08 §2.1).
+3. `/logs` → `/blog` with 301s; physical Directus collection is `posts` (08 §2.1).
 4. Directus scope narrowed to editorial/relational/user content; `site_settings`,
    `home_settings`, `about`, `projects` leave Directus (03 §3, 08 §1). Projects become
    an Astro content collection (V4-CMS-005).

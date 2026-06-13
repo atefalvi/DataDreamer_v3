@@ -28,7 +28,7 @@ const logs = directusLogs.map((l: Log) => ({
     slug: l.slug ?? "",
     title: (l.title ?? "UNTITLED").toUpperCase(),
     date: formatDate(l.published_at),
-    tag: (l.tag ?? l.category ?? "").toUpperCase(),
+    tag: (l.topics?.[0]?.topics_id?.name ?? "").toUpperCase(),
 }));
 ---
 
