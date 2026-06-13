@@ -145,6 +145,26 @@ describe('postsRepo.related', () => {
   });
 });
 
+describe('postsRepo.neighbors', () => {
+  it('returns the next newer and previous older posts around the source', async () => {
+    const source = await (async () => {
+      request.mockResolvedValueOnce([
+        postRow({ slug: 'middle', published_at: '2026-05-12T09:00:00Z', content: 'body' }),
+      ]);
+      return postsRepo.bySlug('middle');
+    })();
+
+    request.mockReset();
+    request
+      .mockResolvedValueOnce([postRow({ slug: 'newer', published_at: '2026-05-13T09:00:00Z' })])
+      .mockResolvedValueOnce([postRow({ slug: 'older', published_at: '2026-05-11T09:00:00Z' })]);
+
+    const result = await postsRepo.neighbors(source!);
+    expect(result.next?.slug).toBe('newer');
+    expect(result.previous?.slug).toBe('older');
+  });
+});
+
 function authorRow(overrides: Partial<AuthorRow> = {}): AuthorRow {
   return {
     id: 'a1',

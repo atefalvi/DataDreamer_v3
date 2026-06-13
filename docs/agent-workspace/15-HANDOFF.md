@@ -17,6 +17,43 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-BLOG-002 — done
+
+**Did**: Added the v4 article route at `/blog/[slug]` while preserving `/blog/2`
+numeric pagination behavior in the same dynamic route. The article page now renders
+an editorial header, cover image, metadata rail, imported v4 prose styles, sticky
+desktop TOC plus mobile `<details>` TOC, reading progress, copy-code live region,
+image-grid lightbox dialog, author block, related posts, and previous/next article
+links. Added `postsRepo.neighbors()` for adjacent navigation with unit coverage.
+
+**Files**: `frontend/src/pages/blog/[slug].astro`;
+deleted `frontend/src/pages/blog/[...page].astro`;
+`frontend/src/components/blog/{ArticleEnhancements,ArticleToc,AuthorBlock,ReadingProgress}.astro`;
+`frontend/src/lib/repositories/posts.ts`;
+`frontend/src/lib/repositories/__tests__/repositories.test.ts`;
+docs `13`, `15`.
+
+**Decisions / deviations**:
+1. The v3-era article dead components were not deleted because no parity-safe removal
+   point was proven in this task; some older routes/components still reference legacy
+   helpers. Cleanup remains appropriate for a later dedicated cleanup task.
+2. The author block links to `/blog?author=<slug>` because Dream Team profile routes
+   do not exist yet.
+3. The code-copy fallback now requires the modern Clipboard API to keep `astro check`
+   warning-free; unsupported browsers receive the live-region failure message.
+
+**Validation**: `git diff --check`; `npx astro check` 0/0/0; `npm test` 39 passed;
+`npm run build` ok. Browser check on local dev: `/blog` desktop and 375px mobile
+empty-state path, no horizontal overflow, zero console errors; `/blog/2` correctly
+rewrites to the 404 page when the local CMS has no second page.
+
+**Next**: **V4-BLOG-003 — RSS feed**.
+
+**Warnings**: The local dev instance had no real posts, so a live article page with
+cover/TOC/callouts/lightbox could not be browser-verified against staging content in
+this pass. The pre-existing untracked `docs/agent-workspace/homepage-redesign-plan.md`
+remains untouched/uncommitted.
+
 ## [2026-06-13] V4-BLOG-001 — done
 
 **Did**: Added the v4 blog landing and topic listing foundation. New `/blog` route

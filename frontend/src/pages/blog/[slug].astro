@@ -1,0 +1,522 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleEnhancements from '../../components/blog/ArticleEnhancements.astro';
+import ArticleToc from '../../components/blog/ArticleToc.astro';
+import AuthorBlock from '../../components/blog/AuthorBlock.astro';
+import BlogListing from '../../components/blog/BlogListing.astro';
+import PostCard from '../../components/blog/PostCard.astro';
+import ReadingProgress from '../../components/blog/ReadingProgress.astro';
+import { authorsRepo, postsRepo } from '../../lib/repositories';
+import { absoluteUrl } from '../../lib/seo/meta';
+import { blogPath, emptyBlogListing, loadBlogListing, type BlogListing as BlogListingData } from '../../lib/blog/listing';
+import { directusAssetUrl, directusSrcset } from '../../lib/images';
+import '../../styles/prose.css';
+import type { Author, Post, PostListItem } from '../../types/content';
+import type { OgImage } from '../../lib/seo/meta';
+
+const slug = Astro.params.slug;
+
+if (!slug) {
+  return Astro.rewrite('/404');
+}
+
+const description =
+  'Field notes from DataDreamer on data systems, applied AI, analytics craft, and engineering judgment.';
+const numericPage = Number(slug);
+const isPagination = Number.isInteger(numericPage) && String(numericPage) === slug && numericPage > 0;
+
+let view: 'pagination' | 'article' = 'article';
+let listing: BlogListingData | null = null;
+let paginationPrev: string | undefined;
+let paginationNext: string | undefined;
+
+let post: Post | null = null;
+let author: Author | null = null;
+let related: PostListItem[] = [];
+let neighbors: Awaited<ReturnType<typeof postsRepo.neighbors>> = {};
+let canonical = '';
+let dateLabel = '';
+let shortDate = '';
+let topicNames: string[] = [];
+let cover: Post['coverImage'];
+let ogImage: OgImage = { url: '/og/og-blog.png' };
+let jsonLd: object = {};
+let hasImageGrid = false;
+let hasRelated = false;
+let hasNeighbors = false;
+
+if (isPagination) {
+  if (numericPage === 1) {
+    return Astro.redirect('/blog', 301);
+  }
+
+  view = 'pagination';
+  const activeAuthor = Astro.url.searchParams.get('author') || undefined;
+  listing = emptyBlogListing({ author: activeAuthor, page: numericPage });
+  try {
+    listing = await loadBlogListing({ author: activeAuthor, page: numericPage });
+  } catch (error) {
+    console.error('[blog] paginated listing unavailable:', error instanceof Error ? error.message : error);
+  }
+
+  if (!listing.page.items.length) {
+    return Astro.rewrite('/404');
+  }
+
+  paginationPrev = absoluteUrl(blogPath(numericPage - 1));
+  paginationNext = listing.page.hasMore ? absoluteUrl(blogPath(numericPage + 1)) : undefined;
+} else {
+  post = await postsRepo.bySlug(slug);
+
+  if (!post) {
+    return Astro.rewrite('/404');
+  }
+
+  try {
+    [author, related, neighbors] = await Promise.all([
+      authorsRepo.bySlug(post.author.slug),
+      postsRepo.related(post, 3),
+      postsRepo.neighbors(post),
+    ]);
+  } catch (error) {
+    console.error('[blog] article secondary content unavailable:', error instanceof Error ? error.message : error);
+  }
+
+  canonical = absoluteUrl(`/blog/${post.slug}`);
+  dateLabel = post.publishedAt.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  shortDate = post.publishedAt.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+  topicNames = post.topics.map((topic) => topic.name);
+  cover = post.coverImage;
+  ogImage = cover
+    ? {
+        url: directusAssetUrl(cover.id, {
+          width: 1200,
+          height: 630,
+          fit: 'cover',
+          format: 'webp',
+          quality: 80,
+        }),
+        alt: cover.alt,
+        type: 'image/webp',
+        width: 1200,
+        height: 630,
+      }
+    : { url: '/og/og-blog.png' };
+  jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.publishedAt.toISOString(),
+    author: {
+      '@type': 'Person',
+      name: post.author.name,
+    },
+    mainEntityOfPage: canonical,
+    image: cover ? [ogImage.url] : undefined,
+  };
+  hasImageGrid = post.bodyHtml.includes('class="image-grid"');
+  hasRelated = related.length > 0;
+  hasNeighbors = Boolean(neighbors.previous || neighbors.next);
+}
+---
+
+{view === 'pagination' && listing ? (
+  <BaseLayout
+    title={`Writing page ${numericPage}`}
+    description={description}
+    canonical={absoluteUrl(blogPath(numericPage))}
+    ogType="website"
+    ogImage={{ url: '/og/og-blog.png' }}
+    alternateFeeds={[{ href: absoluteUrl('/rss.xml'), title: 'DataDreamer RSS', type: 'application/rss+xml' }]}
+    pagination={{ prev: paginationPrev, next: paginationNext }}
+  >
+    <BlogListing
+      kicker="The blog"
+      title="Writing"
+      intro={description}
+      listing={listing}
+      pageBasePath={blogPath(numericPage)}
+    />
+  </BaseLayout>
+) : post && (
+  <BaseLayout
+    title={post.title}
+    description={post.excerpt}
+    canonical={canonical}
+    ogType="article"
+    ogImage={ogImage}
+    article={{ publishedTime: post.publishedAt.toISOString(), author: post.author.name, tags: topicNames }}
+    jsonLd={[jsonLd]}
+  >
+    <ReadingProgress />
+
+    <article class="article-page" data-article>
+      <header class="article-hero">
+        <div class="article-hero__meta">
+          <a href="/blog">Writing</a>
+          {post.seriesLabel && <span>{post.seriesLabel}</span>}
+          <time datetime={post.publishedAt.toISOString()}>{shortDate}</time>
+        </div>
+
+        <div class="article-hero__grid">
+          <div>
+            <p class="article-hero__kicker">Field note</p>
+            <h1>{post.title}</h1>
+            <p class="article-hero__dek">{post.excerpt}</p>
+          </div>
+
+          <aside class="article-hero__aside" aria-label="Article metadata">
+            <dl>
+              <div>
+                <dt>Author</dt>
+                <dd>{post.author.name}</dd>
+              </div>
+              <div>
+                <dt>Published</dt>
+                <dd>{dateLabel}</dd>
+              </div>
+              <div>
+                <dt>Read</dt>
+                <dd>{post.readingMinutes} min</dd>
+              </div>
+            </dl>
+            {post.topics.length > 0 && (
+              <ul aria-label="Topics">
+                {post.topics.map((topic) => (
+                  <li><a href={`/blog/topic/${topic.slug}`}>{topic.name}</a></li>
+                ))}
+              </ul>
+            )}
+          </aside>
+        </div>
+
+        {cover && (
+          <figure class="article-cover">
+            <img
+              src={cover.src}
+              srcset={directusSrcset(cover.id, [720, 1100, 1600, 2200])}
+              sizes="(min-width: 80rem) 1180px, calc(100vw - 32px)"
+              width={cover.width}
+              height={cover.height}
+              alt={cover.alt}
+              loading="eager"
+              decoding="async"
+            />
+          </figure>
+        )}
+      </header>
+
+      <div class="article-shell">
+        <aside class="article-shell__toc">
+          <ArticleToc headings={post.headings} />
+        </aside>
+
+        <div class="article-shell__body">
+          <div class="blog-content article-prose" data-article-prose set:html={post.bodyHtml} />
+          <ArticleEnhancements hasImageGrid={hasImageGrid} />
+
+          {author && <AuthorBlock author={author} />}
+
+          {hasNeighbors && (
+            <nav class="article-neighbors" aria-label="Adjacent posts">
+              {neighbors.previous ? (
+                <a href={`/blog/${neighbors.previous.slug}`} class="article-neighbor article-neighbor--previous">
+                  <span>Previous</span>
+                  <strong>{neighbors.previous.title}</strong>
+                </a>
+              ) : <span />}
+              {neighbors.next && (
+                <a href={`/blog/${neighbors.next.slug}`} class="article-neighbor article-neighbor--next">
+                  <span>Next</span>
+                  <strong>{neighbors.next.title}</strong>
+                </a>
+              )}
+            </nav>
+          )}
+        </div>
+      </div>
+
+      {hasRelated && (
+        <section class="article-related" aria-labelledby="related-heading">
+          <div class="article-related__header">
+            <p>Continue reading</p>
+            <h2 id="related-heading">Related field notes</h2>
+          </div>
+          <div class="article-related__grid">
+            {related.map((item) => <PostCard post={item} variant="compact" />)}
+          </div>
+        </section>
+      )}
+    </article>
+  </BaseLayout>
+)}
+
+<style>
+  .article-page {
+    padding: calc(78px + var(--space-8)) var(--space-4) var(--space-10);
+    background:
+      radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 34rem),
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-1) 42%, transparent), transparent 28rem);
+  }
+
+  .article-hero,
+  .article-shell,
+  .article-related {
+    width: min(100%, 74rem);
+    margin-inline: auto;
+  }
+
+  .article-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
+  .article-hero__meta a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .article-hero__meta span::before,
+  .article-hero__meta time::before {
+    margin-inline-end: var(--space-3);
+    color: var(--border-2);
+    content: '/';
+  }
+
+  .article-hero__grid {
+    display: grid;
+    gap: var(--space-7);
+    margin-top: var(--space-5);
+  }
+
+  .article-hero__kicker {
+    margin: 0 0 var(--space-4);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 650;
+    text-transform: uppercase;
+  }
+
+  .article-hero h1 {
+    max-width: 12ch;
+    font-family: var(--font-display);
+    font-size: clamp(var(--fs-4xl), 8vw, var(--fs-7xl));
+    font-weight: 560;
+    letter-spacing: 0;
+    line-height: 0.95;
+    text-wrap: balance;
+  }
+
+  .article-hero__dek {
+    max-width: 42rem;
+    margin-top: var(--space-5);
+    color: var(--text-2);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-xl);
+    text-wrap: pretty;
+  }
+
+  .article-hero__aside {
+    align-self: end;
+    padding: var(--space-5);
+    border: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-1) 72%, transparent);
+  }
+
+  .article-hero__aside dl {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+  }
+
+  .article-hero__aside div {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .article-hero__aside dt {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
+  .article-hero__aside dd {
+    margin: 0;
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+  }
+
+  .article-hero__aside ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-5) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .article-hero__aside a {
+    display: inline-flex;
+    min-height: 2rem;
+    align-items: center;
+    padding-inline: var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-decoration: none;
+  }
+
+  .article-cover {
+    overflow: hidden;
+    margin: var(--space-8) 0 0;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-2);
+  }
+
+  .article-cover img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .article-shell {
+    display: grid;
+    gap: var(--space-7);
+    margin-top: var(--space-8);
+  }
+
+  .article-shell__body {
+    min-width: 0;
+  }
+
+  .article-prose {
+    width: min(100%, 46rem);
+  }
+
+  .article-neighbors {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .article-neighbor {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .article-neighbor:hover {
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--border-2));
+    transform: translateY(calc(var(--space-1) * -0.75));
+  }
+
+  .article-neighbor span {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
+  .article-neighbor strong {
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  .article-neighbor--next {
+    text-align: right;
+  }
+
+  .article-related {
+    margin-top: var(--space-10);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .article-related__header p {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 650;
+    text-transform: uppercase;
+  }
+
+  .article-related__header h2 {
+    margin-top: var(--space-2);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+  }
+
+  .article-related__grid {
+    display: grid;
+    gap: var(--space-2);
+    margin-top: var(--space-6);
+  }
+
+  @media (min-width: 48rem) {
+    .article-neighbors {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .article-page {
+      padding-inline: var(--space-6);
+    }
+
+    .article-hero__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+      align-items: end;
+    }
+
+    .article-shell {
+      grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  @media (max-width: 47.999rem) {
+    .article-page {
+      padding-inline: var(--space-4);
+    }
+
+    .article-hero__dek {
+      font-size: var(--fs-lg);
+      line-height: var(--lh-lg);
+    }
+
+    .article-hero__aside {
+      padding: var(--space-4);
+    }
+  }
+</style>

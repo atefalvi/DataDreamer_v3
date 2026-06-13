@@ -1,0 +1,91 @@
+<div class="reading-progress" aria-hidden="true" role="progressbar">
+  <span data-reading-progress></span>
+</div>
+
+<style>
+  .reading-progress {
+    position: fixed;
+    inset: 78px 0 auto;
+    z-index: 90;
+    display: none;
+    height: 2px;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  .reading-progress.is-visible {
+    display: block;
+  }
+
+  .reading-progress span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  @media (max-width: 47.999rem) {
+    .reading-progress {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  const progressHost = document.querySelector<HTMLElement>('.reading-progress');
+  const progressBar = document.querySelector<HTMLElement>('[data-reading-progress]');
+  const article = document.querySelector<HTMLElement>('[data-article]');
+
+  if (progressHost && progressBar && article) {
+    let top = 0;
+    let height = 0;
+    let viewH = window.innerHeight;
+    let ticking = false;
+    let enabled = false;
+
+    const measure = () => {
+      const rect = article.getBoundingClientRect();
+      top = rect.top + window.scrollY;
+      height = article.offsetHeight;
+      viewH = window.innerHeight;
+      enabled = window.innerWidth >= 768 && height > viewH * 1.5;
+      progressHost.classList.toggle('is-visible', enabled);
+    };
+
+    const update = () => {
+      if (!enabled) {
+        ticking = false;
+        return;
+      }
+      const denominator = Math.max(1, height - viewH * 0.6);
+      const value = Math.max(0, Math.min(1, (window.scrollY - top + viewH * 0.1) / denominator));
+      progressBar.style.transform = `scaleX(${value})`;
+      ticking = false;
+    };
+
+    const requestUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+
+    let resizeTimer = 0;
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener(
+      'resize',
+      () => {
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(() => {
+          measure();
+          requestUpdate();
+        }, 120);
+      },
+      { passive: true },
+    );
+
+    measure();
+    requestUpdate();
+  }
+</script>

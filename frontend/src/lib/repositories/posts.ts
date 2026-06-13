@@ -161,6 +161,39 @@ export async function related(post: Post, limit = 3): Promise<PostListItem[]> {
   return fallback.filter((p) => p.slug !== post.slug).slice(0, limit);
 }
 
+export async function neighbors(post: Post): Promise<{ next?: PostListItem; previous?: PostListItem }> {
+  const publishedAt = post.publishedAt.toISOString();
+  const newerFilter = { ...PUBLISHED, published_at: { _gt: publishedAt } } as never;
+  const olderFilter = { ...PUBLISHED, published_at: { _lt: publishedAt } } as never;
+  const [newerRows, olderRows] = await Promise.all([
+    guard('posts.neighbors.newer', () =>
+      directus.request<PostRow[]>(
+        readItems('posts', {
+          filter: newerFilter,
+          sort: ['published_at'],
+          limit: 1,
+          fields: POST_LIST_FIELDS as Fields,
+        }),
+      ),
+    ),
+    guard('posts.neighbors.older', () =>
+      directus.request<PostRow[]>(
+        readItems('posts', {
+          filter: olderFilter,
+          sort: ['-published_at'],
+          limit: 1,
+          fields: POST_LIST_FIELDS as Fields,
+        }),
+      ),
+    ),
+  ]);
+
+  return {
+    next: newerRows[0] ? mapPostListItem(newerRows[0]) : undefined,
+    previous: olderRows[0] ? mapPostListItem(olderRows[0]) : undefined,
+  };
+}
+
 /** Published post count grouped by author id (for author cards / graph). */
 export async function countsByAuthorId(): Promise<Map<string, number>> {
   const command = aggregate('posts' as never, {
