@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import BlogListing from '../../../components/blog/BlogListing.astro';
+import { absoluteUrl, SITE_URL } from '../../../lib/seo/meta';
+import { loadBlogListing, topicPath } from '../../../lib/blog/listing';
+
+const slug = Astro.params.slug;
+if (!slug) return Astro.rewrite('/404');
+
+const author = Astro.url.searchParams.get('author') || undefined;
+const listing = await loadBlogListing({ author, topic: slug });
+const topic = listing.activeTopic;
+
+if (!topic) {
+  return Astro.rewrite('/404');
+}
+
+const description = topic.description || `Writing from DataDreamer about ${topic.name}.`;
+const canonical = absoluteUrl(topicPath(topic.slug));
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${topic.name} — DataDreamer`,
+    url: canonical,
+    description,
+    isPartOf: {
+      '@type': 'Blog',
+      name: 'DataDreamer Writing',
+      url: `${SITE_URL}/blog`,
+    },
+  },
+];
+---
+
+<BaseLayout
+  title={`${topic.name}`}
+  description={description}
+  canonical={canonical}
+  ogType="website"
+  ogImage={{ url: '/og/og-blog.png' }}
+  alternateFeeds={[{ href: absoluteUrl('/rss.xml'), title: 'DataDreamer RSS', type: 'application/rss+xml' }]}
+  jsonLd={jsonLd}
+>
+  <BlogListing
+    breadcrumbs={[{ label: 'Blog', href: '/blog' }, { label: topic.name }]}
+    clearHref="/blog"
+    kicker="Topic"
+    title={topic.name}
+    intro={description}
+    listing={listing}
+    pageBasePath={topicPath(topic.slug)}
+  />
+</BaseLayout>

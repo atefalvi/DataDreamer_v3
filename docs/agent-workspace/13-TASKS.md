@@ -36,7 +36,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-SHELL-002 | Nav, mobile menu, theme, footer | B | SHELL-001, DS-002, DS-004 | done |
 | V4-HOME-001 | Hero "Signal Field" | B | SHELL-002 | done |
 | V4-HOME-002 | Home sections | B | HOME-001, DS-002 | done |
-| V4-BLOG-001 | Blog landing + topics + redirects | B | SHELL-002, ARC-001 | todo |
+| V4-BLOG-001 | Blog landing + topics + redirects | B | SHELL-002, ARC-001 | done |
 | V4-BLOG-002 | Article page + callouts | B | BLOG-001, ARC-002, DS-003 | todo |
 | V4-BLOG-003 | RSS feed | B | BLOG-002 | todo |
 | V4-PAGE-001 | About page | B | SHELL-002 | todo |

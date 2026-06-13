@@ -90,6 +90,24 @@ export async function latest(limit = 3): Promise<PostListItem[]> {
   return rows.map(mapPostListItem);
 }
 
+/** Most recent featured post, falling back to the latest published post. */
+export async function featuredOrLatest(): Promise<PostListItem | null> {
+  const featured = await guard('posts.featuredOrLatest', () =>
+    directus.request<PostRow[]>(
+      readItems('posts', {
+        filter: { ...PUBLISHED, featured: { _eq: true } },
+        sort: ['-published_at'],
+        limit: 1,
+        fields: POST_LIST_FIELDS as Fields,
+      }),
+    ),
+  );
+  if (featured.length) return mapPostListItem(featured[0]);
+
+  const [fallback] = await latest(1);
+  return fallback ?? null;
+}
+
 export async function byAuthor(authorSlug: string, limit = 10): Promise<PostListItem[]> {
   const rows = await guard('posts.byAuthor', () =>
     directus.request<PostRow[]>(

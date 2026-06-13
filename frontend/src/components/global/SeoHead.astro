@@ -27,6 +27,11 @@ const isSecureImage = og.url.startsWith('https://');
 <meta name="description" content={seo.description} />
 <meta name="robots" content={robots} />
 <link rel="canonical" href={canonical} />
+{seo.pagination?.prev && <link rel="prev" href={seo.pagination.prev} />}
+{seo.pagination?.next && <link rel="next" href={seo.pagination.next} />}
+{seo.alternateFeeds?.map((feed) => (
+  <link rel="alternate" type={feed.type} title={feed.title} href={feed.href} />
+))}
 
 <link rel="icon" href="/favicon.ico" sizes="32x32" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

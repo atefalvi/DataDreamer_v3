@@ -17,6 +17,55 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-BLOG-001 — done
+
+**Did**: Added the v4 blog landing and topic listing foundation. New `/blog` route
+uses `BaseLayout`, SSR topic chips, optional no-JS author filter form, EmptyState
+fallback, RSS alternate link, `Blog` JSON-LD, and the new shared `BlogListing`
+component. Added numeric pagination route `/blog/[...page]` for `/blog/2` style URLs
+with `rel=prev/next` head links. Added `/blog/topic/[slug]` with breadcrumbs,
+active topic chip, `CollectionPage` JSON-LD, and 404 rewrite for unknown topics.
+Extended `PostCard` with BLOG-001 `hero` and `row` variants. Added
+`postsRepo.featuredOrLatest()` with unit coverage for the featured-post fallback.
+Replaced legacy `/logs` pages with 301 shims: `/logs` → `/blog` and
+`/logs/:slug` → `/blog/:slug`.
+
+**Files**: `frontend/src/pages/blog/{index,[...page]}.astro`,
+`frontend/src/pages/blog/topic/[slug].astro`, `frontend/src/components/blog/BlogListing.astro`,
+`frontend/src/components/blog/PostCard.astro`, `frontend/src/lib/blog/listing.ts`,
+`frontend/src/lib/repositories/posts.ts`,
+`frontend/src/lib/repositories/__tests__/repositories.test.ts`,
+`frontend/src/lib/seo/meta.ts`, `frontend/src/components/global/SeoHead.astro`,
+`frontend/src/pages/logs/{index,[...slug]}.astro`; docs `13`, `15`.
+
+**Decisions / deviations**:
+1. `/blog` catches repository failures and renders the true-empty EmptyState instead of
+   allowing a local CMS outage to 500 the browse page. Server logs retain the failure
+   context.
+2. Row cards do not show reading time unless a list item already carries it. This
+   follows the V4-ARC-001 decision that list queries omit `content`; add a
+   `reading_minutes` column later if list rows must show it without detail fetches.
+3. `/blog/[...page]` currently accepts numeric pagination only and rewrites non-numeric
+   paths to 404. V4-BLOG-002 should extend/replace this catch-all when article pages
+   land at `/blog/[slug]`.
+4. Local remote state warning: `origin/feature/v4-redesign` fetched during this session
+   did not yet contain the shell/home chain, so this branch is stacked on
+   `v4/v4-shell-002-home` plus a local homepage polish commit.
+
+**Validation**: `git diff --check`; `npx astro check` 0/0/0; `npm test` 38 passed;
+`npm run build` ok. Curl checks: `/logs` 301 → `/blog`; `/logs/example-slug`
+301 → `/blog/example-slug`; `/blog` 200 with local CMS unavailable. Browser check:
+`/blog` desktop + mobile, no horizontal overflow, active nav state, one theme toggle,
+RSS alternate present, EmptyState visible, zero browser console errors.
+
+**Next**: **V4-BLOG-002** — article page + callouts. It should wire real
+`/blog/[slug]` article behavior, preserve legacy `/logs/:slug` redirects, and remove
+or adapt the numeric pagination catch-all as needed.
+
+**Warnings**: `docs/agent-workspace/homepage-redesign-plan.md` was already untracked
+before BLOG-001 and was left untouched/uncommitted. Confirm the shell/home chain is
+actually merged to `feature/v4-redesign` before opening/retargeting this stacked PR.
+
 ## [2026-06-12] V4-SHELL-002 + V4-HOME-001 + V4-HOME-002 — done (one session)
 
 **Did**: Completed the global shell components, the homepage hero, and the home

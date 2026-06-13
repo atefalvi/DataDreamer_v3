@@ -116,6 +116,22 @@ describe('postsRepo.bySlug', () => {
   });
 });
 
+describe('postsRepo.featuredOrLatest', () => {
+  it('returns the newest featured post when one exists', async () => {
+    request.mockResolvedValueOnce([postRow({ slug: 'featured' })]);
+    const post = await postsRepo.featuredOrLatest();
+    expect(post?.slug).toBe('featured');
+  });
+
+  it('falls back to latest when no featured post exists', async () => {
+    request
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([postRow({ slug: 'latest', featured: false })]);
+    const post = await postsRepo.featuredOrLatest();
+    expect(post?.slug).toBe('latest');
+  });
+});
+
 describe('postsRepo.related', () => {
   it('falls back to latest (excluding the source) when no topic matches', async () => {
     const source = await (async () => {

@@ -1,9 +1,9 @@
 ---
 /**
  * PostCard — one component, multiple layouts (06 §6). This batch implements the
- * `featured` and `compact` variants the homepage needs (05 §1.2); BLOG-001 adds `row`
- * and `hero`. The whole card is a single link; author/topic render as plain text in
- * card context (no nested interactive elements).
+ * `featured`/`compact` serve the homepage; `hero`/`row` serve BLOG-001. The whole
+ * card is a single link; author/topic render as plain text in card context (no
+ * nested interactive elements).
  */
 import Avatar from '../ui/Avatar.astro';
 import { directusSrcset } from '../../lib/images';
@@ -11,7 +11,7 @@ import type { PostListItem } from '../../types/content';
 
 interface Props {
   post: PostListItem;
-  variant?: 'featured' | 'compact';
+  variant?: 'featured' | 'compact' | 'hero' | 'row';
 }
 
 const { post, variant = 'compact' } = Astro.props;
@@ -24,11 +24,15 @@ const dateLabel = post.publishedAt.toLocaleDateString('en-US', {
 const isoDate = post.publishedAt.toISOString();
 const topic = post.topics[0];
 const cover = post.coverImage;
+const showMedia = cover && (variant === 'featured' || variant === 'hero');
+const showExcerpt = post.excerpt && (variant === 'featured' || variant === 'hero' || variant === 'row');
+const showAuthor = variant === 'featured' || variant === 'hero';
+const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.seriesLabel;
 ---
 
 <article class:list={['post-card', `post-card--${variant}`]}>
   <a href={href} class="post-card__link">
-    {variant === 'featured' && cover && (
+    {showMedia && (
       <div class="post-card__media">
         <img
           src={cover.src}
@@ -51,13 +55,20 @@ const cover = post.coverImage;
 
       <h3 class="post-card__title">{post.title}</h3>
 
-      {variant === 'featured' && post.excerpt && <p class="post-card__excerpt">{post.excerpt}</p>}
+      {showExcerpt && <p class="post-card__excerpt">{post.excerpt}</p>}
 
-      {variant === 'featured' && (
+      {showAuthor && (
         <span class="post-card__author">
           <Avatar src={post.author.avatar?.src} name={post.author.name} size={24} />
           <span>{post.author.name}</span>
         </span>
+      )}
+
+      {variant === 'row' && (
+        <div class="post-card__row-foot">
+          <span>{post.author.name}</span>
+          {metaTail && <span>{metaTail}</span>}
+        </div>
       )}
     </div>
   </a>
@@ -68,6 +79,9 @@ const cover = post.coverImage;
     display: block;
     color: inherit;
     text-decoration: none;
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
   }
 
   .post-card__media {
@@ -137,7 +151,23 @@ const cover = post.coverImage;
     font-size: var(--fs-sm);
   }
 
-  /* Featured: large serif title. Compact: a tighter row that sits in a list. */
+  .post-card__row-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .post-card__row-foot span + span::before {
+    margin-inline-end: var(--space-3);
+    color: var(--border-2);
+    content: '/';
+  }
+
+  /* Featured: homepage large title. Compact: tighter home list. */
   .post-card--featured .post-card__title {
     font-size: var(--fs-2xl);
     line-height: var(--lh-2xl);
@@ -151,5 +181,98 @@ const cover = post.coverImage;
   .post-card--compact .post-card__title {
     font-size: var(--fs-xl);
     line-height: var(--lh-xl);
+  }
+
+  .post-card--hero .post-card__link {
+    display: grid;
+    gap: var(--space-6);
+    overflow: hidden;
+    padding: var(--space-5);
+    border: 1px solid color-mix(in srgb, var(--border-2) 78%, transparent);
+    border-radius: var(--radius-md);
+    background:
+      radial-gradient(circle at 94% 12%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 34%),
+      var(--bg-1);
+  }
+
+  .post-card--hero .post-card__media {
+    margin: 0;
+  }
+
+  .post-card--hero .post-card__body {
+    align-self: end;
+  }
+
+  .post-card--hero .post-card__title {
+    max-width: 16ch;
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+  }
+
+  .post-card--row {
+    border-top: 1px solid var(--border-1);
+  }
+
+  .post-card--row .post-card__link {
+    display: grid;
+    gap: var(--space-4);
+    padding-block: var(--space-5);
+  }
+
+  .post-card--row .post-card__meta {
+    align-self: start;
+  }
+
+  .post-card--row .post-card__title {
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+  }
+
+  .post-card--row .post-card__excerpt {
+    margin-top: var(--space-2);
+    -webkit-line-clamp: 2;
+  }
+
+  .post-card--hero .post-card__link:hover,
+  .post-card--row .post-card__link:hover {
+    border-color: color-mix(in srgb, var(--accent) 34%, var(--border-2));
+  }
+
+  @media (min-width: 48rem) {
+    .post-card--row .post-card__link {
+      grid-template-columns: 10rem minmax(0, 1fr);
+      gap: var(--space-6);
+    }
+
+    .post-card--row .post-card__body {
+      min-width: 0;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .post-card--hero .post-card__link {
+      grid-template-columns: minmax(0, 7fr) minmax(18rem, 5fr);
+      align-items: stretch;
+      min-height: 28rem;
+    }
+
+    .post-card--hero .post-card__media {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .post-card--hero .post-card__body {
+      grid-column: 1;
+      grid-row: 1;
+      display: grid;
+      align-content: end;
+    }
+  }
+
+  @media (max-width: 47.999rem) {
+    .post-card--row .post-card__title {
+      font-size: var(--fs-xl);
+      line-height: var(--lh-xl);
+    }
   }
 </style>

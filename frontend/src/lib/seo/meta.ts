@@ -28,6 +28,17 @@ export interface ArticleMeta {
   tags?: string[];
 }
 
+export interface AlternateFeed {
+  href: string;
+  title: string;
+  type: string;
+}
+
+export interface PaginationLinks {
+  next?: string;
+  prev?: string;
+}
+
 export interface Seo {
   /** Page-specific title part; the brand suffix is applied centrally. */
   title: string;
@@ -38,6 +49,8 @@ export interface Seo {
   ogImage?: OgImage;
   article?: ArticleMeta;
   noindex?: boolean;
+  alternateFeeds?: AlternateFeed[];
+  pagination?: PaginationLinks;
   /** Each object is emitted as its own <script type="application/ld+json">. */
   jsonLd?: object[];
 }
