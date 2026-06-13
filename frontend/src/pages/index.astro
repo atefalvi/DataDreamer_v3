@@ -1,193 +1,174 @@
 ---
-import MainLayout from "../layouts/MainLayout.astro";
-import HeroCanvas from "../components/hero/HeroCanvas.astro";
-import ProjectCard from "../components/projects/ProjectCard.astro";
-import {
-    fetchFeaturedProjects,
-    fetchRecentLogs,
-    getAssetUrl,
-    type Project,
-    type Log,
-} from "../lib/directus";
-import { formatDate } from "../lib/content";
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroSignalField from '../components/home/HeroSignalField.astro';
+import SectionHeader from '../components/ui/SectionHeader.astro';
+import PostCard from '../components/blog/PostCard.astro';
+import EmptyState from '../components/ui/EmptyState.astro';
+import Avatar from '../components/ui/Avatar.astro';
+import { postsRepo, authorsRepo } from '../lib/repositories';
+import { HOME_SEO } from '../content/site';
+import { SITE_URL } from '../lib/seo/meta';
+import type { AuthorRef, PostListItem } from '../types/content';
 
-const directusProjects = await fetchFeaturedProjects(3);
-const directusLogs = await fetchRecentLogs(3);
+// Each section degrades independently — a CMS outage shows an empty section, never a
+// 500 (the hero + shell are static and always render).
+let posts: PostListItem[] = [];
+try {
+  posts = await postsRepo.latest(3);
+} catch (error) {
+  console.error('[home] latest posts unavailable:', error instanceof Error ? error.message : error);
+}
 
-const projects = directusProjects.map((p: Project, i: number) => ({
-    title: (p.title ?? "UNTITLED").toUpperCase(),
-    description: p.summary ?? "",
-    image: p.cover_image ? getAssetUrl(p.cover_image) : null,
-    index: `EXP.${String(i + 1).padStart(2, "0")}`,
-    year: p.published_at ? new Date(p.published_at).getFullYear().toString() : "2024",
-    tags: p.tags ?? [],
-    href: p.slug ? `/projects/${p.slug}` : "#",
-}));
+let team: AuthorRef[] = [];
+let teamCount = 0;
+let specialtyCount = 0;
+try {
+  const summaries = await authorsRepo.allWithCounts();
+  teamCount = summaries.length;
+  specialtyCount = new Set(summaries.flatMap((a) => a.specialties.map((s) => s.slug))).size;
+  team = summaries.slice(0, 8).map(({ slug, name, avatar }) => ({ slug, name, avatar }));
+} catch (error) {
+  console.error('[home] team unavailable:', error instanceof Error ? error.message : error);
+}
 
-const logs = directusLogs.map((l: Log) => ({
-    slug: l.slug ?? "",
-    title: (l.title ?? "UNTITLED").toUpperCase(),
-    date: formatDate(l.published_at),
-    tag: (l.topics?.[0]?.topics_id?.name ?? "").toUpperCase(),
-}));
+const featured = posts[0];
+const compact = posts.slice(1, 3);
+
+const jsonLd = [
+  { '@context': 'https://schema.org', '@type': 'WebSite', name: 'DataDreamer', url: SITE_URL },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'DataDreamer',
+    url: SITE_URL,
+    logo: `${SITE_URL}/favicon.svg`,
+  },
+];
+
+const teamSentence =
+  teamCount > 0
+    ? `Writing and courses from ${teamCount} practitioner${teamCount === 1 ? '' : 's'} across ${specialtyCount} specialt${specialtyCount === 1 ? 'y' : 'ies'}.`
+    : '';
 ---
 
-<MainLayout
-    title="DATA DREAMER // ANALYST"
-    description="Analyst, data engineer, and AI builder. Work at the intersection of data, systems, and intelligence."
-    ogType="website"
+<BaseLayout
+  title={HOME_SEO.title}
+  description={HOME_SEO.description}
+  ogType="website"
+  ogImage={{ url: '/og/og-home.png' }}
+  transparentNav
+  jsonLd={jsonLd}
 >
-    <HeroCanvas />
+  <HeroSignalField />
 
-    <!-- Featured Projects Teaser -->
-    <section class="container teaser-section">
-        <header class="section-header-block">
-            <div class="section-header-content">
-                <span class="meta-text">// RECENT DEPLOYMENTS</span>
-                <h2 class="section-title">PROJECTS</h2>
-            </div>
-            <a href="/projects" class="btn">View All Projects →</a>
-        </header>
-        <div class="teaser-projects-grid">
-            {
-                projects.map((project) => (
-                    <ProjectCard
-                        title={project.title}
-                        description={project.description}
-                        image={project.image}
-                        index={project.index}
-                        year={project.year}
-                        tags={project.tags}
-                        href={project.href}
-                    />
-                ))
-            }
-        </div>
-    </section>
+  <section class="home-section container-content">
+    <SectionHeader
+      kicker="From the blog"
+      title="Latest writing"
+      action={{ label: 'All posts', href: '/blog' }}
+    />
+    {posts.length === 0 ? (
+      <EmptyState message="New writing is on the way." icon="pen-line" />
+    ) : (
+      <div class="home-writing">
+        {featured && (
+          <div class="home-writing__featured" data-reveal>
+            <PostCard post={featured} variant="featured" />
+          </div>
+        )}
+        {compact.length > 0 && (
+          <div class="home-writing__rest">
+            {compact.map((post) => (
+              <div data-reveal data-reveal-group="home-posts">
+                <PostCard post={post} variant="compact" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
+  </section>
 
-    <!-- Recent Logs Teaser -->
-    <section class="container teaser-section">
-        <header class="section-header-block">
-            <div class="section-header-content">
-                <span class="meta-text">// TERMINAL OUTPUT</span>
-                <h2 class="section-title">DEV LOG</h2>
-            </div>
-            <a href="/logs" class="btn">View All Logs →</a>
-        </header>
-        <ul class="teaser-log-list">
-            {
-                logs.map((post) => (
-                    <li class="teaser-log-item">
-                        <a href={`/logs/${post.slug}`} class="teaser-log-link">
-                            <span class="teaser-log-date">{post.date}</span>
-                            <span class="teaser-log-title">{post.title}</span>
-                            <span class="teaser-log-tag">{post.tag}</span>
-                        </a>
-                    </li>
-                ))
-            }
+  {/* Selected work — added with the projects content collection (V4-CMS-005 / V4-PROJ-001). */}
+
+  {team.length > 0 && (
+    <section class="home-section container-content">
+      <SectionHeader
+        kicker="The Dream Team"
+        title="The people behind the work"
+        action={{ label: 'Meet the team', href: '/dream-team' }}
+      />
+      <a href="/dream-team" class="team-strip" data-reveal>
+        <ul class="team-strip__avatars">
+          {team.map((member) => (
+            <li><Avatar src={member.avatar?.src} name={member.name} size={48} /></li>
+          ))}
         </ul>
+        <p class="team-strip__text">{teamSentence}</p>
+      </a>
     </section>
-</MainLayout>
+  )}
+</BaseLayout>
 
 <style>
-    .teaser-section {
-        padding-top: 80px;
-        padding-bottom: 80px;
-        border-top: 1px solid var(--color-border);
-    }
+  .home-section {
+    padding-block-start: var(--section-y);
+  }
 
-    .teaser-projects-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 40px;
-    }
+  .home-writing {
+    display: grid;
+    gap: var(--space-7);
+  }
 
-    /* ── Log list ── */
-    .teaser-log-list {
-        list-style: none;
+  @media (min-width: 64rem) {
+    .home-writing {
+      grid-template-columns: 1.4fr 1fr;
+      gap: var(--space-8);
+      align-items: start;
     }
+  }
 
-    .teaser-log-item {
-        border-bottom: 1px solid var(--color-border);
-    }
+  .home-writing__rest {
+    display: grid;
+  }
 
-    .teaser-log-link {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-        padding: 24px 8px;
-        text-decoration: none;
-        color: inherit;
-        transition:
-            background 0.25s ease,
-            padding-left 0.25s ease;
-    }
+  .team-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  }
 
-    .teaser-log-link:hover {
-        background: var(--color-primary);
-        padding-left: 16px;
-    }
+  .team-strip:hover {
+    border-color: var(--border-2);
+    transform: translateY(-2px);
+  }
 
-    .teaser-log-link:hover * {
-        color: white;
-    }
-    .teaser-log-link:hover .teaser-log-tag {
-        border-color: white;
-    }
+  .team-strip__avatars {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
 
-    .teaser-log-date {
-        width: 110px;
-        flex-shrink: 0;
-        font-size: 11px;
-        color: var(--text-secondary);
-    }
+  .team-strip__avatars li:not(:first-child) {
+    margin-left: -12px;
+  }
 
-    .teaser-log-title {
-        font-family: var(--font-display);
-        font-size: 28px;
-        flex-grow: 1;
-        line-height: 1;
-    }
+  .team-strip__avatars :global(.ui-avatar) {
+    box-shadow: 0 0 0 2px var(--bg-0);
+  }
 
-    .teaser-log-tag {
-        font-size: 10px;
-        border: 1px solid var(--border);
-        padding: 3px 8px;
-        flex-shrink: 0;
-        color: var(--text-secondary);
-    }
-
-    @media (max-width: 1024px) {
-        .teaser-projects-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .teaser-section {
-            padding-top: 48px;
-            padding-bottom: 48px;
-        }
-        .teaser-projects-grid {
-            grid-template-columns: 1fr;
-            gap: 48px;
-        }
-        .teaser-log-link {
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .teaser-log-date {
-            width: auto;
-        }
-        .teaser-log-title {
-            flex-basis: 100%;
-            order: 3;
-            font-size: 20px;
-        }
-        .teaser-log-tag {
-            order: 2;
-            margin-left: auto;
-        }
-    }
+  .team-strip__text {
+    flex: 1 1 16rem;
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
 </style>
