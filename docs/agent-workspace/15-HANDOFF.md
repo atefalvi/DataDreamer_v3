@@ -17,6 +17,77 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-SHELL-002 + V4-HOME-001 + V4-HOME-002 — done (one session)
+
+**Did**: Completed the global shell components, the homepage hero, and the home
+sections. All browser-verified against staging in both themes + mobile.
+
+**SHELL-002** — `content/site.ts` (nav items w/ Courses gated by `COURSES_ENABLED`,
+social links, home copy, flags), `global/ThemeToggle.astro` (swaps `data-theme`,
+persists, dispatches `themechange`, binds all instances), `global/SiteNav.astro`
+(sticky; transparent-over-hero → `.is-scrolled` past 24px on home only; active
+route via `aria-current`; hamburger), `global/MobileMenu.astro` (overlay + canonical
+focus trap 07 §3.3: Escape, Tab-wrap, scroll lock, focus restore), `global/SiteFooter.astro`
+(4 cols; topics from `topicsRepo.top(5)` wrapped in try/catch → degrades to empty;
+newsletter behind `SHOW_NEWSLETTER`). Wired all into BaseLayout (replaced SHELL-001
+placeholders) + `transparentNav` prop. Added `lib/motion/reveal.ts` (the `[data-reveal]`
+IntersectionObserver util base.css depends on) and ran it from BaseLayout.
+
+**HOME-001** — `home/HeroSignalField.astro`: SSR headline (LCP) over a hand-rolled
+canvas (≤zero deps) rendering the brand motifs — drifting **square pixels**, circular
+**ember nodes**, hairline **connections** — with IntersectionObserver pause, theme
+re-read, resize rebuild, and a frame-budget degrade guard. Deterministic inline SVG
+"still" covers mobile / reduced-motion / no-JS via CSS (`html:not(.no-js)` + min-width +
+no-preference gate). Verified: canvas live on desktop both themes; static SVG on mobile.
+
+**HOME-002** — `blog/PostCard.astro` (`featured` + `compact` variants; BLOG-001 adds
+row/hero), and `pages/index.astro` migrated to BaseLayout: hero + "Latest writing"
+(featured + 2 compact, EmptyState when none) + Dream Team strip (avatars + count
+sentence) + WebSite/Organization JSON-LD. Per-section fetches are try/caught so a CMS
+outage shows empty sections, never a 500.
+
+**Files**: `frontend/src/content/site.ts`, `frontend/src/lib/motion/reveal.ts`,
+`frontend/src/components/global/{ThemeToggle,SiteNav,MobileMenu,SiteFooter}.astro`,
+`frontend/src/components/home/HeroSignalField.astro`,
+`frontend/src/components/blog/PostCard.astro`, `frontend/src/layouts/BaseLayout.astro`,
+`frontend/src/pages/index.astro`, `frontend/src/components/ui/Icon.astro` (custom-icon
+dir support), `frontend/src/assets/icons/{github,linkedin}.svg`; docs `13`, `15`.
+
+**Decisions / deviations**:
+1. **Selected-work section omitted** from the home this batch — it needs the projects
+   content collection (V4-CMS-005, not done). Blueprint allows "no projects → omit";
+   marker left in index.astro. Added with CMS-005 / PROJ-001.
+2. **Hero line-reveal flourish skipped** (07 §2.3 step 2): SSR text is always fully
+   visible (best LCP, zero FOUC) and the masked per-line reveal + its pre-paint
+   `hero-motion-ok` hack were dropped as not worth the fragility. Canvas fade + motifs
+   carry the "premium" cue. Everything else in 07 §2 implemented.
+3. **Custom brand icons**: lucide-static dropped `github`/`linkedin`/`twitter`. Added
+   `src/assets/icons/{github,linkedin}.svg` and taught `Icon.astro` to check that dir
+   (module-relative) before lucide (04 §8 permits custom SVGs for brand marks). A
+   linter had already hardened Icon's lucide resolution to module-relative — kept that.
+4. Built `lib/motion/reveal.ts` here (implicit infra dependency of the `[data-reveal]`
+   CSS shipped in DS-001); it's the one util from 06 §2 / 07 §1.
+
+**Validation**: `astro check` 0/0/0; `npm test` 36 passed; `npm run build` ok.
+**Live browser check** (dev pointed at staging, then reverted): home renders in dark
+(Observatory default) + light; hero canvas animates the pixel/data/connection field on
+desktop, static SVG on mobile; nav transparent→solid on scroll, active states; mobile
+menu opens (X morph), **focus enters panel, Escape closes + restores focus to the
+hamburger**, scroll-locks; theme toggle switches + persists; footer 4 cols with brand
+icons (Topics col correctly hidden at 0 posts); team strip populated from staging
+(1 author); "Latest writing" shows EmptyState (0 posts); zero console errors; no
+horizontal overflow at 375px.
+
+**Next**: **V4-BLOG-001** (blog landing + topic pages + `/logs` 301s) — extends PostCard
+with row/hero variants and uses `postsRepo.list`. Then BLOG-002 (article). This branch
+is `v4/v4-shell-002-home` off `v4/v4-shell-001` (stack: cms-002 → arc-001 → shell-001 →
+shell-002-home); merge in order into `feature/v4-redesign`.
+
+**Warnings**: v3 `index.astro` was replaced; `HeroCanvas.astro`/`HeroTagline.astro` are
+now unused (deleted in CLEAN-001, not now). The `.env` was temporarily pointed at
+staging for verification and **restored** — confirm `.env` has no `api-staging` lines.
+Footer Topics column stays hidden until posts carry topics.
+
 ## [2026-06-12] V4-SHELL-001 — done
 
 **Did**: Built the v4 global shell foundation + error handling.

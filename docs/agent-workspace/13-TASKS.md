@@ -33,9 +33,9 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-ARC-001 | Repository layer + types | A | CMS-002, FND-001 | done |
 | V4-ARC-002 | Markdown pipeline v4 + goldens | A | FND-001 | done |
 | V4-SHELL-001 | BaseLayout, SeoHead, middleware, 404/500 | B | DS-001, ARC-001 | done |
-| V4-SHELL-002 | Nav, mobile menu, theme, footer | B | SHELL-001, DS-002, DS-004 | todo |
-| V4-HOME-001 | Hero "Signal Field" | B | SHELL-002 | todo |
-| V4-HOME-002 | Home sections | B | HOME-001, DS-002 | todo |
+| V4-SHELL-002 | Nav, mobile menu, theme, footer | B | SHELL-001, DS-002, DS-004 | done |
+| V4-HOME-001 | Hero "Signal Field" | B | SHELL-002 | done |
+| V4-HOME-002 | Home sections | B | HOME-001, DS-002 | done |
 | V4-BLOG-001 | Blog landing + topics + redirects | B | SHELL-002, ARC-001 | todo |
 | V4-BLOG-002 | Article page + callouts | B | BLOG-001, ARC-002, DS-003 | todo |
 | V4-BLOG-003 | RSS feed | B | BLOG-002 | todo |

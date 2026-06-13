@@ -1,0 +1,167 @@
+---
+/**
+ * SiteFooter (03 §2). Four columns / stacked on mobile. Topics come from the
+ * repository but are decorative here — a CMS outage degrades to an empty list, never
+ * an error (08 §8 error policy). Newsletter slot stays behind the SHOW_NEWSLETTER flag.
+ */
+import Icon from '../ui/Icon.astro';
+import { topicsRepo } from '../../lib/repositories';
+import { FLAGS, NAV_ITEMS, SITE, SOCIAL_LINKS } from '../../content/site';
+import type { TopicRef } from '../../types/content';
+import logoLockup from '../../assets/brand/logo-lockup.svg?raw';
+
+let topics: TopicRef[] = [];
+try {
+  topics = await topicsRepo.top(5);
+} catch (error) {
+  console.error('[SiteFooter] topics unavailable:', error instanceof Error ? error.message : error);
+}
+
+const exploreLinks = [{ label: 'Home', href: '/' }, ...NAV_ITEMS, { label: 'Connect', href: '/connect' }];
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner container-wide">
+    <div class="site-footer__brand-col">
+      <a href="/" class="site-footer__brand" aria-label="DataDreamer — home">
+        <span class="site-footer__logo" set:html={logoLockup} />
+      </a>
+      <p class="site-footer__mission">{SITE.mission}</p>
+      {FLAGS.SHOW_NEWSLETTER && (
+        <div class="site-footer__newsletter">{/* Newsletter signup — enabled when infra exists (01 §6). */}</div>
+      )}
+    </div>
+
+    <nav class="site-footer__col" aria-label="Explore">
+      <h2 class="site-footer__heading">Explore</h2>
+      <ul>
+        {exploreLinks.map((link) => (
+          <li><a href={link.href}>{link.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    {topics.length > 0 && (
+      <nav class="site-footer__col" aria-label="Topics">
+        <h2 class="site-footer__heading">Topics</h2>
+        <ul>
+          {topics.map((t) => (
+            <li><a href={`/blog/topic/${t.slug}`}>{t.name}</a></li>
+          ))}
+        </ul>
+      </nav>
+    )}
+
+    <nav class="site-footer__col" aria-label="Elsewhere">
+      <h2 class="site-footer__heading">Elsewhere</h2>
+      <ul class="site-footer__social">
+        {SOCIAL_LINKS.map((s) => (
+          <li>
+            <a href={s.href} rel="noopener" target={s.href.startsWith('http') ? '_blank' : undefined}>
+              <Icon name={s.icon} size={16} /><span>{s.label}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+
+  <div class="site-footer__legal container-wide">
+    <span>© {year} {SITE.name}</span>
+    <a href="/privacy">Privacy</a>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: var(--section-y);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-1);
+    background: var(--bg-0);
+  }
+
+  .site-footer__inner {
+    display: grid;
+    grid-template-columns: 1.6fr repeat(3, 1fr);
+    gap: var(--space-7) var(--space-6);
+  }
+
+  .site-footer__logo :global(svg) {
+    display: block;
+    height: 22px;
+    width: auto;
+    color: var(--text-1);
+  }
+
+  .site-footer__mission {
+    max-width: 32ch;
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-base);
+  }
+
+  .site-footer__heading {
+    margin-bottom: var(--space-4);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .site-footer__col ul {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-footer__col a {
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+  }
+
+  .site-footer__col a:hover {
+    color: var(--accent);
+  }
+
+  .site-footer__social a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .site-footer__legal {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-8);
+    padding-block: var(--space-5);
+    border-top: 1px solid var(--border-1);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+  }
+
+  .site-footer__legal a {
+    color: var(--text-2);
+  }
+
+  @media (max-width: 63.999rem) {
+    .site-footer__inner {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 39.999rem) {
+    .site-footer__inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
