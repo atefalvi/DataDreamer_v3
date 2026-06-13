@@ -17,6 +17,94 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-DT-001/002/003 + V4-PROJ-001/002 + V4-CMS-003/005 — done (one session)
+
+**Did**: Built the Dream Team track (graph algorithm + page + author pages) and the
+Projects track (content collection + index + case study), plus the two Directus data
+scripts. Code tasks browser-verified; the CMS scripts are owner-run (sandbox can't reach
+Directus — same delivery model as CMS-001/002).
+
+**DT-001** — `lib/graph/layout.ts`: pure deterministic SVG layout (07 §5.2) — ellipse
+anchors w/ seeded jitter, golden-angle clusters, weight radius, collision relax,
+quadratic edges. `lib/graph/__tests__/layout.test.ts` — 14 cases (determinism, counts,
+in-bounds, collision floor for 3/8/25 fixtures, id-sensitivity, missing-anchor fallback).
+
+**DT-002** — `pages/dream-team/index.astro` + `components/dream-team/AuthorCard.astro` +
+`lib/graph/enhancer.ts`: SSR SVG constellation (real `<a>` nodes, zero-JS usable),
+specialty legend that doubles as filter, grouped AuthorCard list (the accessible
+equivalent + sole content ≤TL). Enhancer adds tooltips, edge-lighting, dimming, roving
+tabindex, Escape. Specialties derived from authors (no separate repo). Graph shown only
+when ≥2 authors. ItemList/Person JSON-LD.
+
+**DT-003** — `pages/dream-team/[slug].astro`: profile header (avatar, name, role,
+specialty chips, labeled icon links), statement pull-quote, bio prose, tools, the
+author's writing (PostCard rows), featured work, related authors, breadcrumbs. 404 on
+bad slug; every section omits gracefully. ProfilePage + Person JSON-LD.
+
+**CMS-005** — `src/content.config.ts` (Astro 5 content-layer glob loader; projects
+schema per 09 §5), three authored sample case studies in `src/content/projects/*.md`
+with on-brand SVG covers in `src/assets/projects/`, and `scripts/v4-cms-005-directus.mjs`
+(exports Directus projects → markdown + downloaded covers, archives the Directus rows,
+prints the parity table). `site.ts`/`about.ts` stay plain modules (glob base scoped to
+`src/content/projects`).
+
+**PROJ-001** — `pages/projects/index.astro` + `components/projects/CaseCard.astro`:
+reads the `projects` collection (zero Directus), SSR `?tag=` filter (works no-JS),
+asymmetric grid, Astro `<Image>` covers. CollectionPage JSON-LD.
+
+**PROJ-002** — `pages/projects/[slug].astro`: case study; body rendered via the SAME
+`renderMarkdown` the blog uses → `:::` callouts render identically (verified). Cover
+`<Image>` 21/9, sticky fact rail (role/year/stack/links) on TL+, prev/next pager, 404
+on bad slug. CreativeWork JSON-LD.
+
+**CMS-003** — `scripts/v4-cms-003-directus.mjs`: idempotent topics backfill — keyword
+rules (slug+title → topic slug) with a `devlog` fallback so every published post gets
+≥1 topic; skips already-tagged posts; prints the mapping table; `DRY_RUN=1` supported.
+
+**Files**: `frontend/src/lib/graph/{layout.ts,enhancer.ts,__tests__/layout.test.ts}`,
+`frontend/src/components/dream-team/AuthorCard.astro`,
+`frontend/src/components/projects/CaseCard.astro`,
+`frontend/src/pages/dream-team/{index,[slug]}.astro`,
+`frontend/src/pages/projects/{index,[slug]}.astro`, `frontend/src/content.config.ts`,
+`frontend/src/content/projects/*.md`, `frontend/src/assets/projects/**`,
+`scripts/v4-cms-00{3,5}-directus.mjs`; docs 13/15.
+
+**Decisions / deviations**:
+1. **Sample covers are SVG** (text-authorable). Astro `image()` + `<Image>` accept SVG
+   (verified in build/browser). The migration script downloads real covers as png/jpg/
+   webp for migrated projects.
+2. **DT graph hidden ≤TL via CSS** (not unmounted). SSR sends one HTML to all viewports;
+   the SVG markup for ≤30 nodes is tiny and the list is the no-JS content. Practical
+   deviation from 05 §7's "component not mounted".
+3. **PROJ-002 renders body via `renderMarkdown(entry.body)`** rather than Astro's
+   `render()` — guarantees byte-identical callout output to blog with no new remark/rehype
+   plugins. Body images would need absolute URLs (renderMarkdown's image step is
+   Directus-oriented); cover uses Astro assets.
+4. **DT specialties derived from authors** instead of a `specialtiesRepo.all()` (which
+   doesn't exist) — member count = authors carrying that specialty.
+
+**OWNER-RUN (Directus, not executed here — sandbox has no Directus network)**:
+- `DIRECTUS_URL=… DIRECTUS_TOKEN=… node scripts/v4-cms-003-directus.mjs` — backfill
+  topics once posts are seeded (staging currently has 0 posts, so nothing to tag yet).
+- `… node scripts/v4-cms-005-directus.mjs` — migrate any real Directus `projects` to
+  markdown + archive them. The three committed samples are authored placeholders the
+  owner can replace; paste the script's parity table here after running.
+
+**Validation**: `astro check` 0/0/0; `npm test` 53 passed (14 new graph tests);
+`npm run build` ok. Browser (dev → staging): `/projects` 3 cards + SVG covers + SSR tag
+filter (Airflow→1, Tableau→2, all→3); `/projects/[slug]` callouts render identically to
+blog + fact rail + pager + cover; bad slug → 404. `/dream-team` list with the real
+staging author (graph correctly hidden at 1 author); `/dream-team/atef-alvi` full profile
+(statement pull-quote, bio), bad slug → 404.
+
+**Next**: V4-SEO-001/002 (JSON-LD/meta audit, sitemap-posts), V4-A11Y/PERF passes. The
+DT graph constellation couldn't be seen populated (staging has 1 author, <2) — verify
+visually once ≥2 authors exist; the layout itself is unit-tested.
+
+**Warnings**: Seed ≥2 authors with specialties on staging to exercise the graph + legend
+filter end-to-end. Old v3 `components/projects/*` + `lib/directus` project/author helpers
+are now unused → CLEAN-001.
+
 ## [2026-06-13] V4-BLOG-003 + V4-PAGE-001/002/003 — done (one session)
 
 **Did**: After consolidating the full v4 stack into `feature/v4-redesign` (PR #20) and

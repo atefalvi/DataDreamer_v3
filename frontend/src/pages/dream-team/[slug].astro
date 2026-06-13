@@ -1,0 +1,334 @@
+---
+/**
+ * V4-DT-003 — Author page (05 §8). Profile header, bio + statement, tools, the author's
+ * writing, featured work, and related teammates. SSR; 404-rewrites for unknown/inactive
+ * authors. Every section omits gracefully (renders fully with zero posts).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/ui/Breadcrumbs.astro';
+import Avatar from '../../components/ui/Avatar.astro';
+import Chip from '../../components/ui/Chip.astro';
+import Icon from '../../components/ui/Icon.astro';
+import PostCard from '../../components/blog/PostCard.astro';
+import AuthorCard from '../../components/dream-team/AuthorCard.astro';
+import { authorsRepo, postsRepo } from '../../lib/repositories';
+import { SITE_URL } from '../../lib/seo/meta';
+import type { Author, AuthorSummary, PostListItem } from '../../types/content';
+import '../../styles/prose.css';
+
+const slug = Astro.params.slug;
+if (!slug) return Astro.rewrite('/404');
+
+let author: Author | null = null;
+try {
+  author = await authorsRepo.bySlug(slug);
+} catch (error) {
+  console.error('[author] lookup failed:', error instanceof Error ? error.message : error);
+}
+if (!author) return Astro.rewrite('/404');
+
+let posts: PostListItem[] = [];
+let related: AuthorSummary[] = [];
+try {
+  [posts, related] = await Promise.all([postsRepo.byAuthor(slug, 10), authorsRepo.related(author, 3)]);
+} catch (error) {
+  console.error('[author] sections failed:', error instanceof Error ? error.message : error);
+}
+
+const iconFor = (label: string): string => {
+  const l = label.toLowerCase();
+  if (l.includes('git')) return 'github';
+  if (l.includes('linkedin')) return 'linkedin';
+  if (l.includes('mail') || l.includes('email')) return 'mail';
+  if (l.includes('twitter') || l === 'x') return 'x';
+  return 'globe';
+};
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: {
+      '@type': 'Person',
+      name: author.name,
+      jobTitle: author.roleTitle,
+      url: `${SITE_URL}/dream-team/${author.slug}`,
+      sameAs: author.links.map((l) => l.url),
+    },
+  },
+];
+---
+
+<BaseLayout
+  title={`${author.name} — ${author.roleTitle}`}
+  description={`${author.name}, ${author.roleTitle} at DataDreamer.`}
+  ogType="profile"
+  ogImage={{ url: '/og/og-team.png' }}
+  jsonLd={jsonLd}
+>
+  <div class="author container-content">
+    <Breadcrumbs
+      items={[{ label: 'Dream Team', href: '/dream-team' }, { label: author.name }]}
+      class="author__crumbs"
+    />
+
+    <header class="author__header">
+      <Avatar src={author.avatar?.src} name={author.name} size={128} class="author__avatar" />
+      <div class="author__id">
+        <h1>{author.name}</h1>
+        <p class="author__role">{author.roleTitle}</p>
+        {author.specialties.length > 0 && (
+          <ul class="author__specialties">
+            {author.specialties.map((s) => (
+              <li><Chip label={s.name} /></li>
+            ))}
+          </ul>
+        )}
+        {author.links.length > 0 && (
+          <div class="author__links">
+            {author.links.map((link) => (
+              <a
+                href={link.url}
+                class="author__link"
+                rel="noopener noreferrer"
+                target="_blank"
+                aria-label={`${link.label} profile of ${author!.name}`}
+              >
+                <Icon name={iconFor(link.label)} size={20} />
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </header>
+
+    {author.statement && <blockquote class="author__statement">{author.statement}</blockquote>}
+
+    {author.bioHtml && <div class="author__bio prose" set:html={author.bioHtml} />}
+
+    {author.tools.length > 0 && (
+      <section class="author__tools" aria-label="Tools & tech">
+        <p class="kicker">Tools</p>
+        <ul>
+          {author.tools.map((tool) => <li>{tool}</li>)}
+        </ul>
+      </section>
+    )}
+
+    {posts.length > 0 && (
+      <section class="author__writing" aria-label={`Writing by ${author.name}`}>
+        <p class="kicker">{posts.length} post{posts.length === 1 ? '' : 's'}</p>
+        <h2>Writing</h2>
+        <div class="author__posts">
+          {posts.map((post) => <PostCard post={post} variant="row" />)}
+        </div>
+      </section>
+    )}
+
+    {author.featuredWork.length > 0 && (
+      <section class="author__featured" aria-label="Featured work">
+        <p class="kicker">Featured work</p>
+        <div class="author__featured-grid">
+          {author.featuredWork.slice(0, 2).map((work) => (
+            <a href={work.url} class="featured-card" rel="noopener noreferrer" target="_blank">
+              <h3>{work.title}</h3>
+              {work.description && <p>{work.description}</p>}
+              <span class="featured-card__arrow" aria-hidden="true"><Icon name="arrow-up-right" size={16} /></span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {related.length > 0 && (
+      <section class="author__related" aria-label="More of the team">
+        <p class="kicker">More of the team</p>
+        <div class="author__related-grid">
+          {related.map((member) => <AuthorCard author={member} />)}
+        </div>
+      </section>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .author {
+    padding-block: calc(78px + var(--space-7)) var(--section-y);
+  }
+
+  .author__crumbs {
+    margin-bottom: var(--space-6);
+  }
+
+  /* Profile header — asymmetric on desktop, stacked on tablet/mobile. */
+  .author__header {
+    display: grid;
+    gap: var(--space-5);
+    align-items: center;
+  }
+
+  @media (min-width: 48rem) {
+    .author__header {
+      grid-template-columns: auto 1fr;
+      gap: var(--space-7);
+    }
+  }
+
+  .author__id h1 {
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .author__role {
+    margin-top: var(--space-2);
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+  }
+
+  .author__specialties {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .author__links {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+  }
+
+  .author__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    color: var(--text-2);
+    transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+  }
+
+  .author__link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .author__statement {
+    max-width: 38ch;
+    margin: var(--section-y) 0 0;
+    padding-left: var(--space-5);
+    border-left: 2px solid var(--accent);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+    color: var(--text-1);
+  }
+
+  .author__bio {
+    margin-top: var(--space-7);
+  }
+
+  .author__tools {
+    margin-top: var(--section-y);
+  }
+
+  .author__tools ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .author__tools li {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    background: var(--bg-1);
+    font-size: var(--fs-sm);
+  }
+
+  .author__writing,
+  .author__featured,
+  .author__related {
+    margin-top: var(--section-y);
+  }
+
+  .author__writing h2 {
+    margin-top: var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+    font-weight: 600;
+  }
+
+  .author__posts {
+    margin-top: var(--space-5);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .author__featured-grid {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-5);
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  }
+
+  .featured-card {
+    position: relative;
+    display: block;
+    padding: var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-1);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  }
+
+  .featured-card:hover {
+    border-color: var(--border-2);
+    transform: translateY(-2px);
+  }
+
+  .featured-card h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 580;
+    padding-right: var(--space-5);
+  }
+
+  .featured-card p {
+    margin-top: var(--space-2);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .featured-card__arrow {
+    position: absolute;
+    top: var(--space-5);
+    right: var(--space-5);
+    color: var(--text-3);
+  }
+
+  .featured-card:hover .featured-card__arrow {
+    color: var(--accent);
+  }
+
+  .author__related-grid {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-5);
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  }
+</style>
