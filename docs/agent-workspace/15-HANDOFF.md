@@ -17,6 +17,38 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-CMS-002 — done
+
+**Did**: Added `posts.author`, `posts.cover_image`, and `posts.featured` to staging
+Directus with `scripts/v4-cms-002-directus.mjs`; created M2O relations
+`posts.author -> authors` and `posts.cover_image -> directus_files`; mapped missing
+post authors to seeded `authors.atef-alvi` where needed; regenerated
+`backend/snapshot.yaml`. Greenfield staging had 0 posts, so the mapping was a
+documented no-op.
+**Files**: `scripts/v4-cms-002-directus.mjs`; `backend/snapshot.yaml`;
+`frontend/src/lib/directus.ts`; `frontend/src/lib/content.ts`; `SETUP.md`;
+`frontend/vitest.config.ts`; `docs/AGENT_BLOG_GUIDE.md`; `docs/agent-workspace/13-TASKS.md`;
+`docs/agent-workspace/15-HANDOFF.md`.
+**Decisions / deviations**: No sub-agents used. `posts.author` is marked required in
+Directus UI but remains nullable at the database level so the migration can be applied
+to a non-empty `posts` collection before mapping. Inverse operation, if rollback is
+needed before content depends on these fields: delete relations `posts.author` and
+`posts.cover_image`, then delete fields `posts.featured`, `posts.cover_image`, and
+`posts.author`; restore the prior `backend/snapshot.yaml`.
+**Validation**: Migration script ran against `http://192.168.10.211:8056` and exited
+`0`; API field read confirmed `author` (`select-dropdown-m2o`, required),
+`cover_image` (`file-image`), and `featured` (`boolean`) exist on `posts`; posts query
+returned 0 rows, so no published post is missing an author. Frontend validation:
+`cd frontend && npx astro check && npm test && npm run build`. GitHub CI initially
+hit the existing markdown golden test's 5s default timeout, so `vitest.config.ts`
+now sets `testTimeout: 15000`.
+**Next**: `V4-CMS-003` — assign topics to seeded/imported posts and create
+`posts_topics` rows. If staging still has 0 posts, record the backfill as a no-op and
+leave the taxonomy ready for ARC/BLOG work.
+**Warnings**: Keep staging/prod Directus tokens separate. The legacy v3 `/logs` pages
+still exist until the blog migration tasks, but their Directus helper now reads
+`posts`.
+
 ## [2026-06-12] V4-CMS-001 — done
 
 **Did**: Completed the staging Directus v4.0 greenfield schema migration with

@@ -38,6 +38,8 @@ Draft in Directus → Set status = "published" → Site auto-fetches on next bui
 | `post_number` | Optional | Sequential integer (e.g. `1`, `2`, `3`) for ordered series. |
 | `series_label` | Optional | Name for a series grouping related posts, e.g. `FINE-TUNE LOG`. |
 | `author` | Required | Relation to an `authors` profile. |
+| `cover_image` | Optional | Main post visual for cards, article hero, and OG image transforms. |
+| `featured` | Optional | Marks the post as eligible for featured blog/home placements. |
 
 ### `projects` Collection
 

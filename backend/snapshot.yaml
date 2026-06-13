@@ -1217,6 +1217,127 @@ fields:
       validation: null
       validation_message: null
       width: full
+  - collection: posts
+    field: author
+    type: uuid
+    meta:
+      collection: posts
+      conditions: null
+      display: null
+      display_options: null
+      field: author
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: Required author profile for v4 post pages and cards.
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 10
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: author
+      table: posts
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: authors
+      foreign_key_column: id
+  - collection: posts
+    field: cover_image
+    type: uuid
+    meta:
+      collection: posts
+      conditions: null
+      display: image
+      display_options: null
+      field: cover_image
+      group: null
+      hidden: false
+      interface: file-image
+      note: Optional post cover image; used for cards, article hero, and OG
+        transforms.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 11
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: cover_image
+      table: posts
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_files
+      foreign_key_column: id
+  - collection: posts
+    field: featured
+    type: boolean
+    meta:
+      collection: posts
+      conditions: null
+      display: null
+      display_options: null
+      field: featured
+      group: null
+      hidden: false
+      interface: boolean
+      note: Marks one or more posts as eligible for featured blog/home placements.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 12
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: featured
+      table: posts
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
   - collection: posts_topics
     field: id
     type: uuid
@@ -1900,6 +2021,48 @@ relations:
       one_deselect_action: delete
       one_field: null
       sort_field: null
+  - collection: posts
+    field: author
+    related_collection: authors
+    meta:
+      junction_field: null
+      many_collection: posts
+      many_field: author
+      one_allowed_collections: null
+      one_collection: authors
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: posts
+      sort_field: null
+    schema:
+      table: posts
+      column: author
+      foreign_key_table: authors
+      foreign_key_column: id
+      constraint_name: posts_author_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: posts
+    field: cover_image
+    related_collection: directus_files
+    meta:
+      junction_field: null
+      many_collection: posts
+      many_field: cover_image
+      one_allowed_collections: null
+      one_collection: directus_files
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: posts
+      column: cover_image
+      foreign_key_table: directus_files
+      foreign_key_column: id
+      constraint_name: posts_cover_image_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
   - collection: posts_topics
     field: topics_id
     related_collection: topics

@@ -153,6 +153,8 @@ The site will be available at **http://localhost:4321**.
 | `post_number` | Integer | Optional sequential number for ordered series |
 | `series_label` | String | Optional series name grouping related posts |
 | `author` | Relation | M2O to `authors` |
+| `cover_image` | File (UUID) | Optional post cover image for cards, article hero, and OG transforms |
+| `featured` | Boolean | Marks the post as eligible for featured blog/home placements |
 | `topics` | Relation | M2M via `posts_topics` |
 
 ### `projects` Collection

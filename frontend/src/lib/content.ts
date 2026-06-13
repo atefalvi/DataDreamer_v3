@@ -47,11 +47,12 @@ export function formatDate(dateString?: string): string {
  * Falls back to "ATEF ALVI" when no author is set.
  */
 export function formatAuthorName(
-    author?: { first_name?: string; last_name?: string } | null
+    author?: { display_name?: string; first_name?: string; last_name?: string } | null
 ): string {
-    return author
-        ? `${author.first_name ?? ""} ${author.last_name ?? ""}`.trim().toUpperCase()
-        : "ATEF ALVI";
+    if (!author) return "ATEF ALVI";
+
+    const name = author.display_name ?? `${author.first_name ?? ""} ${author.last_name ?? ""}`.trim();
+    return name ? name.toUpperCase() : "ATEF ALVI";
 }
 
 /**
