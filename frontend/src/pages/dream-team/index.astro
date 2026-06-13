@@ -1,0 +1,491 @@
+---
+/**
+ * V4-DT-002 — Dream Team (05 §7, 07 §5.3–5.5). SSR SVG "constellation" with a
+ * server-computed deterministic layout (DT-001), a specialty legend that doubles as a
+ * filter, and the grouped AuthorCard list that is the graph's accessible equivalent and
+ * the sole content on small screens. Graph needs zero JS to be usable (real <a> nodes);
+ * the enhancer only adds tooltips, dimming, and roving-tabindex.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AuthorCard from '../../components/dream-team/AuthorCard.astro';
+import EmptyState from '../../components/ui/EmptyState.astro';
+import { authorsRepo } from '../../lib/repositories';
+import { computeGraphLayout } from '../../lib/graph/layout';
+import { SITE_URL } from '../../lib/seo/meta';
+import type { AuthorSummary } from '../../types/content';
+
+let authors: AuthorSummary[] = [];
+try {
+  authors = await authorsRepo.allWithCounts();
+} catch (error) {
+  console.error('[dream-team] authors unavailable:', error instanceof Error ? error.message : error);
+}
+
+// Derive the specialty set + member counts from the authors themselves (no separate
+// repo needed). Sorted by member count desc, as the layout expects.
+const specialtyMap = new Map<string, { slug: string; name: string; colorKey: string; memberCount: number }>();
+for (const author of authors) {
+  for (const specialty of author.specialties) {
+    const existing = specialtyMap.get(specialty.slug);
+    if (existing) existing.memberCount += 1;
+    else specialtyMap.set(specialty.slug, { ...specialty, memberCount: 1 });
+  }
+}
+const specialties = [...specialtyMap.values()].sort((a, b) => b.memberCount - a.memberCount);
+const colorBySlug = new Map(specialties.map((s) => [s.slug, s.colorKey]));
+
+const authorBySlug = new Map(authors.map((a) => [a.slug, a]));
+const showGraph = authors.length >= 2 && specialties.length > 0;
+
+const layout = showGraph
+  ? computeGraphLayout(
+      specialties.map((s) => ({ id: s.slug, slug: s.slug, memberCount: s.memberCount })),
+      authors.map((a) => ({
+        id: a.slug,
+        specialtyIds: a.specialties.map((s) => s.slug),
+        posts: a.postCount,
+        courses: a.courseCount,
+      })),
+    )
+  : null;
+
+// Member list grouped by primary specialty (graph's accessible equivalent).
+const grouped = specialties.map((s) => ({
+  specialty: s,
+  members: authors.filter((a) => a.specialties[0]?.slug === s.slug),
+}));
+const ungrouped = authors.filter((a) => a.specialties.length === 0);
+
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? '')
+    .join('');
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'DataDreamer Dream Team',
+    itemListElement: authors.map((a, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Person',
+        name: a.name,
+        jobTitle: a.roleTitle,
+        url: `${SITE_URL}/dream-team/${a.slug}`,
+      },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Dream Team"
+  description="The data engineers, analysts, AI builders, and creative technologists behind DataDreamer."
+  ogImage={{ url: '/og/og-team.png' }}
+  jsonLd={jsonLd}
+>
+  <div class="dt container-wide">
+    <header class="dt__head">
+      <p class="kicker">The people</p>
+      <h1>Dream Team</h1>
+      <p class="dt__intro">
+        A studio graph of data engineers, analysts, AI builders, and creative technologists — clustered
+        by what they practice. Hover a node to trace its connections, or filter by specialty.
+      </p>
+    </header>
+
+    {authors.length === 0 ? (
+      <EmptyState
+        message="The Dream Team graph is waiting for author profiles. The system is ready; the first nodes come next."
+        icon="orbit"
+        action={{ label: 'Get in touch', href: '/connect' }}
+      />
+    ) : (
+      <>
+        {showGraph && layout && (
+          <section class="dt-stage" aria-hidden="false">
+            <svg
+              class="tg"
+              viewBox={`0 0 ${layout.width} ${layout.height}`}
+              role="group"
+              aria-label="Team constellation; the list below contains the same people"
+              data-team-graph
+            >
+              <defs>
+                {layout.authorNodes.map((node) => {
+                  const author = authorBySlug.get(node.id);
+                  if (!author?.avatar?.src) return null;
+                  return (
+                    <clipPath id={`clip-${node.id}`}>
+                      <circle cx={node.x} cy={node.y} r={node.r - 2} />
+                    </clipPath>
+                  );
+                })}
+              </defs>
+
+              <g class="tg-edges">
+                {layout.edges.map((edge) => (
+                  <path
+                    class="tg-edge"
+                    d={`M ${edge.x1} ${edge.y1} Q ${edge.cx} ${edge.cy} ${edge.x2} ${edge.y2}`}
+                    data-author={edge.authorId}
+                    data-specialty={edge.specialtyId}
+                  />
+                ))}
+              </g>
+
+              <g class="tg-anchors">
+                {layout.specialtyAnchors.map((anchor) => {
+                  const specialty = specialtyMap.get(anchor.id);
+                  const color = colorBySlug.get(anchor.id) ?? 'accent';
+                  return (
+                    <g class="tg-anchor" data-specialty={anchor.id} style={`--anchor-color: var(--${color});`}>
+                      <circle class="tg-anchor-dot" cx={anchor.x} cy={anchor.y} r="5" />
+                      <text class="tg-anchor-label" x={anchor.labelX} y={anchor.labelY} text-anchor={anchor.labelAnchor}>
+                        {specialty?.name ?? anchor.id}
+                      </text>
+                    </g>
+                  );
+                })}
+              </g>
+
+              <g class="tg-nodes">
+                {layout.authorNodes.map((node, i) => {
+                  const author = authorBySlug.get(node.id);
+                  if (!author) return null;
+                  const color = colorBySlug.get(author.specialties[0]?.slug ?? '') ?? 'accent';
+                  const r = node.r;
+                  return (
+                    <a
+                      href={`/dream-team/${author.slug}`}
+                      class="tg-node"
+                      data-author={author.slug}
+                      data-specialties={author.specialties.map((s) => s.slug).join(',')}
+                      data-name={author.name}
+                      data-role={author.roleTitle}
+                      data-posts={author.postCount}
+                      data-courses={author.courseCount}
+                      tabindex={i === 0 ? 0 : -1}
+                      aria-label={`${author.name}, ${author.roleTitle}`}
+                      style={`--node-color: var(--${color});`}
+                    >
+                      <circle class="tg-node-ring" cx={node.x} cy={node.y} r={r} />
+                      {author.avatar?.src ? (
+                        <image
+                          href={author.avatar.src}
+                          x={node.x - (r - 2)}
+                          y={node.y - (r - 2)}
+                          width={(r - 2) * 2}
+                          height={(r - 2) * 2}
+                          clip-path={`url(#clip-${author.slug})`}
+                          preserveAspectRatio="xMidYMid slice"
+                        />
+                      ) : (
+                        <text class="tg-node-initials" x={node.x} y={node.y} text-anchor="middle" dominant-baseline="central">
+                          {initialsOf(author.name)}
+                        </text>
+                      )}
+                      <text class="tg-node-name" x={node.x} y={node.y + r + 15} text-anchor="middle">
+                        {author.name.split(/\s+/)[0]}
+                      </text>
+                    </a>
+                  );
+                })}
+              </g>
+            </svg>
+
+            <ul class="dt-legend" aria-label="Filter by specialty" data-team-legend>
+              {specialties.map((s) => (
+                <li>
+                  <button
+                    type="button"
+                    class="dt-legend__chip"
+                    data-specialty={s.slug}
+                    aria-pressed="false"
+                    style={`--chip-color: var(--${s.colorKey});`}
+                  >
+                    <span class="dt-legend__dot" aria-hidden="true"></span>
+                    {s.name}
+                    <span class="dt-legend__count">{s.memberCount}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section class="dt-list" aria-label="Everyone">
+          <p class="kicker">Everyone</p>
+          {grouped.map((group) =>
+            group.members.length > 0 ? (
+              <div class="dt-list__group" data-specialty-group={group.specialty.slug}>
+                <h2 class="dt-list__group-title" style={`--group-color: var(--${group.specialty.colorKey});`}>
+                  {group.specialty.name}
+                </h2>
+                <div class="dt-list__grid">
+                  {group.members.map((author) => <AuthorCard author={author} />)}
+                </div>
+              </div>
+            ) : null,
+          )}
+          {ungrouped.length > 0 && (
+            <div class="dt-list__group">
+              <h2 class="dt-list__group-title">Team</h2>
+              <div class="dt-list__grid">
+                {ungrouped.map((author) => <AuthorCard author={author} />)}
+              </div>
+            </div>
+          )}
+        </section>
+      </>
+    )}
+  </div>
+
+  <div class="tg-tooltip" data-team-tooltip hidden aria-hidden="true"></div>
+</BaseLayout>
+
+<style>
+  .dt {
+    padding-block: calc(78px + var(--section-y)) var(--section-y);
+  }
+
+  .dt__head h1 {
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .dt__intro {
+    max-width: 60ch;
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  /* Graph stage — TL+ only (07 §5; on smaller screens the list is the page). */
+  .dt-stage {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .dt-stage {
+      display: block;
+      margin-top: var(--space-7);
+    }
+  }
+
+  .tg {
+    width: 100%;
+    height: min(72vh, 760px);
+    overflow: visible;
+  }
+
+  .tg-edge {
+    fill: none;
+    stroke: var(--border-2);
+    stroke-width: 1;
+    opacity: 0.5;
+    transition: opacity var(--dur-2) var(--ease-out), stroke var(--dur-2) var(--ease-out);
+  }
+
+  .tg.has-focus .tg-edge:not(.is-lit) {
+    opacity: 0.12;
+  }
+
+  .tg-edge.is-lit {
+    stroke: var(--accent);
+    opacity: 0.9;
+  }
+
+  .tg-anchor-dot {
+    fill: var(--anchor-color);
+  }
+
+  .tg-anchor-label {
+    fill: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .tg-node {
+    cursor: pointer;
+  }
+
+  .tg-node-ring {
+    fill: var(--bg-2);
+    stroke: var(--node-color);
+    stroke-width: 2;
+    transition: transform var(--dur-2) var(--ease-out);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .tg-node-initials {
+    fill: var(--text-1);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .tg-node-name {
+    fill: var(--text-2);
+    font-family: var(--font-text);
+    font-size: 13px;
+    font-weight: 560;
+  }
+
+  .tg-node:hover .tg-node-ring,
+  .tg-node:focus-visible .tg-node-ring,
+  .tg-node.is-active .tg-node-ring {
+    transform: scale(1.08);
+  }
+
+  .tg-node:focus-visible {
+    outline: none;
+  }
+
+  .tg-node:focus-visible .tg-node-ring {
+    stroke: var(--focus-ring);
+    stroke-width: 3;
+  }
+
+  .tg.has-focus .tg-node:not(.is-active) {
+    opacity: 0.4;
+    transition: opacity var(--dur-2) var(--ease-out);
+  }
+
+  .tg.is-filtered .tg-node.is-dimmed {
+    opacity: 0.18;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tg-node-ring,
+    .tg-edge,
+    .tg-node {
+      transition: none;
+    }
+  }
+
+  /* Legend / filters. */
+  .dt-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .dt-legend__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    background: var(--bg-1);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+    transition: border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+  }
+
+  .dt-legend__chip:hover {
+    color: var(--text-1);
+    border-color: var(--border-2);
+  }
+
+  .dt-legend__chip[aria-pressed='true'] {
+    color: var(--text-1);
+    border-color: var(--chip-color);
+    background: color-mix(in srgb, var(--chip-color) 12%, var(--bg-1));
+  }
+
+  .dt-legend__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--chip-color);
+  }
+
+  .dt-legend__count {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  /* Member list. */
+  .dt-list {
+    margin-top: var(--section-y);
+  }
+
+  .dt-list__group {
+    margin-top: var(--space-7);
+  }
+
+  .dt-list__group-title {
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-1);
+    box-shadow: inset 0 -2px 0 var(--group-color, var(--accent));
+    width: fit-content;
+  }
+
+  .dt-list__grid {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-5);
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  }
+
+  /* Tooltip (enhancer-driven). */
+  .tg-tooltip {
+    position: fixed;
+    z-index: 50;
+    max-width: 16rem;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-1) 96%, transparent);
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-2);
+    pointer-events: none;
+    font-size: var(--fs-sm);
+  }
+
+  .tg-tooltip[hidden] {
+    display: none;
+  }
+
+  .tg-tooltip strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--fs-base);
+  }
+
+  .tg-tooltip span {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+</style>
+
+<script>
+  import { initTeamGraph } from '../../lib/graph/enhancer';
+  initTeamGraph();
+</script>
