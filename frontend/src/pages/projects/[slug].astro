@@ -60,6 +60,8 @@ const jsonLd = [
       <Image src={cover} alt={coverAlt} widths={[640, 1024, 1600]} sizes="(min-width: 80rem) 1200px, 100vw" />
     </div>
 
+    <span class="visually-hidden" role="status" aria-live="polite" data-code-copy-status></span>
+
     <div class="case__layout">
       <div class="case__body blog-content article-prose" set:html={html} />
 
@@ -111,6 +113,11 @@ const jsonLd = [
       </nav>
     )}
   </article>
+
+  <script>
+    import { initCodeCopy } from '../../lib/markdown/codeCopy';
+    initCodeCopy();
+  </script>
 </BaseLayout>
 
 <style>
