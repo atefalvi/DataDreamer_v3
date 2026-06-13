@@ -17,6 +17,66 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-SHELL-001 — done
+
+**Did**: Built the v4 global shell foundation + error handling.
+- `layouts/BaseLayout.astro` — html/head/body, self-hosted fontsource imports + base.css,
+  SeoHead, SkipLink, pre-paint theme script (ports v3 localStorage logic + removes
+  `no-js` for the reveal guard), `<main id="main">`. **Minimal placeholder header/footer**
+  (brand lockup + © + Privacy) clearly marked for SHELL-002 to replace with
+  SiteNav/MobileMenu/SiteFooter — BaseLayout structure is stable, SHELL-002 swaps the
+  two marked regions only.
+- `components/global/SeoHead.astro` (full 10 §2/§3 head contract: title template,
+  query-stripped canonical, OG + Twitter + dual theme-color + favicon chain + article
+  tags + JSON-LD array), `SkipLink.astro`, `ErrorPage.astro` (shared 404/500 shell —
+  factored to avoid CSS duplication).
+- `lib/seo/meta.ts` (`Seo` type, `SITE_URL`, `formatTitle`, `resolveCanonical`,
+  `absoluteUrl`) + `lib/seo/og.ts` (`resolveOgImage`, explicit-or-default cascade;
+  section defaults + per-article images come in SEO-001).
+- `pages/404.astro` (status 404, logs bad pathnames) + `pages/500.astro` (status 500,
+  JS "Try again" reload) using ErrorPage + Button.
+- `middleware.ts` — extended: security headers (nosniff, Referrer-Policy,
+  Permissions-Policy) on all responses; HTML cache-control (`s-maxage=300` success /
+  `no-store` errors); **error envelope** (09 §9: catch → log → RepositoryError
+  not_found rewrites /404, else /500); kept staging `X-Robots-Tag: noindex`.
+- `vitest.config.ts` → `getViteConfig` so tests can render `.astro` (SeoHead container
+  test). `.env.example` + 09 §3 already document `SITE_URL`.
+- Tests: `seo/meta.test.ts` (8) + `global/SeoHead.test.ts` (5, incl. snapshot via Astro
+  Container API).
+
+**Files**: `frontend/src/layouts/BaseLayout.astro`,
+`frontend/src/components/global/{SeoHead,SkipLink,ErrorPage}.astro`,
+`frontend/src/lib/seo/{meta,og}.ts` (+ `__tests__/meta.test.ts`),
+`frontend/src/components/global/__tests__/SeoHead.test.ts`,
+`frontend/src/pages/{404,500}.astro`, `frontend/src/middleware.ts`,
+`frontend/vitest.config.ts`, `frontend/.env.example`; docs `13` (status), `15`.
+
+**Decisions / deviations**:
+1. BaseLayout ships **minimal inline header/footer** (not SiteNav/SiteFooter) — those
+   are SHELL-002. Scope note in BaseLayout marks the two regions to swap. No throwaway
+   stub components created.
+2. `vitest.config.ts` switched to `getViteConfig` (astro/config) to enable `.astro`
+   component rendering in tests. Plain `.ts` suites unaffected (verified: all 36 pass).
+3. CSP is **not** added here — it's the V4-PERF-003 report-only→enforce rollout
+   (comment left in middleware). SHELL-001 adds the three non-CSP security headers.
+
+**Validation**: `astro check` 0/0/0; `npm test` 36 passed (6 files); `npm run build` ok.
+**Live browser check** (dev server): bad URL → styled 404 at **HTTP 404** (not redirect)
+with `noindex` meta, security headers present, `Cache-Control: no-store`, dark theme
+applied pre-paint, `no-js` removed, title "Page not found — DataDreamer", absolute
+query-stripped canonical. 500 page renders; theme toggle (dark/light) + mobile (375px)
+verified on both error pages, no console errors, no horizontal overflow. Logo (header
+lockup + faded mono watermark) preserved with theme-following ink + red dot.
+
+**Next**: **V4-SHELL-002** (SiteNav + MobileMenu + ThemeToggle + SiteFooter + site.ts) —
+swaps BaseLayout's two placeholder regions for the real components (07 §3–4, 03 §2).
+After that the home/blog/page tasks can migrate onto BaseLayout. This branch is
+`v4/v4-shell-001` off `v4/v4-arc-001` (stack: cms-002 → arc-001 → shell-001); merge in
+order into `feature/v4-redesign`.
+
+**Warnings**: Pages not yet migrated still use MainLayout (v3) — BaseLayout is additive,
+nothing was removed (v3 deletion is CLEAN-001). Don't wire SiteNav into MainLayout.
+
 ## [2026-06-12] V4-ARC-001 — done
 
 **Did**: Built the v4 repository layer + view-models (additive; v3 `lib/directus.ts`

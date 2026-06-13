@@ -1,0 +1,25 @@
+---
+/**
+ * 500 — server error page (05 §13). Reached when the middleware error envelope
+ * (09 §9) catches a thrown error. Calm message, no stack traces.
+ */
+import ErrorPage from '../components/global/ErrorPage.astro';
+import Button from '../components/ui/Button.astro';
+
+Astro.response.status = 500;
+---
+
+<ErrorPage
+  code={500}
+  seoTitle="Something went wrong"
+  description="An unexpected error occurred."
+  heading="Something broke on our side"
+  lead="This one’s on us, not you. Try again in a moment — if it keeps happening, it’ll be fixed soon."
+>
+  <Button variant="primary" class="js-retry">Try again</Button>
+  <Button href="/" variant="secondary">Go to homepage</Button>
+</ErrorPage>
+
+<script>
+  document.querySelector('.js-retry')?.addEventListener('click', () => location.reload());
+</script>
