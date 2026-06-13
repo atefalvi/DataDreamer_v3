@@ -1,12 +1,12 @@
-# Agent Blog Guide — Writing for DataDreamer v3
+# Agent Blog Guide — Writing for DataDreamer v4
 
-This guide is written for AI agents (and human authors) who publish content to the DataDreamer `logs` collection via Directus. Follow these conventions to ensure posts render correctly on the site.
+This guide is written for AI agents (and human authors) who publish content to the DataDreamer `posts` collection via Directus. Follow these conventions to ensure posts render correctly on the site.
 
 ---
 
 ## Overview
 
-**The Logs section** (`/logs`) is a developer-focused blog. Posts are written in Markdown and rendered by the Astro frontend with custom block support, syntax highlighting, and a generated table of contents.
+**The Blog section** (`/blog`) is a developer-focused writing area. Posts are written in Markdown and rendered by the Astro frontend with custom block support, syntax highlighting, and a generated table of contents.
 
 ### Workflow
 
@@ -14,7 +14,7 @@ This guide is written for AI agents (and human authors) who publish content to t
 Draft in Directus → Set status = "published" → Site auto-fetches on next build/request
 ```
 
-1. **Create** a new item in the `logs` Directus collection
+1. **Create** a new item in the `posts` Directus collection
 2. **Fill in** all required fields (see Field Reference below)
 3. **Write** content in the `content` field using the Markdown syntax documented here
 4. **Set `status` = `published`** when ready to go live
@@ -34,11 +34,10 @@ Draft in Directus → Set status = "published" → Site auto-fetches on next bui
 | `published_at` | ✅ | Set to the intended publish date/time. Shown on the listing page. |
 | `excerpt` | ✅ | 1–2 sentence summary. Shown on the listing page beneath the title. |
 | `content` | ✅ | Full post body in Markdown. Supports all custom blocks below. |
-| `tag` | Recommended | Primary topic tag used for filtering, e.g. `ML`, `DEVLOG`, `INFRA`. |
-| `category` | Optional | Secondary category (fallback if `tag` is empty). |
-| `log_number` | Optional | Sequential integer (e.g. `1`, `2`, `3`) for ordered series. |
+| `topics` | Recommended | M2M topic selection used for filtering, e.g. `Machine learning`, `Devlog`, `Infrastructure`. |
+| `post_number` | Optional | Sequential integer (e.g. `1`, `2`, `3`) for ordered series. |
 | `series_label` | Optional | Name for a series grouping related posts, e.g. `FINE-TUNE LOG`. |
-| `author` | Optional | Relation to a Directus user. Defaults to "ATEF ALVI" if empty. |
+| `author` | Required | Relation to an `authors` profile. |
 
 ### `projects` Collection
 
@@ -285,20 +284,20 @@ Standard GFM (GitHub Flavoured Markdown) tables are supported:
 
 ---
 
-## Tags & Categories
+## Topics
 
-`tag` drives the **filter buttons** on the `/logs` listing page. Use consistent, short uppercase values:
+`topics` drives the **filter buttons** on the `/blog` listing page. Use the shared topic taxonomy:
 
-| Tag | Use for |
+| Topic | Use for |
 |---|---|
-| `ML` | Machine learning experiments, training runs |
-| `DEVLOG` | General development notes and progress updates |
-| `INFRA` | Infrastructure, Docker, deployment, CI/CD |
-| `RESEARCH` | Papers, reading notes, literature review |
-| `DATA` | Dataset preparation, scraping, cleaning |
-| `TOOLS` | Tool evaluations, benchmarks |
+| `Machine learning` | Machine learning experiments, training runs |
+| `Devlog` | General development notes and progress updates |
+| `Infrastructure` | Infrastructure, Docker, deployment, CI/CD |
+| `Research` | Papers, reading notes, literature review |
+| `Data` | Dataset preparation, scraping, cleaning |
+| `Tools` | Tool evaluations, benchmarks |
 
-Avoid creating too many unique tags — it fragments the filter UX.
+Avoid creating too many unique topics — it fragments the filter UX.
 
 ---
 

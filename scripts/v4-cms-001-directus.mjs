@@ -7,14 +7,20 @@ import {
   createItem,
   createPermission,
   createRelation,
+  deleteCollection,
+  deleteField,
+  deletePermission,
   deleteItem,
+  deleteRelation,
   readCollections,
   readFields,
   readItems,
   readPermissions,
   readPolicies,
   schemaSnapshot,
+  updateCollection,
   updatePermission,
+  updateRelation,
 } from '../frontend/node_modules/@directus/sdk/dist/index.js';
 
 const DIRECTUS_URL = process.env.DIRECTUS_URL;
@@ -68,26 +74,24 @@ const primaryAuthor = {
 };
 
 const collectionSpecs = [
-  { collection: 'logs', icon: 'article', note: 'Posts / writing collection. Greenfield v4 staging creates this when no v3 baseline exists.', display_template: '{{title}}', primaryKey: 'integer' },
+  { collection: 'posts', icon: 'article', note: 'v4 blog posts and long-form writing.', display_template: '{{title}}' },
   { collection: 'authors', icon: 'groups', note: 'v4 Dream Team author profiles. Avatar uploads should be square and at least 512px.', display_template: '{{display_name}}' },
   { collection: 'specialties', icon: 'hub', note: 'v4 author specialty taxonomy.', display_template: '{{name}}' },
   { collection: 'topics', icon: 'sell', note: 'v4 shared taxonomy for posts and courses.', display_template: '{{name}}' },
   { collection: 'authors_specialties', icon: 'join_inner', note: 'Junction: authors to specialties. Sort controls primary specialty.', display_template: '{{authors_id.display_name}} → {{specialties_id.name}}' },
-  { collection: 'posts_topics', icon: 'join_inner', note: 'Junction: logs/posts to topics.', display_template: '{{logs_id.title}} → {{topics_id.name}}' },
+  { collection: 'posts_topics', icon: 'join_inner', note: 'Junction: posts to topics.', display_template: '{{posts_id.title}} → {{topics_id.name}}' },
 ];
 
 const fields = {
-  logs: [
+  posts: [
     statusField(2),
     stringField('title', 3, { required: true, maxLength: 120 }),
     stringField('slug', 4, { required: true, unique: true, maxLength: 60, note: 'Unique URL slug: lowercase words separated by hyphens.' }),
     textField('excerpt', 5, { interfaceName: 'input-multiline', note: 'Short summary. Keep at or below 200 characters.' }),
     textField('content', 6, { interfaceName: 'input-rich-text-html' }),
     timestampField('published_at', 7),
-    stringField('tag', 8, { maxLength: 80, note: 'Legacy compatibility during v4 migration; topics replace this field.' }),
-    stringField('category', 9, { maxLength: 80, note: 'Legacy compatibility during v4 migration; topics replace this field.' }),
-    integerField('log_number', 10),
-    stringField('series_label', 11, { maxLength: 120 }),
+    integerField('post_number', 8),
+    stringField('series_label', 9, { maxLength: 120 }),
   ],
   authors: [
     statusField(2),
@@ -129,7 +133,7 @@ const fields = {
     integerField('sort', 4),
   ],
   posts_topics: [
-    integerField('logs_id', 2, true),
+    uuidField('posts_id', 2, true),
     uuidField('topics_id', 3, true),
   ],
 };
@@ -177,12 +181,12 @@ const relations = [
   },
   {
     collection: 'posts_topics',
-    field: 'logs_id',
-    related_collection: 'logs',
+    field: 'posts_id',
+    related_collection: 'posts',
     meta: {
       many_collection: 'posts_topics',
-      many_field: 'logs_id',
-      one_collection: 'logs',
+      many_field: 'posts_id',
+      one_collection: 'posts',
       one_field: 'topics',
       one_deselect_action: 'delete',
       junction_field: 'topics_id',
@@ -198,7 +202,7 @@ const relations = [
       many_field: 'topics_id',
       one_collection: 'topics',
       one_deselect_action: 'delete',
-      junction_field: 'logs_id',
+      junction_field: 'posts_id',
     },
     schema: { on_delete: 'CASCADE' },
   },
@@ -375,6 +379,11 @@ async function getFieldNames() {
   return new Set(allFields.map((field) => `${field.collection}.${field.field}`));
 }
 
+async function getFieldMap() {
+  const allFields = await directus.request(readFields({ limit: -1 }));
+  return new Map(allFields.map((field) => [`${field.collection}.${field.field}`, field]));
+}
+
 async function getRelationNames() {
   const allRelations = await directus.request(createReadRelationsRequest());
   return new Set(allRelations.map((relation) => `${relation.collection}.${relation.field}`));
@@ -385,20 +394,25 @@ function createReadRelationsRequest() {
 }
 
 async function ensureCollection(spec, existingCollections) {
-  if (existingCollections.has(spec.collection)) return `exists collection ${spec.collection}`;
+  const meta = {
+    collection: spec.collection,
+    icon: spec.icon,
+    note: spec.note,
+    display_template: spec.display_template,
+    hidden: false,
+    singleton: false,
+    accountability: 'all',
+    sort_field: null,
+  };
+
+  if (existingCollections.has(spec.collection)) {
+    await directus.request(updateCollection(spec.collection, { meta }));
+    return `updated collection ${spec.collection}`;
+  }
 
   await directus.request(createCollection({
     collection: spec.collection,
-    meta: {
-      collection: spec.collection,
-      icon: spec.icon,
-      note: spec.note,
-      display_template: spec.display_template,
-      hidden: false,
-      singleton: false,
-      accountability: 'all',
-      sort_field: null,
-    },
+    meta,
     schema: {
       name: spec.collection,
     },
@@ -439,11 +453,108 @@ async function ensureAliasField(collection, field, existingFields) {
 
 async function ensureRelation(relation, existingRelations) {
   const key = `${relation.collection}.${relation.field}`;
-  if (existingRelations.has(key)) return `exists relation ${key}`;
+  if (existingRelations.has(key)) {
+    await directus.request(updateRelation(relation.collection, relation.field, {
+      meta: relation.meta,
+      schema: relation.schema,
+    }));
+    return `updated relation ${key}`;
+  }
 
   await directus.request(createRelation(relation));
   existingRelations.add(key);
   return `created relation ${key}`;
+}
+
+async function removeLegacyLogsIfPresent(existingCollections, existingFields, existingRelations) {
+  const actions = [];
+
+  if (existingRelations.has('posts_topics.logs_id')) {
+    await directus.request(deleteRelation('posts_topics', 'logs_id'));
+    existingRelations.delete('posts_topics.logs_id');
+    actions.push('deleted legacy relation posts_topics.logs_id');
+  }
+
+  if (existingFields.has('posts_topics.logs_id')) {
+    await directus.request(deleteField('posts_topics', 'logs_id'));
+    existingFields.delete('posts_topics.logs_id');
+    actions.push('deleted legacy field posts_topics.logs_id');
+  }
+
+  if (existingCollections.has('logs')) {
+    const permissions = await directus.request(readPermissions({
+      filter: { collection: { _eq: 'logs' } },
+      fields: ['id'],
+      limit: -1,
+    }));
+    for (const permission of permissions) {
+      await directus.request(deletePermission(permission.id));
+    }
+    if (permissions.length > 0) {
+      actions.push(`deleted ${permissions.length} legacy logs permissions`);
+    }
+
+    await directus.request(deleteCollection('logs'));
+    existingCollections.delete('logs');
+    actions.push('deleted legacy collection logs');
+  }
+
+  return actions.length > 0 ? actions : ['no legacy logs cleanup needed'];
+}
+
+async function removeUncleanPostsShapeIfPresent(existingCollections, existingFields, existingRelations, fieldMap) {
+  const actions = [];
+
+  if (existingRelations.has('posts_topics.posts_id') && fieldMap.get('posts_topics.posts_id')?.type !== 'uuid') {
+    await directus.request(deleteRelation('posts_topics', 'posts_id'));
+    existingRelations.delete('posts_topics.posts_id');
+    actions.push('deleted non-uuid relation posts_topics.posts_id');
+  }
+
+  if (existingFields.has('posts_topics.posts_id') && fieldMap.get('posts_topics.posts_id')?.type !== 'uuid') {
+    await directus.request(deleteField('posts_topics', 'posts_id'));
+    existingFields.delete('posts_topics.posts_id');
+    fieldMap.delete('posts_topics.posts_id');
+    actions.push('deleted non-uuid field posts_topics.posts_id');
+  }
+
+  if (!existingCollections.has('posts')) {
+    return actions.length > 0 ? actions : ['no unclean posts shape cleanup needed'];
+  }
+
+  const legacyPostFields = ['posts.tag', 'posts.category', 'posts.log_number'].filter((key) => existingFields.has(key));
+  const idType = fieldMap.get('posts.id')?.type;
+  if (idType === 'uuid' && legacyPostFields.length === 0) {
+    return actions.length > 0 ? actions : ['no unclean posts shape cleanup needed'];
+  }
+
+  const rows = await directus.request(readItems('posts', { fields: ['id'], limit: 1 }));
+  if (rows.length > 0) {
+    throw new Error('posts already has rows; refusing to delete and recreate the collection for clean greenfield schema.');
+  }
+
+  if (existingRelations.has('posts_topics.posts_id')) {
+    await directus.request(deleteRelation('posts_topics', 'posts_id'));
+    existingRelations.delete('posts_topics.posts_id');
+    actions.push('deleted relation posts_topics.posts_id before posts reset');
+  }
+
+  if (existingFields.has('posts_topics.posts_id')) {
+    await directus.request(deleteField('posts_topics', 'posts_id'));
+    existingFields.delete('posts_topics.posts_id');
+    fieldMap.delete('posts_topics.posts_id');
+    actions.push('deleted field posts_topics.posts_id before posts reset');
+  }
+
+  await directus.request(deleteCollection('posts'));
+  existingCollections.delete('posts');
+  for (const key of [...existingFields].filter((field) => field.startsWith('posts.'))) {
+    existingFields.delete(key);
+    fieldMap.delete(key);
+  }
+  actions.push(`deleted unclean posts collection (${idType ?? 'missing'} id; legacy fields: ${legacyPostFields.join(', ') || 'none'})`);
+
+  return actions;
 }
 
 async function ensureItem(collection, uniqueField, item) {
@@ -532,28 +643,28 @@ await writeSnapshot('backend/v4-cms-001-before.snapshot.yaml');
 actions.push('wrote backend/v4-cms-001-before.snapshot.yaml');
 
 const collections = await getCollectionNames();
+const fieldMap = await getFieldMap();
+const existingFields = new Set(fieldMap.keys());
+const existingRelations = await getRelationNames();
+actions.push(...await removeLegacyLogsIfPresent(collections, existingFields, existingRelations));
+actions.push(...await removeUncleanPostsShapeIfPresent(collections, existingFields, existingRelations, fieldMap));
+
 for (const spec of collectionSpecs) {
   actions.push(await ensureCollection(spec, collections));
 }
 
-const existingFields = await getFieldNames();
 for (const [collection, collectionFields] of Object.entries(fields)) {
   for (const field of collectionFields) {
     actions.push(await ensureField(collection, field, existingFields));
   }
 }
 actions.push(await ensureAliasField('authors', 'specialties', existingFields));
-await runStep('create logs.topics alias', () => ensureAliasField('logs', 'topics', existingFields), {
-  required: false,
-});
+actions.push(await ensureAliasField('posts', 'topics', existingFields));
 
-const existingRelations = await getRelationNames();
 for (const relation of relations) {
-  const touchesExistingLogs = relation.collection === 'posts_topics' && relation.related_collection === 'logs';
   await runStep(
     `create relation ${relation.collection}.${relation.field}`,
     () => ensureRelation(relation, existingRelations),
-    { required: !touchesExistingLogs },
   );
 }
 
@@ -575,7 +686,7 @@ if (!publicPolicy) {
   throw new Error('Could not find the Public policy.');
 }
 
-for (const collection of ['logs', 'authors', 'specialties', 'topics']) {
+for (const collection of ['posts', 'authors', 'specialties', 'topics']) {
   actions.push(await ensurePermission(publicPolicy.id, collection, { status: { _eq: 'published' } }));
 }
 

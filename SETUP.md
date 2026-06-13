@@ -99,11 +99,12 @@ Log into Directus at `http://localhost:8055/admin`, then:
 
 1. Go to **Settings → Access Policies → Public**
 2. Grant **Read** permission on:
-   - `projects`
-   - `logs`
-   - `site_settings`
-   - `home_settings`
-   - `about`
+   - `posts`
+   - `authors`
+   - `specialties`
+   - `topics`
+   - `authors_specialties`
+   - `posts_topics`
    - `directus_files`
 
 ---
@@ -138,22 +139,21 @@ The site will be available at **http://localhost:4321**.
 
 ## Content Model Overview
 
-### `logs` Collection (Blog Posts)
+### `posts` Collection
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | UUID | Auto-generated primary key |
-| `title` | String | Post title (displayed in ALL CAPS) |
-| `slug` | String | URL-friendly identifier, e.g. `my-first-log` |
+| `title` | String | Post title |
+| `slug` | String | URL-friendly identifier, e.g. `my-first-post` |
 | `status` | Dropdown | `draft` / `published` — only `published` items appear on the site |
-| `published_at` | DateTime | Display date shown on the log list |
+| `published_at` | DateTime | Display date shown on the post list |
 | `excerpt` | Text | Short summary (1–2 sentences) shown on listing page |
 | `content` | Long Text | Full post body in Markdown (supports custom blocks) |
-| `tag` | String | Primary tag used for filtering, e.g. `ML`, `DEVLOG` |
-| `category` | String | Secondary category (fallback for tag) |
-| `log_number` | Integer | Optional sequential number for ordered series |
+| `post_number` | Integer | Optional sequential number for ordered series |
 | `series_label` | String | Optional series name grouping related posts |
-| `author` | Relation | M2O to `directus_users` |
+| `author` | Relation | M2O to `authors` |
+| `topics` | Relation | M2M via `posts_topics` |
 
 ### `projects` Collection
 

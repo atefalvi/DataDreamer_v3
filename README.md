@@ -1,6 +1,6 @@
 # DataDreamer v3
 
-**Portfolio + blog platform** — Built with [Astro](https://astro.build) (SSR) as the frontend and [Directus](https://directus.io) as the headless CMS backend. Designed for technical logs, project case studies, and modern brutalist aesthetics.
+**Portfolio + writing platform** — Built with [Astro](https://astro.build) (SSR) as the frontend and [Directus](https://directus.io) as the headless CMS backend. Designed for technical posts, project case studies, and the v4 Observatory visual system.
 
 ---
 

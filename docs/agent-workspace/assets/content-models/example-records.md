@@ -3,7 +3,7 @@
 One realistic record per collection. Used to seed dev Directus and as repository-test
 fixtures. Field meanings: `08-DIRECTUS-CONTENT-MODEL.md`.
 
-## logs (post)
+## posts
 
 ```json
 {
@@ -14,9 +14,9 @@ fixtures. Field meanings: `08-DIRECTUS-CONTENT-MODEL.md`.
   "excerpt": "Exponential backoff is not a strategy. Four retry patterns we run in production DAGs, and when each one breaks.",
   "published_at": "2026-05-12T09:00:00Z",
   "featured": true,
-  "log_number": 14,
+  "post_number": 14,
   "series_label": "Pipelines in production",
-  "author_profile": "a0e1…0001",
+  "author": "a0e1…0001",
   "cover_image": "f1b2…cover",
   "content": "# Retry patterns…\n\nOpening paragraph…\n\n## The naive default\n\n:::warning Hardware alert\nRetries on **memory-bound** tasks usually re-fail. See [the docs](https://example.com).\n:::\n\n```python\nretries=3\n```\n\n:::details Full DAG config\n…\n:::"
 }

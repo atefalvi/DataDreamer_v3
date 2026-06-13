@@ -6,15 +6,15 @@ v4.1 (courses) included below the divider comment.
 ```mermaid
 erDiagram
     %% ───── v4.0 ─────
-    LOGS ||--o{ POSTS_TOPICS : tagged
+    POSTS ||--o{ POSTS_TOPICS : tagged
     TOPICS ||--o{ POSTS_TOPICS : maps
-    AUTHORS ||--o{ LOGS : writes
+    AUTHORS ||--o{ POSTS : writes
     AUTHORS ||--o{ AUTHORS_SPECIALTIES : has
     SPECIALTIES ||--o{ AUTHORS_SPECIALTIES : groups
-    DIRECTUS_FILES ||--o{ LOGS : cover_image
+    DIRECTUS_FILES ||--o{ POSTS : cover_image
     DIRECTUS_FILES ||--o{ AUTHORS : avatar
 
-    LOGS {
+    POSTS {
       uuid id PK
       string slug UK
       string title
@@ -23,9 +23,9 @@ erDiagram
       string excerpt
       text content
       boolean featured
-      int log_number
+      int post_number
       string series_label
-      uuid author_profile FK "M2O authors (named author after CMS-006)"
+      uuid author FK "M2O authors"
       uuid cover_image FK
     }
     AUTHORS {
@@ -64,7 +64,7 @@ erDiagram
     }
     POSTS_TOPICS {
       uuid id PK
-      uuid logs_id FK
+      uuid posts_id FK
       uuid topics_id FK
     }
 

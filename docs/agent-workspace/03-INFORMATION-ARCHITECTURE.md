@@ -75,7 +75,7 @@ contract; agents must not move content across buckets without updating this doc.
 
 | Content | Bucket | Lives in | Why |
 |---|---|---|---|
-| Blog posts | Directus editorial | `logs` collection | Frequent, authored by multiple people, workflow needs draft/publish |
+| Blog posts | Directus editorial | `posts` collection | Frequent, authored by multiple people, workflow needs draft/publish |
 | Topics | Directus editorial | `topics` + junctions | Shared taxonomy for posts & courses, editor-managed |
 | Authors / Dream Team profiles | Directus editorial | `authors` (+ `specialties`) | Multi-person, evolves, relates to posts/courses |
 | Author↔post, author↔course relations | Directus relational | M2O / M2M | Relational integrity belongs in the DB |
@@ -95,7 +95,7 @@ contract; agents must not move content across buckets without updating this doc.
 Consequences:
 - Directus collections **retired**: `site_settings`, `home_settings`, `about`,
   `projects` (after content migration to repo markdown — task V4-CMS-005).
-- Directus collections **kept**: `logs`. **Added**: `authors`, `specialties`,
+- Directus collections **added for v4.0**: `posts`, `authors`, `specialties`,
   `authors_specialties`, `topics`, `posts_topics`; v4.1 adds the courses suite.
 
 ## 4. URL & slug rules
