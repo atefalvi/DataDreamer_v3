@@ -22,7 +22,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 |---|---|---|---|---|
 | V4-FND-001 | Tooling & CI baseline | A | — | done |
 | V4-FND-002 | Temporary OG image set | A | — | done |
-| V4-FND-003 | Staging deploy resource | A | FND-001 | blocked |
+| V4-FND-003 | Staging deploy resource | A | FND-001 | done |
 | V4-DS-001 | Design tokens + base styles | A | FND-001 | done |
 | V4-DS-002 | UI primitives batch | A | DS-001 | done |
 | V4-DS-003 | Prose stylesheet | A | DS-001 | done |
