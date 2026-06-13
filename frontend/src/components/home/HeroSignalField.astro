@@ -1,0 +1,348 @@
+---
+/**
+ * HeroSignalField (07 §2). The homepage hero: real DOM headline over an ambient canvas
+ * that renders the brand motifs literally — drifting square *pixels*, circular ember
+ * *nodes* (the logo dot), and hairline *connections*. SSR text is always visible
+ * (LCP = H1, no FOUC); the canvas is additive and only mounts on ≥768px with motion
+ * allowed. A deterministic inline SVG "still" covers mobile / reduced-motion / no-JS.
+ * No animation library — a small hand-rolled flow field (07 §2.9).
+ */
+import Button from '../ui/Button.astro';
+import { HOME_HERO } from '../../content/site';
+
+// Deterministic static-frame positions (mulberry32 seed=42) — same on every render.
+function mulberry32(seed: number) {
+  let a = seed;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rnd = mulberry32(42);
+const staticPixels = Array.from({ length: 24 }, () => ({
+  x: +(rnd() * 1200).toFixed(1),
+  y: +(rnd() * 600).toFixed(1),
+}));
+const emberA = { x: 320, y: 220 };
+const emberB = { x: 760, y: 380 };
+---
+
+<section class="hero" aria-label="DataDreamer">
+  <canvas class="hero__canvas" data-hero-field aria-hidden="true"></canvas>
+
+  <svg class="hero__static" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    {staticPixels.map((p) => (
+      <rect x={p.x} y={p.y} width="2" height="2" fill="var(--text-3)" opacity="0.35" />
+    ))}
+    <line x1={emberA.x} y1={emberA.y} x2={emberB.x} y2={emberB.y} stroke="var(--accent)" stroke-width="1" opacity="0.3" />
+    <circle cx={emberA.x} cy={emberA.y} r="3" fill="var(--accent)" opacity="0.85" />
+    <circle cx={emberB.x} cy={emberB.y} r="3" fill="var(--accent)" opacity="0.85" />
+  </svg>
+
+  <div class="hero__content container-wide">
+    <p class="hero__kicker kicker">{HOME_HERO.kicker}</p>
+    <h1 class="hero__headline">
+      {HOME_HERO.headlineLines.map((line) => <span class="hero__line">{line}</span>)}
+    </h1>
+    <p class="hero__sub">{HOME_HERO.subhead}</p>
+    <div class="hero__cta">
+      <Button href={HOME_HERO.primaryCta.href} variant="primary" size="lg">{HOME_HERO.primaryCta.label}</Button>
+      <Button href={HOME_HERO.secondaryCta.href} variant="secondary" size="lg">{HOME_HERO.secondaryCta.label}</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: min(88vh, 760px);
+    padding-block: calc(64px + var(--space-9)) var(--space-9);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* Subtle vignette layer (z1) — always present, behind content. */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(120% 80% at 30% 30%, transparent 40%, color-mix(in srgb, var(--bg-0) 60%, transparent) 100%);
+    pointer-events: none;
+  }
+
+  .hero__canvas,
+  .hero__static {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Default: show the static still, hide the canvas. The canvas is only revealed for
+     JS + desktop + motion-allowed (matches the script's own guard). */
+  .hero__canvas {
+    display: none;
+  }
+
+  @media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+    :global(html:not(.no-js)) .hero__canvas {
+      display: block;
+    }
+    :global(html:not(.no-js)) .hero__static {
+      display: none;
+    }
+  }
+
+  .hero__content {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    max-width: 56ch;
+  }
+
+  .hero__kicker {
+    color: var(--text-3);
+  }
+
+  .hero__headline {
+    font-family: var(--font-display);
+    font-size: var(--fs-display);
+    line-height: var(--lh-display);
+    font-weight: 560;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .hero__line {
+    display: block;
+  }
+
+  .hero__sub {
+    max-width: 52ch;
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  @media (max-width: 39.999rem) {
+    .hero {
+      align-items: center;
+      min-height: 88svh;
+    }
+    .hero__cta {
+      width: 100%;
+    }
+    .hero__cta :global(.ui-button) {
+      flex: 1 1 auto;
+    }
+  }
+</style>
+
+<script>
+  type Pt = { x: number; y: number; vx: number; vy: number };
+
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-field]');
+  const motionOk =
+    window.matchMedia('(prefers-reduced-motion: no-preference)').matches && window.innerWidth >= 768;
+
+  if (canvas && motionOk) {
+    try {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('no 2d context');
+      const section = canvas.parentElement as HTMLElement;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      // Precomputed flow-field grid (value-noise gradients) — no per-frame noise calls.
+      const GW = 64;
+      const GH = 36;
+      const field = new Float32Array(GW * GH);
+      {
+        let s = 1337;
+        const rand = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+        for (let i = 0; i < field.length; i++) field[i] = rand() * Math.PI * 2;
+      }
+
+      let W = 0;
+      let H = 0;
+      const sampleFlow = (x: number, y: number) => {
+        const gx = Math.max(0, Math.min(GW - 1, (x / W) * (GW - 1)));
+        const gy = Math.max(0, Math.min(GH - 1, (y / H) * (GH - 1)));
+        return field[Math.floor(gy) * GW + Math.floor(gx)];
+      };
+
+      let points: Pt[] = [];
+      let embers: Array<Pt & { phase: number }> = [];
+      let count = 140;
+      let color3 = 'rgba(110,119,131,0.35)';
+      let accent = '#FF5C38';
+
+      const readColors = () => {
+        const cs = getComputedStyle(document.documentElement);
+        color3 = cs.getPropertyValue('--text-3').trim() || color3;
+        accent = cs.getPropertyValue('--accent').trim() || accent;
+      };
+
+      const seed = () => {
+        points = Array.from({ length: count }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          vx: 0,
+          vy: 0,
+        }));
+        embers = Array.from({ length: 6 }, () => ({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          vx: 0,
+          vy: 0,
+          phase: Math.random() * Math.PI * 2,
+        }));
+      };
+
+      const size = () => {
+        W = section.clientWidth;
+        H = section.clientHeight;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      };
+
+      let link: { a: number; b: number; t: number } | null = null;
+      let nextLinkAt = performance.now() + 1500;
+      let running = false;
+      let rafId = 0;
+      let slowFrames = 0;
+      let degraded = false;
+      const V = 0.18;
+
+      const startLink = (now: number) => {
+        if (embers.length < 2) return;
+        let best: [number, number, number] | null = null;
+        for (let i = 0; i < embers.length; i++) {
+          for (let j = i + 1; j < embers.length; j++) {
+            const d = Math.hypot(embers[i].x - embers[j].x, embers[i].y - embers[j].y);
+            if (d < 320 && (!best || d < best[2])) best = [i, j, d];
+          }
+        }
+        if (best) link = { a: best[0], b: best[1], t: 0 };
+        nextLinkAt = now + 4000 + Math.random() * 3000;
+      };
+
+      let prev = performance.now();
+      const frame = (now: number) => {
+        const dt = Math.min(2, (now - prev) / 16.67);
+        prev = now;
+        if (!degraded) {
+          if (now - prev > 24) slowFrames++;
+        }
+        ctx.clearRect(0, 0, W, H);
+
+        ctx.fillStyle = color3;
+        for (const p of points) {
+          const a = sampleFlow(p.x, p.y);
+          p.x += Math.cos(a) * V * dt * 6;
+          p.y += Math.sin(a) * V * dt * 6;
+          if (p.x < 0) p.x += W;
+          else if (p.x > W) p.x -= W;
+          if (p.y < 0) p.y += H;
+          else if (p.y > H) p.y -= H;
+          ctx.fillRect(p.x, p.y, 2, 2); // square pixel motif
+        }
+
+        for (const e of embers) {
+          const a = sampleFlow(e.x, e.y);
+          e.x += Math.cos(a) * V * 0.6 * dt * 6;
+          e.y += Math.sin(a) * V * 0.6 * dt * 6;
+          if (e.x < 0) e.x += W;
+          else if (e.x > W) e.x -= W;
+          if (e.y < 0) e.y += H;
+          else if (e.y > H) e.y -= H;
+          const r = 2.5 + Math.sin(now / 700 + e.phase) * 0.8;
+          ctx.beginPath();
+          ctx.arc(e.x, e.y, r, 0, Math.PI * 2);
+          ctx.fillStyle = accent;
+          ctx.globalAlpha = 0.8;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+
+        if (!degraded) {
+          if (!link && now >= nextLinkAt) startLink(now);
+          if (link) {
+            const a = embers[link.a];
+            const b = embers[link.b];
+            link.t += dt * 0.012;
+            const prog = Math.min(1, link.t);
+            const alpha = link.t < 1 ? prog : Math.max(0, 1 - (link.t - 1.6) / 0.9);
+            if (a && b && alpha > 0) {
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(a.x + (b.x - a.x) * prog, a.y + (b.y - a.y) * prog);
+              ctx.strokeStyle = accent;
+              ctx.globalAlpha = alpha * 0.5;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+              ctx.globalAlpha = 1;
+            }
+            if (link.t > 2.6) link = null;
+          }
+        }
+
+        if (!degraded && slowFrames >= 3) {
+          degraded = true;
+          count = Math.floor(count / 2);
+          seed();
+          link = null;
+        }
+
+        if (running) rafId = requestAnimationFrame(frame);
+      };
+
+      const start = () => {
+        if (running) return;
+        running = true;
+        prev = performance.now();
+        rafId = requestAnimationFrame(frame);
+      };
+      const stop = () => {
+        running = false;
+        cancelAnimationFrame(rafId);
+      };
+
+      readColors();
+      size();
+      seed();
+
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) (e.isIntersecting ? start : stop)();
+      });
+      io.observe(canvas);
+
+      document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+      document.addEventListener('themechange', readColors);
+      let rt = 0;
+      window.addEventListener('resize', () => {
+        clearTimeout(rt);
+        rt = window.setTimeout(() => {
+          size();
+          seed();
+        }, 150);
+      });
+    } catch {
+      canvas.remove(); // static SVG + CSS vignette remain
+    }
+  }
+</script>
