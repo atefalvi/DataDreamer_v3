@@ -1,47 +1,374 @@
 ---
-import MainLayout from "../layouts/MainLayout.astro";
-import AboutHero from "../components/about/AboutHero.astro";
-import AboutStats from "../components/about/AboutStats.astro";
-import AboutTimeline from "../components/about/AboutTimeline.astro";
-import AboutStack from "../components/about/AboutStack.astro";
+/**
+ * V4-PAGE-001 — About (05 §9). Repo-owned content (about.ts), zero Directus, no canvas.
+ * Portrait is an on-brand plate (explicit square dimensions, ember-node motif echoing
+ * the logo) until a real photo is dropped at src/assets/about/. Résumé button appears
+ * only when ABOUT.resumeUrl points at a PDF in public/.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/ui/Button.astro';
+import { ABOUT } from '../content/about';
+import { SOCIAL_LINKS } from '../content/site';
+import { SITE_URL } from '../lib/seo/meta';
+import logoMark from '../assets/brand/logo-mark.svg?raw';
 
-import { fetchAbout } from "../lib/directus";
+const sameAs = SOCIAL_LINKS.filter((s) => s.href.startsWith('http')).map((s) => s.href);
 
-// Fetch data from Directus
-const aboutData = await fetchAbout();
-
-// Default values handled by components if these are null/undefined,
-// but we pass them explicitly from the fetched singletons here.
-const heroTagline = aboutData?.hero_tagline || undefined;
-const heroTitle = aboutData?.hero_title || undefined;
-const heroDescription = aboutData?.hero_description || undefined;
-const profileImageId = aboutData?.profile_image || undefined;
-const resumeId = aboutData?.resume || undefined;
-
-const stats = aboutData?.stats || undefined;
-const experience = aboutData?.experience || undefined;
-const skills = aboutData?.skills || undefined;
-
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'About — DataDreamer',
+    url: `${SITE_URL}/about`,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Atef Alvi',
+    jobTitle: 'Data & Analytics Engineer',
+    url: `${SITE_URL}/about`,
+    sameAs,
+  },
+];
 ---
 
-<MainLayout
-    title="ABOUT // DATA DREAMER"
-    description="Learn about the analyst and engineer behind Data Dreamer — background, skills, and the work that drives the practice."
-    ogType="website"
+<BaseLayout
+  title="About"
+  description="The data & analytics engineer behind DataDreamer — background, stack, and the work that drives the practice."
+  ogImage={{ url: '/og/og-about.png' }}
+  jsonLd={jsonLd}
 >
-    <AboutHero 
-        tagline={heroTagline}
-        title={heroTitle}
-        description={heroDescription}
-        imageFileId={profileImageId}
-        resumeId={resumeId}
-    />
-    
-    <AboutStats stats={stats} />
-    
-    <main class="container">
-        <AboutTimeline experience={experience} />
-        <AboutStack skills={skills} />
-    </main>
-</MainLayout>
+  <div class="about container-content">
+    <header class="about__head">
+      <div class="about__intro">
+        <p class="kicker">{ABOUT.kicker}</p>
+        <h1>{ABOUT.title}</h1>
+        <p class="about__lede">{ABOUT.lede}</p>
+        {ABOUT.bio.map((para) => <p class="about__bio">{para}</p>)}
+      </div>
 
+      <figure class="about__portrait" aria-label={ABOUT.portraitAlt}>
+        <span class="about__portrait-mark" set:html={logoMark} aria-hidden="true" />
+        <span class="about__portrait-node" aria-hidden="true"></span>
+        <figcaption>{ABOUT.portraitAlt}</figcaption>
+      </figure>
+    </header>
+
+    <section class="about__stats" aria-label="By the numbers">
+      {ABOUT.stats.map((stat) => (
+        <div class="stat">
+          <span class="stat__value">{stat.value}</span>
+          <span class="stat__label">{stat.label}</span>
+        </div>
+      ))}
+    </section>
+
+    <section class="about__timeline" aria-label="Experience">
+      <p class="kicker">Trajectory</p>
+      <ol>
+        {ABOUT.timeline.map((entry) => (
+          <li>
+            <span class="timeline__year">{entry.year}</span>
+            <div class="timeline__card">
+              <h2>{entry.role}</h2>
+              <p class="timeline__org">{entry.org}</p>
+              <p class="timeline__note">{entry.note}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="about__stack" aria-label="Tools & stack">
+      <p class="kicker">Stack</p>
+      <div class="stack__groups">
+        {ABOUT.stack.map((group) => (
+          <div class="stack__group">
+            <h2>{group.group}</h2>
+            <ul>
+              {group.items.map((item) => <li>{item}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="about__cta">
+      <div>
+        <h2>{ABOUT.cta.heading}</h2>
+        <p>{ABOUT.cta.body}</p>
+      </div>
+      <div class="about__cta-actions">
+        <Button href={ABOUT.cta.primary.href} variant="primary" size="lg" icon="arrow-right">
+          {ABOUT.cta.primary.label}
+        </Button>
+        {ABOUT.resumeUrl && (
+          <Button href={ABOUT.resumeUrl} variant="secondary" size="lg" icon="download">Résumé (PDF)</Button>
+        )}
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .about {
+    padding-block: calc(78px + var(--section-y)) var(--section-y);
+  }
+
+  /* Header — text 1–7, portrait 8–12 on desktop (05 §9). */
+  .about__head {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  @media (min-width: 56rem) {
+    .about__head {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      align-items: start;
+      gap: var(--space-8);
+    }
+  }
+
+  .about__intro h1 {
+    margin-top: var(--space-3);
+    max-width: 16ch;
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .about__lede {
+    max-width: 48ch;
+    margin-top: var(--space-5);
+    color: var(--text-1);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-xl);
+  }
+
+  .about__bio {
+    max-width: 60ch;
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+  }
+
+  /* Portrait plate — square, radius-lg, brand motif; explicit dimensions via aspect-ratio. */
+  .about__portrait {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(120% 120% at 18% 12%, color-mix(in srgb, var(--bg-3) 80%, transparent), transparent 60%),
+      linear-gradient(150deg, var(--bg-2), var(--bg-1));
+    isolation: isolate;
+  }
+
+  .about__portrait-mark {
+    position: absolute;
+    inset: 18% 18% auto auto;
+    display: block;
+    width: 64%;
+  }
+
+  .about__portrait-mark :global(svg) {
+    width: 100%;
+    height: auto;
+    color: color-mix(in srgb, var(--text-1) 14%, transparent);
+  }
+
+  /* Ember node motif in the corner, echoing the logo dot. */
+  .about__portrait-node {
+    position: absolute;
+    left: 16%;
+    bottom: 18%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+
+  .about__portrait figcaption {
+    position: absolute;
+    inset: auto 0 0;
+    padding: var(--space-4);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--bg-0) 70%, transparent));
+  }
+
+  /* Stats. */
+  .about__stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    margin-top: var(--section-y);
+  }
+
+  .stat {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    background: var(--bg-1);
+  }
+
+  .stat__value {
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text-1);
+  }
+
+  .stat__label {
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  /* Timeline. */
+  .about__timeline {
+    margin-top: var(--section-y);
+  }
+
+  .about__timeline ol {
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .about__timeline li {
+    display: grid;
+    grid-template-columns: minmax(4.5rem, 0.18fr) 1fr;
+    gap: var(--space-5);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .timeline__year {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+  }
+
+  .timeline__card h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 580;
+    line-height: var(--lh-xl);
+  }
+
+  .timeline__org {
+    margin-top: var(--space-1);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .timeline__note {
+    max-width: 60ch;
+    margin-top: var(--space-3);
+    color: var(--text-2);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+  }
+
+  /* Stack. */
+  .about__stack {
+    margin-top: var(--section-y);
+  }
+
+  .stack__groups {
+    display: grid;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+
+  .stack__group h2 {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .stack__group ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stack__group li {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+  }
+
+  /* CTA band. */
+  .about__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    margin-top: var(--section-y);
+    padding: var(--space-7);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(120% 160% at 0% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 50%),
+      var(--bg-1);
+  }
+
+  .about__cta h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    line-height: var(--lh-2xl);
+  }
+
+  .about__cta p {
+    max-width: 46ch;
+    margin-top: var(--space-2);
+    color: var(--text-2);
+    font-size: var(--fs-base);
+  }
+
+  .about__cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  @media (max-width: 47.999rem) {
+    .about__stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .about__timeline li {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+  }
+</style>
