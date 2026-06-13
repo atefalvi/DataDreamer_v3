@@ -17,6 +17,56 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] Polish fixes — code/copy, About removal, LinkedIn, Dream Team data, Work search, Author page — done
+
+**Did**: Batch of requested fixes on top of the merged Projects/Dream Team work.
+
+1. **Code highlighting + copy UX** — `.shiki` color was set on the container only, so all
+   tokens inherited one color (no highlighting). Fixed `prose.css` to apply the per-token
+   `--shiki-*` var at the `span` level. Copy button only worked on blog (handler lived in
+   `ArticleEnhancements`); extracted a shared `lib/markdown/codeCopy.ts` (delegated,
+   idempotent, Clipboard API → `execCommand` fallback for non-secure contexts, `data-copied`
+   state + live region) and wired it on BOTH blog and case studies. Copy button now renders
+   copy/check **icons** + SR label (rehype) instead of the word "Copy". Golden snapshots updated.
+2. **Removed About** — deleted `pages/about.astro` + `content/about.ts`, dropped About from
+   `NAV_ITEMS` (footer derives from it), added `astro.config` 301 `/about → /dream-team`.
+3. **LinkedIn URL** → `https://www.linkedin.com/in/atefsyed/` in `site.ts` (footer, mobile
+   menu, connect channels).
+4. **Dream Team graph** was empty because staging had 1 author (<2) and Atef had no
+   specialty. Added `scripts/v4-dt-seed-directus.mjs` (idempotent) and **ran it against
+   staging**: created specialties `people-hr`, `capital-markets`; created authors
+   **Maria Khan** (People & HR) and **Moe Zulfiqar** (Capital Markets); linked Atef →
+   Data Engineering. Graph now renders 3 clustered nodes + legend + tooltips + filter.
+5. **Work index** — added a client search box (filters by title/summary/role/stack) and tag
+   chips now show a **count badge** and are **sorted by count desc** (`projects/index.astro`).
+   **Author detail page** upgraded to a premium "profile hero": gradient + grid backdrop,
+   ring-glow avatar, accent specialty chips, kicker — matching the home aesthetic.
+
+**Files**: `frontend/src/styles/prose.css`, `frontend/src/lib/markdown/{rehype.ts,codeCopy.ts}`,
+`frontend/src/components/blog/ArticleEnhancements.astro`,
+`frontend/src/pages/projects/{index,[slug]}.astro`, `frontend/src/pages/dream-team/[slug].astro`,
+`frontend/src/content/site.ts`, `frontend/src/content.config.ts`, `frontend/astro.config.mjs`,
+deleted `frontend/src/pages/about.astro` + `frontend/src/content/about.ts`,
+`scripts/v4-dt-seed-directus.mjs`, updated markdown snapshot; docs 15.
+
+**Validation**: `astro check` 0/0/0; `npm test` 53 passed (snapshots updated); `npm run build` ok.
+Browser (dev → staging, 1280px): Dream Team graph renders 3 nodes/anchors/legend, hover
+tooltip + edge-light + legend-filter dim all work; `/dream-team/maria-khan` premium hero;
+`/projects` search (retry→1, zzz→0+no-results, reset→3) + tag count chips (All 3, SQL 2…);
+case study code highlighting (5 distinct token colors) + copy button wired with icons;
+`/about` → 301 `/dream-team`; About gone from nav.
+
+**Decisions / deviations**:
+1. Code-copy success path can't be exercised by synthetic clicks in headless (clipboard +
+   execCommand both need a trusted gesture) — verified wiring + fallback announcement; real
+   clicks on HTTPS work.
+2. Seeded real contributors into **staging** Directus (authorized — the user named them). The
+   seed script is committed + idempotent for re-runs / other environments.
+3. `og-about.png` left in `public/og` (harmless, unreferenced).
+
+**Next**: V4-SEO-001/002, A11Y/PERF passes. Old v3 `components/{about,projects}/*` + Navigation/
+MainLayout still unused → CLEAN-001.
+
 ## [2026-06-13] V4-DT-001/002/003 + V4-PROJ-001/002 + V4-CMS-003/005 — done (one session)
 
 **Did**: Built the Dream Team track (graph algorithm + page + author pages) and the

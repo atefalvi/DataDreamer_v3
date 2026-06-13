@@ -2,7 +2,7 @@
  * Astro content collections (09 §5). `projects` is the only repo-owned collection — long-
  * form case studies authored in markdown with git review (03 §3 boundary; the Directus
  * `projects` collection is archived by V4-CMS-005). Uses the Astro 5 content-layer glob
- * loader so `src/content/site.ts` + `about.ts` stay as plain config modules.
+ * loader so `src/content/site.ts` stays a plain config module.
  */
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';

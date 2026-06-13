@@ -104,26 +104,12 @@ const { hasImageGrid = false } = Astro.props;
 </style>
 
 <script>
-  const prose = document.querySelector<HTMLElement>('[data-article-prose]');
-  const live = document.querySelector<HTMLElement>('[data-code-copy-status]');
+  import { initCodeCopy } from '../../lib/markdown/codeCopy';
 
-  prose?.addEventListener('click', async (event) => {
-    const button = (event.target as Element).closest<HTMLButtonElement>('.code-block__copy');
-    if (!button) return;
-    const block = button.closest<HTMLElement>('.code-block');
-    const code = block?.querySelector('pre')?.textContent ?? '';
-    try {
-      if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
-      await navigator.clipboard.writeText(code);
-      button.textContent = 'Copied';
-      if (live) live.textContent = 'Code copied';
-      window.setTimeout(() => {
-        button.textContent = 'Copy';
-      }, 1500);
-    } catch {
-      if (live) live.textContent = 'Could not copy code';
-    }
-  });
+  const prose = document.querySelector<HTMLElement>('[data-article-prose]');
+
+  // Code-block copy (icon + copied state) — shared with project case studies.
+  initCodeCopy();
 
   const dialog = document.querySelector<HTMLDialogElement>('[data-article-lightbox]');
   if (dialog && prose) {

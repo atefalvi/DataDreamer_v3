@@ -1,22 +1,33 @@
 ---
 /**
  * V4-PROJ-001 — Project index (05 §5). Reads the repo-owned `projects` content
- * collection (zero Directus). Tag filter is implemented as SSR `?tag=` links so it works
- * with no JS, mirroring the blog's filter decision.
+ * collection (zero Directus). Tag chips are SSR `?tag=` links (work with no JS) that show
+ * a per-tag count badge and are sorted by count; a client-side search box filters the
+ * visible cards by title/summary/stack. Search + tag filter compose.
  */
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CaseCard from '../../components/projects/CaseCard.astro';
-import Chip from '../../components/ui/Chip.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
+import Icon from '../../components/ui/Icon.astro';
 import { SITE_URL } from '../../lib/seo/meta';
 
 const all = await getCollection('projects');
 const sorted = all.sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
 
 const activeTag = Astro.url.searchParams.get('tag');
-const tags = [...new Set(all.flatMap((p) => p.data.stack))].sort((a, b) => a.localeCompare(b));
+
+// Tag → count, sorted by count desc then alpha (so the busiest tags lead and the list
+// stays scannable as it grows).
+const tagCounts = new Map<string, number>();
+for (const p of all) for (const t of p.data.stack) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+const tags = [...tagCounts.entries()]
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  .map(([label, count]) => ({ label, count }));
+
 const visible = activeTag ? sorted.filter((p) => p.data.stack.includes(activeTag)) : sorted;
+const searchOf = (p: (typeof all)[number]) =>
+  [p.data.title, p.data.summary, p.data.role, ...p.data.stack].join(' ').toLowerCase();
 
 const jsonLd = [
   {
@@ -48,23 +59,51 @@ const jsonLd = [
       <EmptyState message="Case studies are being written up. Check back soon." icon="folder-open" />
     ) : (
       <>
-        {tags.length > 0 && (
-          <nav class="projects__filter" aria-label="Filter by stack">
-            <Chip label="All" href="/projects" selected={!activeTag} />
-            {tags.map((tag) => (
-              <Chip label={tag} href={`/projects?tag=${encodeURIComponent(tag)}`} selected={activeTag === tag} />
-            ))}
-          </nav>
-        )}
+        <div class="projects__controls">
+          <div class="projects__search">
+            <Icon name="search" size={16} />
+            <input
+              type="search"
+              id="project-search"
+              placeholder="Search work…"
+              autocomplete="off"
+              aria-label="Search work"
+              data-project-search
+            />
+          </div>
+
+          {tags.length > 0 && (
+            <nav class="projects__filter" aria-label="Filter by stack">
+              <a href="/projects" class:list={['tagchip', { 'is-active': !activeTag }]}>
+                All <span class="tagchip__count">{all.length}</span>
+              </a>
+              {tags.map((tag) => (
+                <a
+                  href={`/projects?tag=${encodeURIComponent(tag.label)}`}
+                  class:list={['tagchip', { 'is-active': activeTag === tag.label }]}
+                >
+                  {tag.label} <span class="tagchip__count">{tag.count}</span>
+                </a>
+              ))}
+            </nav>
+          )}
+        </div>
 
         {visible.length === 0 ? (
           <EmptyState message={`No projects tagged “${activeTag}”.`} icon="search-x" action={{ label: 'Clear filter', href: '/projects' }} />
         ) : (
-          <div class="projects__grid">
-            {visible.map((project, i) => (
-              <CaseCard project={project} class={i % 3 === 0 ? 'case-card--wide' : ''} />
-            ))}
-          </div>
+          <>
+            <div class="projects__grid" data-project-grid>
+              {visible.map((project, i) => (
+                <div class="projects__item" data-search={searchOf(project)}>
+                  <CaseCard project={project} class={i % 3 === 0 ? 'case-card--wide' : ''} />
+                </div>
+              ))}
+            </div>
+            <p class="projects__noresults" data-project-noresults hidden>
+              No work matches your search. <a href="/projects">Reset</a>.
+            </p>
+          </>
         )}
       </>
     )}
@@ -93,11 +132,96 @@ const jsonLd = [
     line-height: var(--lh-lg);
   }
 
+  .projects__controls {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-7);
+  }
+
+  .projects__search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    max-width: 24rem;
+    padding: 0 var(--space-4);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-full);
+    background: var(--bg-1);
+    color: var(--text-3);
+    transition: border-color var(--dur-2) var(--ease-out);
+  }
+
+  .projects__search:focus-within {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .projects__search input {
+    flex: 1;
+    min-width: 0;
+    padding: var(--space-3) 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-1);
+    font-family: var(--font-text);
+    font-size: var(--fs-sm);
+  }
+
+  .projects__search input::-webkit-search-cancel-button {
+    appearance: none;
+  }
+
+  /* Tag chips with count pile — wraps as the set grows. */
   .projects__filter {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
-    margin-top: var(--space-6);
+  }
+
+  .tagchip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    background: var(--bg-1);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+    transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+  }
+
+  .tagchip:hover {
+    color: var(--text-1);
+    border-color: var(--border-2);
+  }
+
+  .tagchip.is-active {
+    color: var(--text-1);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--bg-1));
+  }
+
+  .tagchip__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-full);
+    background: var(--bg-3);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 600;
+  }
+
+  .tagchip.is-active .tagchip__count {
+    background: var(--accent);
+    color: var(--text-on-accent);
   }
 
   .projects__grid {
@@ -107,17 +231,54 @@ const jsonLd = [
     grid-template-columns: 1fr;
   }
 
+  .projects__item {
+    display: contents;
+  }
+
+  .projects__noresults {
+    margin-top: var(--space-7);
+    color: var(--text-2);
+  }
+
+  .projects__noresults a {
+    color: var(--accent);
+  }
+
   @media (min-width: 48rem) {
     .projects__grid {
       grid-template-columns: repeat(2, 1fr);
       gap: var(--space-8) var(--space-7);
     }
+    .projects__item {
+      display: block;
+    }
     /* Asymmetric offset: every third card spans full width as a feature row. */
-    .projects__grid :global(.case-card--wide) {
+    .projects__item:has(.case-card--wide) {
       grid-column: 1 / -1;
     }
-    .projects__grid :global(.case-card--wide) :global(.case-card__media) {
+    .projects__item:has(.case-card--wide) :global(.case-card__media) {
       aspect-ratio: 21 / 9;
     }
   }
 </style>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('[data-project-search]');
+  const grid = document.querySelector<HTMLElement>('[data-project-grid]');
+  const noResults = document.querySelector<HTMLElement>('[data-project-noresults]');
+
+  if (input && grid) {
+    const items = Array.from(grid.querySelectorAll<HTMLElement>('.projects__item'));
+    const run = () => {
+      const q = input.value.trim().toLowerCase();
+      let shown = 0;
+      for (const item of items) {
+        const match = !q || (item.dataset.search ?? '').includes(q);
+        item.hidden = !match;
+        if (match) shown += 1;
+      }
+      if (noResults) noResults.hidden = shown !== 0;
+    };
+    input.addEventListener('input', run);
+  }
+</script>

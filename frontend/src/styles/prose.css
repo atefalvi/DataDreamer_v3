@@ -222,16 +222,49 @@
 
 .prose .code-block__copy,
 .blog-content .code-block__copy {
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-  padding-inline: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
   background: transparent;
   border: 1px solid var(--border-2);
   border-radius: var(--radius-sm);
-  color: var(--text-1);
+  color: var(--text-2);
   cursor: pointer;
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
+  transition:
+    color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    background var(--dur-2) var(--ease-out);
+}
+
+.prose .code-block__copy:hover,
+.blog-content .code-block__copy:hover {
+  color: var(--text-1);
+  border-color: var(--text-3);
+}
+
+.code-block__icon {
+  display: block;
+}
+
+.code-block__icon--done {
+  display: none;
+}
+
+/* Copied state: swap copy → check, tint with success. */
+.code-block__copy[data-copied] {
+  color: var(--success);
+  border-color: var(--success);
+}
+
+.code-block__copy[data-copied] .code-block__icon--copy {
+  display: none;
+}
+
+.code-block__copy[data-copied] .code-block__icon--done {
+  display: block;
 }
 
 @media (hover: hover) {
@@ -256,17 +289,28 @@
   background: transparent !important;
 }
 
+/* Shiki emits a per-token color var on every <span>; apply it at the span level so
+   each token keeps its own color (setting it only on .shiki makes all tokens inherit
+   one color = no highlighting). */
 [data-theme="dark"] .prose .shiki,
 [data-theme="dark"] .blog-content .shiki,
+[data-theme="dark"] .prose .shiki span,
+[data-theme="dark"] .blog-content .shiki span,
 [data-theme="dark"] .prose .astro-code,
-[data-theme="dark"] .blog-content .astro-code {
+[data-theme="dark"] .blog-content .astro-code,
+[data-theme="dark"] .prose .astro-code span,
+[data-theme="dark"] .blog-content .astro-code span {
   color: var(--shiki-dark, var(--text-1));
 }
 
 [data-theme="light"] .prose .shiki,
 [data-theme="light"] .blog-content .shiki,
+[data-theme="light"] .prose .shiki span,
+[data-theme="light"] .blog-content .shiki span,
 [data-theme="light"] .prose .astro-code,
-[data-theme="light"] .blog-content .astro-code {
+[data-theme="light"] .blog-content .astro-code,
+[data-theme="light"] .prose .astro-code span,
+[data-theme="light"] .blog-content .astro-code span {
   color: var(--shiki-light, var(--text-1));
 }
 
