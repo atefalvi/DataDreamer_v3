@@ -1,78 +1,128 @@
 ---
 /**
- * HeroSignalField (07 §2). The homepage hero: real DOM headline over an ambient canvas
- * that renders the brand motifs literally — drifting square *pixels*, circular ember
- * *nodes* (the logo dot), and hairline *connections*. SSR text is always visible
- * (LCP = H1, no FOUC); the canvas is additive and only mounts on ≥768px with motion
- * allowed. A deterministic inline SVG "still" covers mobile / reduced-motion / no-JS.
- * No animation library — a small hand-rolled flow field (07 §2.9).
+ * Premium homepage hero: live editorial text over a responsive, deterministic
+ * signal field. The canvas reacts to pointer/touch when motion is allowed, and
+ * no-js/reduced-motion users receive the authored static field.
  */
 import Button from '../ui/Button.astro';
 import { HOME_HERO } from '../../content/site';
 
-// Deterministic static-frame positions (mulberry32 seed=42) — same on every render.
-function mulberry32(seed: number) {
-  let a = seed;
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const rnd = mulberry32(42);
-const staticPixels = Array.from({ length: 24 }, () => ({
-  x: +(rnd() * 1200).toFixed(1),
-  y: +(rnd() * 600).toFixed(1),
-}));
-const emberA = { x: 320, y: 220 };
-const emberB = { x: 760, y: 380 };
+const staticNodes = [
+  { x: 174, y: 132, r: 4 },
+  { x: 360, y: 246, r: 3 },
+  { x: 554, y: 166, r: 5 },
+  { x: 782, y: 318, r: 4 },
+  { x: 972, y: 228, r: 3 },
+  { x: 1082, y: 446, r: 5 },
+];
 ---
 
-<section class="hero" aria-label="DataDreamer">
-  <canvas class="hero__canvas" data-hero-field aria-hidden="true"></canvas>
+<section class="hero" aria-label="DataDreamer homepage introduction">
+  <canvas class="hero__canvas" data-hero-signal aria-hidden="true"></canvas>
 
-  <svg class="hero__static" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    {staticPixels.map((p) => (
-      <rect x={p.x} y={p.y} width="2" height="2" fill="var(--text-3)" opacity="0.35" />
+  <svg class="hero__static" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <radialGradient id="signalGlow" cx="70%" cy="28%" r="58%">
+        <stop offset="0" stop-color="var(--accent)" stop-opacity="0.2" />
+        <stop offset="0.5" stop-color="var(--accent)" stop-opacity="0.06" />
+        <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="signalStroke" x1="130" y1="480" x2="1120" y2="180">
+        <stop offset="0" stop-color="var(--text-3)" stop-opacity="0.08" />
+        <stop offset="0.48" stop-color="var(--accent)" stop-opacity="0.42" />
+        <stop offset="1" stop-color="var(--text-3)" stop-opacity="0.12" />
+      </linearGradient>
+    </defs>
+    <rect width="1200" height="640" fill="url(#signalGlow)" />
+    <g stroke="var(--border-2)" stroke-width="1" opacity="0.28">
+      <path d="M110 120H1090" />
+      <path d="M110 260H1090" />
+      <path d="M110 400H1090" />
+      <path d="M220 68V572" />
+      <path d="M520 68V572" />
+      <path d="M840 68V572" />
+    </g>
+    <path d="M146 486C286 314 400 372 552 190S852 218 1040 112" fill="none" stroke="url(#signalStroke)" stroke-width="1.5" />
+    <path d="M208 178C370 256 430 468 650 408S896 250 1116 420" fill="none" stroke="var(--accent)" stroke-width="1" opacity="0.2" />
+    {staticNodes.map((node) => (
+      <g>
+        <circle cx={node.x} cy={node.y} r={node.r * 5} fill="var(--accent)" opacity="0.05" />
+        <circle cx={node.x} cy={node.y} r={node.r} fill="var(--accent)" opacity="0.86" />
+      </g>
     ))}
-    <line x1={emberA.x} y1={emberA.y} x2={emberB.x} y2={emberB.y} stroke="var(--accent)" stroke-width="1" opacity="0.3" />
-    <circle cx={emberA.x} cy={emberA.y} r="3" fill="var(--accent)" opacity="0.85" />
-    <circle cx={emberB.x} cy={emberB.y} r="3" fill="var(--accent)" opacity="0.85" />
   </svg>
 
-  <div class="hero__content container-wide">
-    <p class="hero__kicker kicker">{HOME_HERO.kicker}</p>
-    <h1 class="hero__headline">
-      {HOME_HERO.headlineLines.map((line) => <span class="hero__line">{line}</span>)}
-    </h1>
-    <p class="hero__sub">{HOME_HERO.subhead}</p>
-    <div class="hero__cta">
-      <Button href={HOME_HERO.primaryCta.href} variant="primary" size="lg">{HOME_HERO.primaryCta.label}</Button>
-      <Button href={HOME_HERO.secondaryCta.href} variant="secondary" size="lg">{HOME_HERO.secondaryCta.label}</Button>
+  <div class="hero__inner container-wide">
+    <div class="hero__copy">
+      <p class="hero__kicker kicker">{HOME_HERO.kicker}</p>
+      <h1 class="hero__headline">
+        {HOME_HERO.headlineLines.map((line) => <span>{line}</span>)}
+      </h1>
+      <p class="hero__sub">{HOME_HERO.subhead}</p>
+      <div class="hero__cta" aria-label="Primary actions">
+        <Button href={HOME_HERO.primaryCta.href} variant="primary" size="lg" icon="arrow-right">
+          {HOME_HERO.primaryCta.label}
+        </Button>
+        <Button href={HOME_HERO.secondaryCta.href} variant="secondary" size="lg">
+          {HOME_HERO.secondaryCta.label}
+        </Button>
+      </div>
     </div>
+
+    <aside class="hero__brief" aria-label="Editorial focus">
+      <p class="hero__brief-label">Studio index</p>
+      <dl>
+        <div>
+          <dt>Signals</dt>
+          <dd>Field notes from production data systems.</dd>
+        </div>
+        <div>
+          <dt>Systems</dt>
+          <dd>Engineering patterns, analytics, and automation.</dd>
+        </div>
+        <div>
+          <dt>Dreams</dt>
+          <dd>AI research translated into useful practice.</dd>
+        </div>
+      </dl>
+    </aside>
   </div>
 </section>
 
 <style>
   .hero {
     position: relative;
-    display: flex;
-    align-items: flex-end;
-    min-height: min(88vh, 760px);
-    padding-block: calc(64px + var(--space-9)) var(--space-9);
+    min-height: min(88svh, 820px);
     overflow: hidden;
     isolation: isolate;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 72%, transparent), var(--bg-0) 92%),
+      radial-gradient(circle at 76% 18%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 38%),
+      radial-gradient(circle at 16% 72%, color-mix(in srgb, var(--info) 12%, transparent), transparent 34%),
+      var(--bg-0);
   }
 
-  /* Subtle vignette layer (z1) — always present, behind content. */
-  .hero::after {
+  .hero::before {
     content: '';
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: radial-gradient(120% 80% at 30% 30%, transparent 40%, color-mix(in srgb, var(--bg-0) 60%, transparent) 100%);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--border-1) 56%, transparent) 1px, transparent 1px),
+      linear-gradient(180deg, color-mix(in srgb, var(--border-1) 38%, transparent) 1px, transparent 1px);
+    background-position: center;
+    background-size: 104px 104px;
+    mask-image: radial-gradient(78% 64% at 68% 34%, #000 0%, transparent 76%);
+    opacity: 0.2;
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 0;
+    height: 34%;
+    background: linear-gradient(180deg, transparent, var(--bg-0));
     pointer-events: none;
   }
 
@@ -85,264 +135,687 @@ const emberB = { x: 760, y: 380 };
     height: 100%;
   }
 
-  /* Default: show the static still, hide the canvas. The canvas is only revealed for
-     JS + desktop + motion-allowed (matches the script's own guard). */
   .hero__canvas {
+    display: block;
+  }
+
+  .hero__static {
     display: none;
   }
 
-  @media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
-    :global(html:not(.no-js)) .hero__canvas {
-      display: block;
-    }
-    :global(html:not(.no-js)) .hero__static {
-      display: none;
-    }
+  :global(html.no-js) .hero__canvas,
+  .hero--static .hero__canvas {
+    display: none;
   }
 
-  .hero__content {
+  :global(html.no-js) .hero__static,
+  .hero--static .hero__static {
+    display: block;
+  }
+
+  .hero__inner {
     position: relative;
+    z-index: 1;
     display: grid;
-    gap: var(--space-5);
-    max-width: 56ch;
+    min-height: min(88svh, 820px);
+    align-items: end;
+    gap: var(--space-8);
+    padding-block: calc(78px + var(--space-8)) var(--space-7);
+  }
+
+  .hero__copy {
+    max-width: 60rem;
   }
 
   .hero__kicker {
-    color: var(--text-3);
+    color: var(--accent);
   }
 
   .hero__headline {
+    max-width: 16ch;
+    margin-top: var(--space-4);
     font-family: var(--font-display);
     font-size: var(--fs-display);
     line-height: var(--lh-display);
-    font-weight: 560;
-    letter-spacing: -0.015em;
-    text-wrap: balance;
+    font-weight: 620;
+    letter-spacing: 0;
   }
 
-  .hero__line {
+  .hero__headline span {
     display: block;
   }
 
   .hero__sub {
-    max-width: 52ch;
+    max-width: 42rem;
+    margin-top: var(--space-5);
     color: var(--text-2);
-    font-size: var(--fs-lg);
-    line-height: var(--lh-lg);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-xl);
   }
 
   .hero__cta {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3);
-    margin-top: var(--space-2);
+    margin-top: var(--space-6);
   }
 
-  @media (max-width: 39.999rem) {
-    .hero {
-      align-items: center;
-      min-height: 88svh;
+  .hero__brief {
+    width: min(100%, 27rem);
+    padding: var(--space-5);
+    border: 1px solid color-mix(in srgb, var(--border-2) 76%, transparent);
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-1) 74%, transparent), color-mix(in srgb, var(--bg-0) 58%, transparent)),
+      color-mix(in srgb, var(--bg-1) 66%, transparent);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-2);
+  }
+
+  .hero__brief-label {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .hero__brief dl {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .hero__brief div {
+    display: grid;
+    grid-template-columns: minmax(5rem, 0.32fr) 1fr;
+    gap: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .hero__brief dt {
+    color: var(--text-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
+  .hero__brief dd {
+    margin: 0;
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__canvas {
+      display: none;
     }
-    .hero__cta {
+
+    .hero__static {
+      display: block;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .hero__inner {
+      grid-template-columns: minmax(0, 1fr) 27rem;
+    }
+  }
+
+  @media (max-width: 47.999rem) {
+    .hero {
+      min-height: 90svh;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 56%, transparent), var(--bg-0) 92%),
+        radial-gradient(circle at 76% 12%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 42%),
+        var(--bg-0);
+    }
+
+    .hero::before {
+      background-size: 72px 72px;
+      mask-image: radial-gradient(86% 56% at 60% 22%, #000 0%, transparent 78%);
+      opacity: 0.16;
+    }
+
+    .hero__inner {
+      min-height: 90svh;
+      align-items: end;
+      padding-block: calc(64px + var(--space-7)) var(--space-7);
+    }
+
+    .hero__headline {
+      max-width: 10ch;
+      font-size: var(--fs-4xl);
+      line-height: var(--lh-4xl);
+    }
+
+    .hero__sub {
+      font-size: var(--fs-lg);
+      line-height: var(--lh-lg);
+    }
+
+    .hero__cta,
+    .hero__cta :global(.ui-button) {
       width: 100%;
     }
-    .hero__cta :global(.ui-button) {
-      flex: 1 1 auto;
+
+    .hero__brief {
+      display: none;
     }
   }
 </style>
 
 <script>
-  type Pt = { x: number; y: number; vx: number; vy: number };
+  type SignalNode = {
+    x: number;
+    y: number;
+    depth: number;
+    phase: number;
+    speed: number;
+  };
 
-  const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-field]');
-  const motionOk =
-    window.matchMedia('(prefers-reduced-motion: no-preference)').matches && window.innerWidth >= 768;
+  type Edge = {
+    a: number;
+    b: number;
+    weight: number;
+  };
 
-  if (canvas && motionOk) {
-    try {
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('no 2d context');
-      const section = canvas.parentElement as HTMLElement;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  type DataPixel = {
+    x: number;
+    y: number;
+    phase: number;
+    size: number;
+  };
 
-      // Precomputed flow-field grid (value-noise gradients) — no per-frame noise calls.
-      const GW = 64;
-      const GH = 36;
-      const field = new Float32Array(GW * GH);
-      {
-        let s = 1337;
-        const rand = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
-        for (let i = 0; i < field.length; i++) field[i] = rand() * Math.PI * 2;
-      }
+  type Pulse = {
+    edge: number;
+    progress: number;
+    speed: number;
+    width: number;
+  };
 
-      let W = 0;
-      let H = 0;
-      const sampleFlow = (x: number, y: number) => {
-        const gx = Math.max(0, Math.min(GW - 1, (x / W) * (GW - 1)));
-        const gy = Math.max(0, Math.min(GH - 1, (y / H) * (GH - 1)));
-        return field[Math.floor(gy) * GW + Math.floor(gx)];
+  type Ripple = {
+    x: number;
+    y: number;
+    age: number;
+    strength: number;
+  };
+
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-signal]');
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: no-preference)');
+
+  if (canvas && motionQuery.matches) {
+    const host = canvas.parentElement;
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    if (!host || !ctx) {
+      canvas?.parentElement?.classList.add('hero--static');
+      canvas?.remove();
+    } else {
+      const pointer = {
+        x: 0.68,
+        y: 0.34,
+        tx: 0.68,
+        ty: 0.34,
+        force: 0.34,
+        targetForce: 0.34,
       };
 
-      let points: Pt[] = [];
-      let embers: Array<Pt & { phase: number }> = [];
-      let count = 140;
-      let color3 = 'rgba(110,119,131,0.35)';
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let mobile = false;
+      let raf = 0;
+      let running = false;
+      let inView = false;
+      let last = performance.now();
+      let lastPulse = 0;
+      let rect = host.getBoundingClientRect();
+      let rectQueued = false;
       let accent = '#FF5C38';
+      let info = '#5CA7FF';
+      let border = '#2E3744';
+      let text3 = '#858E99';
+      let bg = '#0A0C10';
+      let nodes: SignalNode[] = [];
+      let edges: Edge[] = [];
+      let pixels: DataPixel[] = [];
+      const pulses: Pulse[] = [];
+      const ripples: Ripple[] = [];
+
+      const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+      const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+      const distance = (ax: number, ay: number, bx: number, by: number) => Math.hypot(ax - bx, ay - by);
+
+      const rgba = (color: string, alpha: number) => {
+        const hex = color.trim();
+        if (!hex.startsWith('#')) return hex;
+        const raw = hex.length === 4
+          ? hex.slice(1).split('').map((part) => part + part).join('')
+          : hex.slice(1);
+        const value = Number.parseInt(raw, 16);
+        const r = (value >> 16) & 255;
+        const g = (value >> 8) & 255;
+        const b = value & 255;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      };
+
+      const seeded = (seed: number) => {
+        const value = Math.sin(seed * 999) * 10000;
+        return value - Math.floor(value);
+      };
 
       const readColors = () => {
         const cs = getComputedStyle(document.documentElement);
-        color3 = cs.getPropertyValue('--text-3').trim() || color3;
         accent = cs.getPropertyValue('--accent').trim() || accent;
+        info = cs.getPropertyValue('--info').trim() || info;
+        border = cs.getPropertyValue('--border-2').trim() || border;
+        text3 = cs.getPropertyValue('--text-3').trim() || text3;
+        bg = cs.getPropertyValue('--bg-0').trim() || bg;
       };
 
-      const seed = () => {
-        points = Array.from({ length: count }, () => ({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          vx: 0,
-          vy: 0,
-        }));
-        embers = Array.from({ length: 6 }, () => ({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          vx: 0,
-          vy: 0,
-          phase: Math.random() * Math.PI * 2,
-        }));
+      const updateRect = () => {
+        rect = host.getBoundingClientRect();
+        rectQueued = false;
       };
 
-      const size = () => {
-        W = section.clientWidth;
-        H = section.clientHeight;
-        canvas.width = W * dpr;
-        canvas.height = H * dpr;
+      const scheduleRect = () => {
+        if (rectQueued) return;
+        rectQueued = true;
+        requestAnimationFrame(updateRect);
+      };
+
+      const makeNodes = () => {
+        const count = mobile ? 18 : 34;
+        return Array.from({ length: count }, (_, index) => {
+          if (mobile) {
+            const row = index / Math.max(1, count - 1);
+            return {
+              x: 0.2 + seeded(index + 3) * 0.64 + Math.sin(row * Math.PI * 3.2) * 0.045,
+              y: 0.08 + row * 0.58 + seeded(index + 21) * 0.12,
+              depth: 0.4 + seeded(index + 9) * 0.75,
+              phase: seeded(index + 14) * Math.PI * 2,
+              speed: 0.00014 + seeded(index + 31) * 0.0001,
+            };
+          }
+
+          const column = index % 7;
+          const row = Math.floor(index / 7);
+          const fieldBias = index < 10 ? 0.14 : 0;
+          return {
+            x: 0.16 + column * 0.12 + seeded(index + 4) * 0.08 + fieldBias,
+            y: 0.12 + row * 0.13 + seeded(index + 18) * 0.08,
+            depth: 0.35 + seeded(index + 28) * 0.95,
+            phase: seeded(index + 44) * Math.PI * 2,
+            speed: 0.0001 + seeded(index + 56) * 0.00012,
+          };
+        });
+      };
+
+      const makeEdges = (source: SignalNode[]) => {
+        const next: Edge[] = [];
+        const maxDistance = mobile ? 0.26 : 0.2;
+
+        source.forEach((node, index) => {
+          const nearest = source
+            .map((candidate, candidateIndex) => ({
+              candidateIndex,
+              dist: distance(node.x, node.y, candidate.x, candidate.y),
+            }))
+            .filter((candidate) => candidate.candidateIndex !== index && candidate.dist < maxDistance)
+            .sort((a, b) => a.dist - b.dist)
+            .slice(0, mobile ? 2 : 3);
+
+          nearest.forEach(({ candidateIndex, dist }) => {
+            const a = Math.min(index, candidateIndex);
+            const b = Math.max(index, candidateIndex);
+            if (next.some((edge) => edge.a === a && edge.b === b)) return;
+            next.push({ a, b, weight: 1 - dist / maxDistance });
+          });
+        });
+
+        return next;
+      };
+
+      const makePixels = () => {
+        const cols = mobile ? 7 : 12;
+        const rows = mobile ? 9 : 7;
+        const next: DataPixel[] = [];
+        for (let y = 0; y < rows; y += 1) {
+          for (let x = 0; x < cols; x += 1) {
+            const n = y * cols + x;
+            next.push({
+              x: (x + 0.5) / cols + (seeded(n + 80) - 0.5) * 0.035,
+              y: mobile
+                ? 0.1 + (y / Math.max(1, rows - 1)) * 0.64 + (seeded(n + 91) - 0.5) * 0.04
+                : 0.1 + (y / Math.max(1, rows - 1)) * 0.72 + (seeded(n + 91) - 0.5) * 0.05,
+              phase: seeded(n + 102) * Math.PI * 2,
+              size: mobile ? 2 + seeded(n + 113) * 2 : 2.5 + seeded(n + 113) * 3,
+            });
+          }
+        }
+        return next;
+      };
+
+      const buildScene = () => {
+        mobile = width < 768;
+        nodes = makeNodes();
+        edges = makeEdges(nodes);
+        pixels = makePixels();
+        pulses.length = 0;
+        ripples.length = 0;
+        pointer.tx = mobile ? 0.62 : 0.68;
+        pointer.ty = mobile ? 0.22 : 0.34;
+        pointer.x = pointer.tx;
+        pointer.y = pointer.ty;
+        pointer.force = mobile ? 0.26 : 0.34;
+        pointer.targetForce = pointer.force;
+      };
+
+      const resize = () => {
+        width = Math.max(1, host.clientWidth);
+        height = Math.max(1, host.clientHeight);
+        mobile = width < 768;
+        dpr = Math.min(window.devicePixelRatio || 1, mobile ? 1.35 : 1.75);
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        updateRect();
+        buildScene();
       };
 
-      let link: { a: number; b: number; t: number } | null = null;
-      let nextLinkAt = performance.now() + 1500;
-      let running = false;
-      let rafId = 0;
-      let slowFrames = 0;
-      let degraded = false;
-      const V = 0.18;
+      const nodePosition = (node: SignalNode, time: number) => {
+        const drift = mobile ? 0.014 : 0.022;
+        const parallaxX = (pointer.x - 0.5) * 18 * node.depth;
+        const parallaxY = (pointer.y - 0.5) * 10 * node.depth;
+        return {
+          x: (node.x + Math.sin(time * node.speed + node.phase) * drift) * width + parallaxX,
+          y: (node.y + Math.cos(time * node.speed * 1.4 + node.phase) * drift * 0.72) * height + parallaxY,
+        };
+      };
 
-      const startLink = (now: number) => {
-        if (embers.length < 2) return;
-        let best: [number, number, number] | null = null;
-        for (let i = 0; i < embers.length; i++) {
-          for (let j = i + 1; j < embers.length; j++) {
-            const d = Math.hypot(embers[i].x - embers[j].x, embers[i].y - embers[j].y);
-            if (d < 320 && (!best || d < best[2])) best = [i, j, d];
+      const nearestEdge = (x: number, y: number) => {
+        if (!edges.length) return 0;
+        let best = 0;
+        let score = Number.POSITIVE_INFINITY;
+        edges.forEach((edge, index) => {
+          const a = nodes[edge.a];
+          const b = nodes[edge.b];
+          const mx = (a.x + b.x) / 2;
+          const my = (a.y + b.y) / 2;
+          const dist = distance(x, y, mx, my);
+          if (dist < score) {
+            score = dist;
+            best = index;
           }
-        }
-        if (best) link = { a: best[0], b: best[1], t: 0 };
-        nextLinkAt = now + 4000 + Math.random() * 3000;
+        });
+        return best;
       };
 
-      let prev = performance.now();
-      const frame = (now: number) => {
-        const dt = Math.min(2, (now - prev) / 16.67);
-        prev = now;
-        if (!degraded) {
-          if (now - prev > 24) slowFrames++;
-        }
-        ctx.clearRect(0, 0, W, H);
+      const addPulse = (edge = Math.floor(seeded(performance.now()) * edges.length)) => {
+        if (!edges.length) return;
+        pulses.push({
+          edge: clamp(edge, 0, edges.length - 1),
+          progress: 0,
+          speed: mobile ? 0.0012 : 0.001,
+          width: mobile ? 0.18 : 0.13,
+        });
+        if (pulses.length > (mobile ? 12 : 20)) pulses.shift();
+      };
 
-        ctx.fillStyle = color3;
-        for (const p of points) {
-          const a = sampleFlow(p.x, p.y);
-          p.x += Math.cos(a) * V * dt * 6;
-          p.y += Math.sin(a) * V * dt * 6;
-          if (p.x < 0) p.x += W;
-          else if (p.x > W) p.x -= W;
-          if (p.y < 0) p.y += H;
-          else if (p.y > H) p.y -= H;
-          ctx.fillRect(p.x, p.y, 2, 2); // square pixel motif
-        }
+      const addRipple = (x: number, y: number, strength = 1) => {
+        ripples.push({ x, y, age: 0, strength });
+        if (ripples.length > 5) ripples.shift();
+      };
 
-        for (const e of embers) {
-          const a = sampleFlow(e.x, e.y);
-          e.x += Math.cos(a) * V * 0.6 * dt * 6;
-          e.y += Math.sin(a) * V * 0.6 * dt * 6;
-          if (e.x < 0) e.x += W;
-          else if (e.x > W) e.x -= W;
-          if (e.y < 0) e.y += H;
-          else if (e.y > H) e.y -= H;
-          const r = 2.5 + Math.sin(now / 700 + e.phase) * 0.8;
+      const updatePointer = (clientX: number, clientY: number, strength = 0.9) => {
+        pointer.tx = clamp((clientX - rect.left) / Math.max(1, rect.width), 0, 1);
+        pointer.ty = clamp((clientY - rect.top) / Math.max(1, rect.height), 0, 1);
+        pointer.targetForce = Math.max(pointer.targetForce, strength);
+      };
+
+      const onPointerMove = (event: PointerEvent) => {
+        updatePointer(event.clientX, event.clientY, 1);
+      };
+
+      const onPointerDown = (event: PointerEvent) => {
+        updatePointer(event.clientX, event.clientY, 1.35);
+        addRipple(pointer.tx, pointer.ty, 1.1);
+        addPulse(nearestEdge(pointer.tx, pointer.ty));
+      };
+
+      const onTouch = (event: TouchEvent) => {
+        const touch = event.touches[0];
+        if (!touch) return;
+        updatePointer(touch.clientX, touch.clientY, 1.15);
+        addRipple(pointer.tx, pointer.ty, 0.9);
+        addPulse(nearestEdge(pointer.tx, pointer.ty));
+      };
+
+      const drawBackground = (time: number) => {
+        ctx.clearRect(0, 0, width, height);
+        const glow = ctx.createRadialGradient(
+          width * lerp(0.58, 0.78, pointer.x),
+          height * lerp(0.12, 0.36, pointer.y),
+          0,
+          width * 0.72,
+          height * 0.28,
+          width * (mobile ? 0.82 : 0.58),
+        );
+        glow.addColorStop(0, rgba(accent, mobile ? 0.17 : 0.2));
+        glow.addColorStop(0.46, rgba(info, 0.055));
+        glow.addColorStop(1, rgba(bg, 0));
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, width, height);
+
+        const grid = mobile ? 72 : 104;
+        const offsetX = ((time * 0.004) + (pointer.x - 0.5) * 18) % grid;
+        const offsetY = ((time * 0.0026) + (pointer.y - 0.5) * 12) % grid;
+        ctx.strokeStyle = border;
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = mobile ? 0.08 : 0.1;
+        for (let x = -grid + offsetX; x < width + grid; x += grid) {
           ctx.beginPath();
-          ctx.arc(e.x, e.y, r, 0, Math.PI * 2);
-          ctx.fillStyle = accent;
-          ctx.globalAlpha = 0.8;
-          ctx.fill();
-          ctx.globalAlpha = 1;
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, height);
+          ctx.stroke();
         }
+        for (let y = -grid + offsetY; y < height + grid; y += grid) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      };
 
-        if (!degraded) {
-          if (!link && now >= nextLinkAt) startLink(now);
-          if (link) {
-            const a = embers[link.a];
-            const b = embers[link.b];
-            link.t += dt * 0.012;
-            const prog = Math.min(1, link.t);
-            const alpha = link.t < 1 ? prog : Math.max(0, 1 - (link.t - 1.6) / 0.9);
-            if (a && b && alpha > 0) {
-              ctx.beginPath();
-              ctx.moveTo(a.x, a.y);
-              ctx.lineTo(a.x + (b.x - a.x) * prog, a.y + (b.y - a.y) * prog);
-              ctx.strokeStyle = accent;
-              ctx.globalAlpha = alpha * 0.5;
-              ctx.lineWidth = 1;
-              ctx.stroke();
-              ctx.globalAlpha = 1;
-            }
-            if (link.t > 2.6) link = null;
+      const drawPixels = (time: number) => {
+        for (const pixel of pixels) {
+          const x = pixel.x * width + (pointer.x - 0.5) * (mobile ? 9 : 16);
+          const y = pixel.y * height + (pointer.y - 0.5) * (mobile ? 7 : 12);
+          const dist = distance(pixel.x, pixel.y, pointer.x, pointer.y);
+          const wake = clamp(1 - dist / (mobile ? 0.28 : 0.22), 0, 1) * pointer.force;
+          const shimmer = (Math.sin(time * 0.002 + pixel.phase) + 1) / 2;
+          const alpha = 0.035 + shimmer * 0.075 + wake * 0.42;
+
+          ctx.fillStyle = wake > 0.18 ? accent : text3;
+          ctx.globalAlpha = alpha;
+          ctx.fillRect(x, y, pixel.size, pixel.size);
+        }
+        ctx.globalAlpha = 1;
+      };
+
+      const drawEdges = (positions: { x: number; y: number }[]) => {
+        ctx.lineCap = 'round';
+        for (const edge of edges) {
+          const a = positions[edge.a];
+          const b = positions[edge.b];
+          const midX = (nodes[edge.a].x + nodes[edge.b].x) / 2;
+          const midY = (nodes[edge.a].y + nodes[edge.b].y) / 2;
+          const wake = clamp(1 - distance(midX, midY, pointer.x, pointer.y) / (mobile ? 0.35 : 0.25), 0, 1);
+          ctx.strokeStyle = wake > 0.2 ? accent : border;
+          ctx.globalAlpha = 0.08 + edge.weight * 0.12 + wake * 0.24;
+          ctx.lineWidth = 1 + wake * 0.6;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      };
+
+      const drawPulses = (positions: { x: number; y: number }[], delta: number) => {
+        for (let index = pulses.length - 1; index >= 0; index -= 1) {
+          const pulse = pulses[index];
+          pulse.progress += pulse.speed * delta;
+          if (pulse.progress > 1.16) {
+            pulses.splice(index, 1);
+            continue;
           }
+          const edge = edges[pulse.edge];
+          const a = positions[edge.a];
+          const b = positions[edge.b];
+          const start = clamp(pulse.progress - pulse.width, 0, 1);
+          const end = clamp(pulse.progress, 0, 1);
+          const sx = lerp(a.x, b.x, start);
+          const sy = lerp(a.y, b.y, start);
+          const ex = lerp(a.x, b.x, end);
+          const ey = lerp(a.y, b.y, end);
+          const gradient = ctx.createLinearGradient(sx, sy, ex, ey);
+          gradient.addColorStop(0, rgba(accent, 0));
+          gradient.addColorStop(0.55, rgba(accent, 0.92));
+          gradient.addColorStop(1, rgba(info, 0.5));
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = mobile ? 1.6 : 1.9;
+          ctx.globalAlpha = 0.85;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(ex, ey);
+          ctx.stroke();
         }
-
-        if (!degraded && slowFrames >= 3) {
-          degraded = true;
-          count = Math.floor(count / 2);
-          seed();
-          link = null;
-        }
-
-        if (running) rafId = requestAnimationFrame(frame);
+        ctx.globalAlpha = 1;
       };
 
-      const start = () => {
-        if (running) return;
+      const drawNodes = (positions: { x: number; y: number }[], time: number) => {
+        positions.forEach((position, index) => {
+          const node = nodes[index];
+          const wake = clamp(1 - distance(node.x, node.y, pointer.x, pointer.y) / (mobile ? 0.3 : 0.22), 0, 1) * pointer.force;
+          const pulse = (Math.sin(time * 0.0022 + node.phase) + 1) / 2;
+          const radius = (mobile ? 2.4 : 2.8) + wake * 2 + pulse * 0.8 * node.depth;
+
+          ctx.fillStyle = accent;
+          ctx.globalAlpha = 0.08 + wake * 0.18;
+          ctx.beginPath();
+          ctx.arc(position.x, position.y, radius * 5.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = wake > 0.26 ? accent : text3;
+          ctx.globalAlpha = 0.46 + wake * 0.48;
+          ctx.fillRect(position.x - radius / 2, position.y - radius / 2, radius, radius);
+        });
+        ctx.globalAlpha = 1;
+      };
+
+      const drawRipples = (delta: number) => {
+        for (let index = ripples.length - 1; index >= 0; index -= 1) {
+          const ripple = ripples[index];
+          ripple.age += delta;
+          const progress = ripple.age / 1100;
+          if (progress >= 1) {
+            ripples.splice(index, 1);
+            continue;
+          }
+          const x = ripple.x * width;
+          const y = ripple.y * height;
+          const radius = lerp(18, mobile ? 210 : 320, progress);
+          ctx.strokeStyle = accent;
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = (1 - progress) * 0.24 * ripple.strength;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      };
+
+      const frame = (now: number) => {
+        const delta = Math.min(34, now - last);
+        const elapsed = now;
+        last = now;
+
+        pointer.x = lerp(pointer.x, pointer.tx, 0.08);
+        pointer.y = lerp(pointer.y, pointer.ty, 0.08);
+        pointer.force = lerp(pointer.force, pointer.targetForce, 0.08);
+        pointer.targetForce = lerp(pointer.targetForce, mobile ? 0.24 : 0.28, 0.025);
+
+        if (now - lastPulse > (mobile ? 760 : 520)) {
+          addPulse(nearestEdge(pointer.x + Math.sin(now * 0.0005) * 0.14, pointer.y));
+          lastPulse = now;
+        }
+
+        drawBackground(elapsed);
+        drawPixels(elapsed);
+        const positions = nodes.map((node) => nodePosition(node, elapsed));
+        drawEdges(positions);
+        drawPulses(positions, delta);
+        drawNodes(positions, elapsed);
+        drawRipples(delta);
+
+        if (running) raf = requestAnimationFrame(frame);
+      };
+
+      const begin = () => {
+        if (running || !inView || document.hidden) return;
         running = true;
-        prev = performance.now();
-        rafId = requestAnimationFrame(frame);
+        last = performance.now();
+        raf = requestAnimationFrame(frame);
       };
+
       const stop = () => {
         running = false;
-        cancelAnimationFrame(rafId);
+        cancelAnimationFrame(raf);
       };
 
-      readColors();
-      size();
-      seed();
+      try {
+        readColors();
+        resize();
+        addRipple(pointer.x, pointer.y, 0.55);
+        addPulse(0);
 
-      const io = new IntersectionObserver((entries) => {
-        for (const e of entries) (e.isIntersecting ? start : stop)();
-      });
-      io.observe(canvas);
+        const observer = new IntersectionObserver((entries) => {
+          inView = entries.some((entry) => entry.isIntersecting);
+          inView ? begin() : stop();
+        });
+        observer.observe(canvas);
 
-      document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
-      document.addEventListener('themechange', readColors);
-      let rt = 0;
-      window.addEventListener('resize', () => {
-        clearTimeout(rt);
-        rt = window.setTimeout(() => {
-          size();
-          seed();
-        }, 150);
-      });
-    } catch {
-      canvas.remove(); // static SVG + CSS vignette remain
+        host.addEventListener('pointermove', onPointerMove, { passive: true });
+        host.addEventListener('pointerdown', onPointerDown, { passive: true });
+        host.addEventListener('pointerleave', () => {
+          pointer.targetForce = mobile ? 0.24 : 0.26;
+        });
+        host.addEventListener('touchstart', onTouch, { passive: true });
+        host.addEventListener('touchmove', onTouch, { passive: true });
+        window.addEventListener('scroll', scheduleRect, { passive: true });
+        document.addEventListener('visibilitychange', () => (document.hidden ? stop() : begin()));
+        document.addEventListener('themechange', readColors as EventListener);
+
+        let resizeTimer = 0;
+        window.addEventListener(
+          'resize',
+          () => {
+            window.clearTimeout(resizeTimer);
+            resizeTimer = window.setTimeout(resize, 140);
+          },
+          { passive: true },
+        );
+      } catch {
+        host.classList.add('hero--static');
+        canvas.remove();
+      }
     }
+  } else if (canvas) {
+    canvas.parentElement?.classList.add('hero--static');
   }
 </script>

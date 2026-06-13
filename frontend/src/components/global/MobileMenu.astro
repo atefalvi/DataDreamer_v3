@@ -4,7 +4,6 @@
  * #menuButton. Implements the canonical focus trap: Escape + Tab-wrap, scroll lock,
  * focus restore. Rendered in BaseLayout alongside SiteNav.
  */
-import ThemeToggle from './ThemeToggle.astro';
 import Button from '../ui/Button.astro';
 import Icon from '../ui/Icon.astro';
 import { NAV_ITEMS, SOCIAL_LINKS } from '../../content/site';
@@ -16,11 +15,17 @@ const isActive = (href: string) =>
 
 <div id="mobile-menu" class="mobile-menu" hidden>
   <nav class="mobile-menu__nav" aria-label="Site">
+    <p class="mobile-menu__eyebrow">DataDreamer index</p>
     <ul class="mobile-menu__links">
-      {NAV_ITEMS.map((item) => (
+      {NAV_ITEMS.map((item, index) => (
         <li>
-          <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
-            {item.label}
+          <a
+            href={item.href}
+            class:list={{ 'is-active': isActive(item.href) }}
+            aria-current={isActive(item.href) ? 'page' : undefined}
+          >
+            <span class="mobile-menu__index">0{index + 1}</span>
+            <span>{item.label}</span>
           </a>
         </li>
       ))}
@@ -31,7 +36,6 @@ const isActive = (href: string) =>
     </div>
 
     <div class="mobile-menu__foot">
-      <ThemeToggle />
       <ul class="mobile-menu__social">
         {SOCIAL_LINKS.map((s) => (
           <li>
@@ -50,9 +54,11 @@ const isActive = (href: string) =>
     position: fixed;
     inset: 64px 0 0;
     z-index: 90;
-    background: color-mix(in srgb, var(--bg-0) 98%, transparent);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background:
+      radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 30%),
+      color-mix(in srgb, var(--bg-0) 96%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     opacity: 0;
     transform: translateY(-8px);
     transition: opacity var(--dur-3) var(--ease-out), transform var(--dur-3) var(--ease-out);
@@ -71,25 +77,48 @@ const isActive = (href: string) =>
     overflow-y: auto;
   }
 
+  .mobile-menu__eyebrow {
+    margin-bottom: var(--space-5);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
   .mobile-menu__links {
+    display: grid;
+    gap: var(--space-2);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .mobile-menu__links a {
-    display: flex;
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
     align-items: center;
-    min-height: 56px;
-    border-bottom: 1px solid var(--border-1);
+    min-height: 4.25rem;
+    padding-inline: var(--space-4);
+    border: 1px solid color-mix(in srgb, var(--border-1) 78%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-1) 48%, transparent);
     color: var(--text-1);
     font-size: var(--fs-2xl);
     font-weight: 600;
     text-decoration: none;
   }
 
-  .mobile-menu__links a[aria-current='page'] {
+  .mobile-menu__links a.is-active {
+    border-color: color-mix(in srgb, var(--accent) 44%, var(--border-1));
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg-1));
+  }
+
+  .mobile-menu__index {
     color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
   }
 
   .mobile-menu__cta {
@@ -103,7 +132,7 @@ const isActive = (href: string) =>
   .mobile-menu__foot {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     margin-top: auto;
     padding-top: var(--space-6);
   }
@@ -122,7 +151,9 @@ const isActive = (href: string) =>
     justify-content: center;
     width: 44px;
     height: 44px;
-    border-radius: var(--radius-md);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-1) 50%, transparent);
     color: var(--text-2);
   }
 

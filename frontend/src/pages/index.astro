@@ -61,14 +61,59 @@ const teamSentence =
 >
   <HeroSignalField />
 
-  <section class="home-section container-content">
+  <section class="home-studio container-content" aria-label="DataDreamer editorial focus">
+    <div class="home-studio__rule" aria-hidden="true"></div>
+    <div class="home-studio__copy">
+      <p class="kicker">What DataDreamer studies</p>
+      <h2>Signal, system, and story — treated as one discipline.</h2>
+    </div>
+    <div class="home-studio__cards">
+      <article class="home-studio-card">
+        <div class="home-studio-card__meta">
+          <span>01</span>
+          <span>Research desk</span>
+        </div>
+        <div class="home-studio-card__body">
+          <h3>Research notes</h3>
+          <p>Applied AI, analytics judgment, and the messy middle between prototype and production.</p>
+        </div>
+      </article>
+      <article class="home-studio-card">
+        <div class="home-studio-card__meta">
+          <span>02</span>
+          <span>Systems lab</span>
+        </div>
+        <div class="home-studio-card__body">
+          <h3>Engineering patterns</h3>
+          <p>Data platforms, automation, observability, and the mechanics behind reliable systems.</p>
+        </div>
+      </article>
+      <article class="home-studio-card">
+        <div class="home-studio-card__meta">
+          <span>03</span>
+          <span>Interface studio</span>
+        </div>
+        <div class="home-studio-card__body">
+          <h3>Creative technology</h3>
+          <p>Interfaces, visual systems, and narratives that make complex work legible.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="home-section home-section--writing container-content">
     <SectionHeader
-      kicker="From the blog"
-      title="Latest writing"
+      kicker="Latest writing"
+      title="Field notes for builders of intelligent systems"
+      intro="Essays and practical notes from the intersection of data infrastructure, AI, analytics, and product judgment."
       action={{ label: 'All posts', href: '/blog' }}
     />
     {posts.length === 0 ? (
-      <EmptyState message="New writing is on the way." icon="pen-line" />
+      <EmptyState
+        message="The editorial desk is being prepared. New field notes will appear here once the v4 CMS is seeded."
+        icon="pen-line"
+        action={{ label: 'Visit the blog', href: '/blog' }}
+      />
     ) : (
       <div class="home-writing">
         {featured && (
@@ -91,13 +136,14 @@ const teamSentence =
 
   {/* Selected work — added with the projects content collection (V4-CMS-005 / V4-PROJ-001). */}
 
-  {team.length > 0 && (
-    <section class="home-section container-content">
-      <SectionHeader
-        kicker="The Dream Team"
-        title="The people behind the work"
-        action={{ label: 'Meet the team', href: '/dream-team' }}
-      />
+  <section class="home-section container-content">
+    <SectionHeader
+      kicker="Dream Team"
+      title="Practitioners behind the signal"
+      intro="A growing studio graph of data engineers, analysts, AI builders, and creative technologists."
+      action={{ label: 'Meet the team', href: '/dream-team' }}
+    />
+    {team.length > 0 ? (
       <a href="/dream-team" class="team-strip" data-reveal>
         <ul class="team-strip__avatars">
           {team.map((member) => (
@@ -106,18 +152,155 @@ const teamSentence =
         </ul>
         <p class="team-strip__text">{teamSentence}</p>
       </a>
-    </section>
-  )}
+    ) : (
+      <EmptyState
+        message="The Dream Team graph is waiting for author profiles. The system is ready; the first nodes come next."
+        icon="orbit"
+        action={{ label: 'Open Dream Team', href: '/dream-team' }}
+      />
+    )}
+  </section>
 </BaseLayout>
 
 <style>
   .home-section {
+    padding-block: var(--section-y) 0;
+  }
+
+  .home-studio {
+    position: relative;
+    display: grid;
+    gap: var(--space-7);
     padding-block-start: var(--section-y);
+  }
+
+  .home-studio__rule {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), var(--border-1), transparent);
+  }
+
+  .home-studio__copy {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 50rem;
+  }
+
+  .home-studio__copy h2 {
+    max-width: 16ch;
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+  }
+
+  .home-studio__cards {
+    display: grid;
+    gap: var(--space-3);
+    grid-auto-rows: minmax(156px, auto);
+  }
+
+  .home-studio-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 0.28fr) minmax(0, 1fr);
+    gap: var(--space-5);
+    min-height: 156px;
+    align-items: end;
+    overflow: hidden;
+    padding: var(--space-6);
+    border: 1px solid color-mix(in srgb, var(--border-2) 82%, transparent);
+    border-radius: var(--radius-md);
+    background:
+      radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 38%),
+      linear-gradient(135deg, color-mix(in srgb, var(--bg-2) 74%, transparent), color-mix(in srgb, var(--bg-1) 88%, transparent)),
+      var(--bg-1);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--text-1) 7%, transparent),
+      0 18px 54px color-mix(in srgb, #000 20%, transparent);
+  }
+
+  .home-studio-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent), transparent 74%);
+    opacity: 0.72;
+  }
+
+  .home-studio-card::after {
+    content: '';
+    position: absolute;
+    inset: auto var(--space-6) var(--space-6);
+    height: 1px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 52%, transparent), transparent);
+    opacity: 0.5;
+  }
+
+  .home-studio-card__meta,
+  .home-studio-card__body {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+  }
+
+  .home-studio-card__meta {
+    display: grid;
+    gap: var(--space-3);
+    align-self: stretch;
+    align-content: space-between;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .home-studio-card__meta span:last-child {
+    color: var(--text-3);
+    line-height: var(--lh-xs);
+  }
+
+  .home-studio-card__body {
+    display: grid;
+    gap: var(--space-3);
+    padding-inline-start: var(--space-5);
+    border-left: 1px solid color-mix(in srgb, var(--border-2) 64%, transparent);
+  }
+
+  .home-studio-card h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 580;
+    line-height: var(--lh-xl);
+  }
+
+  .home-studio-card p {
+    max-width: 39rem;
+    color: var(--text-2);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    overflow-wrap: break-word;
+  }
+
+  @media (min-width: 56rem) {
+    .home-studio {
+      grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+      align-items: start;
+    }
+
+    .home-studio__rule {
+      grid-column: 1 / -1;
+    }
   }
 
   .home-writing {
     display: grid;
     gap: var(--space-7);
+    margin-top: var(--space-7);
+  }
+
+  .home-section :global(.ui-empty-state) {
+    margin-top: var(--space-7);
   }
 
   @media (min-width: 64rem) {
@@ -130,6 +313,7 @@ const teamSentence =
 
   .home-writing__rest {
     display: grid;
+    align-content: start;
   }
 
   .team-strip {
@@ -137,16 +321,24 @@ const teamSentence =
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-5);
-    padding: var(--space-6);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-lg);
+    margin-top: var(--space-7);
+    padding: var(--space-7);
+    border: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
+    border-radius: var(--radius-md);
+    background:
+      radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34%),
+      var(--bg-1);
     color: inherit;
     text-decoration: none;
-    transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out),
+      box-shadow var(--dur-2) var(--ease-out);
   }
 
   .team-strip:hover {
-    border-color: var(--border-2);
+    border-color: color-mix(in srgb, var(--accent) 34%, var(--border-2));
+    box-shadow: var(--shadow-2);
     transform: translateY(-2px);
   }
 
@@ -170,5 +362,44 @@ const teamSentence =
     color: var(--text-2);
     font-size: var(--fs-lg);
     line-height: var(--lh-lg);
+  }
+
+  @media (max-width: 47.999rem) {
+    .home-studio__cards {
+      grid-auto-rows: minmax(204px, auto);
+    }
+
+    .home-studio-card {
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 204px;
+      align-items: end;
+      padding: var(--space-5);
+    }
+
+    .home-studio-card__meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      align-self: start;
+      gap: var(--space-4);
+    }
+
+    .home-studio-card h3 {
+      font-size: var(--fs-xl);
+    }
+
+    .home-studio-card p {
+      font-size: var(--fs-sm);
+      line-height: var(--lh-sm);
+    }
+
+    .home-studio-card__body {
+      padding-inline-start: 0;
+      border-left: 0;
+    }
+
+    .team-strip {
+      padding: var(--space-6);
+    }
   }
 </style>

@@ -48,12 +48,12 @@ export const SITE = {
 
 /** Homepage hero copy (05 §1.1). Single source of truth — owner edits here. */
 export const HOME_HERO = {
-  kicker: 'Data · Analytics · AI',
+  kicker: 'Data intelligence studio',
   /** Rendered as two display lines. */
-  headlineLines: ['Field notes from the', 'future of data.'],
+  headlineLines: ['Dreaming in systems.', 'Building in data.'],
   subhead:
-    'DataDreamer is an independent publication and learning platform — practical writing, courses, and case studies from working engineers.',
-  primaryCta: { label: 'Read the blog', href: '/blog' },
+    'A premium field journal for data systems, applied AI, analytics craft, and the engineering patterns that turn signal into leverage.',
+  primaryCta: { label: 'Read the field notes', href: '/blog' },
   /** Until courses ship the secondary CTA points at the work (05 §1.1). */
   secondaryCta: FLAGS.COURSES_ENABLED
     ? { label: 'Explore courses', href: '/courses' }
@@ -62,7 +62,7 @@ export const HOME_HERO = {
 
 /** SEO defaults for the homepage (05 §1, 10 §3). */
 export const HOME_SEO = {
-  title: 'DataDreamer — Field notes from the future of data',
+  title: 'DataDreamer — Dreaming in systems, building in data',
   description:
-    'An independent publication and learning platform for data, analytics, and AI — practical writing, courses, and case studies from working engineers.',
+    'A premium field journal for data systems, applied AI, analytics craft, and engineering patterns from working practitioners.',
 } as const;

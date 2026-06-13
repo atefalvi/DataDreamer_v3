@@ -8,7 +8,7 @@ import Icon from '../ui/Icon.astro';
 import { topicsRepo } from '../../lib/repositories';
 import { FLAGS, NAV_ITEMS, SITE, SOCIAL_LINKS } from '../../content/site';
 import type { TopicRef } from '../../types/content';
-import logoLockup from '../../assets/brand/logo-lockup.svg?raw';
+import logoMark from '../../assets/brand/logo-mark.svg?raw';
 
 let topics: TopicRef[] = [];
 try {
@@ -25,7 +25,11 @@ const year = new Date().getFullYear();
   <div class="site-footer__inner container-wide">
     <div class="site-footer__brand-col">
       <a href="/" class="site-footer__brand" aria-label="DataDreamer — home">
-        <span class="site-footer__logo" set:html={logoLockup} />
+        <span class="site-footer__mark" set:html={logoMark} />
+        <span class="site-footer__wordmark" aria-hidden="true">
+          <span>Data</span>
+          <span>Dreamer</span>
+        </span>
       </a>
       <p class="site-footer__mission">{SITE.mission}</p>
       {FLAGS.SHOW_NEWSLETTER && (
@@ -76,9 +80,11 @@ const year = new Date().getFullYear();
 <style>
   .site-footer {
     margin-top: var(--section-y);
-    padding-top: var(--space-8);
-    border-top: 1px solid var(--border-1);
-    background: var(--bg-0);
+    padding-top: var(--space-9);
+    border-top: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
+    background:
+      radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 30%),
+      var(--bg-0);
   }
 
   .site-footer__inner {
@@ -87,19 +93,42 @@ const year = new Date().getFullYear();
     gap: var(--space-7) var(--space-6);
   }
 
-  .site-footer__logo :global(svg) {
+  .site-footer__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--text-1);
+    text-decoration: none;
+  }
+
+  .site-footer__brand:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 4px;
+  }
+
+  .site-footer__mark :global(svg) {
     display: block;
-    height: 22px;
+    height: 42px;
     width: auto;
     color: var(--text-1);
   }
 
-  .site-footer__mission {
-    max-width: 32ch;
-    margin-top: var(--space-4);
-    color: var(--text-2);
+  .site-footer__wordmark {
+    display: grid;
+    color: var(--text-1);
+    font-family: var(--font-mono);
     font-size: var(--fs-sm);
-    line-height: var(--lh-base);
+    font-weight: 600;
+    line-height: 0.96;
+    text-transform: uppercase;
+  }
+
+  .site-footer__mission {
+    max-width: 38ch;
+    margin-top: var(--space-5);
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
   }
 
   .site-footer__heading {
@@ -124,6 +153,7 @@ const year = new Date().getFullYear();
     color: var(--text-2);
     font-size: var(--fs-sm);
     text-decoration: none;
+    transition: color var(--dur-2) var(--ease-out);
   }
 
   .site-footer__col a:hover {
