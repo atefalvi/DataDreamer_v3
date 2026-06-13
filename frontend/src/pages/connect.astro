@@ -1,357 +1,324 @@
 ---
-import MainLayout from "../layouts/MainLayout.astro";
-import { fetchSiteSettings } from "../lib/directus";
+/**
+ * V4-PAGE-002 — Connect (05 §10). Single-column, prose-width. No form in v4.0 (no mail
+ * backend; mailto is honest). Primary email card copies to clipboard with an SR live
+ * region; channels are labeled external links; content is repo-owned (site.ts).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/ui/Icon.astro';
+import { CONNECT } from '../content/site';
+import { SITE_URL } from '../lib/seo/meta';
 
-const siteSettings = await fetchSiteSettings();
-const email    = siteSettings?.email    || "hello@data-dreamer.net";
-const github   = siteSettings?.github   || "github.com/datadreamer";
-const linkedin = siteSettings?.linkedin || "linkedin.com/in/datadreamer";
-const twitter  = siteSettings?.twitter  || null;
-
-const channels = [
-    { label: "EMAIL",    protocol: "MAILTO", address: email,    href: `mailto:${email}` },
-    { label: "GITHUB",   protocol: "HTTPS",  address: github,   href: `https://${github}`, external: true },
-    { label: "LINKEDIN", protocol: "HTTPS",  address: linkedin, href: `https://${linkedin}`, external: true },
-    ...(twitter ? [{ label: "TWITTER / X", protocol: "HTTPS", address: twitter, href: `https://${twitter}`, external: true }] : []),
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    name: 'Contact — DataDreamer',
+    url: `${SITE_URL}/connect`,
+  },
 ];
 ---
 
-<MainLayout
-    title="CONNECT // DATA DREAMER"
-    description="Get in touch — available for remote, hybrid, or onsite engagements."
-    ogType="website"
+<BaseLayout
+  title="Contact"
+  description="Get in touch with DataDreamer — project inquiries, advisory, and collaboration. Email is the fastest way to reach me."
+  ogImage={{ url: '/og/og-default.png' }}
+  jsonLd={jsonLd}
 >
-    <main class="connect-page container">
+  <div class="page container-content">
+    <header class="page__head">
+      <p class="kicker">{CONNECT.kicker}</p>
+      <h1>{CONNECT.title}</h1>
+      <p class="page__intro">{CONNECT.intro}</p>
+    </header>
 
-        <!-- ── HERO ──────────────────────────────────── -->
-        <header class="connect-hero">
-            <span class="meta-text">// CONNECT</span>
-            <h1 class="connect-heading">
-                <span class="ch-word">INITIATE</span>
-                <span class="ch-word">CONTACT</span>
-                <span class="ch-word ch-accent">SEQUENCE_</span>
-            </h1>
-        </header>
+    <section class="email-card" aria-label="Email">
+      <p class="email-card__label">Primary channel</p>
+      <div class="email-card__row">
+        <a class="email-card__address" href={`mailto:${CONNECT.email}`}>{CONNECT.email}</a>
+        <button type="button" class="email-card__copy" data-copy-email data-email={CONNECT.email}>
+          <Icon name="copy" size={16} />
+          <span data-copy-label>Copy</span>
+        </button>
+      </div>
+      <p class="email-card__hint">{CONNECT.availability}</p>
+      <span class="visually-hidden" role="status" aria-live="polite" data-copy-status></span>
+    </section>
 
-        <!-- ── STATUS BLOCK ──────────────────────────── -->
-        <div class="status-block">
-            <div class="status-row">
-                <span class="status-label">STATUS</span>
-                <span class="status-value">
-                    <span class="status-dot"></span>
-                    AVAILABLE FOR HIRE
-                </span>
-            </div>
-            <div class="status-row">
-                <span class="status-label">LOCATION</span>
-                <span class="status-value">REMOTE / HYBRID / ONSITE</span>
-            </div>
-            <div class="status-row">
-                <span class="status-label">TIMEZONE</span>
-                <span class="status-value">EST (UTC−5)</span>
-            </div>
-            <div class="status-row">
-                <span class="status-label">RESPONSE</span>
-                <span class="status-value">WITHIN 24 HRS</span>
-            </div>
-        </div>
+    <section class="channels" aria-label="Other channels">
+      <p class="channels__label">Elsewhere</p>
+      <ul>
+        {CONNECT.channels.map((channel) => (
+          <li>
+            <a
+              href={channel.href}
+              rel={channel.external ? 'noopener noreferrer' : undefined}
+              target={channel.external ? '_blank' : undefined}
+            >
+              <span class="channels__icon"><Icon name={channel.icon} size={20} /></span>
+              <span class="channels__label-text">{channel.label}</span>
+              <span class="channels__handle">{channel.handle}</span>
+              <span class="channels__arrow" aria-hidden="true"><Icon name="arrow-up-right" size={16} /></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
 
-        <!-- ── CHANNEL TABLE ──────────────────────────── -->
-        <section class="channels-section">
-            <div class="channels-header">
-                <span>CHANNEL</span>
-                <span>PROTOCOL</span>
-                <span>ADDRESS</span>
-            </div>
-
-            {channels.map(ch => (
-                <a
-                    href={ch.href}
-                    class="channel-row"
-                    target={ch.external ? "_blank" : undefined}
-                    rel={ch.external ? "noopener noreferrer" : undefined}
-                    aria-label={`Contact via ${ch.label}`}
-                >
-                    <span class="ch-label">{ch.label}</span>
-                    <span class="ch-protocol">{ch.protocol}</span>
-                    <span class="ch-address">
-                        {ch.address.toUpperCase()}
-                        <span class="ch-arrow" aria-hidden="true">→</span>
-                    </span>
-                </a>
-            ))}
-        </section>
-
-        <!-- ── FOOTER NOTE ────────────────────────────── -->
-        <p class="connect-note">
-            // PREFER EMAIL FOR PROJECT INQUIRIES. GITHUB FOR COLLABORATION REQUESTS.
-        </p>
-
-    </main>
-</MainLayout>
+    <section class="facts" aria-label="What to expect">
+      <dl>
+        {CONNECT.facts.map((fact) => (
+          <div>
+            <dt>{fact.label}</dt>
+            <dd>{fact.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  </div>
+</BaseLayout>
 
 <style>
-    .connect-page {
-        padding-top: 56px;
-        padding-bottom: 120px;
-        min-height: 90vh;
+  .page {
+    max-width: var(--container-prose);
+    padding-block: calc(78px + var(--section-y)) var(--section-y);
+  }
+
+  .page__head h1 {
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .page__intro {
+    max-width: 54ch;
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  /* Email card — the primary action. */
+  .email-card {
+    margin-top: var(--space-8);
+    padding: var(--space-6);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 46%),
+      var(--bg-1);
+  }
+
+  .email-card__label,
+  .channels__label {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .email-card__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+  }
+
+  .email-card__address {
+    color: var(--text-1);
+    font-family: var(--font-mono);
+    font-size: clamp(1.125rem, 1rem + 1.4vw, 1.75rem);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .email-card__address:hover {
+    color: var(--accent);
+  }
+
+  .email-card__copy {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+    min-height: 2.5rem;
+    padding-inline: var(--space-4);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-full);
+    background: var(--bg-2);
+    color: var(--text-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+  }
+
+  .email-card__copy:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .email-card__copy:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .email-card__copy[data-copied] {
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  .email-card__hint {
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  /* Channels. */
+  .channels {
+    margin-top: var(--space-8);
+  }
+
+  .channels ul {
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border-1);
+  }
+
+  .channels a {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-2);
+    border-bottom: 1px solid var(--border-1);
+    color: var(--text-1);
+    text-decoration: none;
+    transition: padding-inline var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+  }
+
+  .channels a:hover {
+    background: color-mix(in srgb, var(--bg-2) 60%, transparent);
+    padding-inline: var(--space-4) var(--space-2);
+  }
+
+  .channels__icon {
+    display: inline-flex;
+    color: var(--text-2);
+  }
+
+  .channels a:hover .channels__icon {
+    color: var(--accent);
+  }
+
+  .channels__label-text {
+    font-weight: 560;
+  }
+
+  .channels__handle {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    overflow-wrap: anywhere;
+  }
+
+  .channels__arrow {
+    display: inline-flex;
+    color: var(--text-3);
+    transform: translate(-2px, 0);
+    opacity: 0;
+    transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  }
+
+  .channels a:hover .channels__arrow {
+    opacity: 1;
+    transform: translate(0, 0);
+    color: var(--accent);
+  }
+
+  /* Facts. */
+  .facts {
+    margin-top: var(--space-8);
+  }
+
+  .facts dl {
+    display: grid;
+    gap: var(--space-5);
+    margin: 0;
+  }
+
+  .facts div {
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.3fr) 1fr;
+    gap: var(--space-4);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .facts dt {
+    color: var(--text-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .facts dd {
+    margin: 0;
+    color: var(--text-2);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+  }
+
+  @media (max-width: 39.999rem) {
+    .channels a {
+      grid-template-columns: auto 1fr auto;
+      row-gap: var(--space-1);
     }
-
-    /* ── HERO ─────────────────────────────────────── */
-    .connect-hero {
-        padding: 80px 0 72px;
-        border-bottom: 1px solid var(--border);
+    .channels__handle {
+      grid-column: 2 / 4;
+      grid-row: 2;
     }
-
-    .connect-heading {
-        font-family: var(--font-display);
-        font-size: clamp(64px, 12vw, 160px);
-        line-height: 0.85;
-        text-transform: uppercase;
-        margin-top: 24px;
-        display: flex;
-        flex-direction: column;
+    .facts div {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
     }
-
-    .ch-word {
-        display: block;
-        color: var(--text-primary);
-        transition: transform 0.4s var(--ease-out), color 0.2s;
-        transform-origin: left;
-        cursor: default;
-    }
-
-    .ch-word:hover {
-        transform: skewX(-8deg) translateX(24px);
-        color: var(--accent);
-    }
-
-    .ch-accent {
-        color: var(--accent);
-    }
-
-    /* ── STATUS BLOCK ─────────────────────────────── */
-    .status-block {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0;
-        border-bottom: 1px solid var(--border);
-        margin: 64px 0;
-    }
-
-    .status-row {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        padding: 32px 0;
-        border-right: 1px solid var(--border);
-        padding-right: 32px;
-        margin-right: 32px;
-    }
-
-    .status-row:last-child {
-        border-right: none;
-        margin-right: 0;
-        padding-right: 0;
-    }
-
-    .status-label {
-        font-family: var(--font-tech);
-        font-size: 9px;
-        text-transform: uppercase;
-        letter-spacing: 0.16em;
-        color: var(--text-secondary);
-        opacity: 0.6;
-    }
-
-    .status-value {
-        font-family: var(--font-tech);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--text-primary);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .status-dot {
-        width: 6px;
-        height: 6px;
-        background: #00cc66;
-        border-radius: 50%;
-        display: inline-block;
-        animation: pulse-dot 2s ease-in-out infinite;
-        flex-shrink: 0;
-    }
-
-    @keyframes pulse-dot {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50%       { opacity: 0.5; transform: scale(0.75); }
-    }
-
-    /* ── CHANNEL TABLE ────────────────────────────── */
-    .channels-section {
-        border-top: 2px solid var(--text-primary);
-    }
-
-    .channels-header {
-        display: grid;
-        grid-template-columns: 180px 140px 1fr;
-        gap: 0 32px;
-        padding: 16px 0;
-        border-bottom: 1px solid var(--border);
-        font-family: var(--font-tech);
-        font-size: 9px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--text-secondary);
-        opacity: 0.5;
-    }
-
-    .channel-row {
-        display: grid;
-        grid-template-columns: 180px 140px 1fr;
-        gap: 0 32px;
-        padding: 28px 0;
-        border-bottom: 1px solid var(--border);
-        text-decoration: none;
-        align-items: center;
-        transition: background 0.2s var(--ease-out), padding 0.2s var(--ease-out);
-        cursor: crosshair;
-    }
-
-    .channel-row:hover {
-        background: var(--bg-muted);
-        padding-left: 16px;
-        margin-left: -16px;
-        padding-right: 16px;
-    }
-
-    .ch-label {
-        font-family: var(--font-display);
-        font-size: clamp(24px, 3vw, 40px);
-        text-transform: uppercase;
-        color: var(--text-primary);
-        transition: color 0.2s;
-        line-height: 1;
-    }
-
-    .channel-row:hover .ch-label {
-        color: var(--accent);
-    }
-
-    .ch-protocol {
-        font-family: var(--font-tech);
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: var(--text-secondary);
-        opacity: 0.5;
-        align-self: center;
-    }
-
-    .ch-address {
-        font-family: var(--font-tech);
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--text-primary);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        transition: color 0.2s;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .channel-row:hover .ch-address {
-        color: var(--accent);
-    }
-
-    .ch-arrow {
-        opacity: 0;
-        transform: translateX(-8px);
-        transition: opacity 0.2s, transform 0.2s var(--ease-out);
-        flex-shrink: 0;
-    }
-
-    .channel-row:hover .ch-arrow {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    /* ── FOOTER NOTE ──────────────────────────────── */
-    .connect-note {
-        margin-top: 60px;
-        font-family: var(--font-tech);
-        font-size: 11px;
-        color: var(--text-secondary);
-        opacity: 0.5;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-    }
-
-    /* ── MOBILE ───────────────────────────────────── */
-    @media (max-width: 768px) {
-        .connect-hero {
-            padding: 48px 0 48px;
-        }
-
-        .status-block {
-            grid-template-columns: 1fr 1fr;
-            margin: 40px 0;
-        }
-
-        .status-row {
-            padding: 20px 16px 20px 0;
-            margin-right: 16px;
-        }
-
-        .status-row:nth-child(even) {
-            border-right: none;
-            margin-right: 0;
-            padding-right: 0;
-        }
-
-        .channels-header {
-            display: none;
-        }
-
-        .channel-row {
-            grid-template-columns: 1fr auto;
-            grid-template-rows: auto auto;
-            gap: 4px 16px;
-            padding: 20px 0;
-        }
-
-        .channel-row:hover {
-            margin-left: -12px;
-            padding-left: 12px;
-        }
-
-        .ch-label {
-            grid-column: 1;
-            grid-row: 1;
-            font-size: 28px;
-        }
-
-        .ch-address {
-            grid-column: 1;
-            grid-row: 2;
-            font-size: 11px;
-            opacity: 0.7;
-        }
-
-        .ch-protocol {
-            grid-column: 2;
-            grid-row: 1 / 3;
-            align-self: center;
-        }
-
-        .ch-arrow {
-            display: none;
-        }
-    }
+  }
 </style>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>('[data-copy-email]');
+  const status = document.querySelector<HTMLElement>('[data-copy-status]');
+  const label = button?.querySelector<HTMLElement>('[data-copy-label]');
+
+  if (button) {
+    let resetTimer = 0;
+    button.addEventListener('click', async () => {
+      const email = button.dataset.email ?? '';
+      try {
+        await navigator.clipboard.writeText(email);
+        if (label) label.textContent = 'Copied';
+        button.setAttribute('data-copied', '');
+        if (status) status.textContent = `Copied ${email} to clipboard`;
+        window.clearTimeout(resetTimer);
+        resetTimer = window.setTimeout(() => {
+          if (label) label.textContent = 'Copy';
+          button.removeAttribute('data-copied');
+          if (status) status.textContent = '';
+        }, 2400);
+      } catch {
+        if (status) status.textContent = `Could not copy automatically — the address is ${email}`;
+      }
+    });
+  }
+</script>

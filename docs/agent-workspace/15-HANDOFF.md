@@ -17,6 +17,64 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-BLOG-003 + V4-PAGE-001/002/003 — done (one session)
+
+**Did**: After consolidating the full v4 stack into `feature/v4-redesign` (PR #20) and
+pruning all `v4/*` task branches, built the RSS feed and the three static pages in the
+established v4 design language (BaseLayout, kicker, Fraunces headers, mono labels,
+accent, bordered cards). All browser-verified (desktop + 375px, dark).
+
+**BLOG-003 — RSS** (`src/pages/rss.xml.ts`): `@astrojs/rss` (added dep), latest 20 via
+`postsRepo.list({ pageSize: 20 })`, excerpt-only (no `content:encoded`), author +
+topics as categories, `<language>en-us</language>`. Degrades to a valid empty feed if
+the CMS is down. `/blog` already advertises `/rss.xml` (BLOG-001), so discovery is wired.
+
+**PAGE-001 — About** (`src/content/about.ts` + `src/pages/about.astro`): repo-owned
+content authored from the known author profile (Atef Alvi), **zero Directus, no canvas**.
+Header (text + on-brand portrait plate: square, radius-lg, faint nested-square mark +
+ember-node motif, explicit aspect-ratio so no CLS), stats tiles (Fraunces numerals),
+timeline, grouped stack chips, CTA band. JSON-LD `AboutPage` + `Person`.
+
+**PAGE-002 — Connect** (`src/pages/connect.astro` + `CONNECT` in `site.ts`): prose-width;
+big mono email with copy-to-clipboard button + `role=status aria-live=polite` live
+region (announces success or a graceful fallback with the address); labeled external
+channel rows; availability + three facts. JSON-LD `ContactPage`. No form (mailto is
+honest — no mail backend in v4.0).
+
+**PAGE-003 — Privacy** (`src/pages/privacy.astro`): static `.prose` page — server-log /
+hosting disclosure, theme-localStorage note, third parties, contact. Indexable (no
+noindex). Footer already links `/privacy`.
+
+**Files**: `frontend/src/pages/{rss.xml.ts,about.astro,connect.astro,privacy.astro}`,
+`frontend/src/content/{about.ts,site.ts}`, `frontend/package.json`,
+`frontend/package-lock.json`; docs `13`, `15`. (Old v3 `about.astro`/`connect.astro`
+replaced; v3 `components/about/*` + `lib/directus` `fetchAbout`/`fetchSiteSettings` are
+now unused — leave for CLEAN-001.)
+
+**Decisions / deviations**:
+1. **Résumé button** is optional: `ABOUT.resumeUrl` is `undefined`, so the button is
+   hidden until the owner drops a PDF in `public/` and sets the path. Avoids shipping a
+   fake placeholder PDF (blueprint 05 §9 expects a PDF in `public/`).
+2. **Portrait** is an on-brand plate, not a photo — drop a square image at
+   `src/assets/about/` and swap to `astro:assets` `Image` when available.
+3. RSS content-type is `application/xml` (what `@astrojs/rss` emits); valid for feeds.
+4. About stats/timeline are authored placeholders consistent with the profile — owner
+   tunes the exact numbers/dates in `about.ts`.
+
+**Validation**: `astro check` 0/0/0; `npm test` 39 passed; `npm run build` ok. Live
+(dev): `/rss.xml` 200 `application/xml`, valid decl + `<language>` + excerpt-only;
+`/about` 200 (no `fetchAbout`, `Person` JSON-LD present); `/connect` 200 (copy button
+announces via live region — fallback path exercised headless); `/privacy` 200 (`.prose`).
+375px Connect: no horizontal overflow, email wraps (`overflow-wrap:anywhere`).
+
+**Next**: **V4-CMS-005** (projects → content collection) unblocks the home "Selected
+work" section and `/projects`. RSS shows 20 items only once posts are seeded (staging
+currently has none).
+
+**Warnings**: RSS "20 items" couldn't be demonstrated (no seeded posts) — structure is
+correct and capped at 20. Branch `v4/v4-home-redesign` was created then left unused (the
+redesign was already consolidated); safe to delete.
+
 ## [2026-06-13] V4-BLOG-002 — done
 
 **Did**: Added the v4 article route at `/blog/[slug]` while preserving `/blog/2`
