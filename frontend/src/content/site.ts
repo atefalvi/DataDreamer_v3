@@ -19,7 +19,6 @@ const BASE_NAV: NavItem[] = [
   { label: 'Work', href: '/projects' },
   { label: 'Blog', href: '/blog' },
   { label: 'Dream Team', href: '/dream-team' },
-  { label: 'About', href: '/about' },
 ];
 
 /** Primary nav, with Courses inserted after Blog only when enabled (03 §2). */
@@ -36,7 +35,7 @@ export interface SocialLink {
 
 export const SOCIAL_LINKS: SocialLink[] = [
   { label: 'GitHub', href: 'https://github.com/atefalvi', icon: 'github' },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/atefalvi', icon: 'linkedin' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/atefsyed/', icon: 'linkedin' },
   { label: 'Email', href: 'mailto:hello@data-dreamer.net', icon: 'mail' },
 ];
 
@@ -90,7 +89,7 @@ export const CONNECT = {
     {
       label: 'LinkedIn',
       handle: 'linkedin.com/in/atefalvi',
-      href: 'https://www.linkedin.com/in/atefalvi',
+      href: 'https://www.linkedin.com/in/atefsyed/',
       icon: 'linkedin',
       external: true,
     },
