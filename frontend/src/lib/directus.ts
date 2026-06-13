@@ -4,6 +4,8 @@ import { createDirectus, rest, readItems, readSingleton, authentication } from '
 
 export interface DirectusUser {
     id: string;
+    slug?: string;
+    display_name?: string;
     first_name?: string;
     last_name?: string;
     avatar?: string;
@@ -33,6 +35,8 @@ export interface Log {
     status?: string;
     post_number?: number;
     series_label?: string;
+    cover_image?: string;
+    featured?: boolean;
     author?: DirectusUser;
     topics?: { topics_id?: { name?: string; slug?: string } }[];
 }
@@ -247,7 +251,8 @@ export async function fetchFeaturedProjects(limit = 3): Promise<Project[]> {
  */
 const LOG_FIELDS = [
     'id', 'slug', 'title', 'excerpt', 'content',
-    'published_at', 'post_number', 'series_label',
+    'published_at', 'post_number', 'series_label', 'cover_image', 'featured',
+    'author.slug', 'author.display_name', 'author.avatar',
     'topics.topics_id.name', 'topics.topics_id.slug',
 ] as const;
 
