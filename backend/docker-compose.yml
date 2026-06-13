@@ -35,7 +35,7 @@ services:
   directus:
     image: directus/directus:latest
     ports:
-      - 8055:8055
+      - 8056:8055
     volumes:
       - /mnt/datadreamer/uploads:/directus/uploads
       - /mnt/datadreamer/extensions:/directus/extensions
