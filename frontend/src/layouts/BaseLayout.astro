@@ -1,12 +1,9 @@
 ---
 /**
  * BaseLayout — the v4 global shell (06 §5). Composes self-hosted fonts, base styles,
- * SeoHead, SkipLink, the pre-paint theme script, and the page <main>.
- *
- * SCOPE NOTE (V4-SHELL-001): the header and footer here are minimal placeholders so
- * 404/500 and early pages render cleanly. V4-SHELL-002 replaces them with
- * <SiteNav/> + <MobileMenu/> and <SiteFooter/>. BaseLayout's structure is stable;
- * SHELL-002 swaps the two marked regions only.
+ * SeoHead, SkipLink, the pre-paint theme script, SiteNav + MobileMenu, <main>, and
+ * SiteFooter. Pass `transparentNav` on the homepage so the bar starts transparent over
+ * the hero (07 §3.1).
  */
 import '@fontsource-variable/fraunces/wght.css';
 import '@fontsource-variable/inter/wght.css';
@@ -16,15 +13,17 @@ import '../styles/base.css';
 
 import SeoHead from '../components/global/SeoHead.astro';
 import SkipLink from '../components/global/SkipLink.astro';
+import SiteNav from '../components/global/SiteNav.astro';
+import MobileMenu from '../components/global/MobileMenu.astro';
+import SiteFooter from '../components/global/SiteFooter.astro';
 import type { Seo } from '../lib/seo/meta';
-import logoLockup from '../assets/brand/logo-lockup.svg?raw';
 
 interface Props extends Seo {
   bodyClass?: string;
+  transparentNav?: boolean;
 }
 
-const { bodyClass, ...seo } = Astro.props;
-const year = new Date().getFullYear();
+const { bodyClass, transparentNav = false, ...seo } = Astro.props;
 ---
 
 <!doctype html>
@@ -50,87 +49,18 @@ const year = new Date().getFullYear();
   </head>
   <body class={bodyClass}>
     <SkipLink />
-
-    {/* V4-SHELL-002: replace with <SiteNav/> + <MobileMenu/> */}
-    <header class="site-header">
-      <a href="/" class="site-header__brand" aria-label="DataDreamer — home">
-        <span class="site-header__logo" set:html={logoLockup} />
-      </a>
-    </header>
+    <SiteNav transparentOverHero={transparentNav} />
+    <MobileMenu />
 
     <main id="main">
       <slot />
     </main>
 
-    {/* V4-SHELL-002: replace with <SiteFooter/> */}
-    <footer class="site-footer">
-      <div class="site-footer__inner container-content">
-        <a href="/" class="site-footer__brand" aria-label="DataDreamer — home">
-          <span class="site-footer__logo" set:html={logoLockup} />
-        </a>
-        <p class="site-footer__meta">
-          © {year} DataDreamer · <a href="/privacy">Privacy</a>
-        </p>
-      </div>
-    </footer>
+    <SiteFooter />
 
-    <style>
-      .site-header {
-        display: flex;
-        align-items: center;
-        height: 64px;
-        padding-inline: var(--gutter);
-        border-bottom: 1px solid var(--border-1);
-        background: var(--bg-0);
-      }
-
-      .site-header__brand {
-        display: inline-flex;
-        align-items: center;
-      }
-
-      .site-header__brand:focus-visible {
-        outline: 2px solid var(--focus-ring);
-        outline-offset: 4px;
-        border-radius: var(--radius-sm);
-      }
-
-      .site-header__logo :global(svg) {
-        height: 24px;
-        width: auto;
-        color: var(--text-1);
-      }
-
-      .site-footer {
-        margin-top: var(--section-y);
-        padding-block: var(--space-7);
-        border-top: 1px solid var(--border-1);
-        background: var(--bg-0);
-      }
-
-      .site-footer__inner {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-4) var(--space-6);
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .site-footer__logo :global(svg) {
-        height: 20px;
-        width: auto;
-        color: var(--text-2);
-      }
-
-      .site-footer__meta {
-        color: var(--text-3);
-        font-family: var(--font-mono);
-        font-size: var(--fs-sm);
-      }
-
-      .site-footer__meta a {
-        color: var(--text-2);
-      }
-    </style>
+    <script>
+      import { initReveal } from '../lib/motion/reveal';
+      initReveal();
+    </script>
   </body>
 </html>
