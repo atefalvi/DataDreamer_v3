@@ -17,6 +17,37 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-FND-003 — done
+
+**Did**: Completed the Coolify staging resource verification. Staging frontend
+serves at `https://staging.data-dreamer.net/` and internal
+`http://192.168.10.211:4322/` with `X-Robots-Tag: noindex`. Staging backend
+Directus responds at `http://192.168.10.211:8056/` and `/admin`. Updated
+`backend/docker-compose.yml` so staging can use a separate host port/uploads path
+through env overrides while production defaults remain `8055`, `/mnt/datadreamer/*`,
+and local dev CORS defaults.
+**Files**: `frontend/src/middleware.ts`; `backend/docker-compose.yml`;
+`docs/agent-workspace/13-TASKS.md`; `docs/agent-workspace/15-HANDOFF.md`.
+**Decisions / deviations**: Accepted the earlier staging resource setup and owner
+NPM/proxy configuration. Rejected the hardcoded backend `8056` compose change as a
+merge risk; replaced it with `DIRECTUS_HOST_PORT`,
+`DIRECTUS_UPLOADS_PATH`, and `DIRECTUS_EXTENSIONS_PATH` overrides. Production
+Coolify resources were not changed.
+**Validation**: `curl -sSI http://192.168.10.211:4322/` returned `200 OK` with
+`x-robots-tag: noindex`; `curl -sSI https://staging.data-dreamer.net/` returned
+`200` with `x-robots-tag: noindex`; `curl -sSI https://data-dreamer.net/` returned
+`200` with no `x-robots-tag`; `curl -sSI http://192.168.10.211:8056/` returned
+Directus `302 Found` to `./admin`; `curl -sSI http://192.168.10.211:8056/admin`
+returned Directus `200 OK`. Previous repo validation on this task: `cd frontend &&
+npx astro check`, `npm test`, and `npm run build` all passed.
+**Next**: `V4-CMS-001` is the next eligible incomplete Phase A task.
+**Warnings**: Keep staging backend env overrides separate from production:
+`DIRECTUS_HOST_PORT=8056`, staging database/user/password/secret,
+`DIRECTUS_UPLOADS_PATH=/mnt/datadreamer-staging/uploads`,
+`DIRECTUS_EXTENSIONS_PATH=/mnt/datadreamer-staging/extensions`,
+`DIRECTUS_PUBLIC_URL=https://api-staging.data-dreamer.net`, and CORS limited to
+staging frontend origins. Rotate any production secrets that were pasted into chat.
+
 ## [2026-06-12] V4-FND-003 — blocked
 
 **Did**: Created the repo-side staging noindex implementation by adding Astro
