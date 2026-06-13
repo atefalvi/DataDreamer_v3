@@ -125,11 +125,11 @@ in the lockup itself** (logos are identity, not UI); everywhere the dot motif is
 | Display | **Fraunces** (variable; opsz, wght 500–650, SOFT 0, WONK 0) | H1, H2, pull quotes, big numerals. Never below 24px. |
 | Text/UI | **Inter** (variable) | Body, H3–H6, nav, buttons, forms |
 | Mono | **JetBrains Mono** (400, 600) | Code, kickers/eyebrows, metadata, dates, tags |
-| Brand wordmark | **Anton** — *as vectorized SVG outlines only* (§9.2) | The "DATA DREAMER" wordmark in the logo lockup, footer brand block, and OG images. **Never loaded as a webfont in v4** and never used for headings or UI text |
+| Brand wordmark | **Vector pixel wordmark** (§9.2) | The "DATA DREAMER" wordmark in the logo lockup, footer brand block, and OG images. **Never loaded as a webfont in v4** and never used for headings or UI text |
 
-Anton survives exclusively as the logo's typography (owner requirement — brand
-continuity). Converting the wordmark to SVG paths keeps it pixel-perfect at zero
-font-loading cost and prevents drift back into Anton-everywhere v3 habits.
+Per owner direction on 2026-06-12, the lockup wordmark uses a custom pixel-outline
+treatment instead of Anton. The wordmark ships as SVG paths only, keeping zero
+font-loading cost and preserving the pixel/data brand motif.
 
 Loading: preload the two variable woff2 files used above the fold (Fraunces + Inter),
 `font-display: swap`, metric-compatible fallback stacks
@@ -249,30 +249,32 @@ SVG assets with only these permitted changes:
   both themes without per-theme files.
 
 ### 9.2 Wordmark & lockup
-The wordmark keeps its v3 typography: **"DATA DREAMER" set in Anton, uppercase**,
-tracking `0.04em`, optically aligned to the mark's cap height. In v4 it ships as
-**vectorized SVG outlines** (convert Anton glyphs to paths once in V4-DS-004) — no
-Anton webfont is loaded (§4.1). Lockup spacing: gap between mark and wordmark =
-mark width × 0.35; wordmark height = mark height × 0.52, baseline aligned to the
-mark's inner-square bottom edge. This is the only place uppercase display type
-appears in v4 — which makes the brand moment stronger, not weaker: an elite serif/
-sans system with one unmistakable industrial wordmark is a signature, not a clash.
+The wordmark reads **"DATA DREAMER" in uppercase vector pixel outlines**, optically
+aligned to the mark's cap height. In v4 it ships as SVG paths only — no brand
+webfont is loaded (§4.1), and the lockup must not contain live `<text>`. The primary
+lockup is a composed horizontal system: retained mark, fine vertical divider, then a
+stacked two-line wordmark (`DATA` above `DREAMER`) built from separated modular
+pixels. This stacked composition is the preferred premium lockup because it gives the
+long name a controlled block shape instead of an overextended single line. This is
+the only place uppercase display type appears in v4, making the brand moment a
+single intentional signature instead of a reusable UI type style.
 
 ### 9.3 Variants & usage
 
 | Variant | Composition | Used at |
 |---|---|---|
-| Primary lockup | Mark + Anton-outline wordmark "DATA DREAMER", red dot in brand red | Nav (≥480px), footer brand block, OG images |
+| Primary lockup | Mark + fine divider + stacked pixel-outline wordmark "DATA" / "DREAMER", red dot in brand red | Nav (≥480px), footer brand block, OG images |
 | Compact mark | Mark alone (with red dot) | Nav <480px, favicons, avatars, watermark |
 | Mono (ink) | Everything `currentColor`, dot included | Print, single-color contexts, 404 watermark |
 | Light-bg / dark-bg | Ink = `--text-1` of active theme via `--logo-ink`; dot always `#FD2E00` (verify dot contrast on `--bg-0` light: passes — it sits on paper `#FAF9F7`) | everywhere |
 | Favicon | Mark alone; at 16px the dot may be enlarged ~1.4× for legibility (only permitted geometry deviation, favicon files only) | `/favicon.svg`, 32px `.ico` |
 
-Rules: min height 20px (mark), 24px (lockup). Clear space = dot diameter on all
-sides. Never recolor the dot (except mono variant); never skew, outline, or shadow
-the mark; never set the wordmark in a live font. `aria-label="DataDreamer"` when the
-logo is the home link's only content; `aria-hidden="true"` when accompanied by
-visible text.
+Rules: min height 20px (mark), 64px (stacked lockup). Use the compact mark instead
+of the stacked lockup below 64px; the two-line pixel wordmark is a premium brand
+composition, not a tiny nav label. Clear space = dot diameter on all sides. Never
+recolor the dot (except mono variant); never skew, outline, or shadow the mark;
+never set the wordmark in a live font. `aria-label="DataDreamer"` when the logo is
+the home link's only content; `aria-hidden="true"` when accompanied by visible text.
 Files: `src/assets/brand/logo-mark.svg`, `logo-lockup.svg`, `logo-mono.svg`,
 `public/favicon.svg`, `public/favicon.ico`. `Logo.astro` and `public/logo.svg` are
 superseded by these assets (swap in SHELL-002; old files removed in CLEAN-001).

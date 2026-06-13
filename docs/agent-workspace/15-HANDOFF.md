@@ -17,6 +17,42 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-DS-004 — done
+
+**Did**: Productionized the existing DataDreamer mark into standalone brand assets:
+`logo-mark.svg`, `logo-lockup.svg`, and `logo-mono.svg` under
+`frontend/src/assets/brand/`. Regenerated `frontend/public/favicon.svg` and
+`frontend/public/favicon.ico` from the same preserved mark geometry. Left
+`frontend/public/logo.svg` untouched for CLEAN-001.
+**Files**: `frontend/src/assets/brand/logo-mark.svg`;
+`frontend/src/assets/brand/logo-lockup.svg`;
+`frontend/src/assets/brand/logo-mono.svg`; `frontend/public/favicon.svg`;
+`frontend/public/favicon.ico`; `docs/agent-workspace/04-DESIGN-SYSTEM.md`;
+`docs/agent-workspace/13-TASKS.md`; `docs/agent-workspace/15-HANDOFF.md`.
+**Decisions / deviations**: Owner direction on 2026-06-12 replaced the earlier Anton
+lockup requirement with a vector pixel wordmark for "DATA DREAMER"; 04 §4.1/§9.2 and
+13 V4-DS-004 were updated accordingly. After owner visual feedback, the lockup was
+refined to a retained mark + fine divider + stacked `DATA` / `DREAMER` composition
+instead of a one-line wordmark. The lockup contains path geometry only, no runtime
+font and no live `<text>`. The mark paths are copied from
+`frontend/src/components/Logo.astro`; ink uses `var(--logo-ink, currentColor)` and
+the color logo dot remains exact `#FD2E00`. The mono asset sets all paths to
+`currentColor`. Bacon's read-only audit findings were accepted; no sub-agent code was
+integrated.
+**Validation**: `cd frontend && npx astro check` clean; `npm test` passed
+(7 tests); `npm run build` passed. Asset validation: old inline mark vs new
+`logo-mark.svg` rendered at 1024px had 0 differing bytes; `logo-lockup.svg` and
+favicons contain no `<text>`, `font-family`, or `Anton`; `favicon.ico` header reports
+1 icon, 32x32, 32-bit; refined lockup reviewed at 24/32/64/160px on light and dark
+backgrounds. Review finding: the stacked lockup is premium at 64px+; below 64px,
+use the compact mark instead.
+**Next**: `V4-CMS-001` is the next implementable Phase A task. `V4-FND-003` is still
+the next listed incomplete task but remains blocked until Coolify/staging access is
+available.
+**Warnings**: Unrelated working-tree deletions under `reference/` remain unstaged and
+untouched. SHELL-002 must later replace usage sites and apply the recorded aria
+patterns.
+
 ## [2026-06-12] V4-ARC-002 — done
 
 **Did**: Added the additive v4 markdown pipeline under `frontend/src/lib/markdown/`.
