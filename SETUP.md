@@ -21,8 +21,10 @@ Copy the example files and fill in your values. **NEVER commit your `.env` files
 |---|---|---|
 | `DIRECTUS_URL` | ✅ | **Internal** API URL (e.g. `http://datadreamer-backend:8055`) |
 | `PUBLIC_DIRECTUS_URL` | ✅ | **Public** API URL (e.g. `https://api.your-domain.com`) |
-| `DIRECTUS_EMAIL` | Optional | Admin email for server-side auth |
-| `DIRECTUS_PASSWORD` | Optional | Admin password for server-side auth |
+
+The frontend no longer logs into Directus with admin credentials. Public content must
+be readable through the Directus Public policy; server-only service tokens are added
+later for authenticated course features.
 
 ### Backend (`backend/.env`)
 
@@ -215,9 +217,11 @@ The site will be available at **http://localhost:4321**.
 - Check the correct `PUBLIC_DIRECTUS_URL` is set in `frontend/.env`
 - Run `npm run dev` from the `frontend/` directory and check terminal output for fetch errors
 
-### Authentication failures (if using DIRECTUS_EMAIL)
-- Verify credentials in `frontend/.env` match the Directus admin credentials
-- Try logging in at `http://localhost:8055/admin` with the same credentials
+### Public content returns 403
+- Confirm the Public access policy has Read access on the required published
+  collections.
+- Do not add Directus admin credentials to the frontend env. Frontend reads should
+  work through public permissions until the v4.1 service-token flow is introduced.
 
 ### Astro type errors
 ```bash

@@ -27,7 +27,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-DS-002 | UI primitives batch | A | DS-001 | done |
 | V4-DS-003 | Prose stylesheet | A | DS-001 | done |
 | V4-DS-004 | Logo system & favicons | A | DS-001 | done |
-| V4-CMS-001 | Directus: authors/specialties/topics | A | — | todo |
+| V4-CMS-001 | Directus: authors/specialties/topics | A | — | done |
 | V4-CMS-002 | Directus: posts→authors relation | A | CMS-001 | todo |
 | V4-CMS-003 | Directus: topics backfill | A | CMS-002 | todo |
 | V4-ARC-001 | Repository layer + types | A | CMS-002, FND-001 | todo |

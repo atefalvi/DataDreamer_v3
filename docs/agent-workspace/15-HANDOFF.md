@@ -17,6 +17,45 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-CMS-001 — done
+
+**Did**: Completed the staging Directus v4.0 greenfield schema migration with
+`scripts/v4-cms-001-directus.mjs`. The script is idempotent and creates `logs` when
+the staging DB has no v3 baseline, plus `authors`, `specialties`, `topics`,
+`authors_specialties`, and `posts_topics`; scalar fields; `logs.topics`;
+`authors.avatar`; `authors.specialties`; `authors_specialties` relations; and
+`posts_topics.logs_id` / `posts_topics.topics_id`. Seeded `atef-alvi`, 6 specialties,
+and 6 topics; removed an accidental `agent-staging` author row from earlier token
+testing; added Public read permissions; and wrote `backend/snapshot.yaml`. Removed
+retired frontend admin credential examples from `frontend/.env.example` and
+`SETUP.md`.
+**Files**: `scripts/v4-cms-001-directus.mjs`; `backend/snapshot.yaml`;
+`frontend/.env.example`; `SETUP.md`; `docs/agent-workspace/13-TASKS.md`;
+`docs/agent-workspace/15-HANDOFF.md`.
+**Decisions / deviations**: No sub-agents used. Owner clarified staging is
+greenfield: do not restore v3 production content; create a clean v4 baseline instead.
+Therefore V4-CMS-001 creates `logs` when absent instead of requiring a production
+restore. `logs` keeps `tag`/`category` only as temporary migration-compat fields; real
+taxonomy is `topics`/`posts_topics`. `pg_dump` was not captured because local
+`pg_dump` is unavailable and `192.168.10.211:5432` refused direct connections; schema
+snapshot is committed and this greenfield DB has no production content to preserve.
+**Validation**: Migration script ran against `http://192.168.10.211:8056` and
+exited `0`. Anonymous curl checks: `logs` published query count 0 and includes
+`topics.topics_id.slug`; authors count 1; specialties count 6; topics count 6;
+`authors_specialties` and `posts_topics` queryable; `/files?limit=1` queryable.
+Authenticated schema read lists non-system collections `authors`,
+`authors_specialties`, `logs`, `posts_topics`, `specialties`, `topics`; relation
+metadata exists for `authors.avatar`, `authors_specialties.authors_id`,
+`authors_specialties.specialties_id`, `posts_topics.logs_id`, and
+`posts_topics.topics_id`.
+**Next**: `V4-CMS-002` is now unblocked: add `author_profile`, `cover_image`, and
+`featured` to `logs`. Because staging is greenfield, its mapping step should create a
+documented no-op result when there are no published posts yet.
+**Warnings**: Keep production and staging Directus secrets separate. Rotate any
+production secrets that were pasted into chat. If this greenfield staging DB is later
+replaced by a production restore, rerun `scripts/v4-cms-001-directus.mjs` before
+starting CMS-002.
+
 ## [2026-06-12] V4-FND-003 — done
 
 **Did**: Completed the Coolify staging resource verification. Staging frontend
