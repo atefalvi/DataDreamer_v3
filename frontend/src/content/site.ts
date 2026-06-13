@@ -66,3 +66,40 @@ export const HOME_SEO = {
   description:
     'A premium field journal for data systems, applied AI, analytics craft, and engineering patterns from working practitioners.',
 } as const;
+
+export interface ContactChannel {
+  label: string;
+  /** Display handle, e.g. "github.com/atefalvi". */
+  handle: string;
+  href: string;
+  /** Lucide / custom icon name. */
+  icon: string;
+  external?: boolean;
+}
+
+/** Contact page content (05 §10). Repo-owned — no form/backend in v4.0; mailto is honest. */
+export const CONNECT = {
+  kicker: 'Contact',
+  title: "Let's talk",
+  intro:
+    'Project inquiries, advisory, or comparing notes on data systems — email is the fastest way to reach me. No forms, no funnels.',
+  /** Primary channel, rendered as the big copy-able email card. */
+  email: SITE.email,
+  channels: [
+    { label: 'GitHub', handle: 'github.com/atefalvi', href: 'https://github.com/atefalvi', icon: 'github', external: true },
+    {
+      label: 'LinkedIn',
+      handle: 'linkedin.com/in/atefalvi',
+      href: 'https://www.linkedin.com/in/atefalvi',
+      icon: 'linkedin',
+      external: true,
+    },
+  ] satisfies ContactChannel[],
+  availability: 'Open to select consulting, advisory, and collaboration.',
+  /** Three short facts shown beneath the channels. */
+  facts: [
+    { label: 'Response time', value: 'Usually within 24 hours on weekdays.' },
+    { label: 'Engagements', value: 'Data platforms, analytics, and applied-AI builds — advisory or hands-on.' },
+    { label: 'Timezone', value: 'Eastern Time (UTC−5), flexible for overlap.' },
+  ],
+} as const;
