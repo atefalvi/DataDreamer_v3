@@ -1,147 +1,123 @@
 ---
-import MainLayout from "../../layouts/MainLayout.astro";
-import ProjectCard from "../../components/projects/ProjectCard.astro";
-import PageHero from "../../components/PageHero.astro";
-import { fetchProjects, getAssetUrl, type Project } from "../../lib/directus";
+/**
+ * V4-PROJ-001 — Project index (05 §5). Reads the repo-owned `projects` content
+ * collection (zero Directus). Tag filter is implemented as SSR `?tag=` links so it works
+ * with no JS, mirroring the blog's filter decision.
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CaseCard from '../../components/projects/CaseCard.astro';
+import Chip from '../../components/ui/Chip.astro';
+import EmptyState from '../../components/ui/EmptyState.astro';
+import { SITE_URL } from '../../lib/seo/meta';
 
-const directusProjects = await fetchProjects();
+const all = await getCollection('projects');
+const sorted = all.sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
 
-const projects = directusProjects.map((p: Project, i: number) => ({
-    title: (p.title ?? "UNTITLED").toUpperCase(),
-    description: p.summary ?? p.description ?? "",
-    image: p.cover_image ? getAssetUrl(p.cover_image) : null,
-    index: `EXP.${String(i + 1).padStart(2, "0")}`,
-    year: p.published_at
-        ? new Date(p.published_at).getFullYear().toString()
-        : "2024",
-    tags: p.tags ?? [],
-    href: p.slug ? `/projects/${p.slug}` : "#",
-}));
+const activeTag = Astro.url.searchParams.get('tag');
+const tags = [...new Set(all.flatMap((p) => p.data.stack))].sort((a, b) => a.localeCompare(b));
+const visible = activeTag ? sorted.filter((p) => p.data.stack.includes(activeTag)) : sorted;
 
-// Extract unique tags and sort them alphabetically
-const uniqueTags = [...new Set(projects.flatMap((p) => p.tags))].sort((a, b) =>
-    a.toLowerCase().localeCompare(b.toLowerCase())
-);
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Work — DataDreamer',
+    url: `${SITE_URL}/projects`,
+  },
+];
 ---
 
-<MainLayout title="PROJECTS // DATA DREAMER">
-    <main class="container page-content">
-        <PageHero label="// PROJECT INDEX" title="DEEP WORKSPACE" />
+<BaseLayout
+  title="Work"
+  description="Selected work from DataDreamer — data platforms, analytics, and applied-AI case studies."
+  ogImage={{ url: '/og/og-projects.png' }}
+  jsonLd={jsonLd}
+>
+  <div class="projects container-content">
+    <header class="projects__head">
+      <p class="kicker">Selected work</p>
+      <h1>Work</h1>
+      <p class="projects__intro">
+        Case studies from the studio — data platforms, analytics craft, and the engineering behind
+        systems that ship.
+      </p>
+    </header>
 
-        <div class="filter-bar">
-            <button class="filter-btn active" data-tag="all" aria-pressed="true">All Deployments</button>
-            {
-                uniqueTags.map((tag) => (
-                    <button class="filter-btn" data-tag={tag.toLowerCase()} aria-pressed="false">
-                        {tag}
-                    </button>
-                ))
-            }
-        </div>
-
-        {projects.length === 0 ? (
-            <div class="empty-state">
-                <p class="meta-text">// NO PROJECTS FOUND — CHECK BACK SOON.</p>
-            </div>
-        ) : (
-            <div class="projects-grid">
-                {projects.map((project) => (
-                    <div
-                        class="project-item"
-                        data-tags={project.tags.map((t) => t.toLowerCase()).join(",")}
-                    >
-                        <ProjectCard
-                            title={project.title}
-                            description={project.description}
-                            image={project.image}
-                            index={project.index}
-                            year={project.year}
-                            tags={project.tags}
-                            href={project.href}
-                        />
-                    </div>
-                ))}
-            </div>
+    {all.length === 0 ? (
+      <EmptyState message="Case studies are being written up. Check back soon." icon="folder-open" />
+    ) : (
+      <>
+        {tags.length > 0 && (
+          <nav class="projects__filter" aria-label="Filter by stack">
+            <Chip label="All" href="/projects" selected={!activeTag} />
+            {tags.map((tag) => (
+              <Chip label={tag} href={`/projects?tag=${encodeURIComponent(tag)}`} selected={activeTag === tag} />
+            ))}
+          </nav>
         )}
-    </main>
-</MainLayout>
+
+        {visible.length === 0 ? (
+          <EmptyState message={`No projects tagged “${activeTag}”.`} icon="search-x" action={{ label: 'Clear filter', href: '/projects' }} />
+        ) : (
+          <div class="projects__grid">
+            {visible.map((project, i) => (
+              <CaseCard project={project} class={i % 3 === 0 ? 'case-card--wide' : ''} />
+            ))}
+          </div>
+        )}
+      </>
+    )}
+  </div>
+</BaseLayout>
 
 <style>
-    .page-content {
-        padding-top: 56px;
-    }
+  .projects {
+    padding-block: calc(78px + var(--section-y)) var(--section-y);
+  }
 
-    /* .filter-bar, .filter-btn → global.css */
+  .projects__head h1 {
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
 
-    .empty-state {
-        padding: 80px 0;
-        text-align: center;
-    }
+  .projects__intro {
+    max-width: 56ch;
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
 
-    .projects-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 40px;
-        margin-bottom: 100px;
-    }
+  .projects__filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-6);
+  }
 
-    @media (max-width: 1024px) {
-        .projects-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
+  .projects__grid {
+    display: grid;
+    gap: var(--space-7);
+    margin-top: var(--space-7);
+    grid-template-columns: 1fr;
+  }
 
-    @media (max-width: 768px) {
-        .page-content {
-            padding-top: 32px;
-        }
-        .filter-bar {
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 8px;
-            margin-bottom: -8px;
-        }
-        .filter-bar::-webkit-scrollbar {
-            height: 4px;
-        }
-        .filter-btn {
-            flex-shrink: 0;
-            font-size: 11px;
-            padding: 8px 16px;
-        }
-        .projects-grid {
-            grid-template-columns: 1fr;
-            gap: 60px;
-        }
+  @media (min-width: 48rem) {
+    .projects__grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-8) var(--space-7);
     }
+    /* Asymmetric offset: every third card spans full width as a feature row. */
+    .projects__grid :global(.case-card--wide) {
+      grid-column: 1 / -1;
+    }
+    .projects__grid :global(.case-card--wide) :global(.case-card__media) {
+      aspect-ratio: 21 / 9;
+    }
+  }
 </style>
-
-<script>
-    const buttons = document.querySelectorAll(".filter-btn");
-    const items = document.querySelectorAll(
-        ".project-item",
-    ) as NodeListOf<HTMLElement>;
-
-    buttons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-            const filterTag = btn.getAttribute("data-tag")?.toLowerCase();
-
-            // Toggle active state + aria-pressed
-            buttons.forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-pressed", "false"); });
-            btn.classList.add("active");
-            btn.setAttribute("aria-pressed", "true");
-
-            // Filter items
-            items.forEach((item) => {
-                const itemTags = item.getAttribute("data-tags")?.split(",") ?? [];
-
-                if (filterTag === "all" || itemTags.includes(filterTag ?? "")) {
-                    item.style.display = "block";
-                } else {
-                    item.style.display = "none";
-                }
-            });
-        });
-    });
-</script>
