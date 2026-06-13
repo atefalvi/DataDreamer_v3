@@ -17,6 +17,39 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-FND-003 — blocked
+
+**Did**: Created the repo-side staging noindex implementation by adding Astro
+middleware that sends `X-Robots-Tag: noindex` only when `DEPLOY_ENV=staging`.
+Added the non-secret `DEPLOY_ENV` example to the ignored frontend env sample. In
+Coolify, verified the cloned staging environment/resource created during this task:
+environment `datadreamer-staging`
+(`tsks4w4888kkgwwwo0s8oo0w`), frontend
+`datadreamer-frontend-staging` (`agsc0gc004s04skwwk40g0og`), backend
+`datadreamer-backend-staging` (`d8w488os44sgk4os0w80wk4g`), and frontend domain
+`https://staging.data-dreamer.net/`.
+**Files**: `frontend/src/middleware.ts`; `frontend/.env.example`;
+`docs/agent-workspace/13-TASKS.md`; `docs/agent-workspace/15-HANDOFF.md`.
+**Decisions / deviations**: No sub-agents used; scope stayed on FND-003. Production
+Coolify resources were not edited. The staging frontend Git Source page initially
+showed branch `staging`; it was changed in the form to `feature/v4-redesign` and
+saved before Chrome interaction became blocked. The Environment Variables page
+showed Directus URL variables but no `DEPLOY_ENV`; adding `DEPLOY_ENV=staging` and
+deploying could not be completed because Chrome reported an extension UI blocking
+automation.
+**Validation**: `cd frontend && npx astro check` clean; `npm test` passed
+(7 tests); `npm run build` passed. Local preview with `DEPLOY_ENV=staging` returned
+`x-robots-tag: noindex`; local preview without `DEPLOY_ENV=staging` returned no
+`x-robots-tag`. Live staging was not deployed/verified.
+**Next**: Dismiss the Chrome extension overlay, then resume V4-FND-003. Verify the
+staging frontend source branch is still `feature/v4-redesign`, add
+`DEPLOY_ENV=staging` to the staging frontend environment variables, deploy the
+staging frontend, and verify `curl -sSI https://staging.data-dreamer.net/` includes
+`X-Robots-Tag: noindex` while `https://data-dreamer.net/` does not.
+**Warnings**: Do not mark V4-FND-003 done until live staging serves the feature
+branch and the noindex header is verified. The unrelated `reference/` deletion
+remains stashed as `user-reference-folder-deletion-before-v4-cms-001`.
+
 ## [2026-06-12] V4-DS-004 — done
 
 **Did**: Productionized the existing DataDreamer mark into standalone brand assets:
