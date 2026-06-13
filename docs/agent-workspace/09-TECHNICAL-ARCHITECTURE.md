@@ -63,7 +63,8 @@ big-bang rewrite commit.**
 | `DIRECTUS_URL` | server | internal API URL |
 | `PUBLIC_DIRECTUS_URL` | client-visible | asset URL base (keep v3 comment block explaining the pair — it earned its keep) |
 | `SITE_URL` | server | `https://data-dreamer.net` (stop hardcoding in layout) |
-| removed | — | `DIRECTUS_EMAIL`, `DIRECTUS_PASSWORD` (08 §5) |
+| `DIRECTUS_TOKEN` | server only | **optional** read-only static token (V4-ARC-001). Used by `lib/directus/client.ts` where the Public role isn't open (e.g. greenfield staging). Unset → reads via Public role. Never `PUBLIC_`. Distinct from the v4.1 write service token |
+| removed | — | `DIRECTUS_EMAIL`, `DIRECTUS_PASSWORD` (08 §5); the new client has no login path (still set in `.env` only because v3 pages/`lib/directus.ts` use them until B-phase migration) |
 | v4.1: `DIRECTUS_SERVICE_TOKEN` | server only | service role; never `PUBLIC_` |
 | v4.1: `SESSION_COOKIE_NAME`, `RATE_LIMIT_*` | server | auth tuning |
 

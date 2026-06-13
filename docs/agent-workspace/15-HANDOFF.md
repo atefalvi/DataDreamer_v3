@@ -17,6 +17,63 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-12] V4-ARC-001 — done
+
+**Did**: Built the v4 repository layer + view-models (additive; v3 `lib/directus.ts`
+and pages untouched). New modules under `frontend/src/`:
+- `lib/directus/schema.ts` (raw row shapes from snapshot.yaml) + `client.ts`
+  (REST-only, no login; optional `DIRECTUS_TOKEN` static token via `.with(staticToken)`).
+- `types/content.ts` (view-models, 06 §7) — pages consume only these.
+- `lib/repositories/{posts,authors,topics}.ts` + `_mappers.ts` + `index.ts`
+  (`postsRepo`/`authorsRepo`/`topicsRepo`), `errors.ts` (`RepositoryError` + `guard`),
+  `cache.ts` (`cachedPerRequest`).
+- `lib/images.ts` (`directusAssetUrl`/`directusSrcset`/`toImageRef`).
+- `lib/validation/schemas.ts` (zod for `links`/`tools`/`featured_work`, `.catch([])`).
+- Tests: `repositories.test.ts` (13) + `cache.test.ts` (3), mocked SDK; cover
+  happy/empty/error per function, field-discipline (no `content` in list fields),
+  markdown-in-callout rendering through `bySlug`, and malformed-JSON degradation.
+Queries implemented per 08 §8: posts.list (topic/author filter, over-fetch paging),
+latest, bySlug, byAuthor, related (+ countsByAuthorId aggregate); authors.allWithCounts,
+forTeamStrip, bySlug, related; topics.all, bySlug, withPostCounts, top.
+
+**Files**: `frontend/src/lib/directus/{schema,client}.ts`,
+`frontend/src/lib/repositories/{posts,authors,topics,_mappers,errors,cache,index}.ts`,
+`frontend/src/lib/repositories/__tests__/{repositories,cache}.test.ts`,
+`frontend/src/lib/images.ts`, `frontend/src/lib/validation/schemas.ts`,
+`frontend/src/types/content.ts`, `frontend/.env.example`;
+docs `06` §7, `09` §3, `13` (status), `15`.
+
+**Decisions / deviations**:
+1. **`DIRECTUS_TOKEN`** (optional, server-only read token) added to client + `.env.example`
+   + 09 §3, replacing the retired v3 admin login for the v4 path. Use it where the
+   Public role isn't open (staging). Distinct from the v4.1 write service token.
+2. **`readingMinutes` optional on `PostListItem`, required on `Post`** (06 §7 deviation):
+   list queries omit `content`, so cards can't compute read time. Add a cached
+   `reading_minutes` column later if cards need it — do not re-add `content` to lists.
+3. `postNumber` (schema `post_number`) used throughout, not the placeholder `logNumber`.
+4. Single documented `any` is the SDK dotted-field cast at call sites (CODE_REVIEW 2.3).
+
+**Validation**: `npx astro check` → 0 errors/0 warnings/0 hints; `npm test` → 23 passed
+(4 files); `npm run build` → success. Grep gate clean: no `@directus/sdk` imports in
+`src/pages` or `src/components`.
+
+**Token note (action for owner)**: the provided "Agent Staging" token
+(`stagingagent@gmail.com`) returns `INVALID_CREDENTIALS` against
+`https://api.data-dreamer.net`, and the staging Directus (`192.168.10.211:8056`) is
+LAN-only/unreachable from this environment. So the repository layer was built+tested
+against `snapshot.yaml` + mocked SDK (the task's intended method). To wire a live read,
+set `DIRECTUS_TOKEN` on the relevant frontend resource (or open the Public role) and
+confirm the token's role has read on posts/authors/topics/specialties/junctions/files.
+
+**Next**: Phase B opens. **V4-SHELL-001** (BaseLayout, SeoHead, middleware, 404/500)
+is the next critical-path task (deps DS-001 ✓, ARC-001 ✓). V4-CMS-003 (topics backfill)
+is independent and ownable in parallel. This branch is `v4/v4-arc-001` off `v4/v4-cms-002`;
+merge CMS-002 then ARC-001 into `feature/v4-redesign` in that order.
+
+**Warnings**: Repository functions THROW `RepositoryError` on fetch failure (primary
+fetches → 404/500; decorative strips like footer topics should catch). Don't reintroduce
+the v3 silent-empty-array pattern for primary fetches. Keep `content` out of list field sets.
+
 ## [2026-06-12] V4-CMS-002 — done
 
 **Did**: Added `posts.author`, `posts.cover_image`, and `posts.featured` to staging
