@@ -29,9 +29,9 @@
   --viz-5: #F5B83D;
   --viz-6: #64D8CB;
 
-  --font-display: "Fraunces Variable", Georgia, serif;
-  --font-text: "Inter Variable", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Fraunces Variable", "Fraunces Fallback", Georgia, serif;
+  --font-text: "Inter Variable", "Inter Fallback", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", ui-monospace, monospace;
 
   --fs-xs: clamp(0.75rem, 0.742rem + 0.139vw, 0.78125rem);
   --fs-sm: clamp(0.84375rem, 0.833rem + 0.139vw, 0.875rem);

@@ -17,6 +17,34 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-14] V4-PERF-002 — done
+
+**Did**: Tuned font fallback metrics after the PERF-001 subset/preload work. Added
+named fallback faces for Fraunces, Inter, and JetBrains Mono using `size-adjust`,
+`ascent-override`, `descent-override`, and `line-gap-override`; updated design tokens to
+use those fallback faces before generic system stacks. Verified the build still emits
+exactly three WOFF2 files totaling 108 KB.
+
+**Files**: `frontend/src/styles/fonts.css`, `frontend/src/styles/tokens.css`,
+`docs/agent-workspace/qa/perf.md`; docs `13`, `15`.
+
+**Decisions / deviations**: Fallback metrics were measured with a temporary `fontkit`
+install outside the repo against the actual WOFF2 files and macOS local Georgia, Arial,
+and Menlo. JetBrains Mono still ships only the 400 latin file to preserve the 3-file
+budget; mono `600` labels use browser synthesis.
+
+**Validation**: Slow-3G Lighthouse mobile simulated (`rttMs=400`,
+`throughputKbps=400`, `cpuSlowdownMultiplier=4`) on `/`, `/blog`, `/projects`,
+`/dream-team`, and `/connect`: CLS 0 on every route. Browser smoke verified active font
+stacks include the fallback faces, three font preloads, no horizontal overflow, and zero
+console errors. `git diff --check`; `npx astro check` 0/0/0; `npm test` 63 passed;
+`npm run build` ok.
+
+**Next**: **V4-PERF-003 — CSP rollout**.
+
+**Warnings**: Recheck the visual weight of synthesized mono `600` on staging. Broader
+script support should be added deliberately if future content needs non-latin glyphs.
+
 ## [2026-06-14] V4-PERF-001 — done
 
 **Did**: Executed the performance budget and Lighthouse audit, then fixed the measured
