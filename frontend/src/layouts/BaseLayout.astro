@@ -16,6 +16,7 @@ import SkipLink from '../components/global/SkipLink.astro';
 import SiteNav from '../components/global/SiteNav.astro';
 import MobileMenu from '../components/global/MobileMenu.astro';
 import SiteFooter from '../components/global/SiteFooter.astro';
+import { absoluteUrl } from '../lib/seo/meta';
 import type { Seo } from '../lib/seo/meta';
 
 interface Props extends Seo {
@@ -24,6 +25,9 @@ interface Props extends Seo {
 }
 
 const { bodyClass, transparentNav = false, ...seo } = Astro.props;
+const rssFeed = { href: absoluteUrl('/rss.xml'), title: 'DataDreamer RSS', type: 'application/rss+xml' };
+const feedMap = new Map([rssFeed, ...(seo.alternateFeeds ?? [])].map((feed) => [feed.href, feed]));
+const seoWithDefaults = { ...seo, alternateFeeds: [...feedMap.values()] };
 ---
 
 <!doctype html>
@@ -32,7 +36,7 @@ const { bodyClass, transparentNav = false, ...seo } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="generator" content={Astro.generator} />
-    <SeoHead {...seo} />
+    <SeoHead {...seoWithDefaults} />
     <script is:inline>
       (function () {
         var d = document.documentElement;

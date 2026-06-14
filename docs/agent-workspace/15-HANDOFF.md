@@ -17,6 +17,34 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-QA-002 — done
+
+**Did**: Executed the SEO/OG validation pass and committed the evidence checklist. Fixed
+two small SEO gaps inline: `BaseLayout` now emits a site-wide RSS alternate link with
+deduplication, and project case-study pages now use generated per-case OG PNGs instead of
+the generic projects fallback.
+
+**Files**: `frontend/src/layouts/BaseLayout.astro`,
+`frontend/src/pages/projects/[slug].astro`, `scripts/generate-project-og.mjs`,
+`frontend/public/og/projects/*.png`, `docs/agent-workspace/qa/seo-og.md`; docs `13`, `15`.
+
+**Decisions / deviations**: OpenGraph.xyz automated checks returned HTTP 429, so the pass
+uses direct server-rendered HTTP/meta extraction plus public staging spot checks instead.
+Article/topic live checks remain content-blocked because staging has zero published posts.
+
+**Validation**: Local head extraction covered home, blog, projects, case study, team,
+author, connect, privacy, 404, and 500. Public staging spot checks verified `X-Robots-Tag:
+noindex` and matching OG images on `/`, `/blog`, `/projects`, `/dream-team`, and
+`/connect`. OG fallbacks and generated project OG files are 1200×630 and <300 KB. Built
+sitemap index includes static + posts sitemaps; local `sitemap-posts.xml` returns 200 XML;
+RSS returns a valid empty feed. `npx astro check` 0/0/0; `npm test` 63 passed; `npm run
+build` ok.
+
+**Next**: **V4-QA-003 — Screen-reader pass**.
+
+**Warnings**: Re-run BlogPosting/topic Rich Results checks after at least one published
+post with topics exists in staging.
+
 ## [2026-06-13] V4-QA-001 — done
 
 **Did**: Executed the responsive matrix from 11 §A3 across eight viewport sizes and both
