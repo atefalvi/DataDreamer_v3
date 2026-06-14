@@ -11,7 +11,7 @@ import AuthorCard from '../../components/dream-team/AuthorCard.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
 import { authorsRepo } from '../../lib/repositories';
 import { computeGraphLayout, GRAPH } from '../../lib/graph/layout';
-import { SITE_URL } from '../../lib/seo/meta';
+import { itemListJsonLd, personJsonLd } from '../../lib/seo/jsonld';
 import type { AuthorSummary } from '../../types/content';
 
 let authors: AuthorSummary[] = [];
@@ -64,21 +64,17 @@ const initialsOf = (name: string) =>
     .join('');
 
 const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'ItemList',
+  itemListJsonLd({
     name: 'DataDreamer Dream Team',
-    itemListElement: authors.map((a, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      item: {
-        '@type': 'Person',
-        name: a.name,
-        jobTitle: a.roleTitle,
-        url: `${SITE_URL}/dream-team/${a.slug}`,
-      },
-    })),
-  },
+    items: authors.map((author) =>
+      personJsonLd({
+        name: author.name,
+        jobTitle: author.roleTitle,
+        url: `/dream-team/${author.slug}`,
+        image: author.avatar?.src,
+      }),
+    ),
+  }),
 ];
 ---
 

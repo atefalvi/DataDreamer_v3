@@ -6,25 +6,15 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../content/site';
-import { SITE_URL } from '../lib/seo/meta';
 import '../styles/prose.css';
 
 const updated = 'June 13, 2026';
-const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    name: 'Privacy — DataDreamer',
-    url: `${SITE_URL}/privacy`,
-  },
-];
 ---
 
 <BaseLayout
   title="Privacy"
   description="How DataDreamer handles data: what is collected (almost nothing), what is stored, and how to get in touch."
   ogImage={{ url: '/og/og-default.png' }}
-  jsonLd={jsonLd}
 >
   <div class="page container-content">
     <header class="page__head">

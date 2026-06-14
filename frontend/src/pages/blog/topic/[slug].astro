@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import BlogListing from '../../../components/blog/BlogListing.astro';
-import { absoluteUrl, SITE_URL } from '../../../lib/seo/meta';
+import { absoluteUrl } from '../../../lib/seo/meta';
+import { collectionPageJsonLd } from '../../../lib/seo/jsonld';
 import { loadBlogListing, topicPath } from '../../../lib/blog/listing';
 
 const slug = Astro.params.slug;
@@ -18,18 +19,16 @@ if (!topic) {
 const description = topic.description || `Writing from DataDreamer about ${topic.name}.`;
 const canonical = absoluteUrl(topicPath(topic.slug));
 const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
+  collectionPageJsonLd({
     name: `${topic.name} — DataDreamer`,
     url: canonical,
     description,
     isPartOf: {
       '@type': 'Blog',
       name: 'DataDreamer Writing',
-      url: `${SITE_URL}/blog`,
+      url: absoluteUrl('/blog'),
     },
-  },
+  }),
 ];
 ---
 

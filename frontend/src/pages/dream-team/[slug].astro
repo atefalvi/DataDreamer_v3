@@ -11,7 +11,7 @@ import Icon from '../../components/ui/Icon.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import AuthorCard from '../../components/dream-team/AuthorCard.astro';
 import { authorsRepo, postsRepo } from '../../lib/repositories';
-import { SITE_URL } from '../../lib/seo/meta';
+import { profilePageJsonLd } from '../../lib/seo/jsonld';
 import type { Author, AuthorSummary, PostListItem } from '../../types/content';
 import '../../styles/prose.css';
 
@@ -44,17 +44,13 @@ const iconFor = (label: string): string => {
 };
 
 const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'ProfilePage',
-    mainEntity: {
-      '@type': 'Person',
+  profilePageJsonLd({
       name: author.name,
       jobTitle: author.roleTitle,
-      url: `${SITE_URL}/dream-team/${author.slug}`,
+      url: `/dream-team/${author.slug}`,
+      image: author.avatar?.src,
       sameAs: author.links.map((l) => l.url),
-    },
-  },
+  }),
 ];
 ---
 
