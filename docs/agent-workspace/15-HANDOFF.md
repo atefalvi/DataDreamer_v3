@@ -17,6 +17,37 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-SEO-002 — done
+
+**Did**: Added `sitemap-posts.xml` as an SSR endpoint backed by `postsRepo.sitemap()`,
+with XML helpers that emit absolute post URLs and `published_at` as `lastmod`. Configured
+`@astrojs/sitemap` to include that endpoint in `sitemap-index.xml`, filter out dev,
+redirect, feed, API, and dynamic placeholder routes, and serialize generated static URLs
+to match the site's no-trailing-slash canonical policy. Regenerated `robots.txt` rules
+for the 10 §4 matrix (`/student`, `/api`, `/login`, `/signup`, `/forgot-password`,
+`/reset-password`) while preserving the sitemap line and social crawler allowances.
+
+**Files**: `frontend/astro.config.mjs`, `frontend/public/robots.txt`,
+`frontend/src/pages/sitemap-posts.xml.ts`, `frontend/src/lib/seo/sitemap.ts`,
+`frontend/src/lib/seo/__tests__/sitemap.test.ts`, `frontend/src/lib/repositories/posts.ts`,
+`frontend/src/lib/repositories/__tests__/repositories.test.ts`; docs `13`, `15`.
+
+**Decisions / deviations**: Directus has no `date_updated` field in the v4 schema, so
+post sitemap `lastmod` uses `published_at`. Local CMS returned no posts, so the live
+local endpoint was empty; repository + XML tests cover post entries with `lastmod`.
+
+**Validation**: `git diff --check`; `npx astro check` 0/0/0; `npm test` 63 passed;
+`npm run build` ok. Built `dist/client/sitemap-index.xml` includes
+`https://data-dreamer.net/sitemap-posts.xml`; built `sitemap-0.xml` contains only
+canonical static URLs (`/`, `/blog`, `/connect`, `/dream-team`, `/privacy`, `/projects`);
+local `curl /sitemap-posts.xml` returned 200 XML with `Cache-Control: public,
+s-maxage=3600`; local `curl /robots.txt` showed the required disallow rules.
+
+**Next**: **V4-DOC-002 — Authoring guide v4 rewrite**.
+
+**Warnings**: Verify `sitemap-posts.xml` on staging/production after posts are seeded so
+the acceptance evidence includes live post URLs and `lastmod` values.
+
 ## [2026-06-13] V4-SEO-001 — done
 
 **Did**: Added shared JSON-LD builders in `lib/seo/jsonld.ts` and rewired the existing

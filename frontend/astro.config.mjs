@@ -14,6 +14,23 @@ export default defineConfig({
     mode: 'standalone',
   }),
   integrations: [
-    sitemap(),
+    sitemap({
+      customSitemaps: ['https://data-dreamer.net/sitemap-posts.xml'],
+      serialize: (item) => ({
+        ...item,
+        url: item.url === 'https://data-dreamer.net/'
+          ? 'https://data-dreamer.net'
+          : item.url.replace(/\/$/, ''),
+      }),
+      filter: (page) => {
+        const { pathname } = new URL(page);
+        if (pathname.startsWith('/dev/')) return false;
+        if (pathname.startsWith('/logs')) return false;
+        if (pathname.startsWith('/api/')) return false;
+        if (pathname === '/rss.xml') return false;
+        if (pathname.includes('[') || pathname.includes(']')) return false;
+        return true;
+      },
+    }),
   ],
 });
