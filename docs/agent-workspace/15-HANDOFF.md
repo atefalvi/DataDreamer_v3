@@ -17,6 +17,40 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-14] V4-PERF-003 — done
+
+**Did**: Replaced the CSP placeholder with an enforcing middleware policy. HTML
+responses now receive a per-request nonce, and SSR-emitted inline `<script>` and
+`<style>` tags are nonce-injected before headers are applied. Static hashed assets are
+left untouched. The policy allows self-hosted scripts/styles/fonts, Directus images and
+connects from the configured Directus origin, data images, and youtube-nocookie embeds.
+
+**Files**: `frontend/src/middleware.ts`, `docs/agent-workspace/qa/perf.md`; docs `13`,
+`15`.
+
+**Decisions / deviations**: Implemented the final enforcing header in code rather than
+leaving a report-only header because the task acceptance requires enforcement and the
+owner asked to continue completing tasks. The true one-week staging soak still must
+happen after this PR deploys; any live CSP violation should be patched before production
+release.
+
+**Validation**: `npm run build` with staging Directus URLs passed. Local production
+preview header checks confirmed enforcing CSP on HTML, immutable cache on static JS, and
+`no-store` on `/404` and `/500`. Source checks found zero inline script/style tags
+without a nonce on `/`, `/blog`, `/projects`, `/dream-team`, `/connect`, `/privacy`,
+`/404`, and `/500`. Playwright/Chromium checked `/`, `/blog`, `/projects`,
+`/dream-team`, and `/connect` at 1440×1000, 820×1180, and 375×812 with zero console or
+page errors, no horizontal overflow, working home canvas, mobile menu Escape/focus
+restore, and theme persistence.
+
+**Next**: **V4-REL-001 — v4.0 production release**.
+
+**Warnings**: Start the real staging CSP soak after deploy. The existing Directus query
+budget accepted deviation from PERF-001 still needs owner acceptance or a focused
+follow-up before final production hardening is considered fully green.
+
+---
+
 ## [2026-06-14] V4-PERF-002 — done
 
 **Did**: Tuned font fallback metrics after the PERF-001 subset/preload work. Added

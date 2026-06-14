@@ -4,12 +4,80 @@ import { RepositoryError } from './lib/repositories/errors';
 const IS_STAGING =
   process.env.DEPLOY_ENV === 'staging' || import.meta.env.DEPLOY_ENV === 'staging';
 
+const DIRECTUS_ORIGIN = originOf(
+  process.env.PUBLIC_DIRECTUS_URL ||
+    process.env.DIRECTUS_URL ||
+    import.meta.env.PUBLIC_DIRECTUS_URL ||
+    import.meta.env.DIRECTUS_URL,
+);
+
+function originOf(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try {
+    return new URL(value).origin;
+  } catch {
+    return undefined;
+  }
+}
+
+function createNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Buffer.from(bytes).toString('base64');
+}
+
+function csp(nonce?: string): string {
+  const scriptNonce = nonce ? `'nonce-${nonce}'` : undefined;
+  const styleNonce = nonce ? `'nonce-${nonce}'` : undefined;
+  const imageSources = ["'self'", 'data:', DIRECTUS_ORIGIN].filter(Boolean).join(' ');
+  const connectSources = ["'self'", DIRECTUS_ORIGIN].filter(Boolean).join(' ');
+
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    `img-src ${imageSources}`,
+    "font-src 'self'",
+    `connect-src ${connectSources}`,
+    `script-src 'self' ${scriptNonce ?? ''}`.trim(),
+    `script-src-elem 'self' ${scriptNonce ?? ''}`.trim(),
+    `style-src 'self' ${styleNonce ?? ''}`.trim(),
+    `style-src-elem 'self' ${styleNonce ?? ''}`.trim(),
+    "style-src-attr 'unsafe-inline'",
+    'frame-src https://www.youtube-nocookie.com https://youtube-nocookie.com',
+    "form-action 'self'",
+  ].join('; ');
+}
+
+async function withCspNonce(response: Response): Promise<{ response: Response; nonce?: string }> {
+  const isHtml = (response.headers.get('content-type') ?? '').includes('text/html');
+  if (!isHtml) return { response };
+
+  const nonce = createNonce();
+  const html = await response.text();
+  const htmlWithNonces = html
+    .replace(/<script(?![^>]*\snonce=)([^>]*)>/g, `<script nonce="${nonce}"$1>`)
+    .replace(/<style(?![^>]*\snonce=)([^>]*)>/g, `<style nonce="${nonce}"$1>`);
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+
+  return {
+    nonce,
+    response: new Response(htmlWithNonces, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    }),
+  };
+}
+
 /** Apply security + cache headers to every response (09 §8). */
-function applyHeaders(request: Request, response: Response): void {
+function applyHeaders(request: Request, response: Response, nonce?: string): void {
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  // CSP is rolled out report-only → enforcing in V4-PERF-003.
+  response.headers.set('Content-Security-Policy', csp(nonce));
 
   if (IS_STAGING) response.headers.set('X-Robots-Tag', 'noindex');
 
@@ -43,6 +111,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     response = await context.rewrite(target);
   }
 
-  applyHeaders(context.request, response);
-  return response;
+  const secured = await withCspNonce(response);
+  applyHeaders(context.request, secured.response, secured.nonce);
+  return secured.response;
 });
