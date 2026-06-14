@@ -1,79 +1,137 @@
-# DataDreamer v3
+# DataDreamer v4
 
-**Portfolio + writing platform** — Built with [Astro](https://astro.build) (SSR) as the frontend and [Directus](https://directus.io) as the headless CMS backend. Designed for technical posts, project case studies, and the v4 Observatory visual system.
+DataDreamer is an editorial data-intelligence studio site built with Astro SSR,
+Directus, and the v4 Observatory design system. The current v4 surface includes the
+homepage, writing, topic filters, project case studies, Dream Team profiles, RSS,
+sitemap/robots, OG assets, and the production-ready global shell.
+
+The repository directory is still named `DataDreamer_v3` for continuity, but the active
+implementation and documentation are v4.
+
+---
+
+## Current Branch Model
+
+| Branch | Purpose |
+|---|---|
+| `feature/v4-redesign` | Active v4 integration branch and staging deploy source. |
+| `main` | Production deploy source. Do not merge v4 here until the release checklist is complete. |
+| `v4/<task-id>` | Historical task branches. Branches that already have merged PRs can be deleted. |
+| `codex/*` | Small assistant-side utility/doc branches. Merge or delete after review. |
+
+For release sequencing, use [docs/RELEASE_NEXT_STEPS.md](./docs/RELEASE_NEXT_STEPS.md).
 
 ---
 
 ## Architecture
 
-```
+```text
 DataDreamer_v3/
-├── frontend/          # Astro SSR application
+├── frontend/                  # Astro 5 SSR frontend
 │   ├── src/
-│   │   ├── components/   # Reusable Astro components
-│   │   ├── layouts/      # Main shell with global styles
-│   │   ├── lib/          # Directus SDK & data-fetching
-│   │   ├── pages/        # File-based routing
-│   │   └── styles/       # Atomic & global CSS
-│   ├── .env.example      # Required env vars template
-│   └── Dockerfile        # Multi-stage production build
-│
-├── backend/           # Directus CMS (Docker Compose)
+│   │   ├── assets/             # Brand assets and project images
+│   │   ├── components/         # Global shell, UI primitives, blog, home, projects
+│   │   ├── content/            # Astro content collections, including projects
+│   │   ├── layouts/            # BaseLayout and SEO shell
+│   │   ├── lib/                # Directus repositories, markdown, SEO, graph, motion
+│   │   ├── pages/              # Routes: home, blog, projects, dream-team, connect, privacy
+│   │   └── styles/             # Observatory tokens, base, prose, fonts
+│   ├── .env.example
+│   └── Dockerfile
+├── backend/                   # Directus + Postgres + Redis compose resource
 │   ├── docker-compose.yml
-│   ├── .env.example      # Required secrets template
-│   ├── snapshot.yaml     # Directus schema definition (metadata)
-│   ├── extensions/       # Custom Directus extensions
-│   └── datadreamer_backup.sql  # Database structure (example)
-│
-└── docs/             # Documentation and guides
+│   ├── .env.example
+│   ├── snapshot.yaml
+│   ├── extensions/
+│   └── datadreamer_backup.sql
+├── docs/
+│   ├── AGENT_BLOG_GUIDE.md
+│   ├── RELEASE_NEXT_STEPS.md
+│   └── agent-workspace/
+└── scripts/                   # OG generation, Directus schema/backfill, release smoke
 ```
 
-## Getting Started
+---
 
-See **[SETUP.md](./SETUP.md)** for detailed local development and environment variable configuration.
+## Content Ownership
+
+| Content | Source |
+|---|---|
+| Posts, authors, specialties, topics | Directus |
+| Project case studies | Astro content collection in `frontend/src/content/projects/` |
+| Navigation, homepage copy, social links, feature flags | `frontend/src/content/site.ts` |
+| About/contact/privacy page copy | Source-controlled frontend content/components |
+| Courses/auth/student dashboard | Planned v4.1 work, not part of the v4.0 release |
+
+Retired v3 Directus collections such as `projects`, `site_settings`, `home_settings`,
+and `about` should not be used for v4 frontend content. They remain only until the
+post-release cleanup task drops them after the v4.0 soak.
 
 ---
 
 ## Local Development
 
-See **[SETUP.md](./SETUP.md)** for detailed local setup and permission guides.
-
-1. **Start Backend:** `cd backend && docker compose up -d`
-2. **Start Frontend:** `cd frontend && npm install && npm run dev`
-
----
-
-## Deployment (Coolify)
-
-This is a monorepo intended for two separate Coolify services.
-
-### 1. Backend — Directus (Docker Compose)
-1. **New Resource → Docker Compose**
-2. **Base Directory:** `/backend`
-3. Set domain to your API subdomain (e.g., `api.your-domain.com`)
-4. Configure all environment variables from `backend/.env.example`
-
-### 2. Frontend — Astro SSR
-1. **New Resource → Application**
-2. **Base Directory:** `/frontend`
-3. Configure `DIRECTUS_URL` (internal) and `PUBLIC_DIRECTUS_URL` (external)
-4. Set domain to your primary site (e.g., `your-domain.com`)
-
----
-
-## Maintenance
+Full setup is in [SETUP.md](./SETUP.md).
 
 ```bash
-# Type-check
-cd frontend && npx astro check
+# Backend
+cd backend
+cp .env.example .env
+docker compose up -d
 
-# Export Directus schema snapshot
-npx directus schema snapshot ./backend/snapshot.yaml
+# Frontend
+cd ../frontend
+cp .env.example .env
+npm install
+npm run dev
 ```
+
+Frontend: `http://localhost:4321`
+
+Directus: `http://localhost:8055/admin`
+
+---
+
+## Validation
+
+Run these before opening or merging frontend changes:
+
+```bash
+cd frontend
+npx astro check
+npm test
+npm run build
+```
+
+Release smoke:
+
+```bash
+PUBLIC_DIRECTUS_URL=http://192.168.10.211:8056 \
+  node ../scripts/release-smoke.mjs https://staging.data-dreamer.net
+```
+
+---
+
+## Deployment
+
+DataDreamer uses separate Coolify resources:
+
+| Resource | Branch / source | Notes |
+|---|---|---|
+| Staging frontend | `feature/v4-redesign` | `DEPLOY_ENV=staging`; should send `X-Robots-Tag: noindex`. |
+| Production frontend | `main` | Cut over only through the v4.0 release checklist. |
+| Staging backend | Directus compose | Separate DB/uploads/extensions from production. |
+| Production backend | Directus compose | Do not run post-release drops before v4.0 soak completes. |
+
+See [docs/RELEASE_NEXT_STEPS.md](./docs/RELEASE_NEXT_STEPS.md) before touching
+production.
 
 ---
 
 ## Guides
 
-- **[SETUP.md](./SETUP.md)** — Detailed local development and database restore.
-- **[AGENT_BLOG_GUIDE.md](./docs/AGENT_BLOG_GUIDE.md)** — Content authoring guide for AI agents and human authors.
+- [SETUP.md](./SETUP.md) — local development, environment variables, Directus policies.
+- [docs/AGENT_BLOG_GUIDE.md](./docs/AGENT_BLOG_GUIDE.md) — v4 authoring guide for posts.
+- [docs/RELEASE_NEXT_STEPS.md](./docs/RELEASE_NEXT_STEPS.md) — branch cleanup and v4.0 release sequence.
+- [docs/agent-workspace/13-TASKS.md](./docs/agent-workspace/13-TASKS.md) — implementation task board.
+- [docs/agent-workspace/15-HANDOFF.md](./docs/agent-workspace/15-HANDOFF.md) — chronological handoff log.
