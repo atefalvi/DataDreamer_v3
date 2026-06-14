@@ -1,33 +1,39 @@
 ---
 /**
- * V4-PROJ-001 — Project index (05 §5). Reads the repo-owned `projects` content
- * collection (zero Directus). Tag chips are SSR `?tag=` links (work with no JS) that show
- * a per-tag count badge and are sorted by count; a client-side search box filters the
- * visible cards by title/summary/stack. Search + tag filter compose.
+ * V4-PROJ-001 — Project index (05 §5). Reads the Directus `projects` collection. Tag
+ * chips are SSR `?tag=` links (work with no JS) that show a per-tag count badge and are
+ * sorted by count; a client-side search box filters the visible cards by
+ * title/summary/role/tags. Search + tag filter compose.
  */
-import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CaseCard from '../../components/projects/CaseCard.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
 import Icon from '../../components/ui/Icon.astro';
+import { projectsRepo } from '../../lib/repositories';
 import { collectionPageJsonLd } from '../../lib/seo/jsonld';
+import type { ProjectListItem } from '../../types/content';
 
-const all = await getCollection('projects');
-const sorted = all.sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
+let sorted: ProjectListItem[] = [];
+try {
+  sorted = await projectsRepo.list();
+} catch (error) {
+  console.error('[projects] list unavailable:', error instanceof Error ? error.message : error);
+}
+const all = sorted;
 
 const activeTag = Astro.url.searchParams.get('tag');
 
 // Tag → count, sorted by count desc then alpha (so the busiest tags lead and the list
 // stays scannable as it grows).
 const tagCounts = new Map<string, number>();
-for (const p of all) for (const t of p.data.stack) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+for (const p of all) for (const t of p.tags) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
 const tags = [...tagCounts.entries()]
   .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
   .map(([label, count]) => ({ label, count }));
 
-const visible = activeTag ? sorted.filter((p) => p.data.stack.includes(activeTag)) : sorted;
-const searchOf = (p: (typeof all)[number]) =>
-  [p.data.title, p.data.summary, p.data.role, ...p.data.stack].join(' ').toLowerCase();
+const visible = activeTag ? sorted.filter((p) => p.tags.includes(activeTag)) : sorted;
+const searchOf = (p: ProjectListItem) =>
+  [p.title, p.summary, p.role, ...p.tags].join(' ').toLowerCase();
 
 const jsonLd = [
   collectionPageJsonLd({

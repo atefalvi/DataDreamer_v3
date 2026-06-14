@@ -78,12 +78,36 @@ export interface PostRow {
   topics?: PostTopicRow[];
 }
 
+export interface ProjectLink {
+  label: string;
+  url: string;
+}
+
+export interface ProjectRow {
+  id: string;
+  status: string;
+  title: string;
+  slug: string;
+  summary?: string | null;
+  body?: string | null;
+  year?: number | null;
+  role?: string | null;
+  author?: Relation<AuthorRow>;
+  cover_image?: Relation<DirectusFile>;
+  cover_alt?: string | null;
+  tags?: string[] | null;
+  links?: ProjectLink[] | null;
+  featured?: boolean | null;
+  sort?: number | null;
+}
+
 /** Typed schema handed to `createDirectus<Schema>()`. */
 export interface Schema {
   posts: PostRow[];
   authors: AuthorRow[];
   topics: TopicRow[];
   specialties: SpecialtyRow[];
+  projects: ProjectRow[];
   posts_topics: PostTopicRow[];
   authors_specialties: AuthorSpecialtyRow[];
   directus_files: DirectusFile[];

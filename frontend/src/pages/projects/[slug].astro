@@ -1,31 +1,33 @@
 ---
 /**
- * V4-PROJ-002 — Case study (05 §6). Renders a `projects` collection entry. The body runs
- * through the SAME markdown renderer as blog articles (renderMarkdown → bodyHtml), so
- * `:::` callouts render identically. Cover via Astro <Image>; sticky fact rail on TL+.
+ * V4-PROJ-002 — Case study (05 §6). Renders a Directus `projects` entry. The body is
+ * rendered through the SAME markdown pipeline as blog articles (mapProject → bodyHtml),
+ * so `:::` callouts render identically. Cover via Directus asset; sticky fact rail on TL+.
  */
-import { getCollection, getEntry } from 'astro:content';
-import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/ui/Icon.astro';
-import { renderMarkdown } from '../../lib/markdown/renderMarkdown';
+import { projectsRepo } from '../../lib/repositories';
+import { directusSrcset } from '../../lib/images';
 import { breadcrumbListJsonLd, creativeWorkJsonLd } from '../../lib/seo/jsonld';
 import '../../styles/prose.css';
 
 const { slug } = Astro.params;
 if (!slug) return Astro.rewrite('/404');
 
-const entry = await getEntry('projects', slug);
-if (!entry) return Astro.rewrite('/404');
+const project = await projectsRepo.bySlug(slug);
+if (!project) return Astro.rewrite('/404');
 
-const { title, summary, year, role, stack, cover, coverAlt, links } = entry.data;
-const { html } = await renderMarkdown(entry.body ?? '');
+const { title, summary, year, role, author, tags, coverImage, links, bodyHtml } = project;
+const authorHref = `/dream-team/${author.slug}`;
 
-// Prev/next in display order (order, then year desc).
-const all = (await getCollection('projects')).sort(
-  (a, b) => a.data.order - b.data.order || b.data.year - a.data.year,
-);
-const index = all.findIndex((p) => p.id === entry.id);
+// Prev/next in display order.
+let all: Awaited<ReturnType<typeof projectsRepo.list>> = [];
+try {
+  all = await projectsRepo.list();
+} catch (error) {
+  console.error('[case study] neighbors unavailable:', error instanceof Error ? error.message : error);
+}
+const index = all.findIndex((p) => p.slug === project.slug);
 const previous = index > 0 ? all[index - 1] : null;
 const next = index >= 0 && index < all.length - 1 ? all[index + 1] : null;
 
@@ -34,8 +36,8 @@ const jsonLd = [
     name: title,
     description: summary,
     datePublished: String(year),
-    url: `/projects/${entry.id}`,
-    keywords: stack,
+    url: `/projects/${project.slug}`,
+    keywords: tags,
   }),
   breadcrumbListJsonLd([
     { label: 'Projects', href: '/projects' },
@@ -48,33 +50,50 @@ const jsonLd = [
   title={title}
   description={summary}
   ogType="article"
-  ogImage={{ url: `/og/projects/${entry.id}.png`, alt: title }}
+  ogImage={{ url: '/og/og-projects.png', alt: title }}
   jsonLd={jsonLd}
 >
   <article class="case container-content">
     <header class="case__head">
       <p class="kicker">Case study · {year}</p>
       <h1>{title}</h1>
+      <p class="case__byline">
+        By <a href={authorHref}>{author.name}</a>
+      </p>
       <p class="case__lede">{summary}</p>
     </header>
 
-    <div class="case__cover">
-      <Image src={cover} alt={coverAlt} widths={[640, 1024, 1600]} sizes="(min-width: 80rem) 1200px, 100vw" />
-    </div>
+    {coverImage && (
+      <div class="case__cover">
+        <img
+          src={coverImage.src}
+          srcset={directusSrcset(coverImage.id, [640, 1024, 1600])}
+          sizes="(min-width: 80rem) 1200px, 100vw"
+          width={coverImage.width}
+          height={coverImage.height}
+          alt={coverImage.alt}
+          loading="eager"
+        />
+      </div>
+    )}
 
     <span class="visually-hidden" role="status" aria-live="polite" data-code-copy-status></span>
 
     <div class="case__layout">
-      <div class="case__body blog-content article-prose" set:html={html} />
+      <div class="case__body blog-content article-prose" set:html={bodyHtml} />
 
       <aside class="case__rail" aria-label="Project facts">
         <dl>
+          <div>
+            <dt>Author</dt>
+            <dd><a href={authorHref}>{author.name}</a></dd>
+          </div>
           <div><dt>Role</dt><dd>{role}</dd></div>
           <div><dt>Year</dt><dd>{year}</dd></div>
           <div>
             <dt>Stack</dt>
             <dd>
-              <ul class="case__stack">{stack.map((s) => <li>{s}</li>)}</ul>
+              <ul class="case__stack">{tags.map((s) => <li>{s}</li>)}</ul>
             </dd>
           </div>
           {links && links.length > 0 && (
@@ -101,15 +120,15 @@ const jsonLd = [
     {(previous || next) && (
       <nav class="case__pager" aria-label="More projects">
         {previous ? (
-          <a href={`/projects/${previous.id}`} class="case__pager-link case__pager-link--prev">
+          <a href={`/projects/${previous.slug}`} class="case__pager-link case__pager-link--prev">
             <span class="case__pager-dir">← Previous</span>
-            <span class="case__pager-title">{previous.data.title}</span>
+            <span class="case__pager-title">{previous.title}</span>
           </a>
         ) : <span />}
         {next && (
-          <a href={`/projects/${next.id}`} class="case__pager-link case__pager-link--next">
+          <a href={`/projects/${next.slug}`} class="case__pager-link case__pager-link--next">
             <span class="case__pager-dir">Next →</span>
-            <span class="case__pager-title">{next.data.title}</span>
+            <span class="case__pager-title">{next.title}</span>
           </a>
         )}
       </nav>
@@ -145,6 +164,23 @@ const jsonLd = [
     color: var(--text-2);
     font-size: var(--fs-xl);
     line-height: var(--lh-xl);
+  }
+
+  .case__byline {
+    margin-top: var(--space-3);
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .case__byline a {
+    color: var(--text-2);
+    text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .case__byline a:hover {
+    color: var(--accent);
   }
 
   .case__cover {
@@ -211,6 +247,16 @@ const jsonLd = [
     margin: var(--space-2) 0 0;
     color: var(--text-1);
     font-size: var(--fs-base);
+  }
+
+  .case__rail dd > a {
+    color: var(--text-1);
+    text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .case__rail dd > a:hover {
+    color: var(--accent);
   }
 
   .case__stack,

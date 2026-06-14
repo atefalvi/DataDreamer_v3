@@ -13,6 +13,7 @@ import type {
   AuthorRow,
   PostRow,
   PostTopicRow,
+  ProjectRow,
   SpecialtyRow,
   TopicRow,
 } from '../directus/schema';
@@ -22,6 +23,8 @@ import type {
   AuthorSummary,
   Post,
   PostListItem,
+  Project,
+  ProjectListItem,
   SpecialtyRef,
   Topic,
   TopicRef,
@@ -94,6 +97,26 @@ export async function mapPost(row: PostRow): Promise<Post> {
     headings,
     readingMinutes,
   };
+}
+
+export function mapProjectListItem(row: ProjectRow): ProjectListItem {
+  return {
+    slug: row.slug,
+    title: row.title,
+    summary: row.summary ?? '',
+    year: row.year ?? new Date().getFullYear(),
+    role: row.role ?? '',
+    author: mapAuthorRef(asObject<AuthorRow>(row.author)),
+    coverImage: toImageRef(row.cover_image, row.cover_alt ?? row.title),
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    links: Array.isArray(row.links) ? row.links : [],
+    featured: Boolean(row.featured),
+  };
+}
+
+export async function mapProject(row: ProjectRow): Promise<Project> {
+  const { html } = await renderMarkdown(row.body ?? '');
+  return { ...mapProjectListItem(row), bodyHtml: html };
 }
 
 export function mapAuthorSummary(row: AuthorRow, postCount: number): AuthorSummary {

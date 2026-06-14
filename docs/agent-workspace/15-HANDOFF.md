@@ -17,6 +17,7 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+<<<<<<< HEAD
 ## [2026-06-14] V4-REL-001 — blocked
 
 **Did**: Started the v4.0 release task and completed the safe release-prep portion.
@@ -44,6 +45,43 @@ the remaining `V4-REL-001` checklist items before unblocking `V4-DOC-001`,
 **Warnings**: Do not run `V4-CMS-006` drops or any v4.1 production-dependent work until
 `V4-REL-001` is actually complete. The latest CSP enforcement should be watched on
 staging during the soak.
+=======
+## [2026-06-14] Content visibility check — done
+
+**Did**: Investigated missing Dream Team/blog/project-author surfaces after the v4 task
+chain merge. Confirmed `feature/v4-redesign` includes the Dream Team, author page, blog,
+and project implementations. Found the deployed staging frontend at
+`http://192.168.10.211:4322` is still configured for `https://api.data-dreamer.net`
+instead of the staging Directus origin, so it cannot see staging authors/posts. Seeded
+three published staging posts with author/topic relations and added project author
+bylines to repo-owned project case studies.
+
+**Files**: `frontend/src/content.config.ts`, `frontend/src/content/projects/*.md`,
+`frontend/src/components/projects/CaseCard.astro`,
+`frontend/src/pages/projects/[slug].astro`, `scripts/v4-seed-staging-posts.mjs`;
+docs `15`.
+
+**Decisions / deviations**: Projects remain git-authored per v4 architecture and now
+carry a local author frontmatter object. Blog/Dream Team content remains Directus-owned.
+Do not seed or edit production Directus for staging QA.
+
+**Validation**: Staging Directus now has three published posts:
+`signal-quality-before-dashboard-polish`, `people-analytics-without-surveillance`, and
+`market-data-pipelines-need-memory`, each with an author and topics. Local production
+preview pointed at `http://192.168.10.211:8056` verified `/blog`, a blog detail page,
+`/dream-team`, `/dream-team/atef-alvi`, `/projects`, and a project detail page show the
+expected content with zero console errors and no horizontal overflow; mobile checks at
+375px passed for `/blog`, `/dream-team`, and `/projects`. `git diff --check`; `npx astro
+check` 0/0/0; `npm test` 63 passed; `npm run build` ok.
+
+**Next**: Update the Coolify staging frontend env to the staging Directus origin and
+redeploy: `DIRECTUS_URL=http://192.168.10.211:8056` and
+`PUBLIC_DIRECTUS_URL=http://192.168.10.211:8056` unless a public staging API FQDN exists,
+in which case use that FQDN for `PUBLIC_DIRECTUS_URL`.
+
+**Warnings**: Until the Coolify env is corrected, `http://192.168.10.211:4322` will keep
+rendering empty CMS sections because it is pointed at `https://api.data-dreamer.net`.
+>>>>>>> origin/feature/v4-redesign
 
 ---
 

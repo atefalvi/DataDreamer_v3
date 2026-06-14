@@ -94,7 +94,7 @@ const prevHref = !activeTopic && listing.page.page > 1
   {hasPosts ? (
     <div class="blog-listing__posts" aria-label="Posts">
       {listing.posts.map((post) => (
-        <PostCard post={post} variant="row" />
+        <PostCard post={post} variant="card" />
       ))}
     </div>
   ) : (
@@ -203,7 +203,10 @@ const prevHref = !activeTopic && listing.page.page > 1
   }
 
   .blog-listing__posts {
-    margin-top: var(--space-6);
+    display: grid;
+    gap: var(--space-5);
+    margin-top: var(--space-7);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
   }
 
   .blog-listing :global(.ui-empty-state) {
