@@ -53,7 +53,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-DOC-002 | Authoring guide v4 rewrite | B | BLOG-002 | done |
 | V4-CLEAN-001 | v3 deletion sweep | B | all B pages | done |
 | V4-QA-001 | Responsive matrix pass | D | Phase B | done |
-| V4-QA-002 | SEO/OG validation pass | D | Phase B | todo |
+| V4-QA-002 | SEO/OG validation pass | D | Phase B | done |
 | V4-QA-003 | Screen-reader pass | D | Phase B | todo |
 | V4-PERF-001 | Budgets & Lighthouse audit | D | Phase B | todo |
 | V4-PERF-002 | Font loading tuning | D | PERF-001 | todo |

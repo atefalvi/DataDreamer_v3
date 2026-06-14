@@ -48,7 +48,7 @@ const jsonLd = [
   title={title}
   description={summary}
   ogType="article"
-  ogImage={{ url: '/og/og-projects.png' }}
+  ogImage={{ url: `/og/projects/${entry.id}.png`, alt: title }}
   jsonLd={jsonLd}
 >
   <article class="case container-content">
