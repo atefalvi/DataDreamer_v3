@@ -189,3 +189,102 @@ performance gate. CLS stayed at 0 across the measured public routes.
 - The latin-only subset matches current English content. If future author/content names
   need broader scripts, add a deliberate subset-expansion task instead of reintroducing
   broad all-range fontsource imports.
+
+---
+
+# V4-PERF-003 CSP Rollout
+
+Date: 2026-06-14
+
+## Scope
+
+Rolled the 09 §8 CSP from the previous placeholder state to an enforcing header in
+middleware. HTML responses receive a per-request nonce that is injected into SSR-emitted
+`<script>` and `<style>` tags before the response is returned. Static hashed assets keep
+their immutable cache headers and are not rewritten.
+
+The policy is intentionally narrow:
+
+- `default-src 'self'`
+- `base-uri 'self'`
+- `object-src 'none'`
+- `frame-ancestors 'none'`
+- `img-src 'self' data: <Directus origin>`
+- `font-src 'self'`
+- `connect-src 'self' <Directus origin>`
+- `script-src 'self' 'nonce-...'`
+- `script-src-elem 'self' 'nonce-...'`
+- `style-src 'self' 'nonce-...'`
+- `style-src-elem 'self' 'nonce-...'`
+- `style-src-attr 'unsafe-inline'`
+- `frame-src https://www.youtube-nocookie.com https://youtube-nocookie.com`
+- `form-action 'self'`
+
+`style-src-attr 'unsafe-inline'` is the only inline allowance because the design system
+uses benign style attributes in rendered markup. Script execution remains nonce-gated.
+
+## Header Evidence
+
+Runtime used:
+
+- `PUBLIC_DIRECTUS_URL=http://192.168.10.211:8056`
+- `DIRECTUS_URL=http://192.168.10.211:8056`
+- `npm run build`
+- `npm run preview -- --host 127.0.0.1 --port 4324`
+
+Checked `GET /`:
+
+- `Content-Security-Policy` present and enforcing, not report-only.
+- One nonce value is present in the policy for `script-src`, `script-src-elem`,
+  `style-src`, and `style-src-elem`.
+- `Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=86400`.
+- `X-Content-Type-Options`, `Referrer-Policy`, and `Permissions-Policy` still present.
+
+Checked static JS asset `/_astro/HeroSignalField...js`:
+
+- no HTML nonce rewrite;
+- `Cache-Control: public, max-age=31536000, immutable`;
+- `Content-Type: text/javascript`.
+
+Checked `/404` and `/500`:
+
+- CSP/security headers still present;
+- `Cache-Control: no-store`.
+
+## Nonce Coverage
+
+HTML source checks confirmed zero inline `<script>` or `<style>` tags without a nonce:
+
+| Route | Missing script nonce | Missing style nonce | Nonced tags | Nonce values |
+|---|---:|---:|---:|---:|
+| `/` | 0 | 0 | 11 | 1 |
+| `/blog` | 0 | 0 | 10 | 1 |
+| `/projects` | 0 | 0 | 9 | 1 |
+| `/dream-team` | 0 | 0 | 10 | 1 |
+| `/connect` | 0 | 0 | 8 | 1 |
+| `/privacy` | 0 | 0 | 7 | 1 |
+| `/404` | 0 | 0 | 7 | 1 |
+| `/500` | 0 | 0 | 8 | 1 |
+
+## Browser Evidence
+
+Playwright/Chromium checked `/`, `/blog`, `/projects`, `/dream-team`, and `/connect`
+at 1440×1000, 820×1180, and 375×812.
+
+Results:
+
+- 15/15 route + viewport checks returned status `200`;
+- zero console warnings/errors and zero page errors;
+- no horizontal overflow;
+- home hero canvas still mounted on desktop/tablet/mobile;
+- mobile menu opened, locked scroll, focused the first panel link, closed on Escape, and
+  restored focus to the hamburger;
+- theme toggle still changed and persisted `data-theme`.
+
+## Accepted Deviation
+
+The task spec describes a report-only period followed by a one-week staging soak before
+enforcement. In this branch, enforcement is implemented and locally verified so the code
+can move forward, but the real staging soak can only begin after this PR is deployed to
+`staging.data-dreamer.net`. Monitor staging browser consoles/logs during that soak and
+patch any violation before the production release task.

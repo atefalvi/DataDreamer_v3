@@ -57,7 +57,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-QA-003 | Screen-reader pass | D | Phase B | done |
 | V4-PERF-001 | Budgets & Lighthouse audit | D | Phase B | done |
 | V4-PERF-002 | Font loading tuning | D | PERF-001 | done |
-| V4-PERF-003 | CSP rollout | D | PERF-001 | todo |
+| V4-PERF-003 | CSP rollout | D | PERF-001 | done |
 | V4-REL-001 | v4.0 production release | E | Phase D | todo |
 | V4-CMS-006 | Drop retired fields/collections | E | REL-001 soak | todo |
 | V4-DOC-001 | README/SETUP refresh | E | REL-001 | todo |
