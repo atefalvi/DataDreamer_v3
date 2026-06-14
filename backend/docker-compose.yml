@@ -35,7 +35,7 @@ services:
   directus:
     image: directus/directus:latest
     ports:
-      - "${DIRECTUS_HOST_PORT:-8055}:8055"
+      - "8055:8055"
     volumes:
       - "${DIRECTUS_UPLOADS_PATH:-/mnt/datadreamer/uploads}:/directus/uploads"
       - "${DIRECTUS_EXTENSIONS_PATH:-/mnt/datadreamer/extensions}:/directus/extensions"
