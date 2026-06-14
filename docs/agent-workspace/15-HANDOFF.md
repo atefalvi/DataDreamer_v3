@@ -17,6 +17,36 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-14] V4-REL-001 — blocked
+
+**Did**: Started the v4.0 release task and completed the safe release-prep portion.
+Added a reusable production/staging smoke script and a `qa/release-4.0.md` checklist
+covering pre-release gates, staging smoke evidence, production cutover procedure,
+Cloudflare purge steps, and rollback rehearsal.
+
+**Files**: `scripts/release-smoke.mjs`, `docs/agent-workspace/qa/release-4.0.md`;
+docs `13`, `15`.
+
+**Decisions / deviations**: Did not mark `V4-REL-001` done because 12 Phase E requires
+final staging soak, merge to `main`, Coolify production deploy, production smoke,
+Cloudflare purge, production Lighthouse spot check, and rollback rehearsal notation.
+Those cannot be truthfully completed until the release window is approved and executed.
+
+**Validation**: Staging smoke passed 15/15 against `https://staging.data-dreamer.net`
+with `PUBLIC_DIRECTUS_URL=http://192.168.10.211:8056`: public page status checks,
+unknown-route 404, `/logs` redirects, RSS, sitemap, robots, Slackbot OG fetch,
+enforcing frontend security headers, and Directus health all passed.
+
+**Next**: Approve the production cutover after the required staging soak, then complete
+the remaining `V4-REL-001` checklist items before unblocking `V4-DOC-001`,
+`V4-CMS-006`, and the v4.1 courses tasks.
+
+**Warnings**: Do not run `V4-CMS-006` drops or any v4.1 production-dependent work until
+`V4-REL-001` is actually complete. The latest CSP enforcement should be watched on
+staging during the soak.
+
+---
+
 ## [2026-06-14] V4-PERF-003 — done
 
 **Did**: Replaced the CSP placeholder with an enforcing middleware policy. HTML
