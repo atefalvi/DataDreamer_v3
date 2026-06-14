@@ -5,10 +5,10 @@
  * SiteFooter. Pass `transparentNav` on the homepage so the bar starts transparent over
  * the hero (07 §3.1).
  */
-import '@fontsource-variable/fraunces/wght.css';
-import '@fontsource-variable/inter/wght.css';
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/jetbrains-mono/600.css';
+import frauncesLatinUrl from '@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2?url';
+import interLatinUrl from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import jetbrainsMonoLatinUrl from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2?url';
+import '../styles/fonts.css';
 import '../styles/base.css';
 
 import SeoHead from '../components/global/SeoHead.astro';
@@ -36,6 +36,9 @@ const seoWithDefaults = { ...seo, alternateFeeds: [...feedMap.values()] };
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="generator" content={Astro.generator} />
+    <link rel="preload" href={frauncesLatinUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interLatinUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={jetbrainsMonoLatinUrl} as="font" type="font/woff2" crossorigin />
     <SeoHead {...seoWithDefaults} />
     <script is:inline>
       (function () {

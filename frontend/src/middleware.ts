@@ -19,7 +19,7 @@ function applyHeaders(request: Request, response: Response): void {
   if (isHtml) {
     if (request.method !== 'GET' || response.status >= 400) {
       response.headers.set('Cache-Control', 'no-store');
-    } else if (!response.headers.has('Cache-Control')) {
+    } else {
       response.headers.set(
         'Cache-Control',
         'public, max-age=0, s-maxage=300, stale-while-revalidate=86400',
