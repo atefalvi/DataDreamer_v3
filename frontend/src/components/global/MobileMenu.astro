@@ -183,7 +183,7 @@ const isActive = (href: string) =>
     let lastFocused: HTMLElement | null = null;
 
     const focusable = () =>
-      [button, ...panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')].filter(
+      [...panel.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')].filter(
         (el): el is HTMLElement => !!el && el.offsetParent !== null,
       );
 

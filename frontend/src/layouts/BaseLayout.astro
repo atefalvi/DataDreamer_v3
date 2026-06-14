@@ -53,7 +53,9 @@ const seoWithDefaults = { ...seo, alternateFeeds: [...feedMap.values()] };
   </head>
   <body class={bodyClass}>
     <SkipLink />
-    <SiteNav transparentOverHero={transparentNav} />
+    <header>
+      <SiteNav transparentOverHero={transparentNav} />
+    </header>
     <MobileMenu />
 
     <main id="main">
