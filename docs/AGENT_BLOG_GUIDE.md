@@ -19,6 +19,12 @@ frontend, including the callout syntax covered by the golden fixture at
 The site is SSR. Published posts are available on the next request; no rebuild is
 needed for ordinary CMS edits.
 
+Related operational docs:
+
+- `README.md` for the current v4 architecture and branch model.
+- `SETUP.md` for local development and Directus permissions.
+- `docs/RELEASE_NEXT_STEPS.md` for branch cleanup and production release steps.
+
 ---
 
 ## Field Reference
