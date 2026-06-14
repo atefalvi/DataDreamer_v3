@@ -88,6 +88,28 @@ export interface Post extends PostListItem {
   readingMinutes: number;
 }
 
+export interface ProjectLinkRef {
+  label: string;
+  url: string;
+}
+
+export interface ProjectListItem {
+  slug: string;
+  title: string;
+  summary: string;
+  year: number;
+  role: string;
+  author: AuthorRef;
+  coverImage?: ImageRef;
+  tags: string[];
+  links: ProjectLinkRef[];
+  featured: boolean;
+}
+
+export interface Project extends ProjectListItem {
+  bodyHtml: string;
+}
+
 export interface PostListPage {
   items: PostListItem[];
   page: number;
