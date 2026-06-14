@@ -90,6 +90,20 @@ export async function latest(limit = 3): Promise<PostListItem[]> {
   return rows.map(mapPostListItem);
 }
 
+export async function sitemap(limit = 1000): Promise<PostListItem[]> {
+  const rows = await guard('posts.sitemap', () =>
+    directus.request<PostRow[]>(
+      readItems('posts', {
+        filter: PUBLISHED,
+        sort: ['-published_at'],
+        limit,
+        fields: POST_LIST_FIELDS as Fields,
+      }),
+    ),
+  );
+  return rows.map(mapPostListItem);
+}
+
 /** Most recent featured post, falling back to the latest published post. */
 export async function featuredOrLatest(): Promise<PostListItem | null> {
   const featured = await guard('posts.featuredOrLatest', () =>

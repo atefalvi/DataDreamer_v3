@@ -132,6 +132,19 @@ describe('postsRepo.featuredOrLatest', () => {
   });
 });
 
+describe('postsRepo.sitemap', () => {
+  it('returns published post list items for sitemap generation', async () => {
+    request.mockResolvedValueOnce([
+      postRow({ slug: 'newest', published_at: '2026-05-13T09:00:00Z' }),
+      postRow({ slug: 'older', published_at: '2026-05-12T09:00:00Z' }),
+    ]);
+
+    const posts = await postsRepo.sitemap();
+    expect(posts.map((post) => post.slug)).toEqual(['newest', 'older']);
+    expect(posts[0].publishedAt.toISOString()).toBe('2026-05-13T09:00:00.000Z');
+  });
+});
+
 describe('postsRepo.related', () => {
   it('falls back to latest (excluding the source) when no topic matches', async () => {
     const source = await (async () => {
