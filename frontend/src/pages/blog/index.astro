@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BlogListing from '../../components/blog/BlogListing.astro';
-import { absoluteUrl, SITE_URL } from '../../lib/seo/meta';
+import { absoluteUrl } from '../../lib/seo/meta';
+import { blogJsonLd } from '../../lib/seo/jsonld';
 import { blogPath, emptyBlogListing, loadBlogListing } from '../../lib/blog/listing';
 
 const author = Astro.url.searchParams.get('author') || undefined;
@@ -14,15 +15,7 @@ try {
 const description =
   'Field notes from DataDreamer on data systems, applied AI, analytics craft, and engineering judgment.';
 const nextHref = listing.page.hasMore ? absoluteUrl(blogPath(2)) : undefined;
-const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'Blog',
-    name: 'DataDreamer Writing',
-    url: `${SITE_URL}/blog`,
-    description,
-  },
-];
+const jsonLd = [blogJsonLd({ description })];
 ---
 
 <BaseLayout

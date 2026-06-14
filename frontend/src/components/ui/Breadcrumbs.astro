@@ -1,4 +1,6 @@
 ---
+import { breadcrumbListJsonLd } from '../../lib/seo/jsonld';
+
 interface BreadcrumbItem {
   label: string;
   href?: string;
@@ -10,16 +12,7 @@ interface Props {
 }
 
 const { items, class: className } = Astro.props;
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: items.map((item, index) => ({
-    "@type": "ListItem",
-    position: index + 1,
-    name: item.label,
-    ...(item.href ? { item: item.href } : {}),
-  })),
-};
+const jsonLd = breadcrumbListJsonLd(items);
 const jsonLdText = JSON.stringify(jsonLd).replaceAll("<", "\\u003c");
 ---
 

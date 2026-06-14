@@ -7,16 +7,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/ui/Icon.astro';
 import { CONNECT } from '../content/site';
-import { SITE_URL } from '../lib/seo/meta';
+import { contactPageJsonLd } from '../lib/seo/jsonld';
 
-const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'ContactPage',
-    name: 'Contact — DataDreamer',
-    url: `${SITE_URL}/connect`,
-  },
-];
+const jsonLd = [contactPageJsonLd({})];
 ---
 
 <BaseLayout

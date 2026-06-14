@@ -17,6 +17,42 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-SEO-001 — done
+
+**Did**: Added shared JSON-LD builders in `lib/seo/jsonld.ts` and rewired the existing
+v4 pages through those helpers: Home (`WebSite` + `Organization`), Blog (`Blog`),
+topics/projects (`CollectionPage`), articles (`BlogPosting` + `BreadcrumbList` with
+author URL, image, keywords, word count), case studies (`CreativeWork` +
+`BreadcrumbList`), Dream Team (`ItemList` of `Person`), author pages (`ProfilePage` +
+`Person`), and Connect (`ContactPage`). Privacy now emits no JSON-LD, matching the
+10 §3 matrix. `Breadcrumbs.astro` now uses the shared breadcrumb builder instead of
+hand-writing the schema object.
+
+**Files**: `frontend/src/lib/seo/jsonld.ts`,
+`frontend/src/lib/seo/__tests__/jsonld.test.ts`,
+`frontend/src/components/global/__tests__/SeoHead.test.ts`,
+`frontend/src/components/global/__tests__/__snapshots__/SeoHead.test.ts.snap`,
+`frontend/src/components/ui/Breadcrumbs.astro`,
+page wiring in `frontend/src/pages/{index,connect,privacy}.astro`,
+`frontend/src/pages/blog/{index,[slug],topic/[slug]}.astro`,
+`frontend/src/pages/projects/{index,[slug]}.astro`,
+`frontend/src/pages/dream-team/{index,[slug]}.astro`; docs `13`, `15`.
+
+**Decisions / deviations**: About is absent by prior owner-directed removal, so the
+AboutPage matrix row has no page to wire in v4.0. The Rich Results spot-check was
+represented by local rendered-schema/browser evidence and snapshot fixtures; local CMS
+had no author detail data to open live.
+
+**Validation**: `git diff --check`; `npx astro check` 0/0/0; `npm test` 59 passed;
+`npm run build` ok. Browser spot-check on local dev: `/`, `/projects`, `/dream-team`,
+`/connect`, `/privacy` canonical/robots/schema types correct; `/projects/tableau-waterfall-chart`
+emits `CreativeWork` + `BreadcrumbList`; zero console errors.
+
+**Next**: **V4-SEO-002 — Sitemap, robots, canonicals**.
+
+**Warnings**: Person/ProfilePage live browser verification needs seeded author data or
+staging Directus env for a later QA pass.
+
 ## [2026-06-13] Dream Team redesign + footer + Projects rename — done
 
 **Did**: Three requested follow-ups on the merged polish work.

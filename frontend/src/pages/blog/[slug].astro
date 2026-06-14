@@ -8,6 +8,7 @@ import PostCard from '../../components/blog/PostCard.astro';
 import ReadingProgress from '../../components/blog/ReadingProgress.astro';
 import { authorsRepo, postsRepo } from '../../lib/repositories';
 import { absoluteUrl } from '../../lib/seo/meta';
+import { blogPostingJsonLd, breadcrumbListJsonLd, wordCountFromHtml } from '../../lib/seo/jsonld';
 import { blogPath, emptyBlogListing, loadBlogListing, type BlogListing as BlogListingData } from '../../lib/blog/listing';
 import { directusAssetUrl, directusSrcset } from '../../lib/images';
 import '../../styles/prose.css';
@@ -40,7 +41,7 @@ let shortDate = '';
 let topicNames: string[] = [];
 let cover: Post['coverImage'];
 let ogImage: OgImage = { url: '/og/og-blog.png' };
-let jsonLd: object = {};
+let jsonLd: object[] = [];
 let hasImageGrid = false;
 let hasRelated = false;
 let hasNeighbors = false;
@@ -110,19 +111,25 @@ if (isPagination) {
         height: 630,
       }
     : { url: '/og/og-blog.png' };
-  jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
+  const articleJsonLd = blogPostingJsonLd({
     headline: post.title,
     description: post.excerpt,
+    url: canonical,
     datePublished: post.publishedAt.toISOString(),
     author: {
-      '@type': 'Person',
       name: post.author.name,
+      url: `/dream-team/${post.author.slug}`,
+      image: post.author.avatar?.src,
     },
-    mainEntityOfPage: canonical,
-    image: cover ? [ogImage.url] : undefined,
-  };
+    image: cover ? ogImage.url : undefined,
+    keywords: topicNames,
+    wordCount: wordCountFromHtml(post.bodyHtml),
+  });
+  const breadcrumbJsonLd = breadcrumbListJsonLd([
+    { label: 'Blog', href: '/blog' },
+    { label: post.title },
+  ]);
+  jsonLd = [articleJsonLd, breadcrumbJsonLd];
   hasImageGrid = post.bodyHtml.includes('class="image-grid"');
   hasRelated = related.length > 0;
   hasNeighbors = Boolean(neighbors.previous || neighbors.next);
@@ -155,7 +162,7 @@ if (isPagination) {
     ogType="article"
     ogImage={ogImage}
     article={{ publishedTime: post.publishedAt.toISOString(), author: post.author.name, tags: topicNames }}
-    jsonLd={[jsonLd]}
+    jsonLd={jsonLd}
   >
     <ReadingProgress />
 

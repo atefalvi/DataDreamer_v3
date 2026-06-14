@@ -9,7 +9,7 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/ui/Icon.astro';
 import { renderMarkdown } from '../../lib/markdown/renderMarkdown';
-import { SITE_URL } from '../../lib/seo/meta';
+import { breadcrumbListJsonLd, creativeWorkJsonLd } from '../../lib/seo/jsonld';
 import '../../styles/prose.css';
 
 const { slug } = Astro.params;
@@ -30,15 +30,17 @@ const previous = index > 0 ? all[index - 1] : null;
 const next = index >= 0 && index < all.length - 1 ? all[index + 1] : null;
 
 const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'CreativeWork',
+  creativeWorkJsonLd({
     name: title,
-    abstract: summary,
+    description: summary,
     datePublished: String(year),
-    url: `${SITE_URL}/projects/${entry.id}`,
-    keywords: stack.join(', '),
-  },
+    url: `/projects/${entry.id}`,
+    keywords: stack,
+  }),
+  breadcrumbListJsonLd([
+    { label: 'Projects', href: '/projects' },
+    { label: title },
+  ]),
 ];
 ---
 

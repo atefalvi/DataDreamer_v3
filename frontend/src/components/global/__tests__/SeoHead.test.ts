@@ -1,6 +1,18 @@
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { beforeEach, describe, expect, it } from 'vitest';
 import SeoHead from '../SeoHead.astro';
+import {
+  blogPostingJsonLd,
+  breadcrumbListJsonLd,
+  collectionPageJsonLd,
+  contactPageJsonLd,
+  creativeWorkJsonLd,
+  itemListJsonLd,
+  organizationJsonLd,
+  personJsonLd,
+  profilePageJsonLd,
+  websiteJsonLd,
+} from '../../../lib/seo/jsonld';
 
 let container: AstroContainer;
 
@@ -53,5 +65,61 @@ describe('SeoHead', () => {
     expect(html).toContain('property="article:tag" content="data"');
     expect(html).toContain('application/ld+json');
     expect(html).toContain('"BlogPosting"');
+  });
+
+  it('emits matrix JSON-LD fixtures for page types (snapshot)', async () => {
+    const fixtures = [
+      await render({
+        title: 'DataDreamer — Dreaming in systems, building in data',
+        description: 'Home',
+        jsonLd: [websiteJsonLd(), organizationJsonLd(['https://github.com/atefalvi'])],
+      }, 'https://data-dreamer.net/'),
+      await render({
+        title: 'A post',
+        description: 'Article',
+        ogType: 'article',
+        article: { publishedTime: '2026-05-12T09:00:00.000Z', author: 'Atef Alvi', tags: ['Data'] },
+        jsonLd: [
+          blogPostingJsonLd({
+            headline: 'A post',
+            description: 'Article',
+            url: '/blog/a-post',
+            datePublished: '2026-05-12T09:00:00.000Z',
+            author: { name: 'Atef Alvi', url: '/dream-team/atef-alvi' },
+            wordCount: 120,
+          }),
+          breadcrumbListJsonLd([{ label: 'Blog', href: '/blog' }, { label: 'A post' }]),
+        ],
+      }, 'https://data-dreamer.net/blog/a-post'),
+      await render({
+        title: 'Projects',
+        description: 'Projects',
+        jsonLd: [collectionPageJsonLd({ name: 'Projects — DataDreamer', url: '/projects' })],
+      }, 'https://data-dreamer.net/projects'),
+      await render({
+        title: 'Case',
+        description: 'Case',
+        ogType: 'article',
+        jsonLd: [creativeWorkJsonLd({ name: 'Case', description: 'Case', url: '/projects/case' })],
+      }, 'https://data-dreamer.net/projects/case'),
+      await render({
+        title: 'Dream Team',
+        description: 'Team',
+        jsonLd: [itemListJsonLd({ name: 'Team', items: [personJsonLd({ name: 'Atef Alvi' })] })],
+      }, 'https://data-dreamer.net/dream-team'),
+      await render({
+        title: 'Atef Alvi — Data Engineer',
+        description: 'Author',
+        ogType: 'profile',
+        jsonLd: [profilePageJsonLd({ name: 'Atef Alvi', url: '/dream-team/atef-alvi' })],
+      }, 'https://data-dreamer.net/dream-team/atef-alvi'),
+      await render({
+        title: 'Contact',
+        description: 'Contact',
+        jsonLd: [contactPageJsonLd({})],
+      }, 'https://data-dreamer.net/connect'),
+    ];
+
+    expect(fixtures.join('\n\n---PAGE---\n\n')).toMatchSnapshot();
   });
 });

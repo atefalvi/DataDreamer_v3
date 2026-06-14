@@ -10,7 +10,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CaseCard from '../../components/projects/CaseCard.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
 import Icon from '../../components/ui/Icon.astro';
-import { SITE_URL } from '../../lib/seo/meta';
+import { collectionPageJsonLd } from '../../lib/seo/jsonld';
 
 const all = await getCollection('projects');
 const sorted = all.sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
@@ -30,12 +30,11 @@ const searchOf = (p: (typeof all)[number]) =>
   [p.data.title, p.data.summary, p.data.role, ...p.data.stack].join(' ').toLowerCase();
 
 const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
+  collectionPageJsonLd({
     name: 'Projects — DataDreamer',
-    url: `${SITE_URL}/projects`,
-  },
+    url: '/projects',
+    description: 'Selected projects from DataDreamer — data platforms, analytics, and applied-AI case studies.',
+  }),
 ];
 ---
 
