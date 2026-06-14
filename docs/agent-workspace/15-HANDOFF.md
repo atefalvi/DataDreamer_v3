@@ -17,6 +17,39 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] Dream Team redesign + footer + Projects rename — done
+
+**Did**: Three requested follow-ups on the merged polish work.
+
+1. **Dream Team redesign (living graph)** — ambient "observatory" stage (bordered field,
+   gradient + faint grid backdrop, glowing central data core, dashed pillar ring). Subtly
+   alive: data packets flow along edges, nodes breathe, pillars pulse, ring marches — all
+   CSS, disabled under reduced-motion. Edges → `.tg-edge-group` (base + animated
+   `.tg-edge-flow` colored by pillar); enhancer lights groups. Intro reframed around
+   "different fields, one language — connected by data; pillars are disciplines."
+   **Author profile** links upgraded to labeled pills (LinkedIn/Website…) shown only when
+   present; seeded Maria + Moe with links/tools so profiles read as little profiles.
+2. **Footer** — fixed 4-col grid left an empty column when Topics absent (bunched left) +
+   odd mobile stacking. Now brand + auto-fit nav group filling the width; mobile 2-up.
+3. **Work → Projects** — nav label, page H1/title/SEO, CollectionPage name (footer derives
+   from NAV_ITEMS). The prior PR's search box is now live on `/projects`.
+
+**Files**: `frontend/src/pages/dream-team/{index,[slug]}.astro`,
+`frontend/src/lib/graph/enhancer.ts`, `frontend/src/components/global/SiteFooter.astro`,
+`frontend/src/content/site.ts`, `frontend/src/pages/projects/index.astro`,
+`scripts/v4-dt-seed-directus.mjs`; docs 15.
+
+**Validation**: `astro check` 0/0/0; `npm test` 53 passed; `npm run build` ok. Browser
+(1280px + 375px, staging): graph ring/core/flows/backdrop render, hover lights edge +
+tooltip, legend filter dims; `/dream-team/maria-khan` shows LinkedIn + Website pills + 4
+tools; footer fills width + clean 2-up mobile (no overflow); `/projects` reads "Projects",
+search present.
+
+**Decisions**: graph "alive" is CSS-only (reduced-motion-safe; idle drift skipped to keep
+edges anchored). Seeded Maria/Moe links are placeholders the owner replaces in Directus.
+
+**Next**: V4-SEO-001/002, A11Y/PERF; CLEAN-001 for v3 dead components.
+
 ## [2026-06-13] Polish fixes — code/copy, About removal, LinkedIn, Dream Team data, Work search, Author page — done
 
 **Did**: Batch of requested fixes on top of the merged Projects/Dream Team work.

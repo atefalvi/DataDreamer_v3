@@ -16,7 +16,7 @@ export interface NavItem {
 }
 
 const BASE_NAV: NavItem[] = [
-  { label: 'Work', href: '/projects' },
+  { label: 'Projects', href: '/projects' },
   { label: 'Blog', href: '/blog' },
   { label: 'Dream Team', href: '/dream-team' },
 ];

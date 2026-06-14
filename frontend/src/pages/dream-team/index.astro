@@ -10,7 +10,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorCard from '../../components/dream-team/AuthorCard.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
 import { authorsRepo } from '../../lib/repositories';
-import { computeGraphLayout } from '../../lib/graph/layout';
+import { computeGraphLayout, GRAPH } from '../../lib/graph/layout';
 import { SITE_URL } from '../../lib/seo/meta';
 import type { AuthorSummary } from '../../types/content';
 
@@ -93,8 +93,9 @@ const jsonLd = [
       <p class="kicker">The people</p>
       <h1>Dream Team</h1>
       <p class="dt__intro">
-        A studio graph of data engineers, analysts, AI builders, and creative technologists — clustered
-        by what they practice. Hover a node to trace its connections, or filter by specialty.
+        Different fields, one language. Each person below works in their own world — HR, capital
+        markets, engineering — but we’re connected by the same thing: <em>data</em>. The pillars are
+        the disciplines; the lines are how the work flows between them.
       </p>
     </header>
 
@@ -108,6 +109,7 @@ const jsonLd = [
       <>
         {showGraph && layout && (
           <section class="dt-stage" aria-hidden="false">
+            <span class="dt-stage__bg" aria-hidden="true"></span>
             <svg
               class="tg"
               viewBox={`0 0 ${layout.width} ${layout.height}`}
@@ -116,6 +118,11 @@ const jsonLd = [
               data-team-graph
             >
               <defs>
+                <radialGradient id="tg-core" cx="50%" cy="50%" r="50%">
+                  <stop offset="0" stop-color="var(--accent)" stop-opacity="0.5" />
+                  <stop offset="0.6" stop-color="var(--accent)" stop-opacity="0.08" />
+                  <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
+                </radialGradient>
                 {layout.authorNodes.map((node) => {
                   const author = authorBySlug.get(node.id);
                   if (!author?.avatar?.src) return null;
@@ -127,15 +134,32 @@ const jsonLd = [
                 })}
               </defs>
 
+              {/* Shared "pillar ring" the disciplines sit on + a faint data core. */}
+              <ellipse
+                class="tg-ring"
+                cx={GRAPH.cx}
+                cy={GRAPH.cy}
+                rx={GRAPH.rx}
+                ry={GRAPH.ry}
+              />
+              <circle class="tg-core" cx={GRAPH.cx} cy={GRAPH.cy} r="170" fill="url(#tg-core)" />
+
               <g class="tg-edges">
-                {layout.edges.map((edge) => (
-                  <path
-                    class="tg-edge"
-                    d={`M ${edge.x1} ${edge.y1} Q ${edge.cx} ${edge.cy} ${edge.x2} ${edge.y2}`}
-                    data-author={edge.authorId}
-                    data-specialty={edge.specialtyId}
-                  />
-                ))}
+                {layout.edges.map((edge) => {
+                  const flowColor = colorBySlug.get(edge.specialtyId) ?? 'accent';
+                  const d = `M ${edge.x1} ${edge.y1} Q ${edge.cx} ${edge.cy} ${edge.x2} ${edge.y2}`;
+                  return (
+                    <g
+                      class="tg-edge-group"
+                      data-author={edge.authorId}
+                      data-specialty={edge.specialtyId}
+                      style={`--node-flow: var(--${flowColor});`}
+                    >
+                      <path class="tg-edge" d={d} />
+                      <path class="tg-edge-flow" d={d} />
+                    </g>
+                  );
+                })}
               </g>
 
               <g class="tg-anchors">
@@ -270,16 +294,37 @@ const jsonLd = [
     line-height: var(--lh-lg);
   }
 
-  /* Graph stage — TL+ only (07 §5; on smaller screens the list is the page). */
+  /* Graph stage — TL+ only (07 §5; on smaller screens the list is the page).
+     Sits in an ambient "observatory" field; the graph is subtly alive. */
   .dt-stage {
     display: none;
   }
 
   @media (min-width: 64rem) {
     .dt-stage {
+      position: relative;
       display: block;
       margin-top: var(--space-7);
+      padding: var(--space-5);
+      overflow: hidden;
+      isolation: isolate;
+      border: 1px solid color-mix(in srgb, var(--border-2) 64%, transparent);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(160deg, color-mix(in srgb, var(--bg-2) 55%, transparent), var(--bg-1));
     }
+  }
+
+  .dt-stage__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(58% 58% at 50% 48%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%),
+      linear-gradient(90deg, color-mix(in srgb, var(--border-1) 52%, transparent) 1px, transparent 1px),
+      linear-gradient(180deg, color-mix(in srgb, var(--border-1) 36%, transparent) 1px, transparent 1px);
+    background-size: 100% 100%, 56px 56px, 56px 56px;
+    mask-image: radial-gradient(78% 78% at 50% 48%, #000, transparent 90%);
+    opacity: 0.6;
   }
 
   .tg {
@@ -288,6 +333,23 @@ const jsonLd = [
     overflow: visible;
   }
 
+  /* Shared pillar ring (disciplines sit on it) + breathing data core. */
+  .tg-ring {
+    fill: none;
+    stroke: color-mix(in srgb, var(--border-2) 85%, transparent);
+    stroke-width: 1;
+    stroke-dasharray: 2 8;
+    opacity: 0.45;
+    animation: tg-ring-march 50s linear infinite;
+  }
+
+  .tg-core {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: tg-core-pulse 7s var(--ease-in-out) infinite;
+  }
+
+  /* Edges + the data flowing along them. */
   .tg-edge {
     fill: none;
     stroke: var(--border-2);
@@ -296,23 +358,42 @@ const jsonLd = [
     transition: opacity var(--dur-2) var(--ease-out), stroke var(--dur-2) var(--ease-out);
   }
 
-  .tg.has-focus .tg-edge:not(.is-lit) {
+  .tg-edge-flow {
+    fill: none;
+    stroke: var(--node-flow, var(--accent));
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 1.5 15;
+    opacity: 0.5;
+    animation: tg-flow 2.6s linear infinite;
+  }
+
+  .tg.has-focus .tg-edge-group:not(.is-lit) {
     opacity: 0.12;
   }
 
-  .tg-edge.is-lit {
+  .tg-edge-group.is-lit .tg-edge {
     stroke: var(--accent);
-    opacity: 0.9;
+    opacity: 0.85;
+  }
+
+  .tg-edge-group.is-lit .tg-edge-flow {
+    opacity: 1;
+    stroke-width: 2.5;
   }
 
   .tg-anchor-dot {
     fill: var(--anchor-color);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: tg-anchor-pulse 4.5s var(--ease-in-out) infinite;
   }
 
   .tg-anchor-label {
-    fill: var(--text-3);
+    fill: var(--text-2);
     font-family: var(--font-mono);
     font-size: 13px;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -328,6 +409,7 @@ const jsonLd = [
     transition: transform var(--dur-2) var(--ease-out);
     transform-box: fill-box;
     transform-origin: center;
+    animation: tg-breathe 6s var(--ease-in-out) infinite;
   }
 
   .tg-node-initials {
@@ -347,7 +429,8 @@ const jsonLd = [
   .tg-node:hover .tg-node-ring,
   .tg-node:focus-visible .tg-node-ring,
   .tg-node.is-active .tg-node-ring {
-    transform: scale(1.08);
+    transform: scale(1.1);
+    animation: none;
   }
 
   .tg-node:focus-visible {
@@ -368,11 +451,61 @@ const jsonLd = [
     opacity: 0.18;
   }
 
+  @keyframes tg-flow {
+    to {
+      stroke-dashoffset: -16.5;
+    }
+  }
+
+  @keyframes tg-ring-march {
+    to {
+      stroke-dashoffset: -200;
+    }
+  }
+
+  @keyframes tg-breathe {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes tg-anchor-pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.55);
+      opacity: 0.55;
+    }
+  }
+
+  @keyframes tg-core-pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: scale(1.12);
+      opacity: 1;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .tg-node-ring,
     .tg-edge,
-    .tg-node {
+    .tg-node,
+    .tg-ring,
+    .tg-core,
+    .tg-anchor-dot {
+      animation: none;
       transition: none;
+    }
+    .tg-edge-flow {
+      display: none;
     }
   }
 

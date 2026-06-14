@@ -37,6 +37,11 @@ const AUTHORS = [
     bio: 'Maria is an HR professional focused on people analytics — turning hiring, retention, and engagement data into decisions leaders can trust. She writes about how data is reshaping the way teams are built, measured, and grown.',
     statement: 'People are the dataset most worth getting right.',
     specialties: ['people-hr'],
+    tools: ['Excel', 'Power BI', 'SQL', 'Workday'],
+    links: [
+      { label: 'LinkedIn', url: 'https://www.linkedin.com/in/maria-khan' },
+      { label: 'Website', url: 'https://mariakhan.co' },
+    ],
     sort: 2,
   },
   {
@@ -46,6 +51,8 @@ const AUTHORS = [
     bio: 'Moe works in capital markets, where basis points and milliseconds compound. He writes about data in finance — market microstructure, risk, and the models behind real trading and investment decisions.',
     statement: 'In markets, the edge is in the data nobody else bothered to clean.',
     specialties: ['capital-markets'],
+    tools: ['Python', 'kdb+/q', 'SQL', 'Bloomberg'],
+    links: [{ label: 'LinkedIn', url: 'https://www.linkedin.com/in/moe-zulfiqar' }],
     sort: 3,
   },
   // Existing author — ensure a specialty link so they cluster in the graph.
@@ -69,25 +76,28 @@ async function main() {
     console.log(`+ specialty ${spec.slug}`);
   }
 
-  // 2) Authors — create or link specialties.
-  const existingAuthors = await api('/items/authors?fields=id,slug,specialties.specialties_id.slug&limit=-1');
+  // 2) Authors — create or update (specialties + links + tools).
+  const existingAuthors = await api('/items/authors?fields=id,slug,links,tools,specialties.specialties_id.slug&limit=-1');
   const authorBySlug = new Map(existingAuthors.map((a) => [a.slug, a]));
 
   for (const author of AUTHORS) {
-    const links = author.specialties.map((slug, i) => ({ specialties_id: specialtyId.get(slug), sort: i + 1 }));
+    const specialtyLinks = author.specialties.map((slug, i) => ({ specialties_id: specialtyId.get(slug), sort: i + 1 }));
     const found = authorBySlug.get(author.slug);
 
     if (found) {
+      const patch = {};
       const current = (found.specialties ?? []).map((s) => s?.specialties_id?.slug).filter(Boolean);
       const missing = author.specialties.filter((s) => !current.includes(s));
       if (missing.length) {
-        await api(`/items/authors/${found.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ specialties: missing.map((slug, i) => ({ specialties_id: specialtyId.get(slug), sort: current.length + i + 1 })) }),
-        });
-        console.log(`~ author ${author.slug} linked ${missing.join(', ')}`);
+        patch.specialties = missing.map((slug, i) => ({ specialties_id: specialtyId.get(slug), sort: current.length + i + 1 }));
+      }
+      if (author.links?.length && !(found.links?.length)) patch.links = author.links;
+      if (author.tools?.length && !(found.tools?.length)) patch.tools = author.tools;
+      if (Object.keys(patch).length) {
+        await api(`/items/authors/${found.id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+        console.log(`~ author ${author.slug} updated: ${Object.keys(patch).join(', ')}`);
       } else {
-        console.log(`= author ${author.slug} (exists, linked)`);
+        console.log(`= author ${author.slug} (up to date)`);
       }
       continue;
     }
@@ -105,11 +115,11 @@ async function main() {
         role_title: author.role_title,
         bio: author.bio,
         statement: author.statement,
-        links: [],
-        tools: [],
+        links: author.links ?? [],
+        tools: author.tools ?? [],
         featured_work: [],
         sort: author.sort,
-        specialties: links,
+        specialties: specialtyLinks,
       }),
     });
     console.log(`+ author ${author.slug}`);
