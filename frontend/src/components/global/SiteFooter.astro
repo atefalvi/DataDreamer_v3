@@ -37,38 +37,40 @@ const year = new Date().getFullYear();
       )}
     </div>
 
-    <nav class="site-footer__col" aria-label="Explore">
-      <h2 class="site-footer__heading">Explore</h2>
-      <ul>
-        {exploreLinks.map((link) => (
-          <li><a href={link.href}>{link.label}</a></li>
-        ))}
-      </ul>
-    </nav>
-
-    {topics.length > 0 && (
-      <nav class="site-footer__col" aria-label="Topics">
-        <h2 class="site-footer__heading">Topics</h2>
+    <div class="site-footer__cols">
+      <nav class="site-footer__col" aria-label="Explore">
+        <h2 class="site-footer__heading">Explore</h2>
         <ul>
-          {topics.map((t) => (
-            <li><a href={`/blog/topic/${t.slug}`}>{t.name}</a></li>
+          {exploreLinks.map((link) => (
+            <li><a href={link.href}>{link.label}</a></li>
           ))}
         </ul>
       </nav>
-    )}
 
-    <nav class="site-footer__col" aria-label="Elsewhere">
-      <h2 class="site-footer__heading">Elsewhere</h2>
-      <ul class="site-footer__social">
-        {SOCIAL_LINKS.map((s) => (
-          <li>
-            <a href={s.href} rel="noopener" target={s.href.startsWith('http') ? '_blank' : undefined}>
-              <Icon name={s.icon} size={16} /><span>{s.label}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
+      {topics.length > 0 && (
+        <nav class="site-footer__col" aria-label="Topics">
+          <h2 class="site-footer__heading">Topics</h2>
+          <ul>
+            {topics.map((t) => (
+              <li><a href={`/blog/topic/${t.slug}`}>{t.name}</a></li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
+      <nav class="site-footer__col" aria-label="Elsewhere">
+        <h2 class="site-footer__heading">Elsewhere</h2>
+        <ul class="site-footer__social">
+          {SOCIAL_LINKS.map((s) => (
+            <li>
+              <a href={s.href} rel="noopener" target={s.href.startsWith('http') ? '_blank' : undefined}>
+                <Icon name={s.icon} size={16} /><span>{s.label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
   </div>
 
   <div class="site-footer__legal container-wide">
@@ -89,7 +91,16 @@ const year = new Date().getFullYear();
 
   .site-footer__inner {
     display: grid;
-    grid-template-columns: 1.6fr repeat(3, 1fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.8fr);
+    gap: var(--space-8) var(--space-9);
+    align-items: start;
+  }
+
+  /* Nav columns auto-fit across the right side so they always fill the width,
+     regardless of whether the optional Topics column is present. */
+  .site-footer__cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
     gap: var(--space-7) var(--space-6);
   }
 
@@ -185,13 +196,16 @@ const year = new Date().getFullYear();
 
   @media (max-width: 63.999rem) {
     .site-footer__inner {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
+      gap: var(--space-7);
     }
   }
 
-  @media (max-width: 39.999rem) {
-    .site-footer__inner {
-      grid-template-columns: 1fr;
+  /* Mobile: keep the link columns side by side (2-up) rather than one tall stack. */
+  @media (max-width: 29.999rem) {
+    .site-footer__cols {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6) var(--space-5);
     }
   }
 </style>
