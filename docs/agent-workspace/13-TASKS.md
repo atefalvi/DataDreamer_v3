@@ -55,7 +55,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-QA-001 | Responsive matrix pass | D | Phase B | done |
 | V4-QA-002 | SEO/OG validation pass | D | Phase B | done |
 | V4-QA-003 | Screen-reader pass | D | Phase B | done |
-| V4-PERF-001 | Budgets & Lighthouse audit | D | Phase B | todo |
+| V4-PERF-001 | Budgets & Lighthouse audit | D | Phase B | done |
 | V4-PERF-002 | Font loading tuning | D | PERF-001 | todo |
 | V4-PERF-003 | CSP rollout | D | PERF-001 | todo |
 | V4-REL-001 | v4.0 production release | E | Phase D | todo |

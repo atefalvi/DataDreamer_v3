@@ -17,6 +17,37 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-14] V4-PERF-001 — done
+
+**Did**: Executed the performance budget and Lighthouse audit, then fixed the measured
+overruns inline. Successful public HTML now receives the 09 §8 edge cache policy instead
+of adapter `no-store`. The font system now ships exactly three latin font files with
+explicit preloads instead of broad fontsource unicode-range bundles.
+
+**Files**: `frontend/src/middleware.ts`, `frontend/src/layouts/BaseLayout.astro`,
+`frontend/src/styles/fonts.css`, `frontend/src/pages/dev/styleguide.astro`,
+`frontend/src/pages/dev/styleguide-prose.astro`, `docs/agent-workspace/qa/perf.md`;
+docs `13`, `15`.
+
+**Decisions / deviations**: Lighthouse was run against a local production preview of
+this branch so it included the fixes before merge/deploy. Staging header spot checks were
+also recorded; deployed staging still showed the pre-fix `no-store` public HTML header.
+Directus query count remains an accepted deviation because blog/detail/team routes can
+exceed the strict ≤2 primary-query budget once populated; solving that requires a
+focused repository aggregation/caching pass, not a Lighthouse audit patch.
+
+**Validation**: Lighthouse mobile simulated: `/`, `/blog`, `/projects`, `/dream-team`,
+and `/connect` all scored Performance 99, SEO 100, Best Practices 100, Accessibility
+96–100, LCP 2.0–2.1s, CLS 0, TBT 0ms. Public route JS is ≤3.21 KB gzip; font artifact
+count is 3 files / 108 KB total with three preloads on checked routes. `git diff
+--check`; `npx astro check` 0/0/0; `npm test` 63 passed; `npm run build` ok.
+
+**Next**: **V4-PERF-002 — Font loading tuning**.
+
+**Warnings**: Re-run Lighthouse against `staging.data-dreamer.net` after this branch
+deploys. INP needs field data after production traffic exists. Directus query budget
+needs a focused follow-up before release hardening is considered fully green.
+
 ## [2026-06-13] V4-QA-003 — done
 
 **Did**: Executed the screen-reader/keyboard contract pass for the Phase B shell and
