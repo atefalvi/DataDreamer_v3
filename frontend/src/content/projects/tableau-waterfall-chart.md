@@ -3,6 +3,10 @@ title: "Waterfall charts, the Gantt method"
 summary: "A clean, label-friendly waterfall built from a Gantt mark — no table-calc gymnastics, no stacked-bar hacks."
 year: 2025
 role: "Design & build"
+author:
+  name: "Atef Alvi"
+  role: "Data Engineering"
+  href: "/dream-team/atef-alvi"
 stack: ["Tableau", "SQL"]
 cover: "../../assets/projects/tableau-waterfall-chart/cover.svg"
 coverAlt: "Waterfall chart showing quarterly revenue bridges in the DataDreamer palette"

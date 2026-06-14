@@ -18,7 +18,7 @@ if (!slug) return Astro.rewrite('/404');
 const entry = await getEntry('projects', slug);
 if (!entry) return Astro.rewrite('/404');
 
-const { title, summary, year, role, stack, cover, coverAlt, links } = entry.data;
+const { title, summary, year, role, author, stack, cover, coverAlt, links } = entry.data;
 const { html } = await renderMarkdown(entry.body ?? '');
 
 // Prev/next in display order (order, then year desc).
@@ -55,6 +55,10 @@ const jsonLd = [
     <header class="case__head">
       <p class="kicker">Case study · {year}</p>
       <h1>{title}</h1>
+      <p class="case__byline">
+        By {author.href ? <a href={author.href}>{author.name}</a> : author.name}
+        {author.role && <span> · {author.role}</span>}
+      </p>
       <p class="case__lede">{summary}</p>
     </header>
 
@@ -69,6 +73,12 @@ const jsonLd = [
 
       <aside class="case__rail" aria-label="Project facts">
         <dl>
+          <div>
+            <dt>Author</dt>
+            <dd>
+              {author.href ? <a href={author.href}>{author.name}</a> : author.name}
+            </dd>
+          </div>
           <div><dt>Role</dt><dd>{role}</dd></div>
           <div><dt>Year</dt><dd>{year}</dd></div>
           <div>
@@ -147,6 +157,23 @@ const jsonLd = [
     line-height: var(--lh-xl);
   }
 
+  .case__byline {
+    margin-top: var(--space-3);
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .case__byline a {
+    color: var(--text-2);
+    text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .case__byline a:hover {
+    color: var(--accent);
+  }
+
   .case__cover {
     overflow: hidden;
     margin-top: var(--space-7);
@@ -211,6 +238,16 @@ const jsonLd = [
     margin: var(--space-2) 0 0;
     color: var(--text-1);
     font-size: var(--fs-base);
+  }
+
+  .case__rail dd > a {
+    color: var(--text-1);
+    text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+    text-underline-offset: 0.2em;
+  }
+
+  .case__rail dd > a:hover {
+    color: var(--accent);
   }
 
   .case__stack,
