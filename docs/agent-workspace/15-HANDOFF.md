@@ -17,6 +17,34 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-QA-001 — done
+
+**Did**: Executed the responsive matrix from 11 §A3 across eight viewport sizes and both
+themes. Covered core renderable routes locally, plus populated Dream Team and author
+detail pages through a temporary staging-backed local dev server. Fixed the only hard
+responsive defect found: case-study prose/rail grid overflow at 360px and 390px.
+
+**Files**: `frontend/src/pages/projects/[slug].astro`,
+`docs/agent-workspace/qa/responsive.md`; docs `13`, `15`.
+
+**Decisions / deviations**: Article detail could not be visually checked because staging
+and local data currently have zero published posts. Unknown blog/topic slugs were verified
+as 404 on the staging-backed local server. No new task was added because this is content
+availability, not a known frontend defect; release QA should re-run article detail after
+the first published post is seeded.
+
+**Validation**: Browser matrix: 128 core route/theme/viewport checks, 16 author-detail
+checks, and 16 populated-team checks, all with zero horizontal overflow, zero structural
+failures, and zero console errors. Mobile menu spot-check at 390px: opens, focuses first
+menu link, scroll-locks, Escape closes and restores focus. `npx astro check` 0/0/0;
+`npm test` 63 passed; `npm run build` ok after the CSS fix.
+
+**Next**: **V4-QA-002 — SEO/OG validation pass**.
+
+**Warnings**: Current local `.env` still points at `localhost:8055`, which was not running;
+dynamic CMS checks used temporary process env vars pointed at `http://192.168.10.211:8056`
+and did not edit repo env files.
+
 ## [2026-06-13] V4-CLEAN-001 — done
 
 **Did**: Deleted the retired v3 shell and visual leftovers after all Phase B pages had
