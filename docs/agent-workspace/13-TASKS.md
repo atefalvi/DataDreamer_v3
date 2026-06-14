@@ -50,7 +50,7 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-DT-003 | Author pages | B | DT-002 | done |
 | V4-SEO-001 | JSON-LD + meta wiring | B | SHELL-001, all page tasks | done |
 | V4-SEO-002 | Sitemap, robots, canonicals | B | SEO-001 | done |
-| V4-DOC-002 | Authoring guide v4 rewrite | B | BLOG-002 | todo |
+| V4-DOC-002 | Authoring guide v4 rewrite | B | BLOG-002 | done |
 | V4-CLEAN-001 | v3 deletion sweep | B | all B pages | todo |
 | V4-QA-001 | Responsive matrix pass | D | Phase B | todo |
 | V4-QA-002 | SEO/OG validation pass | D | Phase B | todo |

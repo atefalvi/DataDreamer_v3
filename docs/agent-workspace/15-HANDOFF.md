@@ -17,6 +17,32 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-DOC-002 — done
+
+**Did**: Rewrote `docs/AGENT_BLOG_GUIDE.md` for the v4 authoring flow. The guide now
+targets Directus `posts`, documents author/topic/cover-image fields, removes obsolete
+all-caps title guidance, explains v4 article structure, and covers every supported
+markdown block from the current pipeline: eight callout variants, title syntax, details,
+pull quotes, image grids, figures/captions, tables, fenced code, and SEO checklist items.
+
+**Files**: `docs/AGENT_BLOG_GUIDE.md`; docs `13`, `15`.
+
+**Decisions / deviations**: No new golden fixture was needed because
+`frontend/src/lib/markdown/__fixtures__/agent-blog-guide-syntax.md` already exercises every
+documented block syntax. The guide explicitly notes that nested callouts are unsupported
+and that projects are authored in the Astro content collection, not Directus.
+
+**Validation**: `git diff --check`; `npx astro check` 0/0/0; `npm test` 63 passed;
+`npm run build` ok. Ran a fixture coverage grep for every documented block token
+(`note`, `info`, `tip`, `warning`, `caution`, `important`, `example`, `technical`,
+`details`, `quote`, `imagegrid`, title syntax, table, code fence, image) against the
+markdown golden fixture.
+
+**Next**: **V4-CLEAN-001 — v3 deletion sweep**.
+
+**Warnings**: The guide documents the current v4.0 posts flow. Courses/auth authoring
+will need a separate update after the v4.1 course tasks land.
+
 ## [2026-06-13] V4-SEO-002 — done
 
 **Did**: Added `sitemap-posts.xml` as an SSR endpoint backed by `postsRepo.sitemap()`,
