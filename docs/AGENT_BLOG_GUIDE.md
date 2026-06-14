@@ -1,238 +1,209 @@
-# Agent Blog Guide — Writing for DataDreamer v4
+# Agent Blog Guide — DataDreamer v4
 
-This guide is written for AI agents (and human authors) who publish content to the DataDreamer `posts` collection via Directus. Follow these conventions to ensure posts render correctly on the site.
-
----
-
-## Overview
-
-**The Blog section** (`/blog`) is a developer-focused writing area. Posts are written in Markdown and rendered by the Astro frontend with custom block support, syntax highlighting, and a generated table of contents.
-
-### Workflow
-
-```
-Draft in Directus → Set status = "published" → Site auto-fetches on next build/request
-```
-
-1. **Create** a new item in the `posts` Directus collection
-2. **Fill in** all required fields (see Field Reference below)
-3. **Write** content in the `content` field using the Markdown syntax documented here
-4. **Set `status` = `published`** when ready to go live
-5. The Astro SSR frontend will fetch it immediately on the next page request
-
-> **Draft safety:** Set `status = "draft"` to save without publishing. Only `published` items appear on the site.
+This guide is for agents and human authors publishing to the DataDreamer `posts`
+collection in Directus. It documents the v4 Markdown contract used by the Astro
+frontend, including the callout syntax covered by the golden fixture at
+`frontend/src/lib/markdown/__fixtures__/agent-blog-guide-syntax.md`.
 
 ---
 
-## Directus Field Reference
+## Workflow
 
-| Field | Required | Description |
-|---|---|---|
-| `title` | ✅ | Post title. Keep under 80 chars. Displayed in ALL CAPS automatically. |
-| `slug` | ✅ | URL identifier. Use `kebab-case`, e.g. `training-run-01`. Must be unique. |
-| `status` | ✅ | Set to `published` to make live. Otherwise `draft`. |
-| `published_at` | ✅ | Set to the intended publish date/time. Shown on the listing page. |
-| `excerpt` | ✅ | 1–2 sentence summary. Shown on the listing page beneath the title. |
-| `content` | ✅ | Full post body in Markdown. Supports all custom blocks below. |
-| `topics` | Recommended | M2M topic selection used for filtering, e.g. `Machine learning`, `Devlog`, `Infrastructure`. |
-| `post_number` | Optional | Sequential integer (e.g. `1`, `2`, `3`) for ordered series. |
-| `series_label` | Optional | Name for a series grouping related posts, e.g. `FINE-TUNE LOG`. |
-| `author` | Required | Relation to an `authors` profile. |
-| `cover_image` | Optional | Main post visual for cards, article hero, and OG image transforms. |
-| `featured` | Optional | Marks the post as eligible for featured blog/home placements. |
+1. Create a new item in Directus → `posts`.
+2. Fill the required metadata fields.
+3. Write the article body in `content` using the Markdown syntax below.
+4. Keep `status = draft` until the post is reviewed.
+5. Set `status = published` when the article should appear on `/blog`, topic pages,
+   RSS, and the post sitemap.
 
-### `projects` Collection
-
-| Field | Required | Description |
-|---|---|---|
-| `title` | ✅ | Project name. Displayed in ALL CAPS. |
-| `slug` | ✅ | URL identifier. Must be unique. |
-| `status` | ✅ | Set to `published` to show on site. |
-| `published_at` | ✅ | Sorting date (newest first). |
-| `summary` | ✅ | Short description for the project card. |
-| `description` | ✅ | Full project details in Markdown. |
-| `cover_image` | ✅ | Main visual (Directus File). |
-| `tags` | ✅ | Array of strings (technologies used). |
-| `featured` | Optional | If `true`, pins to the top of the homepage. |
-| `author` | Optional | Relation to Directus Users. |
+The site is SSR. Published posts are available on the next request; no rebuild is
+needed for ordinary CMS edits.
 
 ---
 
-## Tone & Style
+## Field Reference
 
-- **Voice:** Direct, technical, first-person. No filler phrases.
-- **Tense:** Past tense for discoveries, present for processes.  
-  ✅ `I found that batch size 32 overfits` ✅ `Training takes ~40 min per epoch`
-- **Vocabulary:** Use precise technical terms. Do not over-explain basics.
-- **Uppercase labels:** Section labels and call-outs look best in ALL CAPS (the site transforms most text automatically).
-- **Personality:** Allowed and encouraged — this is a personal log, not corporate documentation.
+| Field | Required | Guidance |
+|---|---:|---|
+| `title` | Yes | Human-readable article title. Use sentence/title case, not all caps. Keep it specific and under about 80 characters. |
+| `slug` | Yes | Permanent URL segment in `kebab-case`, for example `airflow-retry-patterns`. Do not change after publishing. |
+| `status` | Yes | `draft` for work in progress, `published` for live content. |
+| `published_at` | Yes | Public publish date/time. Used for sorting, RSS, article meta, and sitemap `lastmod`. |
+| `excerpt` | Yes | One or two complete sentences, ideally 120-160 characters. Used on cards and as the meta description. |
+| `content` | Yes | Markdown body. Use `#` once at the top only if drafting outside Directus; the route renders the article title from metadata. |
+| `author` | Yes | Relation to an `authors` profile. Choose the real author, not a Directus user. |
+| `topics` | Recommended | Many-to-many topic taxonomy used for `/blog/topic/[slug]`, article chips, RSS categories, and related posts. |
+| `cover_image` | Recommended | Directus file used for article cover, cards, and per-article OG image. Add useful file description/alt text. |
+| `featured` | Optional | Makes the post eligible for featured positions on the blog/home pages. |
+| `series_label` | Optional | Short label for a series, for example `Pipeline Notes`. |
+| `post_number` | Optional | Numeric series/index marker when useful. |
+
+Projects are not authored in Directus in v4. They live in the Astro `projects`
+content collection.
 
 ---
 
-## Post Structure
+## Writing Style
+
+- Be direct, concrete, and technical.
+- Use precise nouns and measured claims.
+- Prefer short sections with useful headings.
+- Avoid clickbait, vague introductions, and filler.
+- Do not force all-caps labels or titles. The v4 design system handles visual hierarchy.
+- Explain operational context: what changed, why it mattered, and what someone can reuse.
+
+---
+
+## Recommended Article Shape
 
 ````markdown
-# Post Title Here
+# Article Title
 
-Opening paragraph — establish context, WHY this post exists, in 2–4 sentences.
+Opening paragraph. Establish the problem, system, or observation in 2-4 sentences.
 
-## Section One
+## Context
 
-Body content. Use ##-level headings as major sections. The site auto-generates
-a Table of Contents from all ## and ### headings.
+What was being built, debugged, measured, or learned.
 
-### Sub-section (optional)
+## What Changed
 
-Use ### for breakdown within a major section.
+Specific implementation notes, data, commands, screenshots, or design decisions.
 
-## Observations
+## Results
 
-What you found. Be specific. Numbers, quotes, code snippets.
+Numbers, tradeoffs, screenshots, before/after behavior, or lessons learned.
 
-## Next Steps (optional)
+## Next
 
-What comes next. Links to the next post in a series if applicable.
+What should happen next, if there is a natural follow-up.
 ````
 
-**Headings to use:**
-- `#` — Post title *(use only once, at the top)*
-- `##` — Major section
-- `###` — Sub-section
-- No `####` or deeper (not styled by the site)
+Use `##` for major sections and `###` for nested sections. The table of contents is
+generated from `##` and `###` headings. Do not use `####` or deeper unless the prose
+really demands it.
 
 ---
 
-## Custom Block Syntax
+## Callouts
 
-All custom blocks use the `:::type` / `:::` open-close convention.
-
----
-
-### Callout — Tip
-
-Use for best practices, optimizations, or helpful hints.
+All custom blocks use the same open/close shape:
 
 ```markdown
-:::tip Pro Tip
-Use gradient checkpointing to cut VRAM usage by 40% with a ~20% speed tradeoff.
+:::type Optional Title
+Body content supports **Markdown**, links, lists, and code.
 :::
 ```
 
-**Renders as:** ▶ A highlighted tip box with a labelled header.
-
----
-
-### Callout — Warning
-
-Use for hardware requirements, known issues, or potential data loss risks.
+Title syntax also supports braces:
 
 ```markdown
-:::warning Hardware Alert
-Training this model requires at least 24 GB VRAM. On smaller GPUs, reduce
-batch size and enable gradient checkpointing.
+:::caution{title="Dangerous Operation"}
+Dropping a collection is irreversible without a backup.
 :::
 ```
 
----
+Supported callout types:
 
-### Callout — Info
+| Type | Use for |
+|---|---|
+| `note` | Side notes, small clarifications, or contextual remarks. |
+| `info` | Neutral background, references, links, or definitions. |
+| `tip` | Practical shortcuts, optimizations, and best practices. |
+| `warning` | Risk, known issues, hardware limits, or fragile assumptions. |
+| `caution` | Dangerous or destructive operations. |
+| `important` | Must-read operational guidance. |
+| `example` | Worked examples or small demonstrations. |
+| `technical` | Deep implementation details that should remain visible. |
 
-Use for background context, links, or neutral supplementary information.
+Callout content can contain normal Markdown:
 
 ```markdown
-:::info Reference
-Full implementation is available at github.com/example/repo.
+:::tip Data Format
+Use **gradient checkpointing** to cut VRAM usage.
+
+- Keep `instruction` and `response` keys.
+- Validate rows before upload.
+
+See [training notes](https://example.com/training).
 :::
 ```
 
+Nested `details` blocks inside callouts are supported. Nested callouts inside callouts
+are intentionally not supported and should be avoided.
+
 ---
 
-### Callout — Note
+## Details Blocks
 
-Use for quick side-notes or clarifications inline with the text.
+Use `details` for long logs, verbose configs, raw outputs, tracebacks, or optional
+evidence that would interrupt the main reading flow.
 
-```markdown
-:::note Side Note
-This was tested on PyTorch 2.3 with CUDA 12.1. Earlier versions may behave differently.
-:::
+````markdown
+:::details Raw Training Log
+Step 0/500 | loss: **2.4831**
+
+```txt
+loss=2.4831
+lr=1e-4
 ```
-
----
-
-### Expandable Block — Details
-
-Use for long raw logs, verbose outputs, or optional reading that would interrupt flow.
-
-**The text after `:::details` becomes the clickable summary/header.**
-
-```markdown
-:::details RAW TRAINING LOG — EPOCH 3
-Step 0/500 | loss: 2.4831 | lr: 1e-4
-Step 50/500 | loss: 1.9204 | lr: 9.8e-5
-Step 100/500 | loss: 1.4017 | lr: 9.6e-5
-...
-Step 500/500 | loss: 0.8821 | lr: 8e-5
 :::
-```
+````
 
-**Renders as:** ► A collapsed `<details>` element. Clicking the summary reveals the full content.
-
-Use this for:
-- Full error tracebacks
-- Raw inference outputs
-- Verbose config dumps
-- Long code diffs
+The text after `:::details` becomes the summary.
 
 ---
 
-### Pull Quote
+## Pull Quotes
 
-Use for a single impactful statement or thesis worth emphasising visually. No label needed.
+Use `quote` for one thesis-level statement. Keep it short.
 
 ```markdown
 :::quote
-THE GOAL ISN'T JUST TO STORE DATA, BUT TO ENCODE INTUITION.
+The data is the model. Garbage in, garbage out.
 :::
 ```
-
-**Renders as:** Large, styled block quote with decorative treatment. One sentence maximum.
 
 ---
 
-### Image Grid
+## Images
 
-Use to display multiple images side-by-side as a responsive gallery. Each image is clickable and opens a full-screen lightbox with prev/next navigation.
+Use normal Markdown images for a single figure:
+
+```markdown
+![Training loss curve](https://api.data-dreamer.net/assets/<FILE_UUID> "Loss curve after epoch three")
+```
+
+Rules:
+
+- The alt text inside `![...]` is required. Describe the actual image.
+- The optional title string becomes the visible caption.
+- Prefer Directus asset URLs: `https://api.data-dreamer.net/assets/<FILE_UUID>`.
+- Upload reasonably sized source images. A width around 1600-2200px is usually enough.
+- Add a useful Directus file description for cover images because it becomes alt text
+  in cards and article covers.
+
+---
+
+## Image Grids
+
+Use `imagegrid` for related screenshots or visual comparisons.
 
 ```markdown
 :::imagegrid
-![Caption one](https://api.data-dreamer.net/assets/<FILE_UUID_1>)
-![Caption two](https://api.data-dreamer.net/assets/<FILE_UUID_2>)
-![Caption three](https://api.data-dreamer.net/assets/<FILE_UUID_3>)
-![Caption four](https://api.data-dreamer.net/assets/<FILE_UUID_4>)
+![Dashboard before filtering](https://api.data-dreamer.net/assets/<FILE_UUID_1>)
+![Dashboard after filtering](https://api.data-dreamer.net/assets/<FILE_UUID_2>)
+![Error trace detail](https://api.data-dreamer.net/assets/<FILE_UUID_3>)
 :::
 ```
 
-**Renders as:**
-- **Desktop** — auto-fill CSS grid (columns fill at min 200px each). Hover desaturates and zooms the image slightly.
-- **Mobile** — horizontal swipe carousel, one image at 75% viewport width per snap.
-- **Click any image** — opens a fullscreen lightbox. Navigate with `←` / `→` buttons, keyboard arrow keys, or swipe. Press `Esc` or click outside to close. A counter shows position (e.g. `2 / 4`).
-
-**How to get the image URL from Directus:**
-1. Go to **Directus → File Library**
-2. Upload your image (or find an existing one)
-3. Click the file → copy the **File UUID** from the URL or file details panel
-4. Use the full URL: `https://api.data-dreamer.net/assets/<UUID>`
-
-**Tips:**
-- Any number of images works — 2 images gives a side-by-side pair, 6 gives a 3-column grid on desktop.
-- Alt text (the text inside `![...]`) becomes the accessible label for screen readers. Use a real description.
-- Images are lazy-loaded automatically.
+Every image still needs real alt text. The frontend renders the grid responsively and
+opens images in the article lightbox.
 
 ---
 
 ## Code Blocks
 
-Standard Markdown fenced code blocks with language hints are supported. The site uses `github-dark` syntax highlighting.
+Use fenced code blocks with a language hint:
 
 ````markdown
 ```python
@@ -244,42 +215,21 @@ model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-v0.1")
 ```bash
 python train.py --epochs 3 --batch-size 16 --lr 1e-4
 ```
-
-```json
-{
-  "model": "mistral-7b",
-  "quantization": "4bit",
-  "max_seq_len": 2048
-}
-```
 ````
 
----
-
-## Images (Directus Assets)
-
-Upload images to **Directus → Files**. Copy the **File UUID** and insert as:
-
-```markdown
-![Description of image](https://api.your-domain.com/assets/<FILE_UUID>)
-```
-
-Example:
-```markdown
-![Training loss curve after epoch 3](https://api.your-domain.com/assets/abc123-def456-...)
-```
-
-Images are **not** auto-resized by Directus in the markdown pipeline — use reasonable source image dimensions (max 1600px wide).
+The frontend adds dual-theme Shiki highlighting, a language label, keyboard-scrollable
+code regions, and a copy button.
 
 ---
 
 ## Tables
 
-Standard GFM (GitHub Flavoured Markdown) tables are supported:
+GitHub-flavored Markdown tables are supported and automatically receive a horizontal
+scroll wrapper on small screens.
 
 ```markdown
 | Model | Params | VRAM | Throughput |
-|---|---|---|---|
+|---|---:|---:|---:|
 | Mistral 7B | 7B | 16 GB | 42 tok/s |
 | Llama 3 8B | 8B | 18 GB | 38 tok/s |
 ```
@@ -288,91 +238,104 @@ Standard GFM (GitHub Flavoured Markdown) tables are supported:
 
 ## Topics
 
-`topics` drives the **filter buttons** on the `/blog` listing page. Use the shared topic taxonomy:
+Topics are a shared Directus taxonomy, not free-form tags on the post. Select existing
+topics whenever possible so filters, related posts, RSS categories, and topic pages
+stay coherent.
 
-| Topic | Use for |
+Recommended topic patterns:
+
+| Topic family | Use for |
 |---|---|
-| `Machine learning` | Machine learning experiments, training runs |
-| `Devlog` | General development notes and progress updates |
-| `Infrastructure` | Infrastructure, Docker, deployment, CI/CD |
-| `Research` | Papers, reading notes, literature review |
-| `Data` | Dataset preparation, scraping, cleaning |
-| `Tools` | Tool evaluations, benchmarks |
+| Data engineering | Pipelines, orchestration, reliability, ingestion, warehouses. |
+| Analytics | Metrics, BI, semantic modeling, dashboards, decision systems. |
+| Applied AI | LLM workflows, model integration, evaluation, AI product patterns. |
+| Infrastructure | Deployment, Docker, CI/CD, hosting, observability. |
+| Visualization | Charts, maps, interaction design, visual explanation. |
+| Research | Reading notes, papers, experiments, conceptual work. |
 
-Avoid creating too many unique topics — it fragments the filter UX.
+Avoid creating near-duplicates such as `AI`, `Artificial Intelligence`, and `Applied AI`.
+Pick the canonical topic.
 
 ---
 
-## SEO Basics
+## SEO Checklist
 
-| Field | Guidance |
-|---|---|
-| `title` | 40–70 characters. Descriptive, not click-bait. |
-| `excerpt` | 120–160 characters. This becomes the meta description. Write a complete sentence. |
-| `slug` | Lowercase, hyphens only, no dates. E.g. `mistral-7b-finetuning-notes`. |
-| `published_at` | Always set a valid date — it signals content recency to search engines. |
+- Title is descriptive and readable in search results.
+- Excerpt is a complete sentence and can stand alone as the meta description.
+- Slug is lowercase, stable, and not date-based.
+- `published_at` is accurate.
+- Cover image is present for important posts and has useful alt text/description.
+- Author relation is set.
+- At least one topic is selected when the post fits the taxonomy.
 
 ---
 
 ## Constraints
 
-- **Use `:::` blocks for rich content.** The custom block syntax (`:::tip`, `:::imagegrid`, etc.) is the supported way to add rich elements. Raw HTML tags typed inline may be stripped by the editor.
-- **One `#` per post.** Only one H1 is allowed — the post title at the top.
-- **Draft by default.** New items are `draft` until you explicitly set `status = published`.
-- **Slugs are permanent.** Once published, changing a `slug` breaks existing links. Do not change a published slug.
-- **Pull quotes are one statement.** The `:::quote` block is styled for a single punchy sentence. Multi-sentence quotes will render but look unintended.
+- Use the documented `:::` blocks for rich content. Avoid raw HTML in the editor.
+- Use one H1 at most. Prefer metadata title plus `##` sections in Directus body.
+- Do not change published slugs without adding a redirect plan.
+- Do not create one-off topics for a single article unless the taxonomy truly needs it.
+- Do not paste screenshots without alt text.
+- Unsupported `:::unknown` blocks render literally for forward compatibility; do not
+  rely on them for production posts.
 
 ---
 
-## Example Complete Post
+## Complete Example
 
 ````markdown
-# Fine-Tuning Mistral 7B on a Custom Instruction Dataset
+# Airflow Retry Patterns That Do Not Hide Failure
 
-After two weeks of wrangling data pipelines and OOM errors, I finally have a stable
-fine-tuning setup for Mistral 7B on my RTX 3090. This post covers the config that worked.
+Retries are useful until they become camouflage. This note documents the retry shape
+I use when a pipeline should absorb transient failures without hiding real data issues.
 
-## Dataset Preparation
+## Context
 
-I used 4,200 instruction-response pairs formatted in JSONL.
+The pipeline pulls hourly events from an API that occasionally returns 502s. The goal
+is to recover from short upstream blips while still surfacing schema changes quickly.
 
-:::tip Data Format
-Ensure every sample has `instruction` and `response` keys. The training script
-rejects anything else and exits without a useful error message.
+:::info Reference
+The DAG uses task-level retries for transport errors and explicit validation tasks for
+data quality failures.
 :::
 
-## Training Configuration
+## Retry Shape
 
 ```python
-training_args = TrainingArguments(
-    output_dir="./checkpoints",
-    per_device_train_batch_size=2,
-    gradient_accumulation_steps=8,
-    num_train_epochs=3,
-    learning_rate=2e-4,
-)
+default_args = {
+    "retries": 3,
+    "retry_delay": timedelta(minutes=5),
+    "retry_exponential_backoff": True,
+}
 ```
 
-:::warning Hardware Alert
-This config assumes 24 GB VRAM. On 16 GB cards, reduce `gradient_accumulation_steps`
-to 4 and enable `gradient_checkpointing=True`.
+:::important Must Read
+Retries should wrap unstable infrastructure boundaries, not validation failures.
 :::
 
-## Results
-
-After 3 epochs, the model converged to a loss of **0.88**.
-
-:::details FULL EPOCH LOG
-Epoch 1 | loss: 1.92 | eval_loss: 1.74
-Epoch 2 | loss: 1.31 | eval_loss: 1.19
-Epoch 3 | loss: 0.88 | eval_loss: 0.91
+:::caution{title="Dangerous Operation"}
+Never retry a destructive write unless the operation is idempotent.
 :::
+
+## Evidence
+
+:::details Raw Task Log
+Attempt 1 failed with HTTP 502.
+Attempt 2 succeeded after 03:12.
+Validation completed with 0 rejected rows.
+:::
+
+:::imagegrid
+![Retry timeline in Airflow](https://api.data-dreamer.net/assets/<FILE_UUID_1>)
+![Validation task output](https://api.data-dreamer.net/assets/<FILE_UUID_2>)
+:::
+
+## Result
+
+The DAG now absorbs short upstream outages without masking schema drift.
 
 :::quote
-THE DATA IS THE MODEL. GARBAGE IN, GARBAGE OUT — ALWAYS.
+Retries should buy time, not hide truth.
 :::
-
-## Next Steps
-
-Running qualitative evals next. See **FINE-TUNE LOG 002** for inference results.
 ````
