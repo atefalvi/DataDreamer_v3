@@ -17,6 +17,39 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-QA-003 — done
+
+**Did**: Executed the screen-reader/keyboard contract pass for the Phase B shell and
+content routes using browser DOM/focus automation against a staging-backed local server.
+Fixed four accessibility gaps inline: global shell now has a guaranteed header landmark;
+project results now have an `h2` before card `h3`s; decorative reading progress no longer
+exposes a contradictory `progressbar` role; mobile-menu trap now cycles panel controls
+only while Escape restores focus to the hamburger.
+
+**Files**: `frontend/src/layouts/BaseLayout.astro`,
+`frontend/src/pages/projects/index.astro`, `frontend/src/components/blog/ReadingProgress.astro`,
+`frontend/src/components/global/MobileMenu.astro`,
+`docs/agent-workspace/qa/screen-reader.md`; docs `13`, `15`.
+
+**Decisions / deviations**: Native VoiceOver/Safari and NVDA/Firefox app passes were not
+run from this macOS automation environment; the evidence uses rendered DOM, keyboard,
+and focus-state checks and records the manual-native-SR follow-up. Real article-detail
+checks remain content-blocked because staging/local currently have zero published posts;
+prose semantics were verified through `/dev/styleguide-prose`.
+
+**Validation**: Production routes checked for header/nav/main/footer landmarks, first
+focusable skip link, one `h1`, no heading skips, no visible unnamed controls, no
+focusables under `aria-hidden`, and no duplicate IDs. Mobile menu at 390×844: opens,
+locks scroll, focuses first panel link, exposes one visible theme toggle, Escape closes,
+hides the panel, unlocks scroll, and restores focus to `#menuButton`. Dream Team graph
+has an equivalent author list and labelled SVG author links. `git diff --check`; `npx
+astro check` 0/0/0; `npm test` 63 passed; `npm run build` ok.
+
+**Next**: **V4-PERF-001 — Budgets & Lighthouse audit**.
+
+**Warnings**: Repeat native screen-reader smoke testing and real article page testing
+once a published post exists in staging.
+
 ## [2026-06-13] V4-QA-002 — done
 
 **Did**: Executed the SEO/OG validation pass and committed the evidence checklist. Fixed

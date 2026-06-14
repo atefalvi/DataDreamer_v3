@@ -92,13 +92,16 @@ const jsonLd = [
           <EmptyState message={`No projects tagged “${activeTag}”.`} icon="search-x" action={{ label: 'Clear filter', href: '/projects' }} />
         ) : (
           <>
-            <div class="projects__grid" data-project-grid>
-              {visible.map((project, i) => (
-                <div class="projects__item" data-search={searchOf(project)}>
-                  <CaseCard project={project} class={i % 3 === 0 ? 'case-card--wide' : ''} />
-                </div>
-              ))}
-            </div>
+            <section class="projects__results" aria-labelledby="project-results-heading">
+              <h2 id="project-results-heading" class="visually-hidden">Project case studies</h2>
+              <div class="projects__grid" data-project-grid>
+                {visible.map((project, i) => (
+                  <div class="projects__item" data-search={searchOf(project)}>
+                    <CaseCard project={project} class={i % 3 === 0 ? 'case-card--wide' : ''} />
+                  </div>
+                ))}
+              </div>
+            </section>
             <p class="projects__noresults" data-project-noresults hidden>
               No work matches your search. <a href="/projects">Reset</a>.
             </p>
