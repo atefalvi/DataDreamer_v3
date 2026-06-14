@@ -11,7 +11,7 @@ export function initTeamGraph(): void {
   if (!svg || !tooltip) return;
 
   const nodes = Array.from(svg.querySelectorAll<SVGAElement>('.tg-node'));
-  const edges = Array.from(svg.querySelectorAll<SVGPathElement>('.tg-edge'));
+  const edges = Array.from(svg.querySelectorAll<SVGGElement>('.tg-edge-group'));
   if (!nodes.length) return;
 
   let activeSpecialty: string | null = null;
