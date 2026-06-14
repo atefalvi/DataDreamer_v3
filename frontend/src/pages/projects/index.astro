@@ -243,6 +243,12 @@ const jsonLd = [
     display: contents;
   }
 
+  /* Search hides items via [hidden]; the explicit display rules above would otherwise
+     override the UA [hidden] { display: none }, so re-assert it with higher specificity. */
+  .projects__item[hidden] {
+    display: none;
+  }
+
   .projects__noresults {
     margin-top: var(--space-7);
     color: var(--text-2);

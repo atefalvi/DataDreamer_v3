@@ -74,10 +74,10 @@ const prevHref = !activeTopic && listing.page.page > 1
     </nav>
 
     {showAuthorFilter && (
-      <form class="blog-listing__author-filter" method="get" action={pageBasePath}>
+      <form class="blog-listing__author-filter" method="get" action={pageBasePath} data-author-filter>
         <label for="blog-author-filter">Author</label>
-        <div>
-          <select id="blog-author-filter" name="author">
+        <div class="blog-listing__author-control">
+          <select id="blog-author-filter" name="author" data-author-select>
             <option value="">All authors</option>
             {listing.authors.map((author) => (
               <option value={author.slug} selected={author.slug === activeAuthor}>
@@ -85,7 +85,8 @@ const prevHref = !activeTopic && listing.page.page > 1
               </option>
             ))}
           </select>
-          <Button type="submit" variant="secondary" size="sm">Apply</Button>
+          {/* No-JS fallback; hidden when JS auto-submits on change. */}
+          <Button type="submit" variant="secondary" size="sm" class="blog-listing__apply">Apply</Button>
         </div>
       </form>
     )}
@@ -186,8 +187,9 @@ const prevHref = !activeTopic && listing.page.page > 1
     text-transform: uppercase;
   }
 
-  .blog-listing__author-filter div {
+  .blog-listing__author-control {
     display: flex;
+    align-items: center;
     gap: var(--space-2);
   }
 
@@ -200,6 +202,11 @@ const prevHref = !activeTopic && listing.page.page > 1
     background: var(--bg-1);
     color: var(--text-1);
     font: inherit;
+  }
+
+  /* JS auto-submits on change, so the Apply button is a no-JS fallback only. */
+  :global(html:not(.no-js)) .blog-listing__author-control :global(.blog-listing__apply) {
+    display: none;
   }
 
   .blog-listing__posts {
@@ -257,3 +264,9 @@ const prevHref = !activeTopic && listing.page.page > 1
     }
   }
 </style>
+
+<script>
+  // Auto-submit the author filter on change (the Apply button is a no-JS fallback).
+  const select = document.querySelector<HTMLSelectElement>('[data-author-select]');
+  select?.addEventListener('change', () => select.form?.submit());
+</script>
