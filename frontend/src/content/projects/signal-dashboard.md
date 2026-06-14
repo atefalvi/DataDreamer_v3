@@ -3,6 +3,10 @@ title: "Signal, made legible"
 summary: "An operations dashboard that resists the urge to show everything — one primary signal, honest context, and drill-downs only when asked."
 year: 2024
 role: "Design & build"
+author:
+  name: "Atef Alvi"
+  role: "Data Engineering"
+  href: "/dream-team/atef-alvi"
 stack: ["Tableau", "dbt", "SQL"]
 cover: "../../assets/projects/signal-dashboard/cover.svg"
 coverAlt: "A single trend line with two highlighted anomaly points over a faint grid"

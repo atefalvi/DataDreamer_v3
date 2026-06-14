@@ -12,7 +12,7 @@ interface Props {
 }
 
 const { project, class: className } = Astro.props;
-const { title, summary, year, stack, cover, coverAlt } = project.data;
+const { title, summary, year, stack, cover, coverAlt, author } = project.data;
 const href = `/projects/${project.id}`;
 ---
 
@@ -27,6 +27,9 @@ const href = `/projects/${project.id}`;
         <span>{stack.slice(0, 3).join(' · ')}</span>
       </div>
       <h3 class="case-card__title">{title}</h3>
+      <p class="case-card__byline">
+        By {author.name}{author.role ? ` · ${author.role}` : ''}
+      </p>
       <p class="case-card__summary">{summary}</p>
     </div>
   </a>
@@ -80,6 +83,13 @@ const href = `/projects/${project.id}`;
 
   .case-card__link:hover .case-card__title {
     color: var(--accent);
+  }
+
+  .case-card__byline {
+    margin-top: var(--space-2);
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
   }
 
   .case-card__summary {

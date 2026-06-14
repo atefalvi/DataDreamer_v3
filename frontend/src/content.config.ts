@@ -15,6 +15,11 @@ const projects = defineCollection({
       summary: z.string().max(220),
       year: z.number().int(),
       role: z.string(),
+      author: z.object({
+        name: z.string(),
+        role: z.string().optional(),
+        href: z.string().optional(),
+      }),
       stack: z.array(z.string()).max(10),
       cover: image(),
       coverAlt: z.string(),

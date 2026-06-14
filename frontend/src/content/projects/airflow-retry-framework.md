@@ -3,6 +3,10 @@ title: "A retry framework that survives production"
 summary: "Exponential backoff is not a strategy. A small, declarative retry layer for Airflow DAGs that distinguishes transient from terminal failures."
 year: 2025
 role: "Design & build"
+author:
+  name: "Atef Alvi"
+  role: "Data Engineering"
+  href: "/dream-team/atef-alvi"
 stack: ["Airflow", "Python", "Postgres"]
 cover: "../../assets/projects/airflow-retry-framework/cover.svg"
 coverAlt: "A directed task graph with one failing branch highlighted in the accent color"
