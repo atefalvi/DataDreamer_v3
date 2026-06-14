@@ -17,6 +17,38 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-13] V4-CLEAN-001 — done
+
+**Did**: Deleted the retired v3 shell and visual leftovers after all Phase B pages had
+migrated to the v4 layout: old `MainLayout`, nav/footer/logo/PageHero, v3 hero canvas,
+unused about/project/blog primitives, legacy Directus/content/markdown helpers,
+`global.css`, public masks, old `public/logo.svg`, old JPG OG images, and stray
+`.DS_Store` files. Kept active `/logs` redirect shims, current v4 blog/project
+components, favicons, and the documented temporary `og-*.png` image set.
+
+**Files**: Deleted `frontend/src/layouts/MainLayout.astro`,
+`frontend/src/styles/global.css`, legacy components under `frontend/src/components/`,
+legacy helpers `frontend/src/lib/{content,directus,renderMarkdown}.ts`,
+`frontend/public/logo.svg`, `frontend/public/masks/*`, old `frontend/public/og/*.jpg`;
+docs `13`, `15`.
+
+**Decisions / deviations**: Used two read-only sub-agent audits for import/static-asset
+verification. Accepted both findings. Preserved `frontend/src/pages/logs/*` because they
+are active 301 shims, and preserved `og-about.png`/`og-courses.png` even though currently
+unreferenced because V4-FND-002 defines the seven-file temporary OG set.
+
+**Validation**: Reference grep found no runtime references to deleted v3 shell files,
+Google Fonts CDN, `/logo.svg`, `/masks/`, or old JPG OG assets. `npx astro check` 0/0/0;
+`npm test` 63 passed; `npm run build` ok. Bundle report: only active client chunks remain
+(`HeroSignalField` 7.04 kB raw / 3.23 kB gzip, `ArticleEnhancements`, `codeCopy`).
+Browser smoke on local dev: `/` desktop and `/blog` at 375px had no console errors, no
+horizontal overflow, and no deleted asset references.
+
+**Next**: **V4-QA-001 — Responsive matrix pass**.
+
+**Warnings**: Historical docs still mention v3 files by design; the runtime/source grep was
+scoped to frontend code and public references.
+
 ## [2026-06-13] V4-DOC-002 — done
 
 **Did**: Rewrote `docs/AGENT_BLOG_GUIDE.md` for the v4 authoring flow. The guide now
