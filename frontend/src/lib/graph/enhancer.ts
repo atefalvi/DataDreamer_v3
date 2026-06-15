@@ -18,8 +18,13 @@ export function initTeamGraph(): void {
   type MotionState = {
     x: number;
     y: number;
-    targetX: number;
-    targetY: number;
+    /** Home (the SSR layout position) the node springs back toward. */
+    hx: number;
+    hy: number;
+    vx: number;
+    vy: number;
+    /** Seeded phase so each node wanders on its own organic rhythm. */
+    phase: number;
     r: number;
   };
 
@@ -27,6 +32,8 @@ export function initTeamGraph(): void {
     labelDx: number;
     labelDy: number;
   };
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let activeSpecialty: string | null = null;
   let hideTimer = 0;
@@ -63,23 +70,26 @@ export function initTeamGraph(): void {
 
   const nodesByAuthor = new Map(nodes.map((node) => [node.dataset.author ?? '', node]));
   const nodeState = new Map<SVGAElement, MotionState>(
-    nodes.map((node) => {
+    nodes.map((node, i) => {
       const x = numberData(node, 'x');
       const y = numberData(node, 'y');
-      return [node, { x, y, targetX: x, targetY: y, r: numberData(node, 'r', 26) }];
+      return [node, { x, y, hx: x, hy: y, vx: 0, vy: 0, phase: i * 1.7 + 0.6, r: numberData(node, 'r', 26) }];
     }),
   );
   const anchorState = new Map<string, AnchorState>(
-    anchors.map((anchor) => {
+    anchors.map((anchor, i) => {
       const x = Number(anchor.dataset.anchorX);
       const y = Number(anchor.dataset.anchorY);
       const labelX = Number(anchor.dataset.labelX);
       const labelY = Number(anchor.dataset.labelY);
-      const state = {
+      const state: AnchorState = {
         x,
         y,
-        targetX: x,
-        targetY: y,
+        hx: x,
+        hy: y,
+        vx: 0,
+        vy: 0,
+        phase: i * 2.3 + 1.1,
         r: 8,
         labelDx: Number.isFinite(labelX) ? labelX - x : 0,
         labelDy: Number.isFinite(labelY) ? labelY - y : 0,
@@ -87,6 +97,7 @@ export function initTeamGraph(): void {
       return [anchor.dataset.specialty ?? '', state];
     }),
   );
+  const anchorEntries = Array.from(anchorState.entries());
 
   const curveD = (x1: number, y1: number, x2: number, y2: number) => {
     const mx = (x1 + x2) / 2;
@@ -160,83 +171,80 @@ export function initTeamGraph(): void {
     updateAnchorEdges(specialty);
   };
 
-  let motionFrame = 0;
-  const tickMotion = () => {
-    motionFrame = 0;
-    let moving = false;
+  // Continuous, organic force simulation — nodes wander around their home position,
+  // repel each other, and bounce softly (a living neo4j / social-graph feel). Anchors
+  // (the discipline pillars) gently bob in place. Paused off-screen and under
+  // prefers-reduced-motion (then the SSR layout stays put).
+  const nodeArr = nodes.map((node) => ({ node, s: nodeState.get(node)! }));
+  let simRunning = false;
+  let simFrame = 0;
+  let lastTs = 0;
 
-    nodes.forEach((node) => {
-      if (node === dragged) return;
-      const state = nodeState.get(node);
-      if (!state) return;
-      const dx = state.targetX - state.x;
-      const dy = state.targetY - state.y;
-      if (Math.hypot(dx, dy) < 0.25) {
-        if (state.x !== state.targetX || state.y !== state.targetY) {
-          setNodePosition(node, state.targetX, state.targetY);
+  const stepSim = (now: number) => {
+    const dt = Math.min(2, lastTs ? (now - lastTs) / 16.67 : 1);
+    lastTs = now;
+    const t = now / 1000;
+
+    for (const { node, s } of nodeArr) {
+      if (node === dragged) continue;
+      let fx = 0;
+      let fy = 0;
+
+      // Repulsion + soft collision from every other node.
+      for (const other of nodeArr) {
+        if (other.node === node) continue;
+        const os = other.s;
+        const dx = s.x - os.x;
+        const dy = s.y - os.y;
+        const d2 = dx * dx + dy * dy || 1;
+        const d = Math.sqrt(d2);
+        fx += (dx / d) * (9000 / d2);
+        fy += (dy / d) * (9000 / d2);
+        const minD = s.r + os.r + 18;
+        if (d < minD) {
+          const push = (minD - d) * 0.5;
+          fx += (dx / d) * push;
+          fy += (dy / d) * push;
         }
-        return;
       }
-      moving = true;
-      setNodePosition(node, state.x + dx * 0.18, state.y + dy * 0.18);
-    });
 
-    anchorState.forEach((state, specialty) => {
-      const dx = state.targetX - state.x;
-      const dy = state.targetY - state.y;
-      if (Math.hypot(dx, dy) < 0.25) {
-        if (state.x !== state.targetX || state.y !== state.targetY) {
-          setAnchorPosition(specialty, state.targetX, state.targetY);
-        }
-        return;
+      // Spring back toward a gently-wandering home (organic drift, never fully still).
+      const wx = Math.sin(t * 0.5 + s.phase) * 7 + Math.sin(t * 0.21 + s.phase * 1.6) * 4;
+      const wy = Math.cos(t * 0.44 + s.phase * 1.3) * 7 + Math.cos(t * 0.18 + s.phase) * 4;
+      fx += (s.hx + wx - s.x) * 0.02;
+      fy += (s.hy + wy - s.y) * 0.02;
+
+      s.vx = (s.vx + fx * dt) * 0.84;
+      s.vy = (s.vy + fy * dt) * 0.84;
+      const speed = Math.hypot(s.vx, s.vy);
+      const max = 2.4;
+      if (speed > max) {
+        s.vx *= max / speed;
+        s.vy *= max / speed;
       }
-      moving = true;
-      setAnchorPosition(specialty, state.x + dx * 0.14, state.y + dy * 0.14);
-    });
+      const next = clampPoint(s.x + s.vx * dt, s.y + s.vy * dt, s.r);
+      setNodePosition(node, next.x, next.y);
+    }
 
-    if (moving) motionFrame = window.requestAnimationFrame(tickMotion);
+    // Anchors: subtle bob so the pillars feel alive without drifting away.
+    for (const [specialty, st] of anchorEntries) {
+      const bx = Math.sin(t * 0.32 + st.phase) * 4;
+      const by = Math.cos(t * 0.28 + st.phase) * 4;
+      setAnchorPosition(specialty, st.hx + bx, st.hy + by);
+    }
+
+    if (simRunning) simFrame = window.requestAnimationFrame(stepSim);
   };
 
-  const scheduleMotion = () => {
-    if (!motionFrame) motionFrame = window.requestAnimationFrame(tickMotion);
+  const startSim = () => {
+    if (simRunning || prefersReducedMotion) return;
+    simRunning = true;
+    lastTs = 0;
+    simFrame = window.requestAnimationFrame(stepSim);
   };
-
-  const setTarget = (node: SVGAElement, x: number, y: number) => {
-    const state = nodeState.get(node);
-    if (!state) return;
-    const next = clampPoint(x, y, state.r);
-    state.targetX = next.x;
-    state.targetY = next.y;
-  };
-
-  const setAnchorTarget = (specialty: string, x: number, y: number) => {
-    const state = anchorState.get(specialty);
-    if (!state) return;
-    const next = clampPoint(x, y, state.r);
-    state.targetX = next.x;
-    state.targetY = next.y;
-  };
-
-  const pullCluster = (node: SVGAElement, dx: number, dy: number) => {
-    const active = specialtiesOf(node);
-    const activeSet = new Set(active);
-
-    active.forEach((specialty) => {
-      const state = anchorState.get(specialty);
-      if (state) setAnchorTarget(specialty, state.targetX + dx * 0.34, state.targetY + dy * 0.34);
-    });
-
-    nodes.forEach((peer) => {
-      if (peer === node) return;
-      const shared = specialtiesOf(peer).filter((specialty) => activeSet.has(specialty)).length;
-      const state = nodeState.get(peer);
-      if (!state) return;
-      const base = shared ? 0.16 + shared * 0.1 : 0.075;
-      const strength = Math.min(0.38, base);
-      setTarget(peer, state.targetX + dx * strength, state.targetY + dy * strength);
-    });
-
-    scheduleMotion();
+  const stopSim = () => {
+    simRunning = false;
+    window.cancelAnimationFrame(simFrame);
   };
 
   const showFor = (node: SVGAElement) => {
@@ -315,18 +323,17 @@ export function initTeamGraph(): void {
     if (!dragMoved) return;
     event.preventDefault();
     const r = numberData(dragged, 'r', 26);
-    const previous = nodeState.get(dragged) ?? { x: numberData(dragged, 'x'), y: numberData(dragged, 'y') };
     const next = clampPoint(point.x + dragOffset.x, point.y + dragOffset.y, r);
-    const dx = next.x - previous.x;
-    const dy = next.y - previous.y;
     const state = nodeState.get(dragged);
     if (state) {
-      state.targetX = next.x;
-      state.targetY = next.y;
+      // Pin to the pointer; zero velocity so it doesn't fling on release. Neighbours
+      // get pushed organically by the simulation's repulsion.
+      state.vx = 0;
+      state.vy = 0;
     }
     setNodePosition(dragged, next.x, next.y);
-    pullCluster(dragged, dx, dy);
     showFor(dragged);
+    startSim();
   });
 
   const finishDrag = (event: PointerEvent) => {
@@ -414,4 +421,21 @@ export function initTeamGraph(): void {
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && activeSpecialty) applyFilter(null);
   });
+
+  // Run the living simulation only while the graph is on-screen and the tab is visible.
+  if (!prefersReducedMotion) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.some((entry) => entry.isIntersecting);
+        if (visible && !document.hidden) startSim();
+        else stopSim();
+      },
+      { threshold: 0.05 },
+    );
+    io.observe(svg);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopSim();
+      else startSim();
+    });
+  }
 }

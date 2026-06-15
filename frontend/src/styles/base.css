@@ -22,6 +22,9 @@ html {
 
 body {
   min-height: 100%;
+  /* Clip horizontal overflow (e.g. full-bleed section bands) without breaking
+     position: sticky — `clip` does not create a scroll container. */
+  overflow-x: clip;
   background: var(--bg-0);
   color: var(--text-1);
   font-family: var(--font-text);

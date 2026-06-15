@@ -34,12 +34,16 @@ try {
   console.error('[author] sections failed:', error instanceof Error ? error.message : error);
 }
 
-const iconFor = (label: string): string => {
-  const l = label.toLowerCase();
-  if (l.includes('git')) return 'github';
-  if (l.includes('linkedin')) return 'linkedin';
-  if (l.includes('mail') || l.includes('email')) return 'mail';
-  if (l.includes('twitter') || l === 'x') return 'x';
+/** Map a link's label (or URL) to an icon name — covers the popular socials + a
+ *  globe fallback for personal sites/portfolios. */
+const iconFor = (link: { label: string; url: string }): string => {
+  const s = `${link.label} ${link.url}`.toLowerCase();
+  if (s.includes('github')) return 'github';
+  if (s.includes('linkedin')) return 'linkedin';
+  if (s.includes('twitter') || s.includes('x.com') || /\bx\b/.test(link.label.toLowerCase())) return 'x';
+  if (s.includes('instagram') || s.includes('insta')) return 'instagram';
+  if (s.includes('youtube') || s.includes('youtu.be')) return 'youtube';
+  if (s.includes('mail') || s.includes('@') || link.url.startsWith('mailto:')) return 'mail';
   return 'globe';
 };
 
@@ -94,7 +98,7 @@ const jsonLd = [
                   target="_blank"
                   aria-label={`${author!.name} on ${link.label}`}
                 >
-                  <Icon name={iconFor(link.label)} size={16} />
+                  <Icon name={iconFor(link)} size={16} />
                   <span>{link.label}</span>
                 </a>
               ))}
@@ -104,18 +108,41 @@ const jsonLd = [
       </div>
     </header>
 
-    {author.statement && <blockquote class="author__statement">{author.statement}</blockquote>}
+    <div class="author__body">
+      <div class="author__main">
+        {author.statement && <blockquote class="author__statement">{author.statement}</blockquote>}
+        {author.bioHtml && <div class="author__bio prose" set:html={author.bioHtml} />}
+      </div>
 
-    {author.bioHtml && <div class="author__bio prose" set:html={author.bioHtml} />}
-
-    {author.tools.length > 0 && (
-      <section class="author__tools" aria-label="Tools & tech">
-        <p class="kicker">Tools</p>
-        <ul>
-          {author.tools.map((tool) => <li>{tool}</li>)}
-        </ul>
-      </section>
-    )}
+      {(author.tools.length > 0 || author.links.length > 0) && (
+        <aside class="author__side" aria-label="Profile details">
+          {author.tools.length > 0 && (
+            <section class="author__tools" aria-label="Tools & tech">
+              <p class="kicker">Tools</p>
+              <ul>
+                {author.tools.map((tool) => <li>{tool}</li>)}
+              </ul>
+            </section>
+          )}
+          {author.links.length > 0 && (
+            <section class="author__connect" aria-label="Connect">
+              <p class="kicker">Connect</p>
+              <ul>
+                {author.links.map((link) => (
+                  <li>
+                    <a href={link.url} rel="noopener noreferrer" target="_blank">
+                      <Icon name={iconFor(link)} size={16} />
+                      <span>{link.label}</span>
+                      <Icon name="arrow-up-right" size={16} class="author__connect-arrow" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </aside>
+      )}
+    </div>
 
     {posts.length > 0 && (
       <section class="author__writing" aria-label={`Writing by ${author.name}`}>
@@ -281,9 +308,28 @@ const jsonLd = [
     border-color: var(--accent);
   }
 
+  /* Body — main column + sticky detail rail so content fills the width. */
+  .author__body {
+    display: grid;
+    gap: var(--space-8);
+    margin-top: var(--section-y);
+  }
+
+  @media (min-width: 64rem) {
+    .author__body {
+      grid-template-columns: minmax(0, 1fr) 17rem;
+      gap: var(--space-9);
+      align-items: start;
+    }
+    .author__side {
+      position: sticky;
+      top: calc(var(--nav-height) + var(--space-5));
+    }
+  }
+
   .author__statement {
-    max-width: 38ch;
-    margin: var(--section-y) 0 0;
+    max-width: 42ch;
+    margin: 0;
     padding-left: var(--space-5);
     border-left: 2px solid var(--accent);
     font-family: var(--font-display);
@@ -294,11 +340,13 @@ const jsonLd = [
   }
 
   .author__bio {
-    margin-top: var(--space-7);
+    max-width: none;
+    margin-top: var(--space-6);
   }
 
-  .author__tools {
-    margin-top: var(--section-y);
+  .author__side {
+    display: grid;
+    gap: var(--space-6);
   }
 
   .author__tools ul {
@@ -316,6 +364,47 @@ const jsonLd = [
     border-radius: var(--radius-full);
     background: var(--bg-1);
     font-size: var(--fs-sm);
+  }
+
+  /* Connect rail. */
+  .author__connect ul {
+    display: grid;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .author__connect a {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+    font-weight: 560;
+    text-decoration: none;
+    transition: border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+  }
+
+  .author__connect a span {
+    flex: 1;
+  }
+
+  .author__connect-arrow {
+    color: var(--text-3);
+  }
+
+  .author__connect a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .author__connect a:hover .author__connect-arrow {
+    color: var(--accent);
   }
 
   .author__writing,
