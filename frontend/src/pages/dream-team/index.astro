@@ -56,6 +56,10 @@ const initialsOf = (name: string) =>
     .map((p) => p[0]?.toUpperCase() ?? '')
     .join('');
 
+const graphNodeCount = authors.length + specialties.length;
+const graphLinkCount = layout?.edges.length ?? 0;
+const sharedSkillCount = specialties.filter((s) => s.memberCount > 1).length;
+
 const jsonLd = [
   itemListJsonLd({
     name: 'DataDreamer Dream Team',
@@ -97,148 +101,214 @@ const jsonLd = [
     ) : (
       <>
         {showGraph && layout && (
-          <section class="dt-stage" aria-hidden="false">
+          <section class="dt-stage" aria-label="Interactive Dream Team network" data-team-network>
             <span class="dt-stage__bg" aria-hidden="true"></span>
-            <svg
-              class="tg"
-              viewBox={`0 0 ${layout.width} ${layout.height}`}
-              role="group"
-              aria-label="Team constellation; the list below contains the same people"
-              data-team-graph
-            >
-              <defs>
-                <radialGradient id="tg-core" cx="50%" cy="50%" r="50%">
-                  <stop offset="0" stop-color="var(--accent)" stop-opacity="0.5" />
-                  <stop offset="0.6" stop-color="var(--accent)" stop-opacity="0.08" />
-                  <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
-                </radialGradient>
-                {layout.authorNodes.map((node) => {
-                  const author = authorBySlug.get(node.id);
-                  if (!author?.avatar?.src) return null;
-                  return (
-                    <clipPath id={`clip-${node.id}`}>
-                      <circle cx={node.x} cy={node.y} r={node.r - 2} />
-                    </clipPath>
-                  );
-                })}
-              </defs>
+            <div class="dt-stage__panel">
+              <div class="dt-stage__intro">
+                <p class="kicker">Network map</p>
+                <h2>People, skills, and shared signal.</h2>
+                <p>
+                  Search, select, or drag nodes to inspect how the team connects across disciplines.
+                  Released nodes stay where you place them until the layout is reset.
+                </p>
+              </div>
 
-              {/* Shared "pillar ring" the disciplines sit on + a faint data core. */}
-              <ellipse
-                class="tg-ring"
-                cx={GRAPH.cx}
-                cy={GRAPH.cy}
-                rx={GRAPH.rx}
-                ry={GRAPH.ry}
-              />
-              <circle class="tg-core" cx={GRAPH.cx} cy={GRAPH.cy} r="170" fill="url(#tg-core)" />
+              <label class="dt-search" for="team-search">
+                <span>Search network</span>
+                <input id="team-search" type="search" placeholder="Search people or skills" data-team-search />
+              </label>
 
-              <g class="tg-edges">
-                {layout.edges.map((edge) => {
-                  const flowColor = colorBySlug.get(edge.specialtyId) ?? 'accent';
-                  const d = `M ${edge.x1} ${edge.y1} Q ${edge.cx} ${edge.cy} ${edge.x2} ${edge.y2}`;
-                  return (
-                    <g
-                      class="tg-edge-group"
-                      data-author={edge.authorId}
-                      data-specialty={edge.specialtyId}
-                      style={`--node-flow: var(--${flowColor});`}
-                    >
-                      <path class="tg-edge" d={d} />
-                      <path class="tg-edge-flow" d={d} />
-                    </g>
-                  );
-                })}
-              </g>
+              <div class="dt-actions" aria-label="Network actions">
+                <button type="button" data-team-reset-layout>Reset layout</button>
+                <button type="button" data-team-clear-selection>Clear selection</button>
+              </div>
 
-              <g class="tg-anchors">
-                {layout.specialtyAnchors.map((anchor) => {
-                  const specialty = specialtyMap.get(anchor.id);
-                  const color = colorBySlug.get(anchor.id) ?? 'accent';
-                  return (
-                    <g
-                      class="tg-anchor"
-                      data-specialty={anchor.id}
-                      data-anchor-x={anchor.x}
-                      data-anchor-y={anchor.y}
-                      data-label-x={anchor.labelX}
-                      data-label-y={anchor.labelY}
-                      style={`--anchor-color: var(--${color});`}
-                    >
-                      <circle class="tg-anchor-dot" cx={anchor.x} cy={anchor.y} r="5" />
-                      <text class="tg-anchor-label" x={anchor.labelX} y={anchor.labelY} text-anchor={anchor.labelAnchor}>
-                        {specialty?.name ?? anchor.id}
-                      </text>
-                    </g>
-                  );
-                })}
-              </g>
+              <dl class="dt-metrics" aria-label="Network summary">
+                <div>
+                  <dt>People</dt>
+                  <dd>{authors.length}</dd>
+                </div>
+                <div>
+                  <dt>Skills</dt>
+                  <dd>{specialties.length}</dd>
+                </div>
+                <div>
+                  <dt>Shared</dt>
+                  <dd>{sharedSkillCount}</dd>
+                </div>
+                <div>
+                  <dt>Links</dt>
+                  <dd>{graphLinkCount}</dd>
+                </div>
+              </dl>
+            </div>
 
-              <g class="tg-nodes">
-                {layout.authorNodes.map((node, i) => {
-                  const author = authorBySlug.get(node.id);
-                  if (!author) return null;
-                  const color = colorBySlug.get(author.specialties[0]?.slug ?? '') ?? 'accent';
-                  const r = node.r;
-                  return (
-                    <a
-                      href={`/dream-team/${author.slug}`}
-                      class="tg-node"
-                      data-author={author.slug}
-                      data-specialties={author.specialties.map((s) => s.slug).join(',')}
-                      data-name={author.name}
-                      data-role={author.roleTitle}
-                      data-posts={author.postCount}
-                      data-courses={author.courseCount}
-                      data-x={node.x}
-                      data-y={node.y}
-                      data-r={r}
-                      tabindex={i === 0 ? 0 : -1}
-                      aria-label={`${author.name}, ${author.roleTitle}`}
-                      style={`--node-color: var(--${color});`}
-                    >
-                      <circle class="tg-node-ring" cx={node.x} cy={node.y} r={r} />
-                      {author.avatar?.src ? (
-                        <image
-                          href={author.avatar.src}
-                          x={node.x - (r - 2)}
-                          y={node.y - (r - 2)}
-                          width={(r - 2) * 2}
-                          height={(r - 2) * 2}
-                          clip-path={`url(#clip-${author.slug})`}
-                          preserveAspectRatio="xMidYMid slice"
-                        />
-                      ) : (
-                        <text class="tg-node-initials" x={node.x} y={node.y} text-anchor="middle" dominant-baseline="central">
-                          {initialsOf(author.name)}
+            <div class="dt-stage__canvas">
+              <div class="dt-stage__topline" aria-hidden="true">
+                <span>{graphNodeCount} nodes</span>
+                <span>{graphLinkCount} links</span>
+                <span>radial graph</span>
+              </div>
+              <svg
+                class="tg"
+                viewBox={`0 0 ${layout.width} ${layout.height}`}
+                role="group"
+                aria-label="Interactive team network; the list below contains the same people"
+                data-team-graph
+              >
+                <defs>
+                  <radialGradient id="tg-core" cx="50%" cy="50%" r="50%">
+                    <stop offset="0" stop-color="var(--accent)" stop-opacity="0.38" />
+                    <stop offset="0.55" stop-color="var(--accent)" stop-opacity="0.08" />
+                    <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
+                  </radialGradient>
+                  <radialGradient id="tg-person" cx="34%" cy="28%" r="72%">
+                    <stop offset="0" stop-color="var(--text-1)" stop-opacity="0.96" />
+                    <stop offset="0.44" stop-color="var(--accent)" stop-opacity="0.68" />
+                    <stop offset="1" stop-color="var(--bg-2)" stop-opacity="0.96" />
+                  </radialGradient>
+                  <radialGradient id="tg-skill" cx="34%" cy="28%" r="72%">
+                    <stop offset="0" stop-color="var(--viz-2)" stop-opacity="0.9" />
+                    <stop offset="0.58" stop-color="var(--accent)" stop-opacity="0.34" />
+                    <stop offset="1" stop-color="var(--bg-2)" stop-opacity="0.96" />
+                  </radialGradient>
+                  {layout.authorNodes.map((node) => {
+                    const author = authorBySlug.get(node.id);
+                    if (!author?.avatar?.src) return null;
+                    return (
+                      <clipPath id={`clip-${node.id}`}>
+                        <circle cx="0" cy="0" r={node.r - 3} />
+                      </clipPath>
+                    );
+                  })}
+                </defs>
+
+                <ellipse class="tg-orbit tg-orbit--outer" cx={GRAPH.cx} cy={GRAPH.cy} rx={GRAPH.rx} ry={GRAPH.ry} />
+                <ellipse class="tg-orbit tg-orbit--inner" cx={GRAPH.cx} cy={GRAPH.cy} rx={GRAPH.rx * 0.58} ry={GRAPH.ry * 0.54} />
+                <circle class="tg-core" cx={GRAPH.cx} cy={GRAPH.cy} r="176" fill="url(#tg-core)" />
+
+                <g class="tg-links">
+                  {layout.edges.map((edge) => {
+                    const specialty = specialtyMap.get(edge.specialtyId);
+                    const flowColor = colorBySlug.get(edge.specialtyId) ?? 'accent';
+                    const d = `M ${edge.x1} ${edge.y1} Q ${edge.cx} ${edge.cy} ${edge.x2} ${edge.y2}`;
+                    return (
+                      <g
+                        class="tg-link-group"
+                        data-source={edge.authorId}
+                        data-target={edge.specialtyId}
+                        data-kind={specialty && specialty.memberCount > 1 ? 'shared' : 'has'}
+                        style={`--node-flow: var(--${flowColor});`}
+                      >
+                        <path class="tg-link" d={d} />
+                        <path class="tg-link-flow" d={d} />
+                      </g>
+                    );
+                  })}
+                </g>
+
+                <g class="tg-nodes">
+                  {layout.specialtyAnchors.map((anchor, i) => {
+                    const specialty = specialtyMap.get(anchor.id);
+                    if (!specialty) return null;
+                    const color = colorBySlug.get(anchor.id) ?? 'accent';
+                    const r = specialty.memberCount > 1 ? 21 : 17;
+                    const type = specialty.memberCount > 1 ? 'shared skill' : 'skill';
+                    return (
+                      <g
+                        class:list={['tg-node', 'tg-node--skill', { 'tg-node--shared': specialty.memberCount > 1 }]}
+                        data-id={specialty.slug}
+                        data-type={type}
+                        data-label={specialty.name}
+                        data-search={`${specialty.name} ${type}`}
+                        data-x={anchor.x}
+                        data-y={anchor.y}
+                        data-home-x={anchor.x}
+                        data-home-y={anchor.y}
+                        data-r={r}
+                        tabindex={i === 0 ? 0 : -1}
+                        role="button"
+                        aria-label={`${specialty.name}, ${type}`}
+                        style={`--node-color: var(--${color});`}
+                        transform={`translate(${anchor.x} ${anchor.y})`}
+                      >
+                        <circle class="tg-node-shadow" cx="0" cy="5" r={r + 6} />
+                        <circle class="tg-node-halo" cx="0" cy="0" r={r + 8} />
+                        <circle class="tg-node-core" cx="0" cy="0" r={r} />
+                        <text class="tg-node-label tg-node-label--skill" x="0" y={r + 17} text-anchor="middle">
+                          {specialty.name}
                         </text>
-                      )}
-                      <text class="tg-node-name" x={node.x} y={node.y + r + 15} text-anchor="middle">
-                        {author.name.split(/\s+/)[0]}
-                      </text>
-                    </a>
-                  );
-                })}
-              </g>
-            </svg>
+                      </g>
+                    );
+                  })}
 
-            <ul class="dt-legend" aria-label="Filter by specialty" data-team-legend>
-              {specialties.map((s) => (
-                <li>
-                  <button
-                    type="button"
-                    class="dt-legend__chip"
-                    data-specialty={s.slug}
-                    aria-pressed="false"
-                    style={`--chip-color: var(--${s.colorKey});`}
-                  >
-                    <span class="dt-legend__dot" aria-hidden="true"></span>
-                    {s.name}
-                    <span class="dt-legend__count">{s.memberCount}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+                  {layout.authorNodes.map((node, i) => {
+                    const author = authorBySlug.get(node.id);
+                    if (!author) return null;
+                    const color = colorBySlug.get(author.specialties[0]?.slug ?? '') ?? 'accent';
+                    const r = node.r + 8;
+                    return (
+                      <g
+                        class="tg-node tg-node--person"
+                        data-id={author.slug}
+                        data-type="person"
+                        data-label={author.name}
+                        data-role={author.roleTitle}
+                        data-href={`/dream-team/${author.slug}`}
+                        data-specialties={author.specialties.map((s) => s.name).join(', ')}
+                        data-posts={author.postCount}
+                        data-courses={author.courseCount}
+                        data-search={`${author.name} ${author.roleTitle} ${author.specialties.map((s) => s.name).join(' ')}`}
+                        data-x={node.x}
+                        data-y={node.y}
+                        data-home-x={node.x}
+                        data-home-y={node.y}
+                        data-r={r}
+                        tabindex={specialties.length === 0 && i === 0 ? 0 : -1}
+                        role="link"
+                        aria-label={`${author.name}, ${author.roleTitle}`}
+                        style={`--node-color: var(--${color});`}
+                        transform={`translate(${node.x} ${node.y})`}
+                      >
+                        <circle class="tg-node-shadow" cx="0" cy="6" r={r + 7} />
+                        <circle class="tg-node-halo" cx="0" cy="0" r={r + 7} />
+                        <circle class="tg-node-core" cx="0" cy="0" r={r} />
+                        {author.avatar?.src ? (
+                          <image
+                            href={author.avatar.src}
+                            x={-(r - 4)}
+                            y={-(r - 4)}
+                            width={(r - 4) * 2}
+                            height={(r - 4) * 2}
+                            clip-path={`url(#clip-${author.slug})`}
+                            preserveAspectRatio="xMidYMid slice"
+                          />
+                        ) : (
+                          <text class="tg-node-initials" x="0" y="0" text-anchor="middle" dominant-baseline="central">
+                            {initialsOf(author.name)}
+                          </text>
+                        )}
+                        <text class="tg-node-label tg-node-label--person" x="0" y={r + 18} text-anchor="middle">
+                          {author.name.split(/\s+/)[0]}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </g>
+              </svg>
+            </div>
+
+            <aside class="dt-inspector" aria-live="polite" data-team-inspector>
+              <p class="kicker">Inspector</p>
+              <h2 data-team-inspector-title>Select a node</h2>
+              <p data-team-inspector-summary>
+                Inspect people and shared skills, then drag nodes to reshape the network.
+              </p>
+              <div class="dt-inspector__meta" data-team-inspector-meta>
+                <span>{authors.length} people</span>
+                <span>{specialties.length} skills</span>
+              </div>
+            </aside>
           </section>
         )}
 
@@ -251,8 +321,6 @@ const jsonLd = [
       </>
     )}
   </div>
-
-  <div class="tg-tooltip" data-team-tooltip hidden aria-hidden="true"></div>
 </BaseLayout>
 
 <style>
@@ -277,26 +345,29 @@ const jsonLd = [
     line-height: var(--lh-lg);
   }
 
-  /* Graph stage — TL+ only (07 §5; on smaller screens the list is the page).
-     Sits in an ambient "observatory" field; the graph is subtly alive. */
+  /* Interactive graph stage. Uses the existing Observatory palette, but follows the
+     prototype's editorial radial interaction model: search, inspect, drag, reset. */
   .dt-stage {
-    display: none;
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-7);
+    padding: clamp(var(--space-4), 2vw, var(--space-6));
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid color-mix(in srgb, var(--border-2) 64%, transparent);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(48rem 28rem at 20% 6%, color-mix(in srgb, var(--viz-2) 12%, transparent), transparent 72%),
+      radial-gradient(40rem 26rem at 84% 22%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+      linear-gradient(150deg, color-mix(in srgb, var(--bg-2) 48%, transparent), color-mix(in srgb, var(--bg-1) 94%, transparent));
+    box-shadow: var(--shadow-2);
   }
 
   @media (min-width: 64rem) {
     .dt-stage {
-      position: relative;
-      display: block;
-      margin-top: var(--space-7);
-      padding: var(--space-6);
-      overflow: hidden;
-      isolation: isolate;
-      border: 1px solid color-mix(in srgb, var(--border-2) 64%, transparent);
-      border-radius: var(--radius-lg);
-      background:
-        radial-gradient(circle at 18% 8%, color-mix(in srgb, var(--viz-2) 10%, transparent), transparent 28rem),
-        linear-gradient(160deg, color-mix(in srgb, var(--bg-2) 55%, transparent), var(--bg-1));
-      box-shadow: var(--shadow-2);
+      grid-template-columns: minmax(14rem, 17rem) minmax(0, 1fr) minmax(15rem, 18rem);
+      align-items: stretch;
     }
   }
 
@@ -313,22 +384,185 @@ const jsonLd = [
     opacity: 0.6;
   }
 
-  .tg {
-    width: 100%;
-    height: min(78vh, 820px);
-    min-height: 660px;
-    overflow: visible;
-    touch-action: none;
+  .dt-stage__panel,
+  .dt-inspector {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    align-content: start;
+    gap: var(--space-5);
+    padding: var(--space-5);
+    border: 1px solid color-mix(in srgb, var(--text-1) 9%, transparent);
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--text-1) 5%, transparent), transparent 36%),
+      color-mix(in srgb, var(--bg-1) 62%, transparent);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
   }
 
-  /* Shared pillar ring (disciplines sit on it) + breathing data core. */
-  .tg-ring {
+  .dt-stage__intro h2,
+  .dt-inspector h2 {
+    margin-top: var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+    font-weight: 620;
+    letter-spacing: 0;
+  }
+
+  .dt-stage__intro p:not(.kicker),
+  .dt-inspector p:not(.kicker) {
+    margin-top: var(--space-3);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .dt-search {
+    display: grid;
+    gap: var(--space-2);
+    color: var(--text-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 650;
+    text-transform: uppercase;
+  }
+
+  .dt-search input {
+    min-width: 0;
+    min-height: 2.75rem;
+    padding-inline: var(--space-4);
+    border: 1px solid color-mix(in srgb, var(--border-2) 68%, transparent);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-0) 46%, transparent);
+    color: var(--text-1);
+    font-family: var(--font-text);
+    font-size: var(--fs-sm);
+    text-transform: none;
+    outline: none;
+  }
+
+  .dt-search input:focus-visible {
+    border-color: var(--focus-ring);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 18%, transparent);
+  }
+
+  .dt-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .dt-actions button {
+    min-height: 2.5rem;
+    border: 1px solid color-mix(in srgb, var(--border-2) 70%, transparent);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-2) 48%, transparent);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    font-weight: 620;
+    cursor: pointer;
+    transition:
+      color var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .dt-actions button:hover {
+    color: var(--text-1);
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--border-2));
+    background: color-mix(in srgb, var(--accent) 11%, var(--bg-2));
+    transform: translateY(-1px);
+  }
+
+  .dt-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .dt-metrics div {
+    padding: var(--space-3);
+    border: 1px solid color-mix(in srgb, var(--border-1) 78%, transparent);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--bg-0) 34%, transparent);
+  }
+
+  .dt-metrics dt {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
+  .dt-metrics dd {
+    margin: var(--space-1) 0 0;
+    color: var(--text-1);
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+  }
+
+  .dt-stage__canvas {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--text-1) 9%, transparent);
+    border-radius: var(--radius-md);
+    background:
+      radial-gradient(38rem 24rem at 50% 50%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 72%),
+      radial-gradient(30rem 22rem at 22% 18%, color-mix(in srgb, var(--viz-2) 8%, transparent), transparent 70%),
+      color-mix(in srgb, var(--bg-0) 74%, transparent);
+    backdrop-filter: blur(12px) saturate(130%);
+    -webkit-backdrop-filter: blur(12px) saturate(130%);
+  }
+
+  .dt-stage__topline {
+    position: absolute;
+    inset: var(--space-4) var(--space-4) auto;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    pointer-events: none;
+  }
+
+  .dt-stage__topline span {
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid color-mix(in srgb, var(--border-1) 70%, transparent);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-0) 48%, transparent);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
+  .tg {
+    width: 100%;
+    height: clamp(30rem, 62vh, 48rem);
+    min-height: 30rem;
+    overflow: visible;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .tg-orbit {
     fill: none;
     stroke: color-mix(in srgb, var(--border-2) 85%, transparent);
     stroke-width: 1;
-    stroke-dasharray: 2 8;
-    opacity: 0.45;
+    stroke-dasharray: 3 10;
+    opacity: 0.4;
     animation: tg-ring-march 50s linear infinite;
+  }
+
+  .tg-orbit--inner {
+    opacity: 0.22;
+    stroke-dasharray: 2 12;
   }
 
   .tg-core {
@@ -337,77 +571,91 @@ const jsonLd = [
     animation: tg-core-pulse 7s var(--ease-in-out) infinite;
   }
 
-  /* Edges + the data flowing along them. */
-  .tg-edge {
+  .tg-link {
     fill: none;
     stroke: var(--border-2);
     stroke-width: 1;
-    opacity: 0.5;
+    opacity: 0.42;
     transition: opacity var(--dur-2) var(--ease-out), stroke var(--dur-2) var(--ease-out);
   }
 
-  .tg-edge-flow {
+  .tg-link-flow {
     fill: none;
     stroke: var(--node-flow, var(--accent));
-    stroke-width: 2;
+    stroke-width: 1.75;
     stroke-linecap: round;
     stroke-dasharray: 1.5 15;
-    opacity: 0.5;
+    opacity: 0.42;
     animation: tg-flow 2.6s linear infinite;
   }
 
-  .tg.has-focus .tg-edge-group:not(.is-lit) {
-    opacity: 0.12;
+  .tg.is-focused .tg-link-group:not(.is-lit),
+  .tg.is-searching .tg-link-group:not(.is-lit) {
+    opacity: 0.1;
   }
 
-  .tg-edge-group.is-lit .tg-edge {
+  .tg-link-group.is-lit .tg-link {
     stroke: var(--accent);
-    opacity: 0.85;
+    opacity: 0.86;
   }
 
-  .tg-edge-group.is-lit .tg-edge-flow {
+  .tg-link-group.is-lit .tg-link-flow {
     opacity: 1;
-    stroke-width: 2.5;
-  }
-
-  .tg-anchor-dot {
-    fill: var(--anchor-color);
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: tg-anchor-pulse 4.5s var(--ease-in-out) infinite;
-  }
-
-  .tg-anchor-label {
-    fill: var(--text-2);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    stroke-width: 2.4;
   }
 
   .tg-node {
     cursor: grab;
     touch-action: none;
+    transition: opacity var(--dur-2) var(--ease-out);
   }
 
   .tg-node.is-dragging {
     cursor: grabbing;
   }
 
-  .tg-node.is-dragging .tg-node-ring {
-    transform: scale(1.14);
-    animation: none;
+  .tg-node-shadow {
+    fill: color-mix(in srgb, #000 36%, transparent);
+    opacity: 0.58;
   }
 
-  .tg-node-ring {
-    fill: var(--bg-2);
-    stroke: var(--node-color);
-    stroke-width: 2;
-    transition: transform var(--dur-2) var(--ease-out);
+  .tg-node-halo {
+    fill: none;
+    stroke: color-mix(in srgb, var(--node-color) 48%, transparent);
+    stroke-width: 1;
+    opacity: 0.65;
+    transition:
+      opacity var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
     transform-box: fill-box;
     transform-origin: center;
-    animation: tg-breathe 6s var(--ease-in-out) infinite;
+  }
+
+  .tg-node-core {
+    fill: url(#tg-skill);
+    stroke: color-mix(in srgb, var(--text-1) 42%, transparent);
+    stroke-width: 1.25;
+    transition:
+      stroke var(--dur-2) var(--ease-out),
+      filter var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .tg-node--person .tg-node-core {
+    fill: url(#tg-person);
+    stroke: color-mix(in srgb, var(--node-color) 72%, var(--text-1));
+    stroke-width: 1.7;
+  }
+
+  .tg-node--shared .tg-node-core {
+    stroke: color-mix(in srgb, var(--accent) 72%, var(--text-1));
+    stroke-width: 1.7;
+  }
+
+  .tg-node image {
+    pointer-events: none;
   }
 
   .tg-node-initials {
@@ -417,36 +665,104 @@ const jsonLd = [
     font-weight: 600;
   }
 
-  .tg-node-name {
+  .tg-node-label {
     fill: var(--text-2);
     font-family: var(--font-text);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 560;
+    letter-spacing: 0;
+    paint-order: stroke;
+    pointer-events: none;
+    stroke: color-mix(in srgb, var(--bg-0) 88%, transparent);
+    stroke-width: 5px;
   }
 
-  .tg-node:hover .tg-node-ring,
-  .tg-node:focus-visible .tg-node-ring,
-  .tg-node.is-active .tg-node-ring {
-    transform: scale(1.1);
-    animation: none;
+  .tg-node-label--person {
+    fill: var(--text-1);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .tg-node-label--skill {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  .tg-node:hover .tg-node-core,
+  .tg-node:focus-visible .tg-node-core,
+  .tg-node.is-selected .tg-node-core,
+  .tg-node.is-match .tg-node-core {
+    stroke: var(--text-1);
+    filter: drop-shadow(0 0 16px color-mix(in srgb, var(--node-color) 56%, transparent));
+  }
+
+  .tg-node:hover .tg-node-halo,
+  .tg-node:focus-visible .tg-node-halo,
+  .tg-node.is-selected .tg-node-halo,
+  .tg-node.is-match .tg-node-halo {
+    opacity: 1;
+    transform: scale(1.18);
   }
 
   .tg-node:focus-visible {
     outline: none;
   }
 
-  .tg-node:focus-visible .tg-node-ring {
-    stroke: var(--focus-ring);
-    stroke-width: 3;
+  .tg-node.is-dimmed {
+    opacity: 0.16;
   }
 
-  .tg.has-focus .tg-node:not(.is-active) {
-    opacity: 0.4;
-    transition: opacity var(--dur-2) var(--ease-out);
+  .tg-node.is-neighbor {
+    opacity: 0.74;
   }
 
-  .tg.is-filtered .tg-node.is-dimmed {
-    opacity: 0.18;
+  .dt-inspector {
+    min-height: 100%;
+  }
+
+  .dt-inspector__meta,
+  .dt-inspector__tags,
+  .dt-inspector :global(.dt-inspector__meta),
+  .dt-inspector :global(.dt-inspector__tags) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .dt-inspector__meta span,
+  .dt-inspector__tags span,
+  .dt-inspector__link,
+  .dt-inspector :global(.dt-inspector__meta span),
+  .dt-inspector :global(.dt-inspector__tags span),
+  .dt-inspector :global(.dt-inspector__link) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding-inline: var(--space-3);
+    border: 1px solid color-mix(in srgb, var(--border-1) 78%, transparent);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-0) 32%, transparent);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-decoration: none;
+  }
+
+  .dt-inspector__link {
+    width: fit-content;
+    color: var(--accent);
+  }
+
+  .dt-inspector :global(.dt-inspector__link) {
+    width: fit-content;
+    color: var(--accent);
+  }
+
+  .dt-inspector__link:hover,
+  .dt-inspector :global(.dt-inspector__link:hover) {
+    border-color: color-mix(in srgb, var(--accent) 52%, var(--border-2));
+    color: var(--text-1);
   }
 
   @keyframes tg-flow {
@@ -458,26 +774,6 @@ const jsonLd = [
   @keyframes tg-ring-march {
     to {
       stroke-dashoffset: -200;
-    }
-  }
-
-  @keyframes tg-breathe {
-    0%, 100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-  }
-
-  @keyframes tg-anchor-pulse {
-    0%, 100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-    50% {
-      transform: scale(1.55);
-      opacity: 0.55;
     }
   }
 
@@ -493,66 +789,54 @@ const jsonLd = [
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tg-node-ring,
-    .tg-edge,
+    .tg-link,
     .tg-node,
-    .tg-ring,
-    .tg-core,
-    .tg-anchor-dot {
+    .tg-orbit,
+    .tg-core {
       animation: none;
       transition: none;
     }
-    .tg-edge-flow {
+    .tg-link-flow {
       display: none;
     }
   }
 
-  /* Legend / filters. */
-  .dt-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin: var(--space-6) 0 0;
-    padding: 0;
-    list-style: none;
+  @media (max-width: 63.999rem) {
+    .dt-stage {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .dt-stage__panel,
+    .dt-inspector {
+      padding: var(--space-4);
+    }
+
+    .tg {
+      height: clamp(29rem, 68vw, 38rem);
+      min-height: 29rem;
+    }
   }
 
-  .dt-legend__chip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-full);
-    background: var(--bg-1);
-    color: var(--text-2);
-    font-size: var(--fs-sm);
-    cursor: pointer;
-    transition: border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
-  }
+  @media (max-width: 41.999rem) {
+    .dt-stage {
+      margin-inline: calc(var(--gutter) * -0.5);
+      border-radius: var(--radius-md);
+    }
 
-  .dt-legend__chip:hover {
-    color: var(--text-1);
-    border-color: var(--border-2);
-  }
+    .dt-actions,
+    .dt-metrics {
+      grid-template-columns: 1fr;
+    }
 
-  .dt-legend__chip[aria-pressed='true'] {
-    color: var(--text-1);
-    border-color: var(--chip-color);
-    background: color-mix(in srgb, var(--chip-color) 12%, var(--bg-1));
-  }
+    .tg {
+      height: 34rem;
+      min-height: 34rem;
+    }
 
-  .dt-legend__dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--chip-color);
-  }
-
-  .dt-legend__count {
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
+    .dt-stage__topline {
+      position: static;
+      padding: var(--space-4) var(--space-4) 0;
+    }
   }
 
   /* Member list. */
@@ -598,36 +882,6 @@ const jsonLd = [
     }
   }
 
-  /* Tooltip (enhancer-driven). */
-  .tg-tooltip {
-    position: fixed;
-    z-index: 50;
-    max-width: 16rem;
-    padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--border-2);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--bg-1) 96%, transparent);
-    backdrop-filter: blur(8px);
-    box-shadow: var(--shadow-2);
-    pointer-events: none;
-    font-size: var(--fs-sm);
-  }
-
-  .tg-tooltip[hidden] {
-    display: none;
-  }
-
-  .tg-tooltip strong {
-    display: block;
-    font-family: var(--font-display);
-    font-size: var(--fs-base);
-  }
-
-  .tg-tooltip span {
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-  }
 </style>
 
 <script>
