@@ -9,6 +9,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorCard from '../../components/dream-team/AuthorCard.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
+import Icon from '../../components/ui/Icon.astro';
 import { authorsRepo } from '../../lib/repositories';
 import { computeGraphLayout, GRAPH } from '../../lib/graph/layout';
 import { itemListJsonLd, personJsonLd } from '../../lib/seo/jsonld';
@@ -103,15 +104,19 @@ const jsonLd = [
         {showGraph && layout && (
           <section class="dt-stage" aria-label="Interactive Dream Team network" data-team-network>
             <span class="dt-stage__bg" aria-hidden="true"></span>
-            <div class="dt-stage__panel">
-              <div class="dt-stage__intro">
-                <p class="kicker">Network map</p>
-                <h2>People, skills, and shared signal.</h2>
-                <p>
-                  Search, select, or drag nodes to inspect how the team connects across disciplines.
-                  Released nodes stay where you place them until the layout is reset.
-                </p>
+            <div class="dt-stage__panel dt-inspector" aria-live="polite" data-team-inspector>
+              <div class="dt-panel__head">
+                <div>
+                  <p class="kicker">Network map</p>
+                  <h2 data-team-inspector-title>Select a node</h2>
+                </div>
+                <button class="dt-help" type="button" aria-label="Network interaction help">
+                  <Icon name="circle-help" size={16} />
+                  <span>Search, select, or drag nodes. Reset returns the original layout.</span>
+                </button>
               </div>
+
+              <p class="dt-panel__summary" data-team-inspector-summary>Select a node for details.</p>
 
               <label class="dt-search" for="team-search">
                 <span>Search network</span>
@@ -123,24 +128,12 @@ const jsonLd = [
                 <button type="button" data-team-clear-selection>Clear selection</button>
               </div>
 
-              <dl class="dt-metrics" aria-label="Network summary">
-                <div>
-                  <dt>People</dt>
-                  <dd>{authors.length}</dd>
-                </div>
-                <div>
-                  <dt>Skills</dt>
-                  <dd>{specialties.length}</dd>
-                </div>
-                <div>
-                  <dt>Shared</dt>
-                  <dd>{sharedSkillCount}</dd>
-                </div>
-                <div>
-                  <dt>Links</dt>
-                  <dd>{graphLinkCount}</dd>
-                </div>
-              </dl>
+              <div class="dt-inspector__meta" data-team-inspector-meta>
+                <span>{authors.length} people</span>
+                <span>{specialties.length} skills</span>
+                <span>{sharedSkillCount} shared</span>
+                <span>{graphLinkCount} links</span>
+              </div>
             </div>
 
             <div class="dt-stage__canvas">
@@ -161,16 +154,6 @@ const jsonLd = [
                     <stop offset="0" stop-color="var(--accent)" stop-opacity="0.38" />
                     <stop offset="0.55" stop-color="var(--accent)" stop-opacity="0.08" />
                     <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
-                  </radialGradient>
-                  <radialGradient id="tg-person" cx="34%" cy="28%" r="72%">
-                    <stop offset="0" stop-color="var(--text-1)" stop-opacity="0.96" />
-                    <stop offset="0.44" stop-color="var(--accent)" stop-opacity="0.68" />
-                    <stop offset="1" stop-color="var(--bg-2)" stop-opacity="0.96" />
-                  </radialGradient>
-                  <radialGradient id="tg-skill" cx="34%" cy="28%" r="72%">
-                    <stop offset="0" stop-color="var(--viz-2)" stop-opacity="0.9" />
-                    <stop offset="0.58" stop-color="var(--accent)" stop-opacity="0.34" />
-                    <stop offset="1" stop-color="var(--bg-2)" stop-opacity="0.96" />
                   </radialGradient>
                   {layout.authorNodes.map((node) => {
                     const author = authorBySlug.get(node.id);
@@ -232,7 +215,6 @@ const jsonLd = [
                         style={`--node-color: var(--${color});`}
                         transform={`translate(${anchor.x} ${anchor.y})`}
                       >
-                        <circle class="tg-node-shadow" cx="0" cy="5" r={r + 6} />
                         <circle class="tg-node-halo" cx="0" cy="0" r={r + 8} />
                         <circle class="tg-node-core" cx="0" cy="0" r={r} />
                         <text class="tg-node-label tg-node-label--skill" x="0" y={r + 17} text-anchor="middle">
@@ -270,7 +252,6 @@ const jsonLd = [
                         style={`--node-color: var(--${color});`}
                         transform={`translate(${node.x} ${node.y})`}
                       >
-                        <circle class="tg-node-shadow" cx="0" cy="6" r={r + 7} />
                         <circle class="tg-node-halo" cx="0" cy="0" r={r + 7} />
                         <circle class="tg-node-core" cx="0" cy="0" r={r} />
                         {author.avatar?.src ? (
@@ -297,18 +278,6 @@ const jsonLd = [
                 </g>
               </svg>
             </div>
-
-            <aside class="dt-inspector" aria-live="polite" data-team-inspector>
-              <p class="kicker">Inspector</p>
-              <h2 data-team-inspector-title>Select a node</h2>
-              <p data-team-inspector-summary>
-                Inspect people and shared skills, then drag nodes to reshape the network.
-              </p>
-              <div class="dt-inspector__meta" data-team-inspector-meta>
-                <span>{authors.length} people</span>
-                <span>{specialties.length} skills</span>
-              </div>
-            </aside>
           </section>
         )}
 
@@ -366,8 +335,18 @@ const jsonLd = [
 
   @media (min-width: 64rem) {
     .dt-stage {
-      grid-template-columns: minmax(14rem, 17rem) minmax(0, 1fr) minmax(15rem, 18rem);
+      grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem);
       align-items: stretch;
+    }
+
+    .dt-stage__canvas {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .dt-stage__panel {
+      grid-column: 2;
+      grid-row: 1;
     }
   }
 
@@ -401,22 +380,79 @@ const jsonLd = [
     -webkit-backdrop-filter: blur(18px) saturate(140%);
   }
 
-  .dt-stage__intro h2,
+  .dt-panel__head {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .dt-panel__head h2,
   .dt-inspector h2 {
     margin-top: var(--space-2);
     font-family: var(--font-display);
-    font-size: var(--fs-2xl);
-    line-height: var(--lh-2xl);
+    font-size: clamp(var(--fs-xl), 2.2vw, var(--fs-2xl));
+    line-height: var(--lh-xl);
     font-weight: 620;
     letter-spacing: 0;
   }
 
-  .dt-stage__intro p:not(.kicker),
+  .dt-panel__summary,
   .dt-inspector p:not(.kicker) {
-    margin-top: var(--space-3);
+    margin: 0;
     color: var(--text-2);
     font-size: var(--fs-sm);
     line-height: var(--lh-sm);
+  }
+
+  .dt-help {
+    position: relative;
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid color-mix(in srgb, var(--border-2) 66%, transparent);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-0) 36%, transparent);
+    color: var(--text-3);
+    cursor: help;
+  }
+
+  .dt-help span {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    right: 0;
+    z-index: 3;
+    width: min(16rem, 70vw);
+    padding: var(--space-3);
+    border: 1px solid color-mix(in srgb, var(--border-2) 76%, transparent);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--bg-0) 92%, transparent);
+    color: var(--text-2);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-xs);
+    text-align: left;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition:
+      opacity var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+    box-shadow: var(--shadow-2);
+  }
+
+  .dt-help:hover,
+  .dt-help:focus-visible {
+    color: var(--text-1);
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--border-2));
+    outline: none;
+  }
+
+  .dt-help:hover span,
+  .dt-help:focus-visible span {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .dt-search {
@@ -475,35 +511,6 @@ const jsonLd = [
     border-color: color-mix(in srgb, var(--accent) 42%, var(--border-2));
     background: color-mix(in srgb, var(--accent) 11%, var(--bg-2));
     transform: translateY(-1px);
-  }
-
-  .dt-metrics {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2);
-    margin: 0;
-  }
-
-  .dt-metrics div {
-    padding: var(--space-3);
-    border: 1px solid color-mix(in srgb, var(--border-1) 78%, transparent);
-    border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--bg-0) 34%, transparent);
-  }
-
-  .dt-metrics dt {
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    text-transform: uppercase;
-  }
-
-  .dt-metrics dd {
-    margin: var(--space-1) 0 0;
-    color: var(--text-1);
-    font-family: var(--font-display);
-    font-size: var(--fs-2xl);
-    line-height: var(--lh-2xl);
   }
 
   .dt-stage__canvas {
@@ -614,16 +621,11 @@ const jsonLd = [
     cursor: grabbing;
   }
 
-  .tg-node-shadow {
-    fill: color-mix(in srgb, #000 36%, transparent);
-    opacity: 0.58;
-  }
-
   .tg-node-halo {
     fill: none;
-    stroke: color-mix(in srgb, var(--node-color) 48%, transparent);
+    stroke: color-mix(in srgb, var(--node-color) 34%, transparent);
     stroke-width: 1;
-    opacity: 0.65;
+    opacity: 0.34;
     transition:
       opacity var(--dur-2) var(--ease-out),
       transform var(--dur-2) var(--ease-out);
@@ -632,25 +634,26 @@ const jsonLd = [
   }
 
   .tg-node-core {
-    fill: url(#tg-skill);
-    stroke: color-mix(in srgb, var(--text-1) 42%, transparent);
-    stroke-width: 1.25;
+    fill: color-mix(in srgb, var(--node-color) 15%, var(--bg-1));
+    stroke: color-mix(in srgb, var(--node-color) 72%, var(--border-2));
+    stroke-width: 1.4;
     transition:
       stroke var(--dur-2) var(--ease-out),
-      filter var(--dur-2) var(--ease-out),
+      fill var(--dur-2) var(--ease-out),
       transform var(--dur-2) var(--ease-out);
     transform-box: fill-box;
     transform-origin: center;
   }
 
   .tg-node--person .tg-node-core {
-    fill: url(#tg-person);
-    stroke: color-mix(in srgb, var(--node-color) 72%, var(--text-1));
+    fill: color-mix(in srgb, var(--bg-0) 82%, var(--node-color));
+    stroke: color-mix(in srgb, var(--node-color) 76%, var(--text-1));
     stroke-width: 1.7;
   }
 
   .tg-node--shared .tg-node-core {
-    stroke: color-mix(in srgb, var(--accent) 72%, var(--text-1));
+    fill: color-mix(in srgb, var(--accent) 13%, var(--bg-1));
+    stroke: color-mix(in srgb, var(--accent) 68%, var(--text-1));
     stroke-width: 1.7;
   }
 
@@ -694,7 +697,7 @@ const jsonLd = [
   .tg-node.is-selected .tg-node-core,
   .tg-node.is-match .tg-node-core {
     stroke: var(--text-1);
-    filter: drop-shadow(0 0 16px color-mix(in srgb, var(--node-color) 56%, transparent));
+    fill: color-mix(in srgb, var(--node-color) 24%, var(--bg-1));
   }
 
   .tg-node:hover .tg-node-halo,
@@ -823,8 +826,7 @@ const jsonLd = [
       border-radius: var(--radius-md);
     }
 
-    .dt-actions,
-    .dt-metrics {
+    .dt-actions {
       grid-template-columns: 1fr;
     }
 

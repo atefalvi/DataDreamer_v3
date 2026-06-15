@@ -460,9 +460,12 @@ const jsonLd = [
   @media (max-width: 41.999rem) {
     .author__hero {
       padding: var(--space-5);
-      background:
-        radial-gradient(18rem 14rem at 50% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 72%),
-        linear-gradient(150deg, color-mix(in srgb, var(--bg-2) 74%, transparent), var(--bg-1));
+      background: linear-gradient(150deg, color-mix(in srgb, var(--bg-2) 74%, transparent), var(--bg-1));
+    }
+
+    .author__hero-grid {
+      mask-image: linear-gradient(180deg, #000, transparent 78%);
+      opacity: 0.36;
     }
 
     .author__avatar-wrap {

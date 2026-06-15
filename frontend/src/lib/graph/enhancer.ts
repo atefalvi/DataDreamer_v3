@@ -179,10 +179,12 @@ export function initTeamGraph(): void {
   const setInspector = (node: NodeState | null) => {
     if (!node) {
       inspectorTitle.textContent = 'Select a node';
-      inspectorSummary.textContent = 'Inspect people and shared skills, then drag nodes to reshape the network.';
+      inspectorSummary.textContent = 'Select a node for details.';
       inspectorMeta.innerHTML = `
         <span>${nodes.filter((item) => item.type === 'person').length} people</span>
         <span>${nodes.filter((item) => item.type.includes('skill')).length} skills</span>
+        <span>${nodes.filter((item) => item.type === 'shared skill').length} shared</span>
+        <span>${links.length} links</span>
       `;
       return;
     }
