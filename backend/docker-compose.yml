@@ -39,6 +39,7 @@ services:
     volumes:
       - "${DIRECTUS_UPLOADS_PATH:-/mnt/datadreamer/uploads}:/directus/uploads"
       - "${DIRECTUS_EXTENSIONS_PATH:-/mnt/datadreamer/extensions}:/directus/extensions"
+      - "./snapshot.yaml:/directus/snapshot.yaml:ro"
     depends_on:
       database:
         condition: service_healthy
