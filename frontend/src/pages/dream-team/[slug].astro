@@ -61,7 +61,7 @@ const jsonLd = [
   ogImage={{ url: '/og/og-team.png' }}
   jsonLd={jsonLd}
 >
-  <div class="author container-content">
+  <div class="author container-wide">
     <Breadcrumbs
       items={[{ label: 'Dream Team', href: '/dream-team' }, { label: author.name }]}
       class="author__crumbs"
@@ -122,7 +122,7 @@ const jsonLd = [
         <p class="kicker">{posts.length} post{posts.length === 1 ? '' : 's'}</p>
         <h2>Writing</h2>
         <div class="author__posts">
-          {posts.map((post) => <PostCard post={post} variant="row" />)}
+          {posts.map((post) => <PostCard post={post} variant="card" />)}
         </div>
       </section>
     )}
@@ -322,6 +322,8 @@ const jsonLd = [
   .author__featured,
   .author__related {
     margin-top: var(--section-y);
+    padding-top: var(--space-8);
+    border-top: 1px solid color-mix(in srgb, var(--border-2) 64%, transparent);
   }
 
   .author__writing h2 {
@@ -333,8 +335,10 @@ const jsonLd = [
   }
 
   .author__posts {
+    display: grid;
+    gap: var(--space-5);
     margin-top: var(--space-5);
-    border-top: 1px solid var(--border-1);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .author__featured-grid {
@@ -391,5 +395,25 @@ const jsonLd = [
     gap: var(--space-4);
     margin-top: var(--space-5);
     grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  }
+
+  @media (max-width: 63.999rem) {
+    .author__posts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 41.999rem) {
+    .author {
+      padding-inline: var(--space-4);
+    }
+
+    .author__hero {
+      padding: var(--space-5);
+    }
+
+    .author__posts {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

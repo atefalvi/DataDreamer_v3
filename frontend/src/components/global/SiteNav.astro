@@ -71,11 +71,11 @@ function isActive(href: string): boolean {
     inset: 0 0 auto;
     z-index: 100;
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 88%, transparent), color-mix(in srgb, var(--bg-0) 72%, transparent)),
-      color-mix(in srgb, var(--bg-0) 78%, transparent);
-    backdrop-filter: blur(24px) saturate(165%);
-    -webkit-backdrop-filter: blur(24px) saturate(165%);
-    border-bottom: 1px solid color-mix(in srgb, var(--border-1) 74%, transparent);
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 58%, transparent), color-mix(in srgb, var(--bg-0) 24%, transparent)),
+      color-mix(in srgb, var(--bg-0) 40%, transparent);
+    backdrop-filter: blur(28px) saturate(175%);
+    -webkit-backdrop-filter: blur(28px) saturate(175%);
+    border-bottom: 1px solid color-mix(in srgb, var(--border-1) 42%, transparent);
     box-shadow:
       0 1px 0 color-mix(in srgb, var(--text-1) 5%, transparent),
       0 18px 44px color-mix(in srgb, #000 22%, transparent);
@@ -87,19 +87,19 @@ function isActive(href: string): boolean {
 
   .site-nav[data-transparent]:not(.is-scrolled) {
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 68%, transparent), color-mix(in srgb, var(--bg-0) 30%, transparent)),
-      color-mix(in srgb, var(--bg-0) 42%, transparent);
-    border-bottom-color: color-mix(in srgb, var(--border-1) 34%, transparent);
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 36%, transparent), color-mix(in srgb, var(--bg-0) 8%, transparent)),
+      color-mix(in srgb, var(--bg-0) 16%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--border-1) 22%, transparent);
     box-shadow: 0 1px 0 color-mix(in srgb, var(--text-1) 4%, transparent);
   }
 
   .site-nav.is-scrolled {
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 90%, transparent), color-mix(in srgb, var(--bg-0) 74%, transparent)),
-      color-mix(in srgb, var(--bg-0) 84%, transparent);
-    backdrop-filter: blur(22px) saturate(155%);
-    -webkit-backdrop-filter: blur(22px) saturate(155%);
-    border-bottom-color: color-mix(in srgb, var(--border-1) 78%, transparent);
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 64%, transparent), color-mix(in srgb, var(--bg-0) 36%, transparent)),
+      color-mix(in srgb, var(--bg-0) 50%, transparent);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border-bottom-color: color-mix(in srgb, var(--border-1) 52%, transparent);
     box-shadow:
       0 1px 0 color-mix(in srgb, var(--text-1) 5%, transparent),
       0 16px 40px color-mix(in srgb, #000 24%, transparent);
@@ -155,7 +155,9 @@ function isActive(href: string): boolean {
     padding: var(--space-1);
     border: 1px solid color-mix(in srgb, var(--border-1) 72%, transparent);
     border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--bg-1) 36%, transparent);
+    background: color-mix(in srgb, var(--bg-1) 24%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
 
   .site-nav__links a {
@@ -234,7 +236,9 @@ function isActive(href: string): boolean {
       height: 44px;
       justify-content: center;
       border: 1px solid color-mix(in srgb, var(--border-1) 72%, transparent);
-      background: color-mix(in srgb, var(--bg-1) 54%, transparent);
+      background: color-mix(in srgb, var(--bg-1) 28%, transparent);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
 
     .site-nav__mark :global(svg) {

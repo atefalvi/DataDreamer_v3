@@ -232,42 +232,42 @@ if (isPagination) {
           <div class="blog-content article-prose" data-article-prose set:html={post.bodyHtml} />
           <ArticleEnhancements hasImageGrid={hasImageGrid} />
         </div>
+
+        {(author || hasNeighbors) && (
+          <footer class="article-footer">
+            {author && <AuthorBlock author={author} />}
+
+            {hasNeighbors && (
+              <nav class="article-neighbors" aria-label="Adjacent posts">
+                {neighbors.previous ? (
+                  <a href={`/blog/${neighbors.previous.slug}`} class="article-neighbor article-neighbor--previous">
+                    <span>Previous</span>
+                    <strong>{neighbors.previous.title}</strong>
+                  </a>
+                ) : <span />}
+                {neighbors.next && (
+                  <a href={`/blog/${neighbors.next.slug}`} class="article-neighbor article-neighbor--next">
+                    <span>Next</span>
+                    <strong>{neighbors.next.title}</strong>
+                  </a>
+                )}
+              </nav>
+            )}
+          </footer>
+        )}
+
+        {hasRelated && (
+          <section class="article-related" aria-labelledby="related-heading">
+            <div class="article-related__header">
+              <p>Continue reading</p>
+              <h2 id="related-heading">Related field notes</h2>
+            </div>
+            <div class="article-related__grid">
+              {related.map((item) => <PostCard post={item} variant="card" />)}
+            </div>
+          </section>
+        )}
       </div>
-
-      {(author || hasNeighbors) && (
-        <footer class="article-footer">
-          {author && <AuthorBlock author={author} />}
-
-          {hasNeighbors && (
-            <nav class="article-neighbors" aria-label="Adjacent posts">
-              {neighbors.previous ? (
-                <a href={`/blog/${neighbors.previous.slug}`} class="article-neighbor article-neighbor--previous">
-                  <span>Previous</span>
-                  <strong>{neighbors.previous.title}</strong>
-                </a>
-              ) : <span />}
-              {neighbors.next && (
-                <a href={`/blog/${neighbors.next.slug}`} class="article-neighbor article-neighbor--next">
-                  <span>Next</span>
-                  <strong>{neighbors.next.title}</strong>
-                </a>
-              )}
-            </nav>
-          )}
-        </footer>
-      )}
-
-      {hasRelated && (
-        <section class="article-related" aria-labelledby="related-heading">
-          <div class="article-related__header">
-            <p>Continue reading</p>
-            <h2 id="related-heading">Related field notes</h2>
-          </div>
-          <div class="article-related__grid">
-            {related.map((item) => <PostCard post={item} variant="card" />)}
-          </div>
-        </section>
-      )}
     </article>
   </BaseLayout>
 )}
@@ -440,6 +440,7 @@ if (isPagination) {
   }
 
   .article-footer {
+    grid-column: 1 / -1;
     margin-top: var(--space-9);
   }
 
@@ -490,6 +491,7 @@ if (isPagination) {
   }
 
   .article-related {
+    grid-column: 1 / -1;
     margin-top: var(--space-10);
     padding-top: var(--space-8);
     border-top: 1px solid var(--border-1);
@@ -535,6 +537,18 @@ if (isPagination) {
     .article-shell {
       grid-template-columns: minmax(13rem, 17rem) minmax(0, 1fr);
       align-items: start;
+    }
+
+    .article-shell__toc {
+      position: sticky;
+      top: calc(var(--nav-height) + var(--space-5));
+      align-self: start;
+      max-height: calc(100vh - var(--nav-height) - var(--space-7));
+    }
+
+    .article-shell__toc :global(.article-toc--rail) {
+      position: static;
+      max-height: inherit;
     }
   }
 
