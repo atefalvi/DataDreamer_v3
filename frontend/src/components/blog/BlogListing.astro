@@ -116,7 +116,7 @@ const prevHref = !activeTopic && listing.page.page > 1
 
 <style>
   .blog-listing {
-    padding-block: calc(78px + var(--section-y)) 0;
+    padding-block: calc(var(--nav-height) + var(--section-y)) 0;
   }
 
   .blog-listing__breadcrumbs {
@@ -124,10 +124,21 @@ const prevHref = !activeTopic && listing.page.page > 1
   }
 
   .blog-listing__header {
+    position: relative;
     display: grid;
     gap: var(--space-5);
     padding-bottom: var(--space-7);
     border-bottom: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
+  }
+
+  .blog-listing__header::after {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    width: min(18rem, 42vw);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent));
+    content: '';
   }
 
   .blog-listing__header h1 {
@@ -158,8 +169,12 @@ const prevHref = !activeTopic && listing.page.page > 1
     display: grid;
     gap: var(--space-5);
     margin-top: var(--space-7);
-    padding-block: var(--space-5);
-    border-block: 1px solid var(--border-1);
+    padding: var(--space-4);
+    border: 1px solid color-mix(in srgb, var(--border-2) 68%, transparent);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 32%),
+      color-mix(in srgb, var(--bg-1) 74%, transparent);
   }
 
   .blog-listing__topics {
@@ -213,7 +228,7 @@ const prevHref = !activeTopic && listing.page.page > 1
     display: grid;
     gap: var(--space-5);
     margin-top: var(--space-7);
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .blog-listing :global(.ui-empty-state) {
@@ -229,7 +244,7 @@ const prevHref = !activeTopic && listing.page.page > 1
 
   @media (min-width: 64rem) {
     .blog-listing__header {
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr) auto;
       align-items: end;
     }
 
@@ -241,7 +256,7 @@ const prevHref = !activeTopic && listing.page.page > 1
 
   @media (max-width: 47.999rem) {
     .blog-listing {
-      padding-block-start: calc(64px + var(--space-8));
+      padding-block-start: calc(var(--nav-height) + var(--space-8));
     }
 
     .blog-listing__header h1 {
@@ -261,6 +276,18 @@ const prevHref = !activeTopic && listing.page.page > 1
 
     .blog-listing__author-filter select {
       flex: 1 1 auto;
+    }
+  }
+
+  @media (max-width: 63.999rem) {
+    .blog-listing__posts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 41.999rem) {
+    .blog-listing__posts {
+      grid-template-columns: 1fr;
     }
   }
 </style>

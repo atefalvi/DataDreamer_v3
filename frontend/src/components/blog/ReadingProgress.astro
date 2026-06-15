@@ -5,11 +5,11 @@
 <style>
   .reading-progress {
     position: fixed;
-    inset: 78px 0 auto;
-    z-index: 90;
+    inset: var(--nav-height) 0 auto;
+    z-index: 99;
     display: none;
-    height: 2px;
-    background: transparent;
+    height: 3px;
+    background: color-mix(in srgb, var(--border-1) 64%, transparent);
     pointer-events: none;
   }
 
@@ -22,15 +22,11 @@
     width: 100%;
     height: 100%;
     background: var(--accent);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 42%, transparent);
     transform: scaleX(0);
     transform-origin: left;
   }
 
-  @media (max-width: 47.999rem) {
-    .reading-progress {
-      display: none !important;
-    }
-  }
 </style>
 
 <script>
@@ -50,7 +46,7 @@
       top = rect.top + window.scrollY;
       height = article.offsetHeight;
       viewH = window.innerHeight;
-      enabled = window.innerWidth >= 768 && height > viewH * 1.5;
+      enabled = height > viewH * 1.5;
       progressHost.classList.toggle('is-visible', enabled);
     };
 

@@ -49,13 +49,6 @@ const layout = showGraph
     )
   : null;
 
-// Member list grouped by primary specialty (graph's accessible equivalent).
-const grouped = specialties.map((s) => ({
-  specialty: s,
-  members: authors.filter((a) => a.specialties[0]?.slug === s.slug),
-}));
-const ungrouped = authors.filter((a) => a.specialties.length === 0);
-
 const initialsOf = (name: string) =>
   name
     .split(/\s+/)
@@ -163,7 +156,13 @@ const jsonLd = [
                   const specialty = specialtyMap.get(anchor.id);
                   const color = colorBySlug.get(anchor.id) ?? 'accent';
                   return (
-                    <g class="tg-anchor" data-specialty={anchor.id} style={`--anchor-color: var(--${color});`}>
+                    <g
+                      class="tg-anchor"
+                      data-specialty={anchor.id}
+                      data-anchor-x={anchor.x}
+                      data-anchor-y={anchor.y}
+                      style={`--anchor-color: var(--${color});`}
+                    >
                       <circle class="tg-anchor-dot" cx={anchor.x} cy={anchor.y} r="5" />
                       <text class="tg-anchor-label" x={anchor.labelX} y={anchor.labelY} text-anchor={anchor.labelAnchor}>
                         {specialty?.name ?? anchor.id}
@@ -189,6 +188,9 @@ const jsonLd = [
                       data-role={author.roleTitle}
                       data-posts={author.postCount}
                       data-courses={author.courseCount}
+                      data-x={node.x}
+                      data-y={node.y}
+                      data-r={r}
                       tabindex={i === 0 ? 0 : -1}
                       aria-label={`${author.name}, ${author.roleTitle}`}
                       style={`--node-color: var(--${color});`}
@@ -240,26 +242,9 @@ const jsonLd = [
 
         <section class="dt-list" aria-label="Everyone">
           <p class="kicker">Everyone</p>
-          {grouped.map((group) =>
-            group.members.length > 0 ? (
-              <div class="dt-list__group" data-specialty-group={group.specialty.slug}>
-                <h2 class="dt-list__group-title" style={`--group-color: var(--${group.specialty.colorKey});`}>
-                  {group.specialty.name}
-                </h2>
-                <div class="dt-list__grid">
-                  {group.members.map((author) => <AuthorCard author={author} />)}
-                </div>
-              </div>
-            ) : null,
-          )}
-          {ungrouped.length > 0 && (
-            <div class="dt-list__group">
-              <h2 class="dt-list__group-title">Team</h2>
-              <div class="dt-list__grid">
-                {ungrouped.map((author) => <AuthorCard author={author} />)}
-              </div>
-            </div>
-          )}
+          <div class="dt-list__grid">
+            {authors.map((author) => <AuthorCard author={author} />)}
+          </div>
         </section>
       </>
     )}
@@ -270,7 +255,7 @@ const jsonLd = [
 
 <style>
   .dt {
-    padding-block: calc(78px + var(--section-y)) var(--section-y);
+    padding-block: calc(var(--nav-height) + var(--section-y)) var(--section-y);
   }
 
   .dt__head h1 {
@@ -301,12 +286,15 @@ const jsonLd = [
       position: relative;
       display: block;
       margin-top: var(--space-7);
-      padding: var(--space-5);
+      padding: var(--space-6);
       overflow: hidden;
       isolation: isolate;
       border: 1px solid color-mix(in srgb, var(--border-2) 64%, transparent);
       border-radius: var(--radius-lg);
-      background: linear-gradient(160deg, color-mix(in srgb, var(--bg-2) 55%, transparent), var(--bg-1));
+      background:
+        radial-gradient(circle at 18% 8%, color-mix(in srgb, var(--viz-2) 10%, transparent), transparent 28rem),
+        linear-gradient(160deg, color-mix(in srgb, var(--bg-2) 55%, transparent), var(--bg-1));
+      box-shadow: var(--shadow-2);
     }
   }
 
@@ -325,8 +313,10 @@ const jsonLd = [
 
   .tg {
     width: 100%;
-    height: min(72vh, 760px);
+    height: min(78vh, 820px);
+    min-height: 660px;
     overflow: visible;
+    touch-action: none;
   }
 
   /* Shared pillar ring (disciplines sit on it) + breathing data core. */
@@ -395,7 +385,17 @@ const jsonLd = [
   }
 
   .tg-node {
-    cursor: pointer;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .tg-node.is-dragging {
+    cursor: grabbing;
+  }
+
+  .tg-node.is-dragging .tg-node-ring {
+    transform: scale(1.14);
+    animation: none;
   }
 
   .tg-node-ring {
@@ -556,6 +556,8 @@ const jsonLd = [
   /* Member list. */
   .dt-list {
     margin-top: var(--section-y);
+    padding-top: var(--space-7);
+    border-top: 1px solid color-mix(in srgb, var(--border-2) 62%, transparent);
   }
 
   .dt-list__group {
@@ -577,9 +579,21 @@ const jsonLd = [
 
   .dt-list__grid {
     display: grid;
-    gap: var(--space-4);
-    margin-top: var(--space-5);
-    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 63.999rem) {
+    .dt-list__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 41.999rem) {
+    .dt-list__grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   /* Tooltip (enhancer-driven). */

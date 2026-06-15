@@ -76,12 +76,14 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
 
 <style>
   .post-card__link {
+    position: relative;
     display: block;
     color: inherit;
     text-decoration: none;
     transition:
       border-color var(--dur-2) var(--ease-out),
-      transform var(--dur-2) var(--ease-out);
+      transform var(--dur-2) var(--ease-out),
+      box-shadow var(--dur-2) var(--ease-out);
   }
 
   .post-card__media {
@@ -121,8 +123,9 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
   .post-card__title {
     margin-top: var(--space-2);
     font-family: var(--font-display);
-    font-weight: 560;
+    font-weight: 620;
     letter-spacing: -0.01em;
+    color: var(--text-1);
     text-wrap: balance;
   }
 
@@ -187,12 +190,14 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
     display: grid;
     gap: var(--space-6);
     overflow: hidden;
-    padding: var(--space-5);
+    padding: clamp(var(--space-5), 4vw, var(--space-8));
     border: 1px solid color-mix(in srgb, var(--border-2) 78%, transparent);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     background:
-      radial-gradient(circle at 94% 12%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 34%),
+      radial-gradient(circle at 88% 16%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 34%),
+      linear-gradient(135deg, color-mix(in srgb, var(--bg-2) 72%, transparent), color-mix(in srgb, var(--bg-1) 92%, transparent)),
       var(--bg-1);
+    box-shadow: var(--shadow-2);
   }
 
   .post-card--hero .post-card__media {
@@ -204,9 +209,16 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
   }
 
   .post-card--hero .post-card__title {
-    max-width: 16ch;
+    max-width: 18ch;
     font-size: var(--fs-4xl);
     line-height: var(--lh-4xl);
+  }
+
+  .post-card--hero .post-card__excerpt {
+    max-width: 40rem;
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+    -webkit-line-clamp: 3;
   }
 
   /* Card: bordered vertical card for the blog grid. */
@@ -218,10 +230,13 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow: hidden;
     padding: var(--space-5);
     border: 1px solid var(--border-1);
     border-radius: var(--radius-lg);
-    background: var(--bg-1);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-2) 38%, transparent), transparent 42%),
+      var(--bg-1);
   }
 
   .post-card--card .post-card__media {
@@ -230,8 +245,8 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
   }
 
   .post-card--card .post-card__title {
-    font-size: var(--fs-xl);
-    line-height: var(--lh-xl);
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
   }
 
   .post-card--card .post-card__excerpt {
@@ -247,6 +262,7 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
   .post-card--card .post-card__link:hover {
     border-color: color-mix(in srgb, var(--accent) 34%, var(--border-2));
     transform: translateY(-2px);
+    box-shadow: 0 18px 44px color-mix(in srgb, #000 24%, transparent);
   }
 
   .post-card--row {

@@ -16,8 +16,82 @@ export function initTeamGraph(): void {
 
   let activeSpecialty: string | null = null;
   let hideTimer = 0;
+  let dragged: SVGAElement | null = null;
+  let dragPointerId = 0;
+  let dragOffset = { x: 0, y: 0 };
+  let dragStart = { x: 0, y: 0 };
+  let dragMoved = false;
+  let suppressClick = false;
 
   const specialtiesOf = (node: SVGAElement) => (node.dataset.specialties ?? '').split(',').filter(Boolean);
+  const numberData = (node: SVGAElement, key: string, fallback = 0) => {
+    const value = Number(node.dataset[key]);
+    return Number.isFinite(value) ? value : fallback;
+  };
+
+  const svgPoint = (event: PointerEvent) => {
+    const matrix = svg.getScreenCTM();
+    if (!matrix) return null;
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    return point.matrixTransform(matrix.inverse());
+  };
+
+  const clampPoint = (x: number, y: number, r: number) => {
+    const box = svg.viewBox.baseVal;
+    const pad = Math.max(48, r + 18);
+    return {
+      x: Math.max(box.x + pad, Math.min(box.x + box.width - pad, x)),
+      y: Math.max(box.y + pad, Math.min(box.y + box.height - pad, y)),
+    };
+  };
+
+  const curveD = (x1: number, y1: number, x2: number, y2: number) => {
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.hypot(dx, dy) || 1;
+    const cx = mx + (-dy / len) * len * 0.08;
+    const cy = my + (dx / len) * len * 0.08;
+    return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
+  };
+
+  const updateEdges = (author: string, x: number, y: number) => {
+    edges
+      .filter((edge) => edge.dataset.author === author)
+      .forEach((edge) => {
+        const anchor = svg.querySelector<SVGGElement>(`.tg-anchor[data-specialty="${edge.dataset.specialty}"]`);
+        const x2 = Number(anchor?.dataset.anchorX);
+        const y2 = Number(anchor?.dataset.anchorY);
+        if (!Number.isFinite(x2) || !Number.isFinite(y2)) return;
+        const d = curveD(x, y, x2, y2);
+        edge.querySelector<SVGPathElement>('.tg-edge')?.setAttribute('d', d);
+        edge.querySelector<SVGPathElement>('.tg-edge-flow')?.setAttribute('d', d);
+      });
+  };
+
+  const setNodePosition = (node: SVGAElement, x: number, y: number) => {
+    const author = node.dataset.author;
+    const r = numberData(node, 'r', 26);
+    node.dataset.x = String(x);
+    node.dataset.y = String(y);
+    node.querySelector<SVGCircleElement>('.tg-node-ring')?.setAttribute('cx', String(x));
+    node.querySelector<SVGCircleElement>('.tg-node-ring')?.setAttribute('cy', String(y));
+    const image = node.querySelector<SVGImageElement>('image');
+    image?.setAttribute('x', String(x - (r - 2)));
+    image?.setAttribute('y', String(y - (r - 2)));
+    const initials = node.querySelector<SVGTextElement>('.tg-node-initials');
+    initials?.setAttribute('x', String(x));
+    initials?.setAttribute('y', String(y));
+    const name = node.querySelector<SVGTextElement>('.tg-node-name');
+    name?.setAttribute('x', String(x));
+    name?.setAttribute('y', String(y + r + 15));
+    svg.querySelector<SVGCircleElement>(`#clip-${author} circle`)?.setAttribute('cx', String(x));
+    svg.querySelector<SVGCircleElement>(`#clip-${author} circle`)?.setAttribute('cy', String(y));
+    if (author) updateEdges(author, x, y);
+  };
 
   const showFor = (node: SVGAElement) => {
     window.clearTimeout(hideTimer);
@@ -62,7 +136,54 @@ export function initTeamGraph(): void {
     node.addEventListener('pointerleave', clear);
     node.addEventListener('focus', () => showFor(node));
     node.addEventListener('blur', clear);
+    node.addEventListener('click', (event) => {
+      if (!suppressClick) return;
+      event.preventDefault();
+      event.stopPropagation();
+      suppressClick = false;
+    });
+    node.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      const point = svgPoint(event);
+      if (!point) return;
+      dragged = node;
+      dragPointerId = event.pointerId;
+      dragStart = { x: point.x, y: point.y };
+      dragMoved = false;
+      dragOffset = {
+        x: numberData(node, 'x') - point.x,
+        y: numberData(node, 'y') - point.y,
+      };
+      node.classList.add('is-dragging');
+      showFor(node);
+      node.setPointerCapture?.(event.pointerId);
+    });
   });
+
+  svg.addEventListener('pointermove', (event) => {
+    if (!dragged || event.pointerId !== dragPointerId) return;
+    const point = svgPoint(event);
+    if (!point) return;
+    const distance = Math.hypot(point.x - dragStart.x, point.y - dragStart.y);
+    if (distance > 3) dragMoved = true;
+    if (!dragMoved) return;
+    event.preventDefault();
+    const r = numberData(dragged, 'r', 26);
+    const next = clampPoint(point.x + dragOffset.x, point.y + dragOffset.y, r);
+    setNodePosition(dragged, next.x, next.y);
+    showFor(dragged);
+  });
+
+  const finishDrag = (event: PointerEvent) => {
+    if (!dragged || event.pointerId !== dragPointerId) return;
+    dragged.classList.remove('is-dragging');
+    dragged.releasePointerCapture?.(event.pointerId);
+    suppressClick = dragMoved;
+    dragged = null;
+  };
+
+  svg.addEventListener('pointerup', finishDrag);
+  svg.addEventListener('pointercancel', finishDrag);
 
   // Roving tabindex: arrows move between focusable (non-dimmed) nodes.
   const focusable = () => nodes.filter((n) => !n.classList.contains('is-dimmed'));

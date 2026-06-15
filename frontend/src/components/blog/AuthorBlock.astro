@@ -35,13 +35,14 @@ const bioText = author.bioHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').tri
   .article-author {
     display: grid;
     gap: var(--space-5);
-    margin-top: var(--space-9);
-    padding: var(--space-6);
+    padding: clamp(var(--space-5), 4vw, var(--space-7));
     border: 1px solid color-mix(in srgb, var(--border-2) 76%, transparent);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     background:
-      radial-gradient(circle at 94% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 36%),
+      radial-gradient(circle at 94% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 36%),
+      linear-gradient(135deg, color-mix(in srgb, var(--bg-2) 44%, transparent), transparent 58%),
       var(--bg-1);
+    box-shadow: var(--shadow-2);
   }
 
   .article-author__body {
@@ -58,8 +59,8 @@ const bioText = author.bioHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').tri
 
   .article-author h2 {
     margin-top: var(--space-2);
-    font-size: var(--fs-2xl);
-    line-height: var(--lh-2xl);
+    font-size: var(--fs-3xl);
+    line-height: var(--lh-3xl);
   }
 
   .article-author__role {
@@ -71,15 +72,11 @@ const bioText = author.bioHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').tri
   }
 
   .article-author__bio {
-    display: -webkit-box;
     max-width: 54rem;
     margin-top: var(--space-4);
-    overflow: hidden;
     color: var(--text-2);
     font-size: var(--fs-base);
     line-height: var(--lh-base);
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
   }
 
   .article-author__chips {

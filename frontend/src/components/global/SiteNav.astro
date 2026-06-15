@@ -70,27 +70,44 @@ function isActive(href: string): boolean {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: transparent;
+    background: color-mix(in srgb, var(--bg-0) 78%, transparent);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
     border-bottom: 1px solid transparent;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--text-1) 4%, transparent);
     transition:
       background var(--dur-3) var(--ease-out),
       border-color var(--dur-3) var(--ease-out),
       box-shadow var(--dur-3) var(--ease-out);
   }
 
+  .site-nav[data-transparent]:not(.is-scrolled) {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg-0) 52%, transparent),
+      color-mix(in srgb, var(--bg-0) 18%, transparent)
+    );
+    border-bottom-color: transparent;
+    box-shadow: none;
+  }
+
   .site-nav.is-scrolled {
-    background: color-mix(in srgb, var(--bg-0) 82%, transparent);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 90%, transparent), color-mix(in srgb, var(--bg-0) 74%, transparent)),
+      color-mix(in srgb, var(--bg-0) 84%, transparent);
+    backdrop-filter: blur(22px) saturate(155%);
+    -webkit-backdrop-filter: blur(22px) saturate(155%);
     border-bottom-color: color-mix(in srgb, var(--border-1) 78%, transparent);
-    box-shadow: 0 1px 0 color-mix(in srgb, var(--text-1) 5%, transparent);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--text-1) 5%, transparent),
+      0 16px 40px color-mix(in srgb, #000 24%, transparent);
   }
 
   .site-nav__inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 78px;
+    height: var(--nav-height);
     gap: var(--space-6);
   }
 
@@ -205,7 +222,7 @@ function isActive(href: string): boolean {
 
   @media (max-width: 47.999rem) {
     .site-nav__inner {
-      height: 64px;
+      height: var(--nav-height);
       gap: var(--space-3);
     }
 

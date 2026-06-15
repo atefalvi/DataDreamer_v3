@@ -59,6 +59,7 @@
   --container-content: 1120px;
   --container-wide: 1320px;
   --gutter: clamp(20px, 4vw, 48px);
+  --nav-height: 78px;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -93,6 +94,12 @@
   --dur-4: 700ms;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@media (max-width: 47.999rem) {
+  :root {
+    --nav-height: 64px;
+  }
 }
 
 [data-theme="light"] {

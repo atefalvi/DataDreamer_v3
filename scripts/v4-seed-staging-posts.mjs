@@ -53,6 +53,31 @@ The visual layer can only make a clear system more legible. It cannot rescue a m
 When those pieces sit beside the chart, the dashboard becomes an instrument instead of a decoration. Leaders can ask better questions, analysts can debug faster, and engineering has a shared target for reliability.`,
   },
   {
+    slug: 'why-data-dreamer-exists',
+    title: 'Why Data Dreamer exists',
+    excerpt:
+      'Data Dreamer is a place for serious data work: systems thinking, applied AI, analytics craft, and the editorial judgment that makes technical work legible.',
+    author: 'atef-alvi',
+    topics: ['research', 'data'],
+    published_at: '2026-06-11T16:00:00.000Z',
+    featured: false,
+    series_label: 'Studio notes',
+    post_number: 1,
+    content: `Data Dreamer exists because the most valuable data work is rarely a single dashboard, model, or launch. It is the connective tissue between systems: definitions people trust, interfaces people can read, and engineering decisions that hold up when the data gets messy.
+
+:::note The premise
+Good data work should feel both technically rigorous and editorially clear.
+:::
+
+The internet has enough tactical fragments. What is missing is a studio-minded way to talk about data products, applied AI, research systems, and analytics infrastructure as one craft.
+
+## What we care about
+
+We care about signal quality before visual polish. We care about model behavior that can be inspected. We care about dashboards that explain their assumptions. We care about teams that can move quickly without hiding complexity from the people who depend on the work.
+
+Data Dreamer is the notebook for that practice: part publication, part lab, part operating manual for building intelligent systems with taste and accountability.`,
+  },
+  {
     slug: 'people-analytics-without-surveillance',
     title: 'People analytics without surveillance theater',
     excerpt:
