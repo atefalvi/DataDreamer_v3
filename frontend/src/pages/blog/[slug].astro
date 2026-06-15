@@ -540,15 +540,9 @@ if (isPagination) {
     }
 
     .article-shell__toc {
-      position: sticky;
-      top: calc(var(--nav-height) + var(--space-5));
       align-self: start;
-      max-height: calc(100vh - var(--nav-height) - var(--space-7));
-    }
-
-    .article-shell__toc :global(.article-toc--rail) {
-      position: static;
-      max-height: inherit;
+      min-width: 0;
+      height: 100%;
     }
   }
 

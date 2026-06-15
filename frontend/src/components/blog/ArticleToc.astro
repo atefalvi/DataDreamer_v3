@@ -115,10 +115,11 @@ const { headings } = Astro.props;
 
   .article-toc--rail {
     position: sticky;
-    top: calc(var(--nav-height) + var(--space-6));
+    top: calc(var(--nav-height) + var(--space-5));
     display: none;
     max-height: calc(100vh - var(--nav-height) - var(--space-8));
     overflow: auto;
+    scrollbar-gutter: stable;
     padding: var(--space-5);
     border: 1px solid color-mix(in srgb, var(--border-2) 62%, transparent);
     border-radius: var(--radius-lg);
