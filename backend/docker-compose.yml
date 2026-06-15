@@ -2,7 +2,7 @@ services:
   database:
     image: postgis/postgis:13-master
     volumes:
-      - "${DIRECTUS_DATABASE_PATH:-/mnt/datadreamer/database}:/var/lib/postgresql/data"
+      - "${DIRECTUS_DATABASE_PATH:-/mnt/SSD_Pool/coolify/datadreamer/database}:/var/lib/postgresql/data"
     environment:
       POSTGRES_USER: "${DB_USER}"
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
