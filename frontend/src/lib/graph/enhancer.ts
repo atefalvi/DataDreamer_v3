@@ -12,7 +12,21 @@ export function initTeamGraph(): void {
 
   const nodes = Array.from(svg.querySelectorAll<SVGAElement>('.tg-node'));
   const edges = Array.from(svg.querySelectorAll<SVGGElement>('.tg-edge-group'));
+  const anchors = Array.from(svg.querySelectorAll<SVGGElement>('.tg-anchor'));
   if (!nodes.length) return;
+
+  type MotionState = {
+    x: number;
+    y: number;
+    targetX: number;
+    targetY: number;
+    r: number;
+  };
+
+  type AnchorState = MotionState & {
+    labelDx: number;
+    labelDy: number;
+  };
 
   let activeSpecialty: string | null = null;
   let hideTimer = 0;
@@ -47,6 +61,33 @@ export function initTeamGraph(): void {
     };
   };
 
+  const nodesByAuthor = new Map(nodes.map((node) => [node.dataset.author ?? '', node]));
+  const nodeState = new Map<SVGAElement, MotionState>(
+    nodes.map((node) => {
+      const x = numberData(node, 'x');
+      const y = numberData(node, 'y');
+      return [node, { x, y, targetX: x, targetY: y, r: numberData(node, 'r', 26) }];
+    }),
+  );
+  const anchorState = new Map<string, AnchorState>(
+    anchors.map((anchor) => {
+      const x = Number(anchor.dataset.anchorX);
+      const y = Number(anchor.dataset.anchorY);
+      const labelX = Number(anchor.dataset.labelX);
+      const labelY = Number(anchor.dataset.labelY);
+      const state = {
+        x,
+        y,
+        targetX: x,
+        targetY: y,
+        r: 8,
+        labelDx: Number.isFinite(labelX) ? labelX - x : 0,
+        labelDy: Number.isFinite(labelY) ? labelY - y : 0,
+      };
+      return [anchor.dataset.specialty ?? '', state];
+    }),
+  );
+
   const curveD = (x1: number, y1: number, x2: number, y2: number) => {
     const mx = (x1 + x2) / 2;
     const my = (y1 + y2) / 2;
@@ -58,23 +99,33 @@ export function initTeamGraph(): void {
     return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
   };
 
-  const updateEdges = (author: string, x: number, y: number) => {
-    edges
-      .filter((edge) => edge.dataset.author === author)
-      .forEach((edge) => {
-        const anchor = svg.querySelector<SVGGElement>(`.tg-anchor[data-specialty="${edge.dataset.specialty}"]`);
-        const x2 = Number(anchor?.dataset.anchorX);
-        const y2 = Number(anchor?.dataset.anchorY);
-        if (!Number.isFinite(x2) || !Number.isFinite(y2)) return;
-        const d = curveD(x, y, x2, y2);
-        edge.querySelector<SVGPathElement>('.tg-edge')?.setAttribute('d', d);
-        edge.querySelector<SVGPathElement>('.tg-edge-flow')?.setAttribute('d', d);
-      });
+  const updateEdge = (edge: SVGGElement) => {
+    const authorNode = nodesByAuthor.get(edge.dataset.author ?? '');
+    const anchor = anchorState.get(edge.dataset.specialty ?? '');
+    if (!authorNode || !anchor) return;
+    const x1 = numberData(authorNode, 'x');
+    const y1 = numberData(authorNode, 'y');
+    const d = curveD(x1, y1, anchor.x, anchor.y);
+    edge.querySelector<SVGPathElement>('.tg-edge')?.setAttribute('d', d);
+    edge.querySelector<SVGPathElement>('.tg-edge-flow')?.setAttribute('d', d);
+  };
+
+  const updateEdges = (author: string) => {
+    edges.filter((edge) => edge.dataset.author === author).forEach(updateEdge);
+  };
+
+  const updateAnchorEdges = (specialty: string) => {
+    edges.filter((edge) => edge.dataset.specialty === specialty).forEach(updateEdge);
   };
 
   const setNodePosition = (node: SVGAElement, x: number, y: number) => {
     const author = node.dataset.author;
-    const r = numberData(node, 'r', 26);
+    const state = nodeState.get(node);
+    const r = state?.r ?? numberData(node, 'r', 26);
+    if (state) {
+      state.x = x;
+      state.y = y;
+    }
     node.dataset.x = String(x);
     node.dataset.y = String(y);
     node.querySelector<SVGCircleElement>('.tg-node-ring')?.setAttribute('cx', String(x));
@@ -90,7 +141,102 @@ export function initTeamGraph(): void {
     name?.setAttribute('y', String(y + r + 15));
     svg.querySelector<SVGCircleElement>(`#clip-${author} circle`)?.setAttribute('cx', String(x));
     svg.querySelector<SVGCircleElement>(`#clip-${author} circle`)?.setAttribute('cy', String(y));
-    if (author) updateEdges(author, x, y);
+    if (author) updateEdges(author);
+  };
+
+  const setAnchorPosition = (specialty: string, x: number, y: number) => {
+    const state = anchorState.get(specialty);
+    const anchor = anchors.find((item) => item.dataset.specialty === specialty);
+    if (!state || !anchor) return;
+    state.x = x;
+    state.y = y;
+    anchor.dataset.anchorX = String(x);
+    anchor.dataset.anchorY = String(y);
+    anchor.querySelector<SVGCircleElement>('.tg-anchor-dot')?.setAttribute('cx', String(x));
+    anchor.querySelector<SVGCircleElement>('.tg-anchor-dot')?.setAttribute('cy', String(y));
+    const label = anchor.querySelector<SVGTextElement>('.tg-anchor-label');
+    label?.setAttribute('x', String(x + state.labelDx));
+    label?.setAttribute('y', String(y + state.labelDy));
+    updateAnchorEdges(specialty);
+  };
+
+  let motionFrame = 0;
+  const tickMotion = () => {
+    motionFrame = 0;
+    let moving = false;
+
+    nodes.forEach((node) => {
+      if (node === dragged) return;
+      const state = nodeState.get(node);
+      if (!state) return;
+      const dx = state.targetX - state.x;
+      const dy = state.targetY - state.y;
+      if (Math.hypot(dx, dy) < 0.25) {
+        if (state.x !== state.targetX || state.y !== state.targetY) {
+          setNodePosition(node, state.targetX, state.targetY);
+        }
+        return;
+      }
+      moving = true;
+      setNodePosition(node, state.x + dx * 0.18, state.y + dy * 0.18);
+    });
+
+    anchorState.forEach((state, specialty) => {
+      const dx = state.targetX - state.x;
+      const dy = state.targetY - state.y;
+      if (Math.hypot(dx, dy) < 0.25) {
+        if (state.x !== state.targetX || state.y !== state.targetY) {
+          setAnchorPosition(specialty, state.targetX, state.targetY);
+        }
+        return;
+      }
+      moving = true;
+      setAnchorPosition(specialty, state.x + dx * 0.14, state.y + dy * 0.14);
+    });
+
+    if (moving) motionFrame = window.requestAnimationFrame(tickMotion);
+  };
+
+  const scheduleMotion = () => {
+    if (!motionFrame) motionFrame = window.requestAnimationFrame(tickMotion);
+  };
+
+  const setTarget = (node: SVGAElement, x: number, y: number) => {
+    const state = nodeState.get(node);
+    if (!state) return;
+    const next = clampPoint(x, y, state.r);
+    state.targetX = next.x;
+    state.targetY = next.y;
+  };
+
+  const setAnchorTarget = (specialty: string, x: number, y: number) => {
+    const state = anchorState.get(specialty);
+    if (!state) return;
+    const next = clampPoint(x, y, state.r);
+    state.targetX = next.x;
+    state.targetY = next.y;
+  };
+
+  const pullCluster = (node: SVGAElement, dx: number, dy: number) => {
+    const active = specialtiesOf(node);
+    const activeSet = new Set(active);
+
+    active.forEach((specialty) => {
+      const state = anchorState.get(specialty);
+      if (state) setAnchorTarget(specialty, state.targetX + dx * 0.34, state.targetY + dy * 0.34);
+    });
+
+    nodes.forEach((peer) => {
+      if (peer === node) return;
+      const shared = specialtiesOf(peer).filter((specialty) => activeSet.has(specialty)).length;
+      const state = nodeState.get(peer);
+      if (!state) return;
+      const base = shared ? 0.16 + shared * 0.1 : 0.075;
+      const strength = Math.min(0.38, base);
+      setTarget(peer, state.targetX + dx * strength, state.targetY + dy * strength);
+    });
+
+    scheduleMotion();
   };
 
   const showFor = (node: SVGAElement) => {
@@ -169,8 +315,17 @@ export function initTeamGraph(): void {
     if (!dragMoved) return;
     event.preventDefault();
     const r = numberData(dragged, 'r', 26);
+    const previous = nodeState.get(dragged) ?? { x: numberData(dragged, 'x'), y: numberData(dragged, 'y') };
     const next = clampPoint(point.x + dragOffset.x, point.y + dragOffset.y, r);
+    const dx = next.x - previous.x;
+    const dy = next.y - previous.y;
+    const state = nodeState.get(dragged);
+    if (state) {
+      state.targetX = next.x;
+      state.targetY = next.y;
+    }
     setNodePosition(dragged, next.x, next.y);
+    pullCluster(dragged, dx, dy);
     showFor(dragged);
   });
 

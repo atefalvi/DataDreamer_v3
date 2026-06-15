@@ -1,6 +1,6 @@
 ---
 /**
- * SiteNav (03 §2, 07 §3.1). Sticky top bar: brand, desktop links, theme toggle,
+ * SiteNav (03 §2, 07 §3.1). Fixed top bar: brand, desktop links, theme toggle,
  * Connect CTA, and the mobile hamburger (which controls MobileMenu). On the homepage
  * it starts transparent over the hero and gains `.is-scrolled` past 24px; elsewhere it
  * is solid from the server (no flash).
@@ -67,14 +67,18 @@ function isActive(href: string): boolean {
 
 <style>
   .site-nav {
-    position: sticky;
-    top: 0;
+    position: fixed;
+    inset: 0 0 auto;
     z-index: 100;
-    background: color-mix(in srgb, var(--bg-0) 78%, transparent);
-    backdrop-filter: blur(18px) saturate(150%);
-    -webkit-backdrop-filter: blur(18px) saturate(150%);
-    border-bottom: 1px solid transparent;
-    box-shadow: 0 1px 0 color-mix(in srgb, var(--text-1) 4%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 88%, transparent), color-mix(in srgb, var(--bg-0) 72%, transparent)),
+      color-mix(in srgb, var(--bg-0) 78%, transparent);
+    backdrop-filter: blur(24px) saturate(165%);
+    -webkit-backdrop-filter: blur(24px) saturate(165%);
+    border-bottom: 1px solid color-mix(in srgb, var(--border-1) 74%, transparent);
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--text-1) 5%, transparent),
+      0 18px 44px color-mix(in srgb, #000 22%, transparent);
     transition:
       background var(--dur-3) var(--ease-out),
       border-color var(--dur-3) var(--ease-out),
@@ -82,13 +86,11 @@ function isActive(href: string): boolean {
   }
 
   .site-nav[data-transparent]:not(.is-scrolled) {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--bg-0) 52%, transparent),
-      color-mix(in srgb, var(--bg-0) 18%, transparent)
-    );
-    border-bottom-color: transparent;
-    box-shadow: none;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--bg-0) 68%, transparent), color-mix(in srgb, var(--bg-0) 30%, transparent)),
+      color-mix(in srgb, var(--bg-0) 42%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--border-1) 34%, transparent);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--text-1) 4%, transparent);
   }
 
   .site-nav.is-scrolled {

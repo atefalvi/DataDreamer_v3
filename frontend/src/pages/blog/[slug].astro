@@ -206,21 +206,22 @@ if (isPagination) {
           </aside>
         </div>
 
-        {cover && (
-          <figure class="article-cover">
-            <img
-              src={cover.src}
-              srcset={directusSrcset(cover.id, [720, 1100, 1600, 2200])}
-              sizes="(min-width: 80rem) 1180px, calc(100vw - 32px)"
-              width={cover.width}
-              height={cover.height}
-              alt={cover.alt}
-              loading="eager"
-              decoding="async"
-            />
-          </figure>
-        )}
       </header>
+
+      {cover && (
+        <figure class="article-cover">
+          <img
+            src={cover.src}
+            srcset={directusSrcset(cover.id, [720, 1100, 1600, 2200])}
+            sizes="(min-width: 80rem) 1240px, calc(100vw - 32px)"
+            width={cover.width}
+            height={cover.height}
+            alt={cover.alt}
+            loading="eager"
+            decoding="async"
+          />
+        </figure>
+      )}
 
       <div class="article-shell">
         <aside class="article-shell__toc">
@@ -280,6 +281,7 @@ if (isPagination) {
   }
 
   .article-hero,
+  .article-cover,
   .article-shell,
   .article-footer,
   .article-related {
@@ -401,16 +403,22 @@ if (isPagination) {
 
   .article-cover {
     overflow: hidden;
-    margin: var(--space-8) 0 0;
-    border: 1px solid var(--border-1);
+    margin-top: var(--space-8);
+    aspect-ratio: 16 / 8.2;
+    max-height: 42rem;
+    border: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
     border-radius: var(--radius-lg);
-    background: var(--bg-2);
+    background:
+      radial-gradient(circle at 85% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 35%),
+      var(--bg-2);
+    box-shadow: var(--shadow-2);
   }
 
   .article-cover img {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
   }
 
   .article-shell {
@@ -559,6 +567,11 @@ if (isPagination) {
     .article-hero h1 {
       font-size: var(--fs-4xl);
       line-height: var(--lh-4xl);
+    }
+
+    .article-cover {
+      aspect-ratio: 4 / 3;
+      margin-top: var(--space-6);
     }
 
     .article-neighbor--next {
