@@ -181,6 +181,12 @@ const meta = [
     margin-top: var(--space-3);
   }
 
+  /* `display: flex` above would otherwise override the UA `[hidden] { display: none }`,
+     so re-assert it — the resume row only appears once the enhancer reveals it. */
+  .guide-card__progress[hidden] {
+    display: none;
+  }
+
   .guide-card__bar {
     flex: 1;
     height: 4px;
