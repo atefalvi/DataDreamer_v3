@@ -1,6 +1,6 @@
 # 12 — Implementation Roadmap
 
-Phases A–F (v4.0 core) then C-series (v4.1 courses). Tasks referenced by ID — full
+Phases A–F (v4.0 core) then C-series (v4.1 Field Guides). Tasks referenced by ID — full
 specs in `13-TASKS.md`. Branching/deploy model: 09 §11.
 
 ## Performance budgets (gate for every phase's validation)
@@ -57,7 +57,7 @@ regressions — goldens are the net.
 **Validation**: blueprint acceptance criteria per page; budgets above on staging;
 existing posts visually verified (sample of 5) on staging.
 
-## Phase D — Hardening (named D to keep C for courses)
+## Phase D — Hardening (named D to preserve historical phase ordering)
 **Goal**: responsive/a11y/perf verification before production cutover.
 - D1 V4-QA-001 responsive matrix (11 §A3). D2 V4-QA-002 SEO/OG validation pass.
 - D3 V4-QA-003 screen-reader script (11 §B6). D4 V4-PERF-001 Lighthouse/budget audit
@@ -72,24 +72,31 @@ existing posts visually verified (sample of 5) on staging.
   frontend EXCEPT dropped fields — therefore V4-CMS-006 (drops) executes **after** E1
   soak, not before. Sequenced in task deps.
 
-## Phase C — Courses (v4.1) — after E1
-**Goal**: COURSES_PRD Phase-1 scope in the v4 design system.
-**Sequence**: C1 → C2 → (C3‖C4) → C5 → C6 → C7.
-- C1 V4-CRS-001 schema + roles + service token + flows (08 §4).
-- C2 V4-AUTH-001 middleware session/locals + auth lib + rate limiting;
-  V4-AUTH-002 auth pages + api/auth endpoints.
-- C3 V4-CRS-002 catalogue; V4-CRS-003 course landing; V4-CRS-004 lesson page
-  (facade embed, notes, resources).
-- C4 V4-CRS-005 enroll/complete/progress endpoints + MarkComplete UI; V4-CRS-006
-  student dashboard + settings.
-- C5 V4-CRS-007 badges award + dashboard display; V4-CRS-008 nav/homepage
-  integration (flip `COURSES_ENABLED`).
-- C6 V4-QA-004 courses QA: journeys (PRD §6) E2E manual matrix, auth a11y pass,
-  `noindex` checks, rate-limit tests.
-- C7 V4-REL-002 production release (same protocol as E1).
-**Deferred to v4.1.x backlog** (PRD phase 2/3 unchanged): votes UI, YouTube duration
-flow, completion modal animation polish, shareable badges, email verification,
-account deletion automation.
+## Phase C — Field Guides (v4.1) — after E1
+**Goal**: curated learning paths (Learning Path → Sections → Items) in the v4 design
+system, with public previews and login-gated guide reading/progress (`01` §1a,
+`08` §4). Replaces the retired LMS/courses scope.
+**Sequence**: C1 → C2 → C3 → C4 → (C5‖C8) → C6 → C7 → C9.
+- C1 V4-GUIDE-001 schema (`guides`/`guide_sections`/`guide_items` + junctions) +
+  Public preview policies + seed guide (08 §4).
+- C2 V4-AUTH-001 Directus `guide_reader` role, `guide_progress`, registration/email/
+  Google SSO setup notes, CORS/cookie policy, and permission snapshot.
+- C3 V4-GUIDE-002 repository + view-models + mappers (public preview + authenticated
+  reader contracts, 08 §8.5–§8.8).
+- C4 V4-AUTH-002 Astro login/signup/logout/session bridge, `/account`, middleware
+  locals/guards, and redirect preservation (`next`).
+- C5 V4-GUIDE-003 server progress API + pure deriveProgress tests (09 §10).
+- C6 V4-GUIDE-004 catalogue `/guides` + GuideCard (05 §14).
+- C7 V4-GUIDE-005 public preview + logged-in guide reader page `/guides/[slug]`
+  (05 §15). Depends on auth + progress.
+- C8 V4-GUIDE-007 curation/authoring guide for Directus. (Parallelizable: docs.)
+- C9 V4-GUIDE-006 nav/home integration + flag flip (`GUIDES_ENABLED`).
+- C10 V4-QA-004 Field Guides QA: journeys E2E matrix (browse→preview→sign in→start→
+  complete→reload→resume), per-type item rendering, a11y, permissions, indexability/
+  JSON-LD, JS-disabled preview.
+- then V4-REL-002 production release (same protocol as E1; includes auth smoke).
+**Dropped entirely** (not backlog): votes, badges/certificates, enrollment, grading,
+payments, cohorts — these are non-goals (`01` §6).
 
 ## Cross-phase rules
 - Each task ends: validation run, docs touched updated, `15-HANDOFF.md` entry.

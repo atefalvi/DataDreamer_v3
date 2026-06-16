@@ -18,8 +18,8 @@
 
 ```
 frontend/src/
-├── components/          # per 06 §1 (ui/ global/ home/ blog/ projects/ dream-team/ courses/ about/)
-├── layouts/             # BaseLayout, ProseLayout (+ v4.1 AuthLayout, StudentLayout)
+├── components/          # per 06 §1 (ui/ global/ home/ blog/ projects/ dream-team/ guides/ about/)
+├── layouts/             # BaseLayout, ProseLayout
 ├── pages/
 │   ├── index.astro  about.astro  connect.astro  privacy.astro  404.astro  500.astro
 │   ├── blog/index.astro  blog/[...page].astro? (pagination)  blog/[slug].astro
@@ -28,24 +28,24 @@ frontend/src/
 │   ├── dream-team/index.astro  dream-team/[slug].astro
 │   ├── logs/[...rest].astro          # 301 shim → /blog/*
 │   ├── rss.xml.ts
-│   └── (v4.1) courses/…  student/…  login.astro…  api/auth/*  api/courses/*
+│   └── (v4.1) guides/index.astro  guides/[slug].astro   # preview + gated reader
 ├── lib/
 │   ├── directus/client.ts            # SDK instance + URL config ONLY
-│   ├── repositories/                 # posts.ts authors.ts topics.ts (v4.1 courses.ts progress.ts)
+│   ├── repositories/                 # posts.ts authors.ts topics.ts (v4.1 guides.ts)
 │   ├── markdown/                     # pipeline.ts blocks.ts headings.ts (see §6)
 │   ├── motion/reveal.ts
 │   ├── seo/ (meta.ts jsonld.ts og.ts)
 │   ├── images.ts                     # Directus transform URL + srcset builders
 │   ├── format.ts                     # dates, reading time, initials
-│   ├── validation/ (schemas.ts)      # zod schemas for json fields + API bodies
-│   └── (v4.1) auth/ (session.ts guards.ts rate-limit.ts)
+│   ├── validation/ (schemas.ts)      # zod schemas for json fields
+│   └── (v4.1) guides/progress.ts     # deriveProgress helpers + client enhancer (§10)
 ├── content/
 │   ├── config.ts                     # content collection schemas (zod)
 │   ├── projects/*.md                 # case studies (migrated from Directus)
 │   ├── site.ts                       # nav/footer/social/home copy/flags
 │   └── about.ts                      # about page content
-├── middleware.ts                     # (v4.0: error envelope + security headers;
-│                                     #  v4.1: + session → locals.user, /student guard)
+├── middleware.ts                     # error envelope + security headers
+│                                     #  (v4.1 adds session read + protected account/reader guards)
 ├── styles/ (tokens.css base.css prose.css)
 ├── assets/ (brand/ icons/ projects/ about/)
 ├── types/content.ts
@@ -63,10 +63,10 @@ big-bang rewrite commit.**
 | `DIRECTUS_URL` | server | internal API URL |
 | `PUBLIC_DIRECTUS_URL` | client-visible | asset URL base (keep v3 comment block explaining the pair — it earned its keep) |
 | `SITE_URL` | server | `https://data-dreamer.net` (stop hardcoding in layout) |
-| `DIRECTUS_TOKEN` | server only | **optional** read-only static token (V4-ARC-001). Used by `lib/directus/client.ts` where the Public role isn't open (e.g. greenfield staging). Unset → reads via Public role. Never `PUBLIC_`. Distinct from the v4.1 write service token |
-| removed | — | `DIRECTUS_EMAIL`, `DIRECTUS_PASSWORD` (08 §5); the new client has no login path (still set in `.env` only because v3 pages/`lib/directus.ts` use them until B-phase migration) |
-| v4.1: `DIRECTUS_SERVICE_TOKEN` | server only | service role; never `PUBLIC_` |
-| v4.1: `SESSION_COOKIE_NAME`, `RATE_LIMIT_*` | server | auth tuning |
+| `DIRECTUS_TOKEN` | server only | **optional** read-only static token (V4-ARC-001). Used by `lib/directus/client.ts` where the Public role isn't open (e.g. greenfield staging). Unset → reads via Public role. Never `PUBLIC_` |
+| removed | — | `DIRECTUS_EMAIL`, `DIRECTUS_PASSWORD` (08 §5); no frontend admin login path |
+| v4.1 Directus/Coolify | backend | Directus auth/SSO vars for registration, cookies, CORS credentials, email, and Google OpenID (`AUTH_PROVIDERS`, `AUTH_GOOGLE_*`, `USER_REGISTER_URL_ALLOW_LIST`, `PASSWORD_RESET_URL_ALLOW_LIST`, cookie-domain settings). No frontend admin credentials. |
+| v4.1 frontend | server | Auth route configuration only (`SITE_URL`, Directus URLs, optional CSRF/session signing secret if the Astro bridge stores any local session metadata). Do not expose auth secrets with `PUBLIC_`. |
 
 `.env.example` updated in lockstep; Coolify var changes listed in handoff before deploy.
 
@@ -149,7 +149,8 @@ Tests:   golden fixtures = every syntax from AGENT_BLOG_GUIDE.md + 3 real publis
 | Public pages (v4.0) | `public, max-age=0, s-maxage=300, stale-while-revalidate=86400` (Cloudflare edge does the work; publish latency ≤5 min accepted; documented for editors) |
 | RSS/sitemap | `s-maxage=3600` |
 | Static assets (hashed) | `immutable, max-age=31536000` (Astro default) |
-| v4.1 authed/student/api | `private, no-store` |
+| Field Guide previews (v4.1) | same as public pages — preview content is public |
+| Auth/account/guide reader state (v4.1) | `private, no-store` for authenticated HTML/API responses |
 
 Security headers (middleware, all routes): `X-Content-Type-Options: nosniff`,
 `Referrer-Policy: strict-origin-when-cross-origin`,
@@ -171,12 +172,60 @@ Page-level: primary fetch null → Astro.rewrite('/404') (NOT redirect — keep 
 section fetch failure → ErrorState component (05 universal rules).
 ```
 
-## 10. Auth architecture (v4.1) — adopt COURSES_PRD §11 verbatim
-with these implementation pins: middleware validates session only on `/student/*` and
-API routes (public pages read the cookie without Directus round-trip unless present);
-`auth/rate-limit.ts` = fixed-window counters in a Map with periodic sweep (single
-node instance; revisit if scaled horizontally — documented limitation); logout POST
-only (CSRF: SameSite=Lax + custom header check `X-Requested-With` on all POST APIs).
+## 10. Field Guide auth + progress architecture (v4.1)
+
+Field Guides are public previews with a login-gated reader. Anonymous visitors can
+browse `/guides` and `/guides/[slug]` preview metadata, but starting a guide, reading
+item bodies/curator notes, and saving progress require a Directus user with the
+`guide_reader` role. This creates an account reason without reintroducing the old LMS
+surface.
+
+**Repository / view-model layer.** Field Guides follow the existing pattern exactly
+(06 §7, 08 §8): `lib/repositories/guidesRepo.ts` is the only place that touches the
+SDK for public preview data and authenticated guide reads. It maps raw Directus rows
+(`lib/directus/schema.ts`) into view-models (`types/content.ts`) via `_mappers.ts`,
+running markdown fields through the pipeline. Pages import repositories and auth
+helpers, never the SDK directly.
+
+**Auth bridge.** Astro owns the public UX routes (`/login`, `/signup`, `/account`) and
+small server endpoints under `/api/auth/*`. Directus remains the identity source of
+truth. Email/password login uses Directus session mode; Google login uses Directus
+OpenID and redirects back through an allow-listed frontend URL. Middleware reads the
+session, sets `Astro.locals.user`, and guards only `/account` plus the authenticated
+reader state on `/guides/[slug]`.
+
+**Progress API** = `/api/guides/progress`, backed by `guide_progress`:
+
+```
+API:
+  GET  /api/guides/progress?guide=<id>
+       -> current user's progress row or derived empty progress
+  POST /api/guides/progress
+       body: { guideId, completedItemIds, lastItemId }
+       -> validates session + item ids, upserts the current user's row
+
+  deriveProgress(guide, row)-> {                            # PURE, unit-testable
+       status: 'not-started' | 'in-progress' | 'completed',
+       percent,                # round(completed / totalItems * 100)
+       completedCount, remainingCount,
+       estMinutesRemaining,    # sum est_time of incomplete items
+       resumeItemId }          # lastItemId if still incomplete, else first incomplete
+
+guards:
+  - unauthenticated writes return 401 and the UI sends the user to
+    `/login?next=/guides/<slug>`.
+  - completedItemIds are pruned against the current published guide item ids.
+  - a user can only read/update rows where `user = $CURRENT_USER`.
+  - if a guide is archived/unpublished, progress remains in Directus but the public UI
+    does not expose the guide.
+```
+
+**Rendering pattern.** The catalogue and guide preview render server-side for everyone.
+Logged-out guide previews show the syllabus preview and a primary "Sign in to start"
+CTA. Logged-in guide readers receive the full path and progress state from Directus.
+Completion toggles are progressive enhancement: without JS, the reader still sees the
+content and can submit simple form actions; with JS, toggles update optimistically and
+refresh from the API.
 
 ## 11. Build, CI, deploy
 

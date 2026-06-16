@@ -1,0 +1,149 @@
+---
+/**
+ * GuideHero (05 §15) — the guide's pitch: topic kicker, title, summary, curator byline,
+ * and key facts. Shown identically on the public preview and the authenticated reader.
+ */
+import { directusSrcset } from '../../lib/images';
+import { formatMinutes } from '../../lib/guides/progress';
+import Avatar from '../ui/Avatar.astro';
+import DifficultyTag from './DifficultyTag.astro';
+import type { Guide } from '../../types/content';
+
+interface Props {
+  guide: Guide;
+}
+
+const { guide } = Astro.props;
+const { title, summary, difficulty, coverImage, estimatedMinutes, itemCount, curator, topics } =
+  guide;
+
+const facts = [
+  itemCount > 0 ? `${itemCount} ${itemCount === 1 ? 'resource' : 'resources'}` : null,
+  estimatedMinutes ? `~${formatMinutes(estimatedMinutes)}` : null,
+].filter(Boolean);
+---
+
+<header class="g-hero">
+  {topics.length > 0 && (
+    <p class="g-hero__kicker">
+      {topics.map((topic, i) => (
+        <>
+          {i > 0 && <span aria-hidden="true"> · </span>}
+          <a href={`/guides?topic=${topic.slug}`}>{topic.name}</a>
+        </>
+      ))}
+    </p>
+  )}
+
+  <h1 class="g-hero__title">{title}</h1>
+  <p class="g-hero__summary">{summary}</p>
+
+  <div class="g-hero__meta">
+    <a href={`/dream-team/${curator.slug}`} class="g-hero__curator">
+      <Avatar src={curator.avatar?.src} name={curator.name} size={32} />
+      <span>Curated by <strong>{curator.name}</strong></span>
+    </a>
+    <DifficultyTag difficulty={difficulty} />
+    {facts.map((fact) => <span class="g-hero__fact">{fact}</span>)}
+  </div>
+
+  {coverImage && (
+    <div class="g-hero__cover">
+      <img
+        src={coverImage.src}
+        srcset={directusSrcset(coverImage.id, [800, 1200, 1600])}
+        sizes="(min-width: 70rem) 1000px, 100vw"
+        width={coverImage.width}
+        height={coverImage.height}
+        alt={coverImage.alt}
+        loading="eager"
+        decoding="async"
+      />
+    </div>
+  )}
+</header>
+
+<style>
+  .g-hero__kicker {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-mono-label);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .g-hero__kicker a {
+    color: var(--text-3);
+    text-decoration: none;
+  }
+
+  .g-hero__kicker a:hover {
+    color: var(--accent);
+  }
+
+  .g-hero__title {
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .g-hero__summary {
+    max-width: 60ch;
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  .g-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+    margin-top: var(--space-5);
+  }
+
+  .g-hero__curator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+  }
+
+  .g-hero__curator:hover {
+    color: var(--text-1);
+  }
+
+  .g-hero__curator strong {
+    color: var(--text-2);
+    font-weight: 600;
+  }
+
+  .g-hero__fact {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .g-hero__cover {
+    margin-top: var(--space-6);
+    overflow: hidden;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    aspect-ratio: 16 / 9;
+    background: var(--bg-2);
+  }
+
+  .g-hero__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>

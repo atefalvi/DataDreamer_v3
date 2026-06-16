@@ -203,7 +203,7 @@ hover/focus, tiny enhancer script. Revisit only if team > 60.
 ### 5.2 Layout algorithm (runs in Astro frontmatter, pure function — unit-testable)
 ```
 Inputs:  specialties[S] (sorted by member count desc), authors[A] (each: primary
-         specialty = first of their list, weight = 1 + log(posts+courses+1))
+         specialty = first of their list, weight = 1 + log(posts+guides+1))
 Output:  positions { specialtyAnchors: {id,x,y,labelAnchor}, authorNodes:
          {id,x,y,r}, edges: {x1,y1,x2,y2,authorId,specialtyId} } in a 1200×760 viewBox
 Steps:
@@ -243,7 +243,7 @@ identical across builds/requests. Unit test: snapshot positions for fixture data
 Inputs: rendered SVG, legend chips [data-specialty]
 State:  activeSpecialty | null, focusIndex (roving tabindex), tooltipEl (single)
 hover/focusin on .tg-node:
-  show tooltip (name, role, "{n} posts · {m} courses") positioned by
+  show tooltip (name, role, "{n} posts · {m} guides") positioned by
   getBoundingClientRect, flipped if near edge; aria-hidden=true (info duplicate)
   svg.classList.add('has-focus'); node.classList.add('is-active')
   edges not touching node → .is-dimmed (CSS opacity .35, dur-2)
@@ -281,20 +281,25 @@ click, `body` scroll-lock via `overscroll-behavior` + the dialog itself. Preload
 adjacent images. Alt set before src (keep v3 fix). Buttons ≥44px. Reduced motion:
 no zoom transition, fade only.
 
-## 8. Mark complete / enroll (v4.1)
+## 8. Field Guide progress (v4.1) — authenticated server sync
 ```
-markComplete(lessonId):
-  button → loading ("Saving…", aria-busy, disabled)        # prevent double submit
-  optimistic: progress bar + sidebar count update immediately
-  POST /api/courses/complete {lesson_id}
-  on 200/409: apply server progress_percent (corrects optimism), button → "Completed ✓"
-              if response.badge_awarded → completion dialog (focus-trapped <dialog>,
-              badge image, "View dashboard" primary)
-  on 401: redirect /login?redirect={current}
-  on 4xx/5xx/network: revert optimistic state; inline error line under button
-          ("Couldn't save — try again", role=alert); button re-enabled
-enroll(courseId): same pattern; on success navigate to returned first-lesson URL.
-Idempotency & security: server-side per COURSES_PRD §7.7–7.8 (user from session only).
+toggleItem(guideSlug, itemId):
+  if not authenticated:
+    location.href = `/login?next=/guides/${guideSlug}`
+    return
+  toggle aria-pressed optimistically; tint card --success edge (or clear)
+  POST /api/guides/progress with completedItemIds + lastItemId
+  on success -> dispatch 'dd:guide-progress'                 # bar + cards re-derive
+  on failure -> revert toggle, show inline "Progress could not sync" status
+
+onProgressEvent (GuideProgress bar + every GuideCard subscribe):
+  { status, percent, completedCount, remainingCount, estMinutesRemaining, resumeItemId }
+    = progress.deriveProgress(guide, serverProgress)
+  update percent bar width (transition var(--dur-2)), counts, time-remaining,
+  Start↔Resume button label + target (#item-{resumeItemId})
+
+# No completion dialog, no badges. Reaching 100% just sets the status pill to
+# "Completed" and writes completed_at in guide_progress.
 ```
 
 ## 9. Code copy button (article)

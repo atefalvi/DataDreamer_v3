@@ -1,5 +1,5 @@
 /**
- * Topics repository. Topics are a shared taxonomy for posts (v4.0) and courses
+ * Topics repository. Topics are a shared taxonomy for posts (v4.0) and guides
  * (v4.1) — 08 §3.4. Post counts are tallied in JS from a lean posts query, which is
  * cheaper and simpler than aggregating across the M2M junction at this content scale.
  */

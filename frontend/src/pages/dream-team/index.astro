@@ -45,7 +45,7 @@ const layout = showGraph
         id: a.slug,
         specialtyIds: a.specialties.map((s) => s.slug),
         posts: a.postCount,
-        courses: a.courseCount,
+        guides: a.guideCount,
       })),
     )
   : null;
@@ -239,7 +239,7 @@ const jsonLd = [
                         data-href={`/dream-team/${author.slug}`}
                         data-specialties={author.specialties.map((s) => s.name).join(', ')}
                         data-posts={author.postCount}
-                        data-courses={author.courseCount}
+                        data-guides={author.guideCount}
                         data-search={`${author.name} ${author.roleTitle} ${author.specialties.map((s) => s.name).join(' ')}`}
                         data-x={node.x}
                         data-y={node.y}

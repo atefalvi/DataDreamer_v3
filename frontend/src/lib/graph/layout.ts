@@ -35,8 +35,8 @@ export interface GraphAuthorInput {
   specialtyIds: string[];
   /** Published posts — feeds the weight (node radius). */
   posts: number;
-  /** Courses taught — feeds the weight (node radius). */
-  courses: number;
+  /** Guides taught — feeds the weight (node radius). */
+  guides: number;
 }
 
 export interface SpecialtyAnchor {
@@ -99,9 +99,9 @@ function seededRandom(seed: string): () => number {
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
-/** weight = 1 + log(posts + courses + 1); radius = clamp(20 + weight*6, 22, 28). */
+/** weight = 1 + log(posts + guides + 1); radius = clamp(20 + weight*6, 22, 28). */
 function nodeRadius(author: GraphAuthorInput): number {
-  const weight = 1 + Math.log(author.posts + author.courses + 1);
+  const weight = 1 + Math.log(author.posts + author.guides + 1);
   return clamp(20 + weight * 6, 22, 28);
 }
 

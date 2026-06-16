@@ -1,0 +1,235 @@
+---
+/**
+ * GuideCardFeatured (05 §14) — the lead guide on the catalogue: a wide split with the
+ * cover on the right and the pitch on the left. Public; whole card links to the guide.
+ */
+import { directusSrcset } from '../../lib/images';
+import { formatMinutes } from '../../lib/guides/progress';
+import Avatar from '../ui/Avatar.astro';
+import DifficultyTag from './DifficultyTag.astro';
+import type { GuideListItem } from '../../types/content';
+
+interface Props {
+  guide: GuideListItem;
+}
+
+const { guide } = Astro.props;
+const { slug, title, summary, difficulty, coverImage, estimatedMinutes, itemCount, curator, topics } =
+  guide;
+const href = `/guides/${slug}`;
+const vizIndex = (slug.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 6) + 1;
+
+const meta = [
+  itemCount > 0 ? `${itemCount} ${itemCount === 1 ? 'resource' : 'resources'}` : null,
+  estimatedMinutes ? `~${formatMinutes(estimatedMinutes)}` : null,
+].filter(Boolean);
+---
+
+<article class="guide-feature">
+  <a href={href} class="guide-feature__link">
+    <div class="guide-feature__text">
+      <p class="kicker">Featured guide</p>
+      <h2 class="guide-feature__title">{title}</h2>
+      <p class="guide-feature__summary">{summary}</p>
+      <div class="guide-feature__meta">
+        <DifficultyTag difficulty={difficulty} />
+        {meta.map((part) => <span class="guide-feature__metaitem">{part}</span>)}
+      </div>
+      <div class="guide-feature__byline">
+        <Avatar src={curator.avatar?.src} name={curator.name} size={32} />
+        <span>Curated by <strong>{curator.name}</strong></span>
+      </div>
+      <span class="guide-feature__cta">Open the guide<span aria-hidden="true">→</span></span>
+    </div>
+
+    <div class="guide-feature__media" data-viz={vizIndex}>
+      {coverImage ? (
+        <img
+          src={coverImage.src}
+          srcset={directusSrcset(coverImage.id, [640, 960, 1280])}
+          sizes="(min-width: 64rem) 560px, 100vw"
+          width={coverImage.width}
+          height={coverImage.height}
+          alt={coverImage.alt}
+          loading="eager"
+          decoding="async"
+        />
+      ) : (
+        <span class="guide-feature__glyph" aria-hidden="true">◆</span>
+      )}
+      {topics.length > 0 && (
+        <ul class="guide-feature__topics">
+          {topics.slice(0, 3).map((topic) => <li>{topic.name}</li>)}
+        </ul>
+      )}
+    </div>
+  </a>
+</article>
+
+<style>
+  .guide-feature {
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 55%),
+      var(--bg-1);
+    overflow: hidden;
+    transition: border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-3) var(--ease-out);
+  }
+
+  .guide-feature:hover {
+    border-color: var(--border-2);
+    box-shadow: var(--shadow-2);
+  }
+
+  .guide-feature__link {
+    display: grid;
+    grid-template-columns: 1fr;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .guide-feature__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-6);
+  }
+
+  .guide-feature__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    line-height: var(--lh-3xl);
+    font-weight: 560;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .guide-feature__link:hover .guide-feature__title {
+    color: var(--accent);
+  }
+
+  .guide-feature__summary {
+    max-width: 52ch;
+    color: var(--text-2);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+  }
+
+  .guide-feature__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-1);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .guide-feature__byline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+  }
+
+  .guide-feature__byline strong {
+    color: var(--text-2);
+    font-weight: 600;
+  }
+
+  .guide-feature__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    color: var(--accent);
+    font-weight: 650;
+    font-size: var(--fs-sm);
+  }
+
+  .guide-feature__cta span {
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  .guide-feature__link:hover .guide-feature__cta span {
+    transform: translateX(4px);
+  }
+
+  .guide-feature__media {
+    position: relative;
+    min-height: 220px;
+    display: grid;
+    place-items: center;
+    background: var(--bg-2);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .guide-feature__media[data-viz='1'] { --viz: var(--viz-1); }
+  .guide-feature__media[data-viz='2'] { --viz: var(--viz-2); }
+  .guide-feature__media[data-viz='3'] { --viz: var(--viz-3); }
+  .guide-feature__media[data-viz='4'] { --viz: var(--viz-4); }
+  .guide-feature__media[data-viz='5'] { --viz: var(--viz-5); }
+  .guide-feature__media[data-viz='6'] { --viz: var(--viz-6); }
+
+  .guide-feature__media:not(:has(img)) {
+    background:
+      radial-gradient(120% 120% at 80% 10%, color-mix(in srgb, var(--viz) 26%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-2), var(--bg-1));
+  }
+
+  .guide-feature__glyph {
+    color: color-mix(in srgb, var(--viz) 55%, var(--text-3));
+    font-size: 3.5rem;
+    opacity: 0.7;
+  }
+
+  .guide-feature__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .guide-feature__topics {
+    position: absolute;
+    left: var(--space-4);
+    bottom: var(--space-4);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .guide-feature__topics li {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-0) 64%, transparent);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-1);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  @media (min-width: 64rem) {
+    .guide-feature__link {
+      grid-template-columns: 1.05fr 0.95fr;
+      align-items: stretch;
+    }
+
+    .guide-feature__text {
+      padding: var(--space-8) var(--space-7);
+      justify-content: center;
+    }
+
+    .guide-feature__media {
+      border-top: none;
+      border-left: 1px solid var(--border-1);
+      min-height: 100%;
+    }
+  }
+</style>

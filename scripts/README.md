@@ -1,0 +1,39 @@
+# scripts/
+
+Operational scripts for DataDreamer. All are plain Node ESM (`node scripts/<name>.mjs`)
+and read config from environment variables — no secrets are committed.
+
+## Active
+
+Scripts you actually run today.
+
+| Script | What it does | How to run |
+|---|---|---|
+| `v4-guides-schema.mjs` | **v4.1 Field Guides** — creates the `guides / guide_sections / guide_items` collections (+ junctions + `guide_progress`), the public-preview policy, the `guide_reader` role/policy, and seeds one sample guide. Idempotent. | `DIRECTUS_URL=… DIRECTUS_ADMIN_TOKEN=… node scripts/v4-guides-schema.mjs` |
+| `release-smoke.mjs` | Post-deploy smoke test (status codes, redirects, RSS, sitemap, OG fetch). | `node scripts/release-smoke.mjs https://data-dreamer.net` |
+| `generate-og-temp.mjs` | (Re)generate the temporary section OG images in `frontend/public/og/`. | `node scripts/generate-og-temp.mjs` |
+| `generate-project-og.mjs` | Generate per-project case-study OG images. | `node scripts/generate-project-og.mjs` |
+
+## migrations/
+
+One-time Directus migrations that have **already been applied to production** (v4.0).
+Kept for reproducibility and history — you should not need to run these again. Each is
+idempotent if you do.
+
+| Script | Purpose |
+|---|---|
+| `v4-cms-001-directus.mjs` | v4.0 schema: `posts`, `authors`, `specialties`, `topics` + junctions + public read policies. |
+| `v4-cms-002-directus.mjs` | `posts.author` (M2O), `cover_image`, `featured`. |
+| `v4-cms-003-directus.mjs` | Topics backfill — `posts_topics` rows for published posts. |
+| `v4-cms-005-directus.mjs` | Projects → repo markdown export, then archive the Directus rows. |
+| `v4-projects-to-directus.mjs` | Later reversal: projects back into a Directus `projects` collection. |
+| `v4-dt-seed-directus.mjs` | Dream Team starter data (specialties + author profiles). |
+| `v4-seed-staging-posts.mjs` | Seed a small staging writing set. |
+
+## Conventions
+
+- **Env, not flags, for secrets.** `DIRECTUS_URL` + `DIRECTUS_ADMIN_TOKEN` (or
+  `DIRECTUS_TOKEN`) for schema/seed scripts.
+- **Idempotent.** Re-running skips/updates rather than duplicating.
+- When a feature ships and its schema script has been applied to production, move it from
+  the top level into `migrations/`.

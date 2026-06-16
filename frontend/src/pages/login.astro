@@ -1,0 +1,54 @@
+---
+/**
+ * /login (05 §17) — email/password sign-in. Honors a safe `?next=`, surfaces inline
+ * notices, and works without JS (native form POST). noindex.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AuthShell from '../components/auth/AuthShell.astro';
+import { safeNext } from '../lib/auth/session';
+
+const rawNext = Astro.url.searchParams.get('next');
+const next = safeNext(rawNext, '/guides');
+
+if (Astro.locals.user) {
+  return Astro.redirect(safeNext(rawNext, '/account'), 302);
+}
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+const error = Astro.url.searchParams.get('error');
+const registered = Astro.url.searchParams.get('registered');
+const notice = registered
+  ? { type: 'info', text: 'Account created — sign in to continue.' }
+  : error === 'invalid'
+    ? { type: 'error', text: "That email and password don't match." }
+    : error === 'missing'
+      ? { type: 'error', text: 'Enter your email and password.' }
+      : null;
+---
+
+<BaseLayout title="Sign in" description="Sign in to your DataDreamer account." noindex>
+  <AuthShell title="Sign in" subtitle="Open your Field Guides and pick up where you left off.">
+    {notice && (
+      <p class="auth-notice" data-type={notice.type} role={notice.type === 'error' ? 'alert' : 'status'}>
+        {notice.text}
+      </p>
+    )}
+
+    <form method="post" action="/api/auth/login" class="auth-form">
+      <input type="hidden" name="next" value={next} />
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" required />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required />
+      </div>
+      <button type="submit" class="auth-submit">Sign in</button>
+    </form>
+
+    <p slot="footer">
+      New here? <a href={`/signup?next=${encodeURIComponent(next)}`}>Create a free account</a>
+    </p>
+  </AuthShell>
+</BaseLayout>

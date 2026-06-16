@@ -1,0 +1,288 @@
+---
+/**
+ * V4-GUIDE-005 — Field Guide `/guides/[slug]` (05 §15). One route, two states:
+ *  - Anonymous: public preview (hero, why/outcome, syllabus) + sign-in CTA. Indexable.
+ *  - Authenticated guide reader: full curated path with per-item content, curator
+ *    annotations, and server-backed progress.
+ * Items render inline — there is no per-item route.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GuideHero from '../../components/guides/GuideHero.astro';
+import GuideAccessPanel from '../../components/guides/GuideAccessPanel.astro';
+import GuideSection from '../../components/guides/GuideSection.astro';
+import Avatar from '../../components/ui/Avatar.astro';
+import { guidesRepo } from '../../lib/repositories';
+import { deriveGuideProgress, flattenItems } from '../../lib/guides/progress';
+import { creativeWorkJsonLd, breadcrumbListJsonLd } from '../../lib/seo/jsonld';
+import '../../styles/prose.css';
+import type { Guide, GuideListItem, DerivedGuideProgress, StoredGuideProgress } from '../../types/content';
+
+const { slug } = Astro.params;
+const user = Astro.locals.user;
+const signedIn = Boolean(user);
+
+let guide: Guide | null = null;
+let stored: StoredGuideProgress | null = null;
+try {
+  guide = user
+    ? await guidesRepo.readerBySlug(slug!, user.accessToken)
+    : await guidesRepo.previewBySlug(slug!);
+  if (guide && user) {
+    stored = await guidesRepo.progressFor(guide.id, user.accessToken);
+  }
+} catch (error) {
+  console.error('[guide] load failed:', error instanceof Error ? error.message : error);
+}
+
+if (!guide) {
+  return Astro.rewrite('/404');
+}
+
+// Authenticated responses must not be edge-cached (09 §8).
+if (signedIn) {
+  Astro.response.headers.set('Cache-Control', 'private, no-store');
+}
+
+const progress: DerivedGuideProgress | undefined = signedIn
+  ? deriveGuideProgress(guide, stored)
+  : undefined;
+const completedIds = new Set(stored?.completedItemIds ?? []);
+
+// Embedded item list for the reader enhancer's instant, server-identical math.
+const readerData = signedIn
+  ? { slug: guide.slug, items: flattenItems(guide).map((i) => ({ id: i.id, estimatedMinutes: i.estimatedMinutes })) }
+  : null;
+
+// Related guides — shared topic, fallback latest. Decorative; never fails the page.
+let related: GuideListItem[] = [];
+try {
+  const { items } = await guidesRepo.list({ pageSize: 7 });
+  const topicSlugs = new Set(guide.topics.map((t) => t.slug));
+  const pool = items.filter((g) => g.slug !== guide!.slug);
+  const byTopic = pool.filter((g) => g.topics.some((t) => topicSlugs.has(t.slug)));
+  related = (byTopic.length ? byTopic : pool).slice(0, 3);
+} catch {
+  related = [];
+}
+
+const jsonLd = [
+  creativeWorkJsonLd({
+    name: guide.title,
+    description: guide.summary,
+    url: `/guides/${guide.slug}`,
+    keywords: guide.topics.map((t) => t.name),
+    image: guide.coverImage?.src,
+  }),
+  breadcrumbListJsonLd([
+    { label: 'Field Guides', href: '/guides' },
+    { label: guide.title },
+  ]),
+];
+---
+
+<BaseLayout
+  title={guide.title}
+  description={guide.summary}
+  ogType="article"
+  ogImage={guide.coverImage ? { url: guide.coverImage.src, alt: guide.coverImage.alt } : { url: '/og/og-guides.png' }}
+  jsonLd={jsonLd}
+>
+  <article class="guide container-content">
+    <GuideHero guide={guide} />
+    <GuideAccessPanel guide={guide} signedIn={signedIn} progress={progress} />
+
+    {(guide.whyThisPathHtml || guide.expectedOutcomeHtml || guide.recommendedAudience) && (
+      <section class="guide__intro">
+        {guide.whyThisPathHtml && (
+          <div class="guide__intro-block">
+            <p class="kicker">Why this path</p>
+            <div class="prose" set:html={guide.whyThisPathHtml} />
+          </div>
+        )}
+        {guide.expectedOutcomeHtml && (
+          <div class="guide__intro-block">
+            <p class="kicker">What you'll get</p>
+            <div class="prose" set:html={guide.expectedOutcomeHtml} />
+          </div>
+        )}
+        {guide.recommendedAudience && (
+          <p class="guide__audience">
+            <span class="guide__audience-label">Who it's for</span>
+            {guide.recommendedAudience}
+          </p>
+        )}
+      </section>
+    )}
+
+    <div class="guide__path">
+      {guide.sections.map((section, i) => (
+        <GuideSection section={section} index={i} completedIds={signedIn ? completedIds : undefined} />
+      ))}
+    </div>
+
+    {guide.curators.length > 0 && (
+      <section class="guide__curators" aria-label="Curators">
+        <p class="kicker">{guide.curators.length > 1 ? 'Curated by' : 'Curator'}</p>
+        <div class="guide__curators-grid">
+          {guide.curators.map((curator) => (
+            <a href={`/dream-team/${curator.slug}`} class="guide__curator-card">
+              <Avatar src={curator.avatar?.src} name={curator.name} size={48} />
+              <span class="guide__curator-name">{curator.name}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {related.length > 0 && (
+      <section class="guide__related" aria-label="More guides">
+        <p class="kicker">More guides</p>
+        <ul class="guide__related-list">
+          {related.map((g) => (
+            <li>
+              <a href={`/guides/${g.slug}`}>
+                <span class="guide__related-title">{g.title}</span>
+                <span class="guide__related-meta">{g.itemCount} resources · {g.difficulty}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </article>
+
+  {readerData && (
+    <script type="application/json" id="guide-progress-data" is:inline set:html={JSON.stringify(readerData)} />
+  )}
+</BaseLayout>
+
+<script>
+  // No-ops on the public preview (no progress panel / no code blocks).
+  import { initGuideReader } from '../../lib/guides/reader';
+  import { initCodeCopy } from '../../lib/markdown/codeCopy';
+  initGuideReader();
+  initCodeCopy();
+</script>
+
+<style>
+  .guide {
+    padding-block: calc(var(--nav-height) + var(--section-y)) var(--section-y);
+    max-width: 56rem;
+  }
+
+  .guide__intro {
+    display: grid;
+    gap: var(--space-6);
+    margin-top: var(--space-8);
+    padding-top: var(--space-7);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .guide__intro-block .kicker {
+    margin-bottom: var(--space-3);
+  }
+
+  .guide__intro-block .prose {
+    color: var(--text-2);
+    font-size: var(--fs-base);
+  }
+
+  .guide__audience {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--bg-1);
+    border: 1px solid var(--border-1);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  .guide__audience-label {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .guide__path {
+    margin-top: var(--space-9);
+  }
+
+  .guide__curators,
+  .guide__related {
+    margin-top: var(--space-9);
+    padding-top: var(--space-7);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .guide__curators-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .guide__curator-card {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    background: var(--bg-1);
+    color: var(--text-1);
+    text-decoration: none;
+    transition: border-color var(--dur-2) var(--ease-out);
+  }
+
+  .guide__curator-card:hover {
+    border-color: var(--accent);
+    color: var(--text-1);
+  }
+
+  .guide__curator-name {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+  }
+
+  .guide__related-list {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .guide__related-list a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-1);
+    background: var(--bg-1);
+    color: var(--text-1);
+    text-decoration: none;
+    transition: border-color var(--dur-2) var(--ease-out);
+  }
+
+  .guide__related-list a:hover {
+    border-color: var(--accent);
+  }
+
+  .guide__related-title {
+    font-weight: 650;
+  }
+
+  .guide__related-meta {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+</style>

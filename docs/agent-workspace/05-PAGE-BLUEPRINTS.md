@@ -26,34 +26,34 @@ WD ≥1536 (wide — content clamps at container widths; only gutters grow).
 ## 1. Home `/`
 
 - **Purpose**: state what DataDreamer is in one viewport; route visitors to blog,
-  work, courses, team. **Primary user**: first-time practitioner/client.
-  **Primary action**: open the latest post. **Secondary**: explore work / courses.
+  work, guides, team. **Primary user**: first-time practitioner/client.
+  **Primary action**: open the latest post. **Secondary**: explore work / guides.
 - **Section order**:
   1. **Hero** — "Signal Field" animated canvas (full spec + pseudocode: 07 §2).
      Content: kicker `Data · Analytics · AI`, H1 (2 lines, Fraunces, `--fs-display`):
      "Field notes from the future of data." (copy locked in `src/content/site.ts`;
      wording final unless owner edits), sub (≤2 sentences): "DataDreamer is an
-     independent publication and learning platform — practical writing, courses, and
-     case studies from working engineers." CTAs: primary "Read the blog" → `/blog`;
-     secondary "Explore courses" → `/courses` (v4.0: secondary is "See the work" →
-     `/projects` until courses ship — flag `COURSES_ENABLED` in site.ts).
+     independent publication and learning platform — practical writing, Field Guides,
+     and case studies from working engineers." CTAs: primary "Read the blog" → `/blog`;
+     secondary "Explore the guides" → `/guides` (v4.0: secondary is "See the work" →
+     `/projects` until guides ship — flag `GUIDES_ENABLED` in site.ts).
   2. **Latest writing** — kicker "From the blog" + 3 latest posts: 1 featured
      `PostCardFeatured` (cover image 16/10, title, excerpt, author chip, date, topic)
      + 2 compact `PostCard` rows. "All posts →" ghost button.
   3. **Selected work** — 2 `ProjectCard`s (featured flag from content collection
      frontmatter) on an asymmetric grid (cols 1–6 / 7–12, second card offset
      `margin-top: var(--space-8)` on TL+). "All work →".
-  4. **Courses teaser** (v4.1; hidden by flag) — single tinted band (`--bg-1`):
-     kicker "Learn", 3 `CourseCard`s, "Browse courses →".
+  4. **Field Guides teaser** (v4.1; hidden by `GUIDES_ENABLED` flag) — single tinted
+     band (`--bg-1`): kicker "Field Guides", 3 `GuideCard`s, "Browse the guides →".
   5. **Dream Team strip** — kicker "The Dream Team", overlapping avatar row (max 8) +
-     one line: "Writing and courses from N practitioners across M specialties." →
+     one line: "Writing and guides from N practitioners across M specialties." →
      `/dream-team`. Static (no graph here).
 - **Layouts**: DT/WD as above; TL: work cards lose offset; TP: featured post full-width,
   compact posts 2-up, work 1-up, avatars wrap; LM/SM: everything single column, hero
   becomes static composition (07 §2.8), CTAs stack full-width, order unchanged.
 - **Data**: `postsRepo.latest(3)`, projects content collection (featured 2),
-  `authorsRepo.forTeamStrip()` (avatars + counts), site.ts copy. Courses teaser:
-  `coursesRepo.latest(3)`.
+  `authorsRepo.forTeamStrip()` (avatars + counts), site.ts copy. Field Guides teaser:
+  `guidesRepo.latest(3)`.
 - **Empty**: no posts → section renders EmptyState "New writing is on the way." (only
   plausible pre-launch); no projects → omit section entirely.
 - **SEO/OG**: title "DataDreamer — Field notes from the future of data";
@@ -66,7 +66,7 @@ WD ≥1536 (wide — content clamps at container widths; only gutters grow).
 - **Risks**: hero perf on low-end mobile (mitigated: static on <768px); copy drift
   (single source in site.ts).
 - **Tree**: `index.astro → HeroSignalField / SectionHeader+PostCardFeatured+PostCard×2
-  / ProjectCard×2 / CoursesTeaser? / TeamStrip`.
+  / ProjectCard×2 / GuidesTeaser? / TeamStrip`.
 
 ## 2. Blog landing `/blog`
 
@@ -227,7 +227,7 @@ Full interaction spec + pseudocode: 07 §5. Blueprint:
 - **Sections**: 1) header (kicker "The people", H1 "Dream Team", intro). 2) **Graph
   stage** (TL+ only): SVG constellation, container-wide, height `min(72vh, 760px)`.
   Specialty anchors arranged on a golden-angle ring; author nodes (avatar circles
-  44–56px by post+course count) cluster around their primary specialty; hairline edges
+  44–56px by post+guide count) cluster around their primary specialty; hairline edges
   author→each-of-their-specialties; specialty labels mono. Hover/focus: node lifts
   (scale 1.08), tooltip card (name, role, n posts), connected edges brighten, others
   dim to 35%. Click/Enter: navigate to author page. Specialty legend chips below
@@ -263,13 +263,13 @@ Full interaction spec + pseudocode: 07 §5. Blueprint:
   role, specialty chips, links row (icon ghost buttons: GitHub/LinkedIn/site/email)
   cols 3–9). 2) Bio prose (markdown, ≤ 70ch) + optional pull-quote personal statement
   (Fraunces italic). 3) Tools/tech: chip group. 4) **Writing** — author's posts,
-  `PostCard` rows, count in kicker, paginated >10. 5) **Courses** (v4.1): `CourseCard`
-  row if instructor on any. 6) Featured work: up to 2 hand-picked links (json field) as
+  `PostCard` rows, count in kicker, paginated >10. 5) **Guides** (v4.1): `GuideCard`
+  row if curator on any. 6) Featured work: up to 2 hand-picked links (json field) as
   compact cards. 7) "More of the team" — 3 `AuthorCard`s sharing a specialty.
 - **Layouts**: TP: header stacks (avatar 96px centered-left, text below). SM: links
   row wraps; chips scroll-x.
 - **Data**: `authorsRepo.bySlug(slug)` (404 if none/inactive), `postsRepo.byAuthor`,
-  `coursesRepo.byInstructor` (flagged), `authorsRepo.related`.
+  `guidesRepo.byCurator` (flagged), `authorsRepo.related`.
 - **SEO/OG**: "{Name} — {Role} — DataDreamer"; OG: generated per-author card
   (10 §5.3: avatar + name template) else `og-team.png`; JSON-LD `ProfilePage` +
   `Person` (sameAs = links); canonical.
@@ -277,7 +277,7 @@ Full interaction spec + pseudocode: 07 §5. Blueprint:
 - **Acceptance**: renders fully with zero posts (sections omit gracefully); social
   links open new tab w/ `rel="noopener"`; breadcrumbs Dream Team → Name.
 - **Tree**: `dream-team/[slug].astro → ProfileHeader / BioProse / ToolChips /
-  AuthorPosts / AuthorCourses? / FeaturedWork? / RelatedAuthors`.
+  AuthorPosts / AuthorGuides? / FeaturedWork? / RelatedAuthors`.
 
 ## 9. About `/about`
 - **Purpose**: the person/practice behind the platform; conversion to contact.
@@ -324,63 +324,116 @@ behavior (audit §3) — **redirect-on-missing-slug is retired**.
 "Try again" link, no stack traces. Also used by middleware catch (09 §9). Maintenance
 mode: not built; documented ops note — Coolify-level static page if ever needed.
 
-## 14. Courses catalogue `/courses` (v4.1)
-Per COURSES_PRD §7.3 with v4 design substitutions:
-- Header: kicker "Learn", H1 "Courses", intro. Filter row: level chips
-  (All/Beginner/Intermediate/Advanced) + topic chips (shared `topics`) — SSR query
-  params. Sort select (Newest/Shortest) — "Most useful" deferred until votes exist
-  (PRD phase 2). Grid of `CourseCard`: cover (16/10) or generated gradient+mark
-  placeholder, level chip, title (Inter 600 — Fraunces reserved for page headings),
-  one-line description, mono meta (n lessons · duration · ★ score when ≥3 votes),
-  badge dot if badge_enabled. Enrolled state (signed in): progress bar (4px,
-  radius-full — PRD's square bars are v3-era) + "Continue → Lesson N".
-- Layouts: 3-col DT / 2-col TP / 1-col LM-SM. Empty: "No courses yet — check back
-  soon." per PRD. SEO: PRD §13.1 with v4 title format "Courses — DataDreamer";
-  `og-courses.png`. JSON-LD `ItemList`.
-- Acceptance: usable logged-out fully; filters SSR; cards equal height.
+## 14. Field Guide catalogue `/guides` (v4.1)
 
-## 15. Course landing `/courses/[slug]` (v4.1)
-PRD §7.4 structure retained (hero → stats row → outcomes → lesson list → study hub →
-CTA block) restyled: stats row = 4 stat tiles (lessons/duration/level/badge);
-outcomes = check-icon list (2-col TP+); lesson list = numbered rows (mono number,
-title, duration, state icon: check `--success` / current `--accent` ring / upcoming
-neutral; locked rows only when not preview & logged out — show lock + tooltip);
-study hub = resource cards grouped by type with gating per PRD §7.11 (gated items
-show lock + "Free account required"); CTA block per auth state (PRD §7.4.6) — sticky
-bottom bar on LM/SM (safe-area padded), inline card on TP+ right rail (cols 9–12,
-sticky). JSON-LD `Course` per PRD §13.2. OG: course cover else `og-courses.png`.
-404 for bad slug. Acceptance: all four auth-state CTA variants render correctly;
-lesson states accurate; structured data validates.
+Browse page for Field Guides — curated learning paths (`01` §1a). Public preview, SSR,
+login required to start.
+- **Purpose**: find a guide worth following. **User**: a practitioner wanting a vetted
+  route into a topic. **Primary**: open a guide. **Secondary**: filter.
+- **Sections**: 1) Page header: kicker "Field Guides", H1 "Guides", intro
+  ("Curated paths through topics worth learning — assembled by people who learned them
+  first."), guide count (mono). 2) **Featured guide** (latest `featured=true` else
+  latest): full-width `GuideCardFeatured` (cover right, text left) — summary,
+  difficulty chip, `N items · ~Xh Ym`, curator chip. 3) **Filter row**: topic chips
+  (shared `topics` with ≥1 guide) + difficulty chips (All/Beginner/Intermediate/
+  Advanced) — **SSR query params** (`?topic=`, `?level=`), links not client JS (parity
+  with blog §2). 4) **Grid of `GuideCard`**: cover (16/10) or generated gradient+mark
+  placeholder, difficulty chip, title (Inter 600 — Fraunces reserved for page
+  headings), one-line summary, mono meta (`N items · ~Xh Ym · curator`). Anonymous CTA:
+  "Sign in to start" → `/login?next=/guides/[slug]`. Authenticated cards may show a
+  thin progress bar (4px, radius-full) + "Resume →" from `guide_progress`.
+- **Layouts**: featured split DT/TP; grid 3-col DT / 2-col TP / 1-col LM-SM, equal
+  height. **Empty**: "No guides yet — the first ones are being assembled." **Data**:
+  `guidesRepo.list({ topic?, level?, page })` (08 §8.5) + one aggregate for item
+  counts; never section/item bodies.
+- **SEO/OG**: title "Field Guides — DataDreamer"; `og-guides.png`; JSON-LD `ItemList`.
+- **Acceptance**: fully usable with JS disabled; filters SSR; anonymous visitors can
+  evaluate guides but cannot read item bodies; cards equal height.
+- **Tree**: `guides/index.astro → PageHeader / GuideCardFeatured / TopicChips +
+  DifficultyChips / GuideGrid(GuideCard×n) / Pagination?`.
 
-## 16. Lesson `/courses/[courseSlug]/[lessonSlug]` (v4.1)
-PRD §7.5 retained: breadcrumb (course → lesson n), H1, 16/9 YouTube embed
-(**facade pattern**: static thumbnail + play button; iframe injected on interaction —
-saves ~500KB JS on load; `youtube-nocookie.com`, `rel=0&modestbranding=1`), notes
-prose (markdown pipeline, callouts available), resources list, progress sidebar TL+
-(x/N, bar, Mark complete button, prev/next) / sticky bottom bar TP- per PRD §8.6.
-Video-unavailable fallback per PRD §15.5. `noindex` per PRD §13.1. Mark-complete:
-optimistic UI + idempotent POST (07 §8 pseudocode). Not-enrolled visit: page renders,
-Mark complete replaced by "Enroll to track progress". Acceptance: complete→badge flow
-works E2E; keyboard path video→complete→next coherent; bottom bar never overlaps
-content (scroll-padding).
+## 15. Field Guide `/guides/[slug]` (v4.1)
 
-## 17. Auth pages `/login` `/signup` `/forgot-password` `/reset-password` (v4.1)
-Single centered card (max 400px) on `--bg-0`: mark, H1, fields per PRD §7.1 (Inter
-labels — not mono-uppercase; that was v3), inline validation on blur + summary on
-submit (`aria-live="assertive"`, focus to first error), submit primary full-width
-with loading state, swap links (login↔signup), redirect param honored w/ safety rule
-(PRD §7.1). All `noindex`. Error mapping per PRD §15.1. Acceptance: full keyboard +
-SR pass; rate-limit 429 shows "Too many attempts" message; password manager
-compatible (`autocomplete` attrs).
+Public preview or logged-in reader on one route. Anonymous visitors see hero,
+why/outcome, curator, topic metadata, and syllabus preview. Logged-in guide readers see
+the full curated path with Directus-backed progress. **No per-item route** — items are
+curated resources rendered inline (open externally or expand in place).
+- **Purpose**: follow the path. **User**: a learner working the topic over multiple
+  sessions. **Primary**: start/resume and work through items. **Secondary**: jump to a
+  section; read the curator's notes for an item.
+- **Sections**:
+  1. **Hero** (container-content): kicker = topic links, H1 (Fraunces `--fs-4xl`),
+     `summary` lede, meta row (curator chip + avatar → author page · difficulty ·
+     `N items` · `~Xh Ym` · last updated). Cover (16/9) optional.
+  2. **Access / progress panel** (below hero): logged out = premium sign-in card with
+     "Sign in to start" and "Create free account" actions preserving
+     `?next=/guides/[slug]`. Logged in = status pill (Not started / In progress /
+     Completed), percent, `done / total items`, estimated time remaining, and a primary
+     **Start** / **Resume → "{item}"** button that scrolls to the resume item.
+  3. **Why this path / What you'll get** — two prose blocks from `why_this_path` +
+     `expected_outcome` (markdown pipeline); `recommended_audience` as a labeled line.
+     2-col TP+.
+  4. **Sections + items** — logged out: ordered section titles/descriptions and item
+     titles/types only, enough to judge the syllabus; item body, URLs, embeds,
+     downloads, curator notes, and completion controls are hidden behind the sign-in
+     CTA. Logged in: for each `guide_section` (ordered), section title (mono index +
+     Fraunces title), optional `description` prose, then ordered `guide_items` as
+     **`GuideItem` cards**. No sections → single implicit "All resources" group.
+     Each `GuideItem` card:
+     - **type badge + icon** (video/link/PDF/repo/note/cheat sheet/exercise/docs),
+       title, `description`, mono meta (`~N min` · difficulty?).
+     - **complete toggle** (left rail) → authenticated API update (`09` §10),
+       optimistic, persists to `guide_progress`; checked tints the card `--success` edge.
+       Real button, `aria-pressed`, keyboard-operable.
+     - **curator annotations (the value)**: "Why this is here" (`why_included`),
+       "Focus on" (`focus_on`), "My notes" (`notes`) — labeled callout-style blocks;
+       `<details>` collapsed on mobile, open TP+.
+     - **how it opens by type**: `youtube` → facade embed (static thumb + play; iframe
+       injected on interaction; `youtube-nocookie.com`, `rel=0&modestbranding=1`).
+       `external_url`/`github_repo`/`docs_page`/`notebooklm` → primary link, new tab
+       (`rel="noopener"`), shows hostname. `pdf` → open/download + optional inline
+       `<embed>` on TP+. `uploaded_file` → download. `code_sample`/`cheat_sheet`/
+       `personal_note`/`exercise` → `body` rendered inline via the markdown pipeline
+       (callouts + code copy available).
+  5. **Curators block** — primary `author` + `guides_authors`, compact cards → author
+     pages. 6. **More guides** — 2–3 by shared topic (fallback latest).
+- **Layouts**: single readable column (`--container-content`); item annotations 2-col
+  TP+, stacked + `<details>` LM/SM. Progress bar collapses to a compact sticky strip
+  LM/SM (safe-area padded), never overlapping content (scroll-padding).
+- **Data**: `guidesRepo.previewBySlug(slug)` for all visitors; authenticated readers
+  also call `guidesRepo.readerBySlug(slug)` + `guideProgressRepo.byGuide`. 404 for
+  bad/unpublished slug.
+- **SEO/OG**: title "{title} — DataDreamer"; description = `summary`; OG = cover else
+  `og-guides.png`. JSON-LD `Article`/`CreativeWork` with `author` (curator) — **not**
+  `Course` (no instructor/lesson semantics). Canonical self. **Indexable** (unlike the
+  old noindex lesson pages — guides are public content we want found).
+- **A11y**: H1 + preview content render server-side without JS; sign-in CTA preserves
+  destination; completion toggles are real stateful buttons; facade embeds keyboard-
+  activatable; links have discernible names (the title, not "click here").
+- **Acceptance**: public preview readable and indexable with JS disabled; anonymous
+  visitors cannot read item bodies or write progress; login returns to the guide;
+  progress (toggle, percent, resume) survives reload; YouTube iframe loads only on
+  interaction (network-tab evidence); bad slug → 404; structured data validates.
+- **Tree**: `guides/[slug].astro → GuideHero / GuideProgress(client) / GuideIntro /
+  GuideSection(GuideItem×n)… / CuratorBlock / RelatedGuides`.
 
-## 18. Student dashboard `/student` + `/student/settings` (v4.1)
-PRD §7.6 retained, v4 style: greeting header ("Welcome back, {name}"), Continue
-Learning card (most prominent — cover thumb, course, lesson, bar, Resume primary),
-My courses table→cards (TP- stack), Completed + badges grid (badge = image in
-radius-lg tile + course + date), account block → settings page (display name,
-password change, delete-account confirmation flow). Empty: "No active courses —
-Browse courses →". Protected by middleware; `noindex`. Settings: forms with same
-validation pattern as §17.
+<!-- §16 keeps the retired separate lesson page tombstone. §17–§18 are re-adopted in a
+small form for Directus-backed guide access, not the old LMS/student model. -->
+
+## 16. (removed — was the Lesson page; items now render inline on §15)
+## 17. Auth pages `/login` + `/signup` (v4.1)
+
+Premium compact auth surfaces for guide access. Google is the primary action; email/
+password is the fallback. Both accept `next`, validate it as an internal path, and
+redirect back after success. Password reset is only shown when Directus email is
+configured. A logged-in user visiting auth pages redirects to `next` or `/account`.
+
+## 18. Account `/account` (v4.1)
+
+Protected, minimal "My guides" page — not a student dashboard. Shows active and
+completed guides from `guide_progress`, progress bars, and "Continue" links. Empty
+state sends readers to `/guides`. Includes sign-out. No badges, scores, certificates,
+payment state, or profile editor in v4.1.
 
 ## 19. Search `/search` — **future work, not in v4** (01 §6). Blueprint stub: when
 post count > 50, server-rendered search over Directus `search` param, single input +

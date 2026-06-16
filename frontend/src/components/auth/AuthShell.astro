@@ -1,0 +1,171 @@
+---
+/**
+ * AuthShell — centered card chrome for the login/signup surfaces (05 §17). Premium,
+ * minimal, Observatory-dark. Slots: default (form) and `footer` (swap link).
+ */
+interface Props {
+  title: string;
+  subtitle?: string;
+}
+
+const { title, subtitle } = Astro.props;
+---
+
+<section class="auth">
+  <div class="auth__card">
+    <a href="/" class="auth__brand">DataDreamer<span aria-hidden="true">.</span></a>
+    <h1 class="auth__title">{title}</h1>
+    {subtitle && <p class="auth__subtitle">{subtitle}</p>}
+    <slot />
+  </div>
+  <p class="auth__foot"><slot name="footer" /></p>
+</section>
+
+<style>
+  .auth {
+    min-height: calc(100vh - var(--nav-height));
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--space-5);
+    padding: calc(var(--nav-height) + var(--space-7)) var(--gutter) var(--space-8);
+  }
+
+  .auth__card {
+    width: min(100%, 26rem);
+    padding: var(--space-7);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 55%),
+      var(--bg-1);
+    box-shadow: var(--shadow-2);
+  }
+
+  .auth__brand {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text-1);
+    text-decoration: none;
+  }
+
+  .auth__brand span {
+    color: var(--accent);
+  }
+
+  .auth__title {
+    margin-top: var(--space-5);
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+    font-weight: 560;
+    letter-spacing: -0.01em;
+  }
+
+  .auth__subtitle {
+    margin-top: var(--space-2);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .auth__foot {
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+  }
+
+  .auth__foot :global(a) {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .auth__foot :global(a:hover) {
+    text-decoration: underline;
+  }
+</style>
+
+<style is:global>
+  /* Form chrome shared by /login and /signup (markup lives in the page). */
+  .auth-form {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+  }
+
+  .auth-form .field {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .auth-form label {
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+  }
+
+  .auth-form input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-md);
+    background: var(--bg-0);
+    color: var(--text-1);
+    font-family: var(--font-text);
+    font-size: var(--fs-base);
+    transition: border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+  }
+
+  .auth-form input:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+  }
+
+  .auth-form .hint {
+    color: var(--text-3);
+    font-size: var(--fs-xs);
+  }
+
+  .auth-submit {
+    margin-top: var(--space-2);
+    min-height: 2.875rem;
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    color: var(--text-on-accent);
+    font-family: var(--font-text);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    cursor: pointer;
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 22%, transparent);
+    transition: background var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  }
+
+  .auth-submit:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  .auth-notice {
+    margin-top: var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-2);
+    font-size: var(--fs-sm);
+  }
+
+  .auth-notice[data-type='error'] {
+    border-color: color-mix(in srgb, var(--danger) 50%, var(--border-2));
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+    color: var(--text-1);
+  }
+
+  .auth-notice[data-type='info'] {
+    border-color: color-mix(in srgb, var(--success) 45%, var(--border-2));
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    color: var(--text-1);
+  }
+</style>

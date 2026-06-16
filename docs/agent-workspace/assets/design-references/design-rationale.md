@@ -61,7 +61,7 @@ by assigning each instinct a layer:
 - **SVG graph, no physics**: determinism = trust (people find themselves in the same
   place every visit), SSR = works without JS, and the team is small. A force sim is
   demo-ware at this scale.
-- **Server-rendered filters** (blog/projects/courses): URLs become shareable state,
+- **Server-rendered filters** (blog/projects/guides): URLs become shareable state,
   crawlers see every facet, and we delete two divergent client filter scripts from v3.
 
 ## 5. Voice examples (apply across UI copy)

@@ -1,0 +1,237 @@
+---
+/**
+ * /account (05 §18) — minimal "My guides". Protected by middleware (anonymous → /login).
+ * Lists the learner's in-progress and completed guides with progress + continue links.
+ * Not a student dashboard: no badges, scores, certificates, or payment state. noindex.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EmptyState from '../components/ui/EmptyState.astro';
+import { guidesRepo } from '../lib/repositories';
+import type { AccountGuideProgress } from '../types/content';
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/login?next=%2Faccount', 302);
+}
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+let guides: AccountGuideProgress[] = [];
+try {
+  guides = await guidesRepo.myGuides(user.accessToken);
+} catch (error) {
+  console.error('[account] myGuides failed:', error instanceof Error ? error.message : error);
+}
+
+const inProgress = guides.filter((g) => g.status !== 'completed');
+const completed = guides.filter((g) => g.status === 'completed');
+const greeting = user.firstName ? `Welcome back, ${user.firstName}` : 'Welcome back';
+---
+
+<BaseLayout title="My account" description="Your DataDreamer Field Guides." noindex>
+  <div class="account container-content">
+    <header class="account__head">
+      <p class="kicker">Your account</p>
+      <h1>{greeting}</h1>
+      <p class="account__email">{user.email}</p>
+    </header>
+
+    {guides.length === 0 ? (
+      <EmptyState
+        message="You haven't started a guide yet."
+        icon="compass"
+        action={{ label: 'Browse Field Guides', href: '/guides' }}
+      />
+    ) : (
+      <>
+        {inProgress.length > 0 && (
+          <section class="account__section" aria-label="In progress">
+            <h2 class="account__h2">Continue learning</h2>
+            <ul class="account__list">
+              {inProgress.map((g) => (
+                <li class="account-row">
+                  <div class="account-row__main">
+                    <a href={`/guides/${g.slug}`} class="account-row__title">{g.title}</a>
+                    <div class="account-row__bar"><span style={`width:${g.percent}%`}></span></div>
+                  </div>
+                  <span class="account-row__pct">{g.percent}%</span>
+                  <a href={`/guides/${g.slug}`} class="account-row__cta">Continue →</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {completed.length > 0 && (
+          <section class="account__section" aria-label="Completed">
+            <h2 class="account__h2">Completed</h2>
+            <ul class="account__list">
+              {completed.map((g) => (
+                <li class="account-row account-row--done">
+                  <span class="account-row__check" aria-hidden="true">✓</span>
+                  <a href={`/guides/${g.slug}`} class="account-row__title">{g.title}</a>
+                  <a href={`/guides/${g.slug}`} class="account-row__cta">Review →</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </>
+    )}
+
+    <footer class="account__foot">
+      <form method="post" action="/api/auth/logout">
+        <button type="submit" class="account__signout">Sign out</button>
+      </form>
+    </footer>
+  </div>
+</BaseLayout>
+
+<style>
+  .account {
+    padding-block: calc(var(--nav-height) + var(--section-y)) var(--section-y);
+    max-width: 52rem;
+  }
+
+  .account__head h1 {
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    line-height: var(--lh-3xl);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .account__email {
+    margin-top: var(--space-2);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+  }
+
+  .account__section {
+    margin-top: var(--space-8);
+  }
+
+  .account__h2 {
+    font-family: var(--font-text);
+    font-size: var(--fs-lg);
+    font-weight: 650;
+    color: var(--text-2);
+  }
+
+  .account__list {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .account-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    background: var(--bg-1);
+    transition: border-color var(--dur-2) var(--ease-out);
+  }
+
+  .account-row:hover {
+    border-color: var(--border-2);
+  }
+
+  .account-row__main {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .account-row__title {
+    color: var(--text-1);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .account-row__title:hover {
+    color: var(--accent);
+  }
+
+  .account-row__bar {
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: var(--bg-3);
+    overflow: hidden;
+  }
+
+  .account-row__bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+  }
+
+  .account-row__pct {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .account-row__cta {
+    color: var(--accent);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .account-row--done .account-row__title {
+    flex: 1;
+  }
+
+  .account-row__check {
+    display: inline-grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--success) 16%, transparent);
+    color: var(--success);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+  }
+
+  .account__foot {
+    margin-top: var(--space-9);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .account__signout {
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-2);
+    font-family: var(--font-text);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+    transition: border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+  }
+
+  .account__signout:hover {
+    border-color: var(--danger);
+    color: var(--text-1);
+  }
+
+  @media (max-width: 47.999rem) {
+    .account-row {
+      flex-wrap: wrap;
+    }
+    .account-row__main {
+      flex-basis: 100%;
+    }
+  }
+</style>

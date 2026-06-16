@@ -295,7 +295,7 @@ superseded by these assets (swap in SHELL-002; old files removed in CLEAN-001).
 
 | Variant | Look | Use |
 |---|---|---|
-| `primary` | Solid `--accent`, `--text-on-accent`, radius-md, 40px (md) / 48px (lg) height, Inter 500 | One per view max: hero CTA, Start course, Submit |
+| `primary` | Solid `--accent`, `--text-on-accent`, radius-md, 40px (md) / 48px (lg) height, Inter 500 | One per view max: hero CTA, Start/Resume guide, Submit |
 | `secondary` | 1px `--border-2` border, `--text-1`, transparent bg; hover `--bg-2` | Paired actions, "View all" |
 | `ghost` | Text + 16px icon, no border; hover `--bg-2` pill | Tertiary, toolbars, "← Back" |
 
@@ -322,7 +322,7 @@ Loading state: label → spinner + label ("Saving…"), `aria-busy="true"`, widt
 
 - Page = vertical sequence of sections separated by `--section-y`; alternate full-width
   hairline rules (`<hr class="rule">`) between major sections instead of background
-  color bands (max one tinted band per page, e.g. the courses teaser).
+  color bands (max one tinted band per page, e.g. the guides teaser).
 - Each section opens with the **kicker pattern**: mono label (`--fs-mono-label`,
   `--text-3`) + Fraunces heading + optional 56ch intro — the v4 descendant of v3's
   `// LABEL` habit, now sentence case without slashes.
@@ -335,7 +335,7 @@ Loading state: label → spinner + label ("Saving…"), `aria-busy="true"`, widt
    a typed `Props` interface — no `any`.
 2. Tokens only — a component using a raw px value > 4px-grid or raw hex fails review.
 3. Variants via props, not copy-paste (`<Button variant="secondary">`).
-4. Cards across domains (post, project, course, author) share the `Card` primitive's
+4. Cards across domains (post, project, guide, author) share the `Card` primitive's
    geometry/hover and differ only in slot content.
 5. Empty/loading/error visual patterns come from `ui/EmptyState.astro` and
    `ui/ErrorState.astro` — never bespoke.

@@ -7,7 +7,7 @@ composition and column placement on the 12-col grid; not pixel art.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ ◇ DataDreamer      Work   Blog   Courses   Dream Team   About    ☾  [Connect]│  nav: glass on scroll
+│ ◇ DataDreamer      Work   Blog   Guides   Dream Team   About    ☾  [Connect]│  nav: glass on scroll
 ├──────────────────────────────────────────────────────────────────────────────┤
 │ ░░░░░ signal-field canvas (aria-hidden) ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
 │                                                                              │
@@ -33,7 +33,7 @@ composition and column placement on the 12-col grid; not pixel art.
 │                                           └────────────────────────────────┘ │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │ THE DREAM TEAM                                                                │
-│ ◍◍◍◍◍◍◍◍  Writing and courses from N practitioners…       Meet the team →   │
+│ ◍◍◍◍◍◍◍◍  Writing and guides from N practitioners…        Meet the team →   │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │ footer: brand+mission │ Explore │ Topics │ Elsewhere      © · Privacy        │
 └──────────────────────────────────────────────────────────────────────────────┘
@@ -117,22 +117,33 @@ Mobile: progress bar hidden; meta wraps 2 lines; tables/code scroll-x.
 <1024px: stage not rendered at all; page = header + grouped list.
 ```
 
-## Course landing — desktop (v4.1, ≥1024)
+## Field Guide — desktop (v4.1, ≥1024) — public preview + gated reader
 
 ```
-│ COURSE · BEGINNER                                                            │
-│ Airflow Fundamentals (H1)          │  cols 9–12 (sticky CTA card)            │
-│ Learn DAGs, scheduling, retries…   │  ┌──────────────────────────┐           │
-│ ┌────┬────┬────┬────┐              │  │ state-dependent CTA:     │           │
-│ │ 8  │2h40│Begin│🏅  │ stat tiles  │  │ • signed-out: signup CTA │           │
-│ └────┴────┴────┴────┘              │  │ • not enrolled: Start →  │           │
-│ WHAT YOU'LL LEARN  ✓✓✓✓ (2-col)    │  │ • enrolled: bar+Continue │           │
-│ LESSONS                            │  │ • done: badge + Review   │           │
-│  01 Intro to Airflow   08:20  ✓    │  └──────────────────────────┘           │
-│  02 DAG basics         12:10  ●    │                                         │
-│  03 Scheduling         16:45       │                                         │
-│ STUDY HUB  [PDF 🔒] [Mind map] [Link]                                        │
-Mobile: CTA card becomes sticky bottom bar (safe-area padded); stats 2×2.
+│ FIELD GUIDE · DATA ENGINEERING                                               │
+│ Learn Airflow the real way (H1)                                              │
+│ The exact path I followed to go from zero to production DAGs (summary lede)  │
+│ curator ·avatar  ·  Beginner  ·  8 items  ·  ~6h  ·  updated Jun 2026       │
+│ ┌─────────────────────────────────────────────────────────────────────────┐ │
+│ │ logged out: Sign in to start this guide        [ Google ] [ Email ]       │ │
+│ │ logged in:  ▓▓▓▓▓░░░░░ 37% · 3/8 done · ~3h left   [ Resume → ]           │ │
+│ └─────────────────────────────────────────────────────────────────────────┘ │
+│ WHY THIS PATH … / WHAT YOU'LL GET …            (2-col prose)                 │
+│                                                                              │
+│ ── Section 01 · Get something running ─────────────────────────────────────  │
+│ logged-out preview: item titles/types only; notes, URLs, embeds hidden       │
+│ ☑  ▶ Airflow in 100 seconds            video · ~5m                          │
+│        Why it's here · Focus on · My notes   (annotations, <details> on mob) │
+│ ☑  ⌥ Starter docker-compose            repo · ~20m   ↗ github.com           │
+│ ── Section 02 · Scheduling & debugging ────────────────────────────────────  │
+│ ☐  ⎘ Scheduling & timetables           docs · ~25m   ↗ airflow.apache.org   │
+│ ☐  ▤ Airflow cheat sheet (mine)        pdf  · download                      │
+│ ☐  ✎ How I debug a stuck task          note · ~10m   (markdown inline)      │
+│                                                                              │
+│ CURATORS  (avatar cards)        MORE GUIDES  (2–3 related)                   │
+Logged-in items render inline (open externally or expand). No lesson route, no
+student dashboard, no badges/certificates/payments.
+Mobile: progress bar → compact sticky strip; annotations collapse to <details>.
 ```
 
 ## Mobile menu (<768, open)
@@ -143,7 +154,7 @@ Mobile: CTA card becomes sticky bottom bar (safe-area padded); stats 2×2.
 ├────────────────────────┤
 │  Work                  │  56px rows, --fs-2xl
 │  Blog                  │
-│  Courses               │
+│  Guides                │
 │  Dream Team            │
 │  About                 │
 │                        │

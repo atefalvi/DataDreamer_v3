@@ -48,7 +48,8 @@ DataDreamer_v3/
 │   ├── AGENT_BLOG_GUIDE.md
 │   ├── RELEASE_NEXT_STEPS.md
 │   └── agent-workspace/
-└── scripts/                   # OG generation, Directus schema/backfill, release smoke
+└── scripts/                   # active tools (OG, guides schema, smoke); see scripts/README.md
+    └── migrations/             # one-time Directus migrations already applied (history)
 ```
 
 ---

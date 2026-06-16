@@ -30,7 +30,7 @@ export function initTeamGraph(): void {
     href: string;
     specialties: string[];
     posts: number;
-    courses: number;
+    guides: number;
     search: string;
     x: number;
     y: number;
@@ -70,7 +70,7 @@ export function initTeamGraph(): void {
       href: element.dataset.href ?? '',
       specialties: (element.dataset.specialties ?? '').split(',').map((item) => item.trim()).filter(Boolean),
       posts: Number(element.dataset.posts ?? 0),
-      courses: Number(element.dataset.courses ?? 0),
+      guides: Number(element.dataset.guides ?? 0),
       search: (element.dataset.search ?? element.dataset.label ?? '').toLowerCase(),
       x,
       y,
@@ -198,7 +198,7 @@ export function initTeamGraph(): void {
       `<span>${personCount} people</span>`,
       `<span>${skillCount} skills</span>`,
       node.posts ? `<span>${node.posts} post${node.posts === 1 ? '' : 's'}</span>` : '',
-      node.courses ? `<span>${node.courses} course${node.courses === 1 ? '' : 's'}</span>` : '',
+      node.guides ? `<span>${node.guides} guide${node.guides === 1 ? '' : 's'}</span>` : '',
     ].filter(Boolean);
     const tags = [...node.specialties, ...neighbors.map((item) => item.label)].slice(0, 8);
 

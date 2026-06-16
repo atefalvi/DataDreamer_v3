@@ -28,7 +28,7 @@ const images = [
   ['og-projects.png', 'Projects', 'Selected work from the DataDreamer lab'],
   ['og-team.png', 'Dream Team', 'People, specialties, and shared signals'],
   ['og-about.png', 'About', 'The practice behind DataDreamer'],
-  ['og-courses.png', 'Courses', 'Structured learning for data builders'],
+  ['og-guides.png', 'Field Guides', 'Curated paths through topics worth learning'],
 ];
 
 const escapeXml = (value) =>

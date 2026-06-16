@@ -1,0 +1,54 @@
+---
+/**
+ * /signup (05 §17) — create a free guide-reader account. Honors a safe `?next=`, works
+ * without JS, noindex.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AuthShell from '../components/auth/AuthShell.astro';
+import { safeNext } from '../lib/auth/session';
+
+const rawNext = Astro.url.searchParams.get('next');
+const next = safeNext(rawNext, '/guides');
+
+if (Astro.locals.user) {
+  return Astro.redirect(safeNext(rawNext, '/account'), 302);
+}
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+const error = Astro.url.searchParams.get('error');
+const notice = error === 'exists'
+  ? { type: 'error', text: 'That email is already registered, or sign-ups are not open yet. Try signing in.' }
+  : error === 'invalid'
+    ? { type: 'error', text: 'Enter a valid email and a password of at least 8 characters.' }
+    : null;
+---
+
+<BaseLayout title="Create account" description="Create a free DataDreamer account to follow Field Guides." noindex>
+  <AuthShell title="Create your account" subtitle="Free. Unlock every Field Guide and track your progress across the path.">
+    {notice && (
+      <p class="auth-notice" data-type={notice.type} role="alert">{notice.text}</p>
+    )}
+
+    <form method="post" action="/api/auth/signup" class="auth-form">
+      <input type="hidden" name="next" value={next} />
+      <div class="field">
+        <label for="first_name">First name <span class="hint">(optional)</span></label>
+        <input type="text" id="first_name" name="first_name" autocomplete="given-name" />
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" autocomplete="email" required />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" required />
+        <span class="hint">At least 8 characters.</span>
+      </div>
+      <button type="submit" class="auth-submit">Create account</button>
+    </form>
+
+    <p slot="footer">
+      Already have an account? <a href={`/login?next=${encodeURIComponent(next)}`}>Sign in</a>
+    </p>
+  </AuthShell>
+</BaseLayout>

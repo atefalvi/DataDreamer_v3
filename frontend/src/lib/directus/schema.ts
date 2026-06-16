@@ -101,6 +101,85 @@ export interface ProjectRow {
   sort?: number | null;
 }
 
+/* ── Field Guides (v4.1) ─────────────────────────────────────────────────────── */
+
+export interface GuideTopicRow {
+  id: string;
+  topics_id: Relation<TopicRow>;
+}
+
+export interface GuideSpecialtyRow {
+  id: string;
+  sort?: number | null;
+  specialties_id: Relation<SpecialtyRow>;
+}
+
+export interface GuideAuthorRow {
+  id: string;
+  sort?: number | null;
+  authors_id: Relation<AuthorRow>;
+}
+
+export interface GuideItemRow {
+  id: string;
+  type: string;
+  title: string;
+  url?: string | null;
+  asset?: Relation<DirectusFile>;
+  body?: string | null;
+  description?: string | null;
+  why_included?: string | null;
+  focus_on?: string | null;
+  notes?: string | null;
+  estimated_time_minutes?: number | null;
+  difficulty?: string | null;
+  sort?: number | null;
+}
+
+export interface GuideSectionRow {
+  id: string;
+  title: string;
+  description?: string | null;
+  sort?: number | null;
+  items?: GuideItemRow[];
+}
+
+export interface GuideRow {
+  id: string;
+  status: string;
+  slug: string;
+  title: string;
+  summary?: string | null;
+  cover_image?: Relation<DirectusFile>;
+  difficulty?: string | null;
+  estimated_duration_minutes?: number | null;
+  featured?: boolean | null;
+  why_this_path?: string | null;
+  expected_outcome?: string | null;
+  recommended_audience?: string | null;
+  author?: Relation<AuthorRow>;
+  authors?: GuideAuthorRow[];
+  topics?: GuideTopicRow[];
+  specialties?: GuideSpecialtyRow[];
+  sections?: GuideSectionRow[];
+  sort?: number | null;
+  date_created?: string | null;
+  date_updated?: string | null;
+}
+
+/** One row per user+guide (08 §4.5). `completed_items` is a json string[] of item ids. */
+export interface GuideProgressRow {
+  id: string;
+  user: Relation<{ id: string }>;
+  guide: Relation<GuideRow>;
+  completed_items?: string[] | null;
+  last_item?: Relation<GuideItemRow>;
+  status?: string | null;
+  percent?: number | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+}
+
 /** Typed schema handed to `createDirectus<Schema>()`. */
 export interface Schema {
   posts: PostRow[];
@@ -111,4 +190,12 @@ export interface Schema {
   posts_topics: PostTopicRow[];
   authors_specialties: AuthorSpecialtyRow[];
   directus_files: DirectusFile[];
+  // v4.1 Field Guides
+  guides: GuideRow[];
+  guide_sections: GuideSectionRow[];
+  guide_items: GuideItemRow[];
+  guides_topics: GuideTopicRow[];
+  guides_specialties: GuideSpecialtyRow[];
+  guides_authors: GuideAuthorRow[];
+  guide_progress: GuideProgressRow[];
 }

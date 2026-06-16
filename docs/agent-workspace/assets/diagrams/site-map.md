@@ -9,7 +9,7 @@ flowchart TD
     HOME --> DT["/dream-team"]
     HOME --> ABOUT["/about"]
     HOME --> CONNECT["/connect"]
-    HOME -. v4.1 .-> COURSES["/courses"]
+    HOME -. v4.1 .-> GUIDES["/guides"]
 
     BLOG --> POST["/blog/[slug]"]
     BLOG --> TOPIC["/blog/topic/[slug]"]
@@ -21,16 +21,15 @@ flowchart TD
 
     DT --> AUTHOR["/dream-team/[slug]"]
     AUTHOR --> POST
-    AUTHOR -. v4.1 .-> COURSE
+    AUTHOR -. v4.1 .-> GUIDE
 
-    COURSES -. v4.1 .-> COURSE["/courses/[slug]"]
-    COURSE -. v4.1 .-> LESSON["/courses/[slug]/[lesson]"]
-    LESSON -. auth gate .-> LOGIN["/login"]
-    COURSE -. enroll .-> SIGNUP["/signup"]
-    LOGIN --> STUDENT["/student"]
-    SIGNUP --> STUDENT
-    STUDENT --> SETTINGS["/student/settings"]
-    LOGIN --> FORGOT["/forgot-password"] --> RESET["/reset-password"]
+    GUIDES -. v4.1 .-> GUIDE["/guides/[slug]"]
+    GUIDE -. gated start .-> LOGIN["/login"]
+    LOGIN --> SIGNUP["/signup"]
+    LOGIN --> ACCOUNT["/account"]
+    ACCOUNT -. resume .-> GUIDE
+    %% Field Guide previews are public. Starting/reading item bodies and progress
+    %% require login. No per-item route and no /student LMS dashboard.
 
     LEGACY["/logs/*  (301)"] ==> BLOG
     LEGACY ==> POST

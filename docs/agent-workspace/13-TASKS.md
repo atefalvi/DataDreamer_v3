@@ -1,6 +1,6 @@
 # 13 — Task List (agent work packets)
 
-53 tasks. Sequencing/parallelism: `12-IMPLEMENTATION-ROADMAP.md`. Status tracking
+55 tasks. Sequencing/parallelism: `12-IMPLEMENTATION-ROADMAP.md`. Status tracking
 lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 
 ## Universal task contract (applies to every task; not repeated below)
@@ -61,17 +61,16 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-REL-001 | v4.0 production release | E | Phase D | todo |
 | V4-CMS-006 | Drop retired fields/collections | E | REL-001 soak | todo |
 | V4-DOC-001 | README/SETUP refresh | E | REL-001 | todo |
-| V4-CRS-001 | Courses schema + policies + flows | C | REL-001 | todo |
-| V4-AUTH-001 | Session middleware + auth lib | C | CRS-001 | todo |
-| V4-AUTH-002 | Auth pages + endpoints | C | AUTH-001 | todo |
-| V4-CRS-002 | Catalogue page | C | CRS-001 | todo |
-| V4-CRS-003 | Course landing | C | CRS-002 | todo |
-| V4-CRS-004 | Lesson page | C | CRS-003 | todo |
-| V4-CRS-005 | Enroll/complete/progress APIs + UI | C | AUTH-002, CRS-004 | todo |
-| V4-CRS-006 | Student dashboard + settings | C | CRS-005 | todo |
-| V4-CRS-007 | Badge awarding + display | C | CRS-005 | todo |
-| V4-CRS-008 | Courses nav/home integration | C | CRS-002..006 | todo |
-| V4-QA-004 | Courses QA matrix | C | CRS-008 | todo |
+| V4-GUIDE-001 | Field Guides schema + public preview policies + seed | C | REL-001 | todo |
+| V4-AUTH-001 | Directus reader auth + progress policy baseline | C | GUIDE-001 | todo |
+| V4-GUIDE-002 | Repository + view-models + mappers (guides) | C | AUTH-001 | todo |
+| V4-AUTH-002 | Login/signup/session/account UI | C | AUTH-001 | todo |
+| V4-GUIDE-003 | Server progress API + deriveProgress | C | GUIDE-002, AUTH-002 | todo |
+| V4-GUIDE-004 | Catalogue page `/guides` + GuideCard | C | GUIDE-002, AUTH-002 | todo |
+| V4-GUIDE-005 | Guide preview + gated reader `/guides/[slug]` | C | GUIDE-002, GUIDE-003, AUTH-002 | todo |
+| V4-GUIDE-006 | Nav/home integration + flag flip | C | GUIDE-004, GUIDE-005 | todo |
+| V4-GUIDE-007 | Authoring/curation guide (Directus workflow) | C | GUIDE-001 | todo |
+| V4-QA-004 | Field Guides QA matrix | C | GUIDE-006 | todo |
 | V4-REL-002 | v4.1 release | C | QA-004 | todo |
 
 ---
@@ -191,7 +190,7 @@ with hero only. **Pseudocode**: 07 §2.3–2.4. **Accept**: 07 §2.9 acceptance 
 verbatim; JS ≤8KB gz (report size in PR); off-screen CPU check evidence.
 
 ### V4-HOME-002 — Home sections
-**Objective**: latest writing, selected work, team strip (+ courses teaser behind
+**Objective**: latest writing, selected work, team strip (+ guides teaser behind
 flag) per 05 §1; PostCard variants needed here (`featured`,`compact`) land in
 `blog/PostCard.astro`. **Accept**: blueprint §1 acceptance; empty-state behaviors;
 reveal staggers.
@@ -311,63 +310,105 @@ tested with drops first); inverse ops documented.
 collections, repositories, staging). **Accept**: a fresh-clone walkthrough following
 SETUP works (agent performs it).
 
-### V4-CRS-001 — Courses schema + policies + flows
-**Objective**: 08 §4 collections + indexes + roles (student/service) + token env +
-Directus Flows (PRD §16.2–16.3) + one sample course (3 lessons, 2 resources, badge).
-**Accept**: anonymous read of published course works; student role row-filters
-verified with a test user; snapshot committed.
+> **v4.1 = Field Guides (curation model).** The old LMS task set (courses schema with
+> lessons, enrollments, votes, badges, certificates, and a student dashboard) is
+> **retired** — see `01` §1a for the product rationale and `08` §9 for the schema
+> decisions. The tasks below build public guide previews plus a login-gated guide
+> reader with one Directus progress record per user+guide.
 
-### V4-AUTH-001 — Session middleware + auth lib
-**Objective**: `lib/auth/` (session validate/refresh, guards, rate-limit), middleware
-extension per PRD §7.2 + 09 §10. **Tests**: unit (rate limiter, redirect-safety,
-cookie flags). **Accept**: `/student` redirects anonymous → `/login?redirect=…`;
-locals.user populated when valid.
+### V4-GUIDE-001 — Field Guides schema + public preview policies + seed
+**Objective**: create the `08` §4 collections — `guides`, `guide_sections`,
+`guide_items` + junctions `guides_topics`, `guides_specialties`, `guides_authors` —
+with fields, enums, per-type validation conditions, and `(parent, sort)` ordering.
+Add **Public preview permissions** filtered to published guides: cards, landing-page
+fields, topics/authors/specialties, section titles/descriptions, and item titles/types
+only. Public must not read item bodies, notes, URLs, assets, or progress. Seed one
+realistic guide (2–3 sections, ~8 mixed-type items incl. youtube/github_repo/pdf/
+personal_note) for dev + QA. Deliver as a `scripts/v4-guides-schema.mjs` admin script;
+commit a fresh `snapshot.yaml`. **No service token, no Directus Flows.** **Accept**:
+anonymous read of the published seed preview works; anonymous item-body read is denied;
+draft guide is not publicly readable; snapshot committed.
 
-### V4-AUTH-002 — Auth pages + endpoints
-**Objective**: 05 §17 pages + `/api/auth/*` per PRD §7.1/§10/§12.1. **Accept**:
-signup→login→logout E2E manual; rate-limit 429 path; no-enumeration forgot-password;
-all noindex; a11y form contract (11 §B5).
+### V4-AUTH-001 — Directus reader auth + progress policy baseline
+**Objective**: create Directus `guide_reader` role, `guide_progress` collection
+(`08` §4.5), user-owned policies, registration default-role setup notes, email/reset
+setup notes, Google OpenID env checklist, CORS/cookie checklist, and permission
+snapshot. **Scope**: Directus schema/policy script + docs only; no frontend UI.
+**Accept**: `guide_reader` can read published guide item content and only their own
+progress; Public cannot read gated fields or write progress; Google/email setup steps
+are documented for staging and production.
 
-### V4-CRS-002 — Catalogue
-**Objective**: 05 §14 + CourseCard. **Accept**: blueprint criteria; logged-out
-parity; SSR filters.
+### V4-GUIDE-002 — Repository + view-models + mappers (guides)
+**Objective**: `lib/repositories/guidesRepo.ts` (+ `_mappers.ts` additions, raw row
+types in `lib/directus/schema.ts`, view-models in `types/content.ts`) implementing the
+`08` §8.5–§8.8 query contracts: `list({topic?, level?, page})`, `latest(n)`,
+`previewBySlug(slug)`, `readerBySlug(slug, session)`, progress read helpers, and a
+catalogue item-count aggregate. Pages never import the SDK (`01` §5.6).
+**Tests**: mapper unit tests (per-type item shaping, ordering, markdown invocation).
+**Accept**: typed view-models returned; ordering correct; `RepositoryError` on failure
+(08 error policy); no SDK import outside `lib/`.
 
-### V4-CRS-003 — Course landing
-**Objective**: 05 §15 incl. four-state CTA, lesson list states, study hub gating,
-Course JSON-LD. **Accept**: blueprint criteria with each auth state screenshotted.
+### V4-AUTH-002 — Login/signup/session/account UI
+**Objective**: Astro auth bridge for Directus: `/login`, `/signup`, `/account`,
+logout, session refresh, `Astro.locals.user`, protected-route middleware, safe internal
+`next` redirects, Google primary CTA, email/password fallback, and premium Observatory
+UI. **Accept**: anonymous Start CTA redirects to `/login?next=/guides/[slug]`; successful
+email or Google login returns to `next`; `/account` requires login and shows an empty
+My Guides state; logout clears session; no secrets leak to client code.
 
-### V4-CRS-004 — Lesson page
-**Objective**: 05 §16: facade embed, notes via pipeline, resources, sidebar/bottom-bar,
-video-unavailable fallback, noindex. **Accept**: blueprint criteria; keyboard path;
-facade loads iframe only on interaction (network tab evidence).
+### V4-GUIDE-003 — Server progress API + deriveProgress
+**Objective**: `lib/guides/progress.ts` pure derive helpers plus protected
+`/api/guides/progress` endpoints backed by `guide_progress` (`09` §10). API derives
+status, percent, completed/remaining counts, estimated time remaining, and resume item.
+Writes validate session, guide, and item ids; completed ids are pruned against current
+published items; upsert is scoped to the current user. **Tests**: empty/partial/full/
+unknown-item pruning, unauthorized 401, cross-user denial, upsert/update math.
+**Accept**: progress survives reload and is unavailable to anonymous users.
 
-### V4-CRS-005 — Enroll/complete/progress APIs + UI
-**Objective**: PRD §7.7–7.8 + §10 endpoints (service token, session-derived user,
-idempotent upserts, progress recalcs) + MarkComplete/Enroll client per 07 §8.
-**Tests**: endpoint unit tests (mocked Directus) for auth/idempotency/error mapping.
-**Accept**: PRD safeguards demonstrably enforced (test evidence); optimistic UI
-reverts on failure.
+### V4-GUIDE-004 — Catalogue page `/guides` + GuideCard
+**Objective**: `05` §14 — page header, featured guide, SSR topic+difficulty filters,
+`GuideCard` / `GuideCardFeatured`, empty state, `ItemList` JSON-LD, `og-guides.png`.
+Anonymous cards show "Sign in to start"; logged-in cards can show progress/resume from
+`guide_progress`. **Accept**: blueprint criteria; fully usable with JS disabled; SSR
+filters; cards equal height; no item-body data appears in page source for anonymous
+visitors.
 
-### V4-CRS-006 — Student dashboard + settings
-**Objective**: 05 §18. **Accept**: blueprint criteria; empty states; settings flows
-(name, password) against Directus; delete-account = documented manual process v4.1.
+### V4-GUIDE-005 — Guide preview + gated reader `/guides/[slug]`
+**Objective**: `05` §15 — public preview hero, why/outcome prose, syllabus preview,
+sign-in CTA; logged-in reader with access/progress panel, ordered sections, `GuideItem`
+cards per type (youtube facade embed, external/repo/docs links, pdf/file, inline
+markdown for notes/cheat sheets/code/exercises), curator annotation blocks
+(`why_included`/`focus_on`/`notes`), complete toggles, curators block, related guides,
+`Article`/`CreativeWork` JSON-LD. 404 on bad/unpublished slug. **Accept**: blueprint
+criteria; anonymous source excludes gated item body/notes/URLs/assets; login returns to
+guide; progress toggle/percent/resume survives reload; YouTube iframe loads only on
+interaction; keyboard path coherent; structured data validates.
 
-### V4-CRS-007 — Badge awarding + display
-**Objective**: server-side award on completion (within CRS-005 transaction path),
-completion dialog (07 §8), dashboard badge grid. **Accept**: E2E complete-course →
-badge appears; duplicate completion safe.
+### V4-GUIDE-006 — Nav/home integration + flag flip
+**Objective**: add `FLAGS.GUIDES_ENABLED` to `src/content/site.ts`; nav item "Guides"
+(03 §2), home Field Guides teaser (05 §1.4), footer link, sitemap inclusion (guides are
+indexable), and account/sign-in nav state when auth is enabled. **Accept**: teaser
+renders 3 guides; nav active-state on `/guides*`; anonymous/reader nav states are
+correct; flag-off cleanly hides everything (rollback path).
 
-### V4-CRS-008 — Courses nav/home integration
-**Objective**: flip `COURSES_ENABLED`; nav item, home teaser (05 §1.4), footer link,
-sitemap inclusion. **Accept**: teaser renders 3 courses; flag-off still works
-(rollback path).
+### V4-GUIDE-007 — Authoring/curation guide (Directus workflow)
+**Objective**: write `AGENT_GUIDES_GUIDE.md` (or extend the blog authoring guide): how
+a curator builds a Field Guide in Directus — create the guide, add sections, add items
+of each type (which field to fill per type), write the `why_included`/`focus_on`/
+`notes` annotations, set difficulty + estimated time, attach topics/specialties/
+co-curators, and publish (draft→published). **Accept**: a non-author can build a small
+guide end-to-end in Directus by following it.
 
-### V4-QA-004 — Courses QA matrix
-**Objective**: PRD §6 journeys E2E manual matrix × {mobile, desktop} × {dark, light};
-auth a11y; noindex verification; rate-limit probe. **Accept**: `qa/courses.md`
-checklist complete; blockers fixed or filed.
+### V4-QA-004 — Field Guides QA matrix
+**Objective**: `01` §1a journeys E2E manual matrix × {mobile, desktop} × {dark, light}:
+browse → filter → open preview → sign in → start → complete items → reload (progress
+persists) → resume from catalogue/account; each item type renders + opens correctly;
+anonymous permissions denied for gated item fields/progress writes; a11y (auth forms,
+toggles, embeds, links); indexability + JSON-LD; JS-disabled preview. **Accept**:
+`qa/guides.md` checklist complete; blockers fixed or filed.
 
 ### V4-REL-002 — v4.1 release
-**Objective**: release protocol re-run incl. Coolify env (`DIRECTUS_SERVICE_TOKEN`),
-production smoke incl. signup/enroll on a test account, then test-account cleanup.
-**Accept**: `qa/release-4.1.md` committed.
+**Objective**: release protocol re-run; production smoke on the live seed guide (browse,
+preview, Google/email login, start, complete an item, reload, resume). **Accept**:
+Directus auth env vars verified in Coolify; smoke passes on production; flag on;
+rollback verified by toggling `GUIDES_ENABLED` off; `qa/release-4.1.md` committed.
