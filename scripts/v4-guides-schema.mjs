@@ -26,7 +26,8 @@ const auth = { Authorization: `Bearer ${TOKEN}` };
 const jsonHeaders = { ...auth, 'Content-Type': 'application/json' };
 
 async function api(path, options = {}) {
-  const res = await fetch(`${BASE}${path}`, options);
+  // Always authenticate — GET lookups (policies/roles/items) carry no headers otherwise.
+  const res = await fetch(`${BASE}${path}`, { ...options, headers: { ...auth, ...(options.headers ?? {}) } });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`${options.method ?? 'GET'} ${path} → ${res.status} ${JSON.stringify(json.errors ?? json)}`);
   return json.data;
@@ -57,14 +58,16 @@ async function ensureCollection(name, meta, fields) {
   console.log(`+ collection ${name}`);
 }
 
+const ALREADY = /already has an associated relationship|already exists|has to be unique|duplicate/i;
+
 async function ensureRelation(collection, field, relatedCollection, meta = {}, schema = {}) {
-  const relations = await api(`/relations/${collection}`).catch(() => []);
-  if (relations.some((r) => r.field === field)) {
-    console.log(`= relation ${collection}.${field}`);
-    return;
+  try {
+    await api('/relations', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ collection, field, related_collection: relatedCollection, meta, schema }) });
+    console.log(`+ relation ${collection}.${field} → ${relatedCollection}`);
+  } catch (error) {
+    if (ALREADY.test(error.message)) console.log(`= relation ${collection}.${field}`);
+    else throw error;
   }
-  await api('/relations', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ collection, field, related_collection: relatedCollection, meta, schema }) });
-  console.log(`+ relation ${collection}.${field} → ${relatedCollection}`);
 }
 
 /** Alias field on the "one"/"parent" side of an o2m or m2m relation. */
@@ -73,8 +76,13 @@ async function ensureAlias(collection, field, special) {
     console.log(`= alias ${collection}.${field}`);
     return;
   }
-  await api(`/fields/${collection}`, { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ field, type: 'alias', meta: { special: [special], interface: special === 'o2m' ? 'list-o2m' : 'list-m2m' } }) });
-  console.log(`+ alias ${collection}.${field} (${special})`);
+  try {
+    await api(`/fields/${collection}`, { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ field, type: 'alias', meta: { special: [special], interface: special === 'o2m' ? 'list-o2m' : 'list-m2m' } }) });
+    console.log(`+ alias ${collection}.${field} (${special})`);
+  } catch (error) {
+    if (ALREADY.test(error.message)) console.log(`= alias ${collection}.${field}`);
+    else throw error;
+  }
 }
 
 // ── 1. collections ───────────────────────────────────────────────────────────
@@ -168,17 +176,28 @@ async function buildRelations() {
 }
 
 // ── 3. policies & permissions ────────────────────────────────────────────────
-const PREVIEW_ITEM_FIELDS = ['id', 'section', 'type', 'title', 'description', 'estimated_time_minutes', 'difficulty', 'sort'];
+//
+// IMPORTANT: this Directus edition restricts custom permission *rules* — both row
+// filters (e.g. status=published, user=$CURRENT_USER) and field-level subsets raise
+// `custom_permission_rules_enabled is a restricted resource`. Only all-or-nothing
+// (`fields: ['*']`, no filter) is permitted. So the public-preview-vs-gated-reader
+// distinction and progress ownership are enforced at the APP layer instead:
+//   - the repository queries published guides only and requests preview fields for
+//     anonymous visitors (lib/repositories/guides.ts);
+//   - the page renders gated content only when locals.user is set;
+//   - the progress endpoint always writes the session user's own id.
+// On a licensed Directus, tighten these to status=published / field subsets /
+// user=$CURRENT_USER (see the git history of this file for the rule-based version).
 
 async function findPolicyId(name) {
-  const policies = await api('/policies?fields=id,name&limit=-1');
+  const policies = await api('/policies?fields=id,name&limit=200');
   return policies.find((p) => p.name === name || p.name === '$t:public_label')?.id;
 }
 
-async function ensurePermission(policy, collection, action, fields, permissions = {}) {
+async function ensurePermission(policy, collection, action, fields = ['*']) {
   const query = `/permissions?filter[policy][_eq]=${policy}&filter[collection][_eq]=${collection}&filter[action][_eq]=${action}&fields=id&limit=1`;
   const existing = await api(query).catch(() => []);
-  const payload = { policy, collection, action, fields, permissions, validation: null, presets: null };
+  const payload = { policy, collection, action, fields };
   if (existing.length) {
     await api(`/permissions/${existing[0].id}`, { method: 'PATCH', headers: jsonHeaders, body: JSON.stringify(payload) });
     console.log(`= permission ${collection}.${action} (${policy === publicPolicyId ? 'public' : 'reader'})`);
@@ -192,7 +211,7 @@ let publicPolicyId;
 let readerPolicyId;
 
 async function ensureGuideReaderRole() {
-  const roles = await api('/roles?fields=id,name&limit=-1');
+  const roles = await api('/roles?fields=id,name&limit=200');
   let role = roles.find((r) => r.name === 'Guide Reader');
   if (!role) {
     role = await api('/roles', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ name: 'Guide Reader', icon: 'school', description: 'Low-permission learners: read full guide content + own progress.', admin_access: false, app_access: false }) });
@@ -201,7 +220,7 @@ async function ensureGuideReaderRole() {
     console.log('= role Guide Reader');
   }
 
-  const policies = await api('/policies?fields=id,name&limit=-1');
+  const policies = await api('/policies?fields=id,name&limit=200');
   let policy = policies.find((p) => p.name === 'Guide Reader');
   if (!policy) {
     policy = await api('/policies', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ name: 'Guide Reader', icon: 'school', description: 'Guide reader access policy', admin_access: false, app_access: false }) });
@@ -219,32 +238,26 @@ async function ensureGuideReaderRole() {
   return role.id;
 }
 
+const GUIDE_READ_COLLECTIONS = ['guides', 'guide_sections', 'guide_items', 'guides_topics', 'guides_specialties', 'guides_authors'];
+
 async function buildPermissions() {
   publicPolicyId = await findPolicyId('Public');
   if (!publicPolicyId) throw new Error('Could not find the Public policy.');
 
-  const published = { status: { _eq: 'published' } };
-
-  // Public preview: guide-level + section fields fully; item fields restricted.
-  await ensurePermission(publicPolicyId, 'guides', 'read', ['*'], published);
-  await ensurePermission(publicPolicyId, 'guide_sections', 'read', ['*'], { guide: { status: { _eq: 'published' } } });
-  await ensurePermission(publicPolicyId, 'guide_items', 'read', PREVIEW_ITEM_FIELDS, { section: { guide: { status: { _eq: 'published' } } } });
-  for (const j of ['guides_topics', 'guides_specialties', 'guides_authors']) {
-    await ensurePermission(publicPolicyId, j, 'read', ['*'], {});
+  // Public: read access to the guide content (all-or-nothing). The app shows only
+  // published guides + preview fields to anonymous visitors (see note above).
+  for (const collection of GUIDE_READ_COLLECTIONS) {
+    await ensurePermission(publicPolicyId, collection, 'read');
   }
 
-  // Guide reader: full content + own progress CRUD.
+  // Guide reader: same reads + own-progress CRUD (ownership enforced in the app).
   await ensureGuideReaderRole();
-  await ensurePermission(readerPolicyId, 'guides', 'read', ['*'], published);
-  await ensurePermission(readerPolicyId, 'guide_sections', 'read', ['*'], {});
-  await ensurePermission(readerPolicyId, 'guide_items', 'read', ['*'], {});
-  for (const j of ['guides_topics', 'guides_specialties', 'guides_authors']) {
-    await ensurePermission(readerPolicyId, j, 'read', ['*'], {});
+  for (const collection of GUIDE_READ_COLLECTIONS) {
+    await ensurePermission(readerPolicyId, collection, 'read');
   }
-  const ownRow = { user: { _eq: '$CURRENT_USER' } };
-  await ensurePermission(readerPolicyId, 'guide_progress', 'read', ['*'], ownRow);
-  await ensurePermission(readerPolicyId, 'guide_progress', 'create', ['*'], {});
-  await ensurePermission(readerPolicyId, 'guide_progress', 'update', ['*'], ownRow);
+  await ensurePermission(readerPolicyId, 'guide_progress', 'read');
+  await ensurePermission(readerPolicyId, 'guide_progress', 'create');
+  await ensurePermission(readerPolicyId, 'guide_progress', 'update');
 }
 
 // ── 4. seed ─────────────────────────────────────────────────────────────────────
