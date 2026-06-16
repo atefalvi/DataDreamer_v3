@@ -130,4 +130,43 @@ describe('guidesRepo.list', () => {
     expect(page.items[0].sectionCount).toBe(2);
     expect(page.hasMore).toBe(false);
   });
+
+  it('flags hasMore when the over-fetch returns an extra row', async () => {
+    request.mockResolvedValueOnce([guideRow(), guideRow()]);
+    const page = await guidesRepo.list({ pageSize: 1 });
+    expect(page.items).toHaveLength(1);
+    expect(page.hasMore).toBe(true);
+  });
+});
+
+describe('guidesRepo.toStoredProgress', () => {
+  it('normalizes completed items, last_item (object or id), and dates', () => {
+    const fromObject = guidesRepo.toStoredProgress({
+      id: 'p1', user: 'u1', guide: 'g1',
+      completed_items: ['i1', 'i2'],
+      last_item: { id: 'i2', type: 'youtube', title: 'x' },
+      started_at: '2026-07-01T00:00:00Z', completed_at: null,
+    });
+    expect(fromObject.completedItemIds).toEqual(['i1', 'i2']);
+    expect(fromObject.lastItemId).toBe('i2');
+    expect(fromObject.startedAt).toBeInstanceOf(Date);
+    expect(fromObject.completedAt).toBeUndefined();
+
+    const fromId = guidesRepo.toStoredProgress({ id: 'p2', user: 'u1', guide: 'g1', last_item: 'i9' });
+    expect(fromId.completedItemIds).toEqual([]);
+    expect(fromId.lastItemId).toBe('i9');
+  });
+});
+
+describe('guidesRepo.myGuides', () => {
+  it('maps progress rows to account cards, dropping rows without a guide', async () => {
+    userRequest.mockResolvedValueOnce([
+      { id: 'p1', user: 'u1', percent: 40, status: 'in-progress', guide: { id: 'g1', slug: 'learn-airflow', title: 'Learn Airflow' } },
+      { id: 'p2', user: 'u1', percent: 100, status: 'completed', guide: { id: 'g2', slug: 'dbt-basics', title: 'dbt basics' } },
+      { id: 'p3', user: 'u1', percent: 10, status: 'in-progress', guide: null }, // unpublished/filtered → dropped
+    ]);
+    const rows = await guidesRepo.myGuides('token-123');
+    expect(rows.map((r) => r.slug)).toEqual(['learn-airflow', 'dbt-basics']);
+    expect(rows[0]).toMatchObject({ percent: 40, status: 'in-progress', title: 'Learn Airflow' });
+  });
 });
