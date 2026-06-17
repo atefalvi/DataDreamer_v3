@@ -8,11 +8,14 @@
  * Directus enforces the `guide_reader` policy on reads/writes.
  */
 import type { AstroCookies } from 'astro';
-import { DIRECTUS_URL } from '../directus/client';
+import { DIRECTUS_URL, PUBLIC_DIRECTUS_URL } from '../directus/client';
+import { SITE_URL } from '../seo/meta';
 
 const ACCESS = 'dd_at';
 const REFRESH = 'dd_rt';
 const EXP = 'dd_at_exp';
+// Directus sets this on .data-dreamer.net after OAuth (Google), shared with our app.
+const SESSION = 'directus_session_token';
 
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 const REFRESH_SKEW_MS = 30_000;
@@ -116,11 +119,17 @@ export function setSession(cookies: AstroCookies, tokens: SessionTokens): void {
 }
 
 export function clearSession(cookies: AstroCookies): void {
-  for (const name of [ACCESS, REFRESH, EXP]) cookies.delete(name, { path: '/' });
+  for (const name of [ACCESS, REFRESH, EXP, SESSION]) cookies.delete(name, { path: '/' });
 }
 
 export function hasSessionCookie(cookies: AstroCookies): boolean {
-  return Boolean(cookies.get(ACCESS)?.value || cookies.get(REFRESH)?.value);
+  return Boolean(cookies.get(ACCESS)?.value || cookies.get(REFRESH)?.value || cookies.get(SESSION)?.value);
+}
+
+/** Browser → Directus Google OAuth; Directus returns to `next` with a session cookie. */
+export function googleStartUrl(next: string | null | undefined): string {
+  const redirect = `${SITE_URL}${safeNext(next)}`;
+  return `${PUBLIC_DIRECTUS_URL}/auth/login/google?redirect=${encodeURIComponent(redirect)}`;
 }
 
 /**
@@ -131,7 +140,19 @@ export async function resolveUser(cookies: AstroCookies): Promise<SessionUser | 
   let accessToken = cookies.get(ACCESS)?.value;
   const refreshToken = cookies.get(REFRESH)?.value;
   const exp = Number(cookies.get(EXP)?.value ?? 0);
-  if (!accessToken && !refreshToken) return null;
+
+  // Google/OAuth: no JSON-token cookies, but Directus left a session cookie. Use it
+  // directly as the bearer token. ponytail: no server-side refresh of the Directus
+  // session — the user re-auths when it expires (Directus session TTL).
+  if (!accessToken && !refreshToken) {
+    const session = cookies.get(SESSION)?.value;
+    if (!session) return null;
+    try {
+      return { ...(await fetchMe(session)), accessToken: session };
+    } catch {
+      return null;
+    }
+  }
 
   const expired = !accessToken || Date.now() > exp - REFRESH_SKEW_MS;
   if (expired) {
