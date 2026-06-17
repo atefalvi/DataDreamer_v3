@@ -13,7 +13,6 @@ const { title, subtitle } = Astro.props;
 
 <section class="auth">
   <div class="auth__card">
-    <a href="/" class="auth__brand">DataDreamer<span aria-hidden="true">.</span></a>
     <h1 class="auth__title">{title}</h1>
     {subtitle && <p class="auth__subtitle">{subtitle}</p>}
     <slot />
@@ -42,22 +41,7 @@ const { title, subtitle } = Astro.props;
     box-shadow: var(--shadow-2);
   }
 
-  .auth__brand {
-    display: inline-block;
-    font-family: var(--font-display);
-    font-size: var(--fs-lg);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: var(--text-1);
-    text-decoration: none;
-  }
-
-  .auth__brand span {
-    color: var(--accent);
-  }
-
   .auth__title {
-    margin-top: var(--space-5);
     font-family: var(--font-display);
     font-size: var(--fs-2xl);
     line-height: var(--lh-2xl);
