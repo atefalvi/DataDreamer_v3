@@ -3,9 +3,20 @@
  * homepage copy, and feature flags. Code-owned UI text lives here, not in Directus.
  */
 
+/** Read a public boolean env flag (available server + client via Astro's import.meta.env). */
+function envFlag(name: string): boolean {
+  const env = import.meta.env as Record<string, string | undefined>;
+  return (env[name] ?? process.env[name]) === 'true';
+}
+
 export const FLAGS = {
-  /** Flip true when the Guides release (v4.1) ships. Gates nav item + home teaser. */
-  GUIDES_ENABLED: false,
+  /**
+   * Gates the Guides nav item + home teaser. Defaults off so merging to production
+   * (whose Directus has no guides yet) stays clean; set `PUBLIC_GUIDES_ENABLED=true`
+   * on an environment whose Directus has the Field Guides schema (e.g. staging) to
+   * light up the full experience. The `/guides` pages are reachable regardless.
+   */
+  GUIDES_ENABLED: envFlag('PUBLIC_GUIDES_ENABLED'),
   /** Newsletter capture has no backend yet (01 §6) — keep the footer slot hidden. */
   SHOW_NEWSLETTER: false,
 } as const;
