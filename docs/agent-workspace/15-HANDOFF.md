@@ -17,6 +17,35 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-15] Field Guides auth plan — done
+
+**Did**: Reconciled v4.1 planning around the owner decision that Field Guides are
+public previews with a login-gated reader. Added the HTML planning report with Directus
+setup impact, Google login tradeoffs, collection/policy layout, rough UI sketches, and
+revised task sequence. Updated workspace docs from browser-local/no-auth progress to
+Directus `guide_reader` + `guide_progress`, and renamed hidden frontend “course” flags/
+counts to Guides terminology.
+
+**Files**: `docs/agent-workspace/reports/field-guides-auth-plan.html`; docs `00`, `01`,
+`03`, `04`, `05`, `06`, `07`, `08`, `09`, `12`, `13`, `15`, plus guide diagrams/examples/
+wireframes; frontend naming cleanup in `src/content/site.ts`, `src/types/content.ts`,
+Dream Team graph/card/count files, and related tests.
+
+**Decisions / deviations**: v4.1 now requires login to start/read guide items and save
+progress. Public visitors can still browse guides and see preview/syllabus metadata.
+The old LMS model remains retired: no enrollments, badges, certificates, payments,
+votes, cohorts, or student dashboard. Directus remains the auth/progress source.
+
+**Validation**: `git diff --check`; `cd frontend && npx astro check && npm test &&
+npm run build` all passed.
+
+**Next**: Review the HTML report with the owner. If approved, next eligible
+implementation remains `V4-REL-001` for v4.0 release gating; Field Guides/auth starts
+after that with `V4-GUIDE-001` followed by `V4-AUTH-001`.
+
+**Warnings**: Workspace already had pre-existing dirty agent-workspace docs before this
+entry. Keep those changes separated during staging/commit review if needed.
+
 ## [2026-06-14] Content visibility check — done
 
 **Did**: Investigated missing Dream Team/blog/project-author surfaces after the v4 task

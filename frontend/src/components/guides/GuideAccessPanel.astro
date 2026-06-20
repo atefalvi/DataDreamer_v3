@@ -1,0 +1,256 @@
+---
+/**
+ * GuideAccessPanel (05 §15) — the access + progress surface below the hero.
+ *  - Anonymous: a premium sign-in card ("Sign in to start" / "Create free account")
+ *    preserving `?next=` so login returns to the guide.
+ *  - Authenticated: status pill, percent bar, counts, time remaining, and a primary
+ *    Start / Resume button that jumps to the resume item. The client enhancer keeps it
+ *    live as items are toggled.
+ */
+import Icon from '../ui/Icon.astro';
+import { flattenItems, formatMinutes } from '../../lib/guides/progress';
+import type { Guide, DerivedGuideProgress } from '../../types/content';
+
+interface Props {
+  guide: Guide;
+  signedIn: boolean;
+  progress?: DerivedGuideProgress;
+}
+
+const { guide, signedIn, progress } = Astro.props;
+const next = encodeURIComponent(`/guides/${guide.slug}`);
+
+const firstItemId = flattenItems(guide)[0]?.id;
+const resumeTarget = progress?.resumeItemId ?? firstItemId;
+
+const statusLabel: Record<DerivedGuideProgress['status'], string> = {
+  'not-started': 'Not started',
+  'in-progress': 'In progress',
+  completed: 'Completed',
+};
+
+const ctaLabel =
+  progress?.status === 'completed'
+    ? 'Review from the top'
+    : progress?.status === 'in-progress'
+      ? 'Resume the path'
+      : 'Start the path';
+---
+
+{!signedIn ? (
+  <aside class="access access--gate">
+    <div class="access__gate-icon"><Icon name="lock-keyhole" size={20} /></div>
+    <div class="access__gate-text">
+      <h2 class="access__gate-title">Sign in to start this guide</h2>
+      <p class="access__gate-sub">
+        Create a free account to open every resource, read the curator's notes, and track
+        your progress across the path.
+      </p>
+    </div>
+    <div class="access__gate-actions">
+      <a class="access__btn access__btn--primary" href={`/login?next=${next}`}>Sign in to start</a>
+      <a class="access__btn access__btn--ghost" href={`/signup?next=${next}`}>Create free account</a>
+    </div>
+  </aside>
+) : (
+  <aside
+    class="access access--progress"
+    data-progress-panel
+    data-guide-slug={guide.slug}
+  >
+    <div class="access__status">
+      <span class="access__pill" data-progress-status data-status={progress?.status}>
+        {statusLabel[progress?.status ?? 'not-started']}
+      </span>
+      <span class="access__numbers">
+        <strong data-progress-percent>{progress?.percent ?? 0}</strong>% ·
+        <span data-progress-counts>{progress?.completedCount ?? 0}/{progress?.totalCount ?? 0}</span> done
+        {progress && progress.estMinutesRemaining > 0 && (
+          <>
+            · <span data-progress-remaining>~{formatMinutes(progress.estMinutesRemaining)}</span> left
+          </>
+        )}
+      </span>
+    </div>
+
+    <div class="access__bar">
+      <span data-progress-fill style={`width:${progress?.percent ?? 0}%`}></span>
+    </div>
+
+    {resumeTarget && (
+      <a class="access__btn access__btn--primary" href={`#item-${resumeTarget}`} data-resume>
+        <span data-resume-label>{ctaLabel}</span>
+        <Icon name="arrow-down" size={16} />
+      </a>
+    )}
+  </aside>
+)}
+
+<style>
+  .access {
+    margin-top: var(--space-6);
+    padding: var(--space-5);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(140% 140% at 0% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 55%),
+      var(--bg-1);
+  }
+
+  /* ── Gate (anonymous) ── */
+  .access--gate {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3) var(--space-4);
+    align-items: start;
+  }
+
+  .access__gate-icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-md);
+    background: var(--accent-subtle);
+    color: var(--accent);
+  }
+
+  .access__gate-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-xl);
+    font-weight: 560;
+  }
+
+  .access__gate-sub {
+    max-width: 52ch;
+    margin-top: var(--space-2);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .access__gate-actions {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  /* ── Progress (authenticated) ── */
+  .access__status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .access__pill {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-2);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+  }
+
+  .access__pill[data-status='in-progress'] {
+    color: var(--info);
+    border-color: color-mix(in srgb, var(--info) 45%, var(--border-2));
+  }
+
+  .access__pill[data-status='completed'] {
+    color: var(--success);
+    border-color: color-mix(in srgb, var(--success) 45%, var(--border-2));
+  }
+
+  .access__numbers {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .access__numbers strong {
+    color: var(--text-1);
+  }
+
+  .access__bar {
+    height: 6px;
+    margin-top: var(--space-4);
+    border-radius: var(--radius-full);
+    background: var(--bg-3);
+    overflow: hidden;
+  }
+
+  .access__bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+    transition: width var(--dur-3) var(--ease-out);
+  }
+
+  /* ── Buttons ── */
+  .access__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    padding-inline: var(--space-5);
+    border-radius: var(--radius-full);
+    border: 1px solid transparent;
+    font-family: var(--font-text);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    text-decoration: none;
+    transition:
+      background var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .access--progress .access__btn {
+    margin-top: var(--space-4);
+  }
+
+  .access__btn--primary {
+    background: var(--accent);
+    color: var(--text-on-accent);
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+
+  .access__btn--primary:hover {
+    background: var(--accent-hover);
+    color: var(--text-on-accent);
+    transform: translateY(-1px);
+  }
+
+  .access__btn--ghost {
+    background: transparent;
+    border-color: var(--border-2);
+    color: var(--text-1);
+  }
+
+  .access__btn--ghost:hover {
+    border-color: var(--accent);
+    color: var(--text-1);
+  }
+
+  @media (max-width: 47.999rem) {
+    .access--gate {
+      grid-template-columns: 1fr;
+    }
+    .access__gate-icon {
+      display: none;
+    }
+    .access__gate-actions {
+      grid-column: 1;
+    }
+    .access__btn {
+      flex: 1;
+    }
+  }
+</style>

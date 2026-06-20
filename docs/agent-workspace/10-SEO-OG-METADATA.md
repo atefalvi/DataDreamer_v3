@@ -23,7 +23,7 @@ interface Seo {
 **Title template**: `{title} — DataDreamer`; homepage exactly
 `DataDreamer — Field notes from the future of data`. Sentence case; ≤60 chars target;
 the v3 `SECTION // NAME` voice is retired.
-**Descriptions**: articles = excerpt; courses = short_description; listings = curated
+**Descriptions**: articles = excerpt; Field Guides = `summary`; listings = curated
 strings in page files; authors = `{name} is a {role} at DataDreamer — writing on
 {top topics}.` (built in repo mapper).
 
@@ -43,14 +43,15 @@ strings in page files; authors = `{name} is a {role} at DataDreamer — writing 
 | Connect | website | ContactPage | | |
 | Privacy | website | — | | |
 | 404/500 | — | — | ✅ (meta robots) | |
-| Courses (v4.1) | website | ItemList | | |
-| Course landing | website | Course (PRD §13.2, instructor from courses_authors) + BreadcrumbList | | |
-| Lesson | article | — | ✅ | per PRD §13.1 rationale |
-| Auth/student | — | — | ✅ | |
+| Field Guides catalogue (v4.1) | website | ItemList | | indexable |
+| Field Guide (v4.1) | article | Article/CreativeWork (author = curator) + BreadcrumbList | | **Indexable**: the page serves a public **preview** (hero, why/outcome, curator, syllabus titles) to crawlers/anonymous users; gated item bodies/notes live behind login on the same URL, so there's nothing private to noindex |
+| Login / Signup (v4.1) | — | — | ✅ | thin auth surfaces; never indexed |
+| Account (v4.1) | — | — | ✅ | protected; `private, no-store` |
 
 ## 4. Robots, sitemap, RSS, duplication
-- `robots.txt` (regenerated): allow all; `Disallow: /student /api /login /signup
-  /forgot-password /reset-password`; sitemap line.
+- `robots.txt` (regenerated): allow all; `Disallow: /api/`, `/account`, `/login`,
+  `/signup`. Field Guides (`/guides`, `/guides/[slug]`) are public previews and stay
+  **indexable** — only the auth/account surfaces and API are disallowed.
 - Sitemap: `@astrojs/sitemap` with filter excluding noindex routes; custom serializer
   adds `lastmod` for posts (needs SSR-aware approach: keep integration for static
   routes + a small custom `sitemap-posts.xml.ts` endpoint listing posts with lastmod;
@@ -72,7 +73,7 @@ strings in page files; authors = `{name} is a {role} at DataDreamer — writing 
 | `og-projects.png` | project index, case-study fallback | temporary generated |
 | `og-team.png` | dream team, author fallback | temporary generated |
 | `og-about.png` | about | temporary generated |
-| `og-courses.png` (v4.1) | catalogue, course fallback | temporary generated |
+| `og-guides.png` (v4.1) | Field Guide catalogue + guide fallback | temporary generated |
 | per-article | article w/ cover_image | Directus transform (1200×630, jpeg, quality 85) + public-URL guard — pattern kept from v3 |
 | per-case-study | case study w/ cover | build-time sharp resize → `public/og/projects/[slug].png` |
 | per-author | author pages | **deferred to final-art phase**; fallback `og-team.png` until then |
@@ -95,8 +96,8 @@ committed; regenerating is one command.
    paste test (v3 lesson: Cloudflare bot rules — audit/CODE_REVIEW history; confirm
    WAF bypass still active).
 **Checklist** (lives here; tick in handoff): [x] temporary fallback set in place
-(V4-FND-002: default, home, blog, projects, team, about, courses). Final replacement:
-[ ] default [ ] home [ ] blog [ ] projects [ ] team [ ] about [ ] courses
+(V4-FND-002: default, home, blog, projects, team, about; v4.1 adds guides). Final
+replacement: [ ] default [ ] home [ ] blog [ ] projects [ ] team [ ] about [ ] guides
 [ ] per-author template decision.
 During development, social previews always work because temporary files exist from
 Phase A — **no broken-preview window.**
@@ -113,9 +114,9 @@ Always absolute URLs (SITE_URL); og:image:alt always set (title-derived).
 ## 6. Pagination & breadcrumbs
 Paginated lists: `rel="prev"/"next"` links, canonical per page, titles suffixed
 "— page 2". Breadcrumbs: `Breadcrumbs.astro` renders visible trail (article, author,
-case study, topic, course pages) + BreadcrumbList JSON-LD from same data.
+case study, topic, Field Guide pages) + BreadcrumbList JSON-LD from same data.
 
 ## 7. Validation gates (every SEO-touching task)
 `astro build` then: meta snapshot tests (vitest over rendered head for fixture pages),
-Rich Results test for BlogPosting/Course/Person manually at QA phase, opengraph.xyz
+Rich Results test for BlogPosting/Article/Person manually at QA phase, opengraph.xyz
 spot checks on staging (V4-QA-002 checklist).

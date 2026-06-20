@@ -19,16 +19,23 @@
 /rss.xml                            Blog RSS feed
 /sitemap-index.xml                  (generated)
 
-— v4.1 (Courses release) —
-/courses                            Catalogue
-/courses/[courseSlug]               Course landing
-/courses/[courseSlug]/[lessonSlug]  Lesson
-/student                            Learner dashboard (protected)
-/student/settings                   Account settings (protected)
-/login /signup /forgot-password /reset-password
-/api/auth/{signup,login,logout,forgot-password}     POST endpoints
-/api/courses/{enroll,complete,progress,vote}        POST/GET endpoints
+— v4.1 (Field Guides release) —
+/guides                             Catalogue (Field Guides)
+/guides/[slug]                      Public guide preview or logged-in guide reader
+/login                              Public auth page
+/signup                             Public account creation page
+/account                            Protected learner progress page
+/api/auth/*                         Astro auth bridge to Directus
+/api/guides/progress                Protected progress read/write endpoint
 ```
+
+Field Guides are **public previews with a login-gated reader**. Visitors can browse
+guide cards and preview pages, including syllabus section titles, but item bodies,
+curator notes, completion controls, and resume state require authentication. There is
+no separate per-item page: items are curated external resources and render inline in
+the authenticated guide reader (open externally or expand in place — `05` §15). The
+retired course routes (`/courses`, `/courses/[slug]/[lesson]`, `/student`,
+`/api/courses/*`) are not built.
 
 ### Redirects (must ship with v4.0)
 
@@ -45,14 +52,17 @@ can't be enumerated at config time under SSR).
 ## 2. Navigation model
 
 ### Primary nav (desktop, left→right)
-`Logo` · `Work` · `Blog` · `Courses`(v4.1) · `Dream Team` · `About` — right side:
-theme toggle · `Connect` (button-styled CTA) · learner avatar (v4.1, when signed in).
+`Logo` · `Work` · `Blog` · `Guides`(v4.1) · `Dream Team` · `About` — right side:
+theme toggle · `Connect` (button-styled CTA). When guides/auth are enabled, show a
+compact `Sign in` link for anonymous visitors and `Account` for authenticated readers.
 
 - "Work" routes to `/projects` (label tested better than "Projects" for client audience;
   the route stays `/projects`).
-- No dropdowns/mega-menu in v4.0: six items max fits comfortably to 768px. If courses
-  later need sub-nav, it lives on the courses pages, not in the global bar.
-- Active state: route-prefix matching (`/blog*` → Blog active; `/student*` → Courses active).
+- "Guides" routes to `/guides` (the Field Guides catalogue), gated by
+  `FLAGS.GUIDES_ENABLED` until v4.1 ships.
+- No dropdowns/mega-menu in v4.0: six items max fits comfortably to 768px. If guides
+  later need sub-nav, it lives on the guide pages, not in the global bar.
+- Active state: route-prefix matching (`/blog*` → Blog active; `/guides*` → Guides active).
 
 ### Mobile nav
 Hamburger → full-height overlay panel (not a dropdown strip): nav links stacked large,
@@ -62,7 +72,7 @@ management pseudocode in `07-ANIMATION-INTERACTION-SPEC.md` §3.
 ### Footer (all pages)
 Four columns desktop / stacked mobile:
 1. Mark + one-line mission + © line.
-2. Explore: Home, Work, Blog, Courses, Dream Team, About, Connect.
+2. Explore: Home, Work, Blog, Guides, Dream Team, About, Connect.
 3. Topics: top 5 topics by post count (link to `/blog/topic/[slug]`).
 4. Elsewhere: GitHub, LinkedIn, X, Email, RSS. (+ Privacy link in the © row.)
 Newsletter slot: reserved area in column 1, hidden behind a code-level flag
@@ -76,11 +86,12 @@ contract; agents must not move content across buckets without updating this doc.
 | Content | Bucket | Lives in | Why |
 |---|---|---|---|
 | Blog posts | Directus editorial | `posts` collection | Frequent, authored by multiple people, workflow needs draft/publish |
-| Topics | Directus editorial | `topics` + junctions | Shared taxonomy for posts & courses, editor-managed |
-| Authors / Dream Team profiles | Directus editorial | `authors` (+ `specialties`) | Multi-person, evolves, relates to posts/courses |
-| Author↔post, author↔course relations | Directus relational | M2O / M2M | Relational integrity belongs in the DB |
-| Courses, lessons, resources, badges | Directus editorial | per `08-…` §4 | Publishing without code changes is a core PRD goal |
-| Enrollments, completions, votes | Directus user data | per `08-…` §4 | Server-written user state |
+| Topics | Directus editorial | `topics` + junctions | Shared taxonomy for posts & Field Guides, editor-managed |
+| Authors / Dream Team profiles | Directus editorial | `authors` (+ `specialties`) | Multi-person, evolves, relates to posts/guides |
+| Author↔post, author↔guide relations | Directus relational | M2O / M2M | Relational integrity belongs in the DB |
+| Field Guides (paths, sections, items) | Directus editorial | `guides` / `guide_sections` / `guide_items` per `08-…` §4 | Curators publish without code changes |
+| Learner accounts | Directus system | `directus_users` with `guide_reader` role | Required to start/read guides and keep progress tied to one person |
+| Learner progress | Directus relational | `guide_progress` (`09` §10) | One lightweight row per user+guide; no LMS enrollment model |
 | Media for the above | Directus files | `directus_files` | Belongs with its content |
 | Homepage copy (hero headline, section intros) | Repo static | `src/content/site.ts` | Changes ~quarterly with design intent; versioned with the code that lays it out |
 | About page content (bio, timeline, skills, stats, portrait) | Repo static | `src/content/about.ts` + `src/assets/` | Single-owner, rarely changes; v3's JSON-blob singleton was the worst of both worlds |
@@ -96,7 +107,10 @@ Consequences:
 - Directus collections **retired**: `site_settings`, `home_settings`, `about`,
   `projects` (after content migration to repo markdown — task V4-CMS-005).
 - Directus collections **added for v4.0**: `posts`, `authors`, `specialties`,
-  `authors_specialties`, `topics`, `posts_topics`; v4.1 adds the courses suite.
+  `authors_specialties`, `topics`, `posts_topics`; v4.1 adds the Field Guides suite
+  (`guides`, `guide_sections`, `guide_items`, `guides_topics`, `guides_specialties`,
+  `guides_authors`) plus `guide_progress` and the Directus system users/roles needed
+  for guide readers.
 
 ## 4. URL & slug rules
 
@@ -111,19 +125,19 @@ Consequences:
 
 | Page | Primary action | Secondary |
 |---|---|---|
-| Home | Read the latest post | Explore work / courses teaser |
+| Home | Read the latest post | Explore work / guides teaser |
 | Blog landing | Open a post | Filter by topic |
 | Article | Read to end | Visit author page; read related |
 | Project index | Open a case study | Filter by tag |
 | Case study | Read; contact | Next project |
 | Dream Team | Open an author | Filter by specialty |
-| Author page | Read their posts | Their courses; their links |
+| Author page | Read their posts | Their guides; their links |
 | About | Contact | Read blog |
 | Connect | Send email | Open social profile |
-| Courses (v4.1) | View a course | Filter |
-| Course landing | Start course / sign up | Browse lessons |
-| Lesson | Watch + mark complete | Next lesson |
-| Dashboard | Resume learning | Manage account |
+| Guides catalogue (v4.1) | Open a Field Guide preview | Filter by topic/difficulty |
+| Field Guide preview (v4.1) | Sign in to start | Review syllabus; evaluate fit |
+| Field Guide reader (v4.1) | Start / resume the path | Jump to a section; open an item |
+| Account (v4.1) | Resume a guide | Manage session |
 
 ## 6. Site map diagram
 

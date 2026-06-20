@@ -8,6 +8,7 @@ export * as postsRepo from './posts';
 export * as authorsRepo from './authors';
 export * as topicsRepo from './topics';
 export * as projectsRepo from './projects';
+export * as guidesRepo from './guides';
 
 export { RepositoryError } from './errors';
 export type { RepositoryErrorKind } from './errors';

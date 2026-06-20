@@ -9,7 +9,7 @@
 | (base) | <480 | SM small mobile | Single column everything; type at scale minimums; chips/scrollers become horizontal scroll with fade masks; stat grids 2×2 |
 | `--bp-sm` 480 | 480–767 | LM large mobile | Compact post cards regain one-line meta rows; 2-up small grids (badges, avatars) |
 | `--bp-md` 768 | 768–1023 | TP tablet portrait | **Nav switches** hamburger→inline links; hero canvas mounts (07 §2.8); 2-col card grids; article TOC still collapsed |
-| `--bp-lg` 1024 | 1024–1279 | TL tablet landscape | Sidebars/rails appear (TOC, fact rail, course CTA rail); **team graph mounts**; asymmetric grids activate |
+| `--bp-lg` 1024 | 1024–1279 | TL tablet landscape | Sidebars/rails appear (TOC, fact rail); **team graph mounts**; guide item annotations go 2-col; asymmetric grids activate |
 | `--bp-xl` 1280 | 1280–1535 | DT desktop | Full 12-col compositions, offset work grid |
 | `--bp-2xl` 1536 | ≥1536 | WD wide | Nothing new appears — containers clamp, gutters grow. Deliberate: ultra-wide gets calm margins, not more columns |
 
@@ -21,8 +21,8 @@ overrides in ascending order.
   overrides except `--fs-display` hero which additionally caps at `9vw` on SM to
   prevent two-word lines breaking.
 - **Touch targets** ≥44×44 CSS px on <1024px (links in prose exempt).
-- **Sticky elements**: nav always; TOC/fact/CTA rails sticky only TL+; mobile course
-  CTA bar sticky bottom with `padding-bottom: env(safe-area-inset-bottom)`; reading
+- **Sticky elements**: nav always; TOC/fact rails sticky only TL+; mobile Field Guide
+  progress bar sticky bottom with `padding-bottom: env(safe-area-inset-bottom)`; reading
   progress hidden <768.
 - **Tables (prose)**: wrapped in `overflow-x:auto` containers with `tabindex=0` +
   `role="region" aria-label`; never reflowed into cards (data tables lose meaning).
@@ -42,7 +42,7 @@ overrides in ascending order.
 ### 3. Responsive QA matrix (executed in V4-QA-001)
 360×640, 390×844, 480, 768×1024 (+landscape), 1024×768, 1280×800, 1440×900, 1920×1080;
 each in dark + light; pages: home, blog, article (longest real post), case study,
-team, author, connect, 404 (+ courses set in v4.1). Zero horizontal scroll anywhere;
+team, author, connect, 404 (+ Field Guides set in v4.1). Zero horizontal scroll anywhere;
 all interactive elements reachable.
 
 ## B. Accessibility (WCAG 2.2 AA practices)
@@ -57,7 +57,8 @@ all interactive elements reachable.
   replacement; focus order follows DOM; mobile menu trap per 07 §3.3; dialogs use
   `<dialog>.showModal()` native trapping; after dialog close, focus returns to opener.
 - Keyboard: every flow completable — menu, theme, filters (links/buttons), graph
-  (real links + arrows), lightbox, copy buttons, (v4.1) enroll/complete/forms.
+  (real links + arrows), lightbox, copy buttons, (v4.1) guide item complete toggles
+  (real `aria-pressed` buttons) + YouTube facade activation.
 - Target size: ≥24×24 minimum everywhere (2.2 AA), ≥44 on touch breakpoints.
 
 ### 2. Color & contrast
@@ -80,7 +81,7 @@ all interactive elements reachable.
   requires real alt in markdown (lint warning in golden tests for empty alts).
 - Decorative SVGs (hero static field, dividers): `aria-hidden="true"`.
 - Meaningful SVGs (logo, graph): `role="img"`/`role="group"` + labels (04 §9.3, 07 §5.3).
-- Video embeds (v4.1): iframe `title="{lesson title} — video"`; facade play button
+- Video embeds (v4.1): iframe `title="{item title} — video"`; facade play button
   labeled.
 
 ### 5. Components with explicit a11y contracts
@@ -101,5 +102,8 @@ all interactive elements reachable.
 ### 6. Screen-reader QA script (V4-QA-003)
 VoiceOver/Safari + NVDA/Firefox passes: navigate home by landmarks/headings; open
 mobile menu (focus enters, Escape returns); read an article incl. callouts, code copy,
-TOC jump; team page via list; author page; (v4.1) full signup→enroll→complete→badge
-flow. Findings logged as tasks before release.
+TOC jump; team page via list; author page; (v4.1) Field Guide: read a public preview,
+follow the "Sign in to start" CTA, complete the login form (labels/errors announced,
+`next` returns to the guide), then in the reader navigate sections by headings, operate
+an item complete toggle (state announced), read curator annotations, and activate a
+video facade. Findings logged as tasks before release.

@@ -1,0 +1,213 @@
+---
+/**
+ * GuideCard (05 §14) — Field Guide catalogue card. Whole card links to the guide.
+ * Public: shows curator, difficulty, item count, and estimated duration. When the
+ * reader has local resume state, the client enhancer upgrades the footer in place
+ * (progressive enhancement — see guides/index.astro).
+ */
+import { directusSrcset } from '../../lib/images';
+import { formatMinutes } from '../../lib/guides/progress';
+import DifficultyTag from './DifficultyTag.astro';
+import type { GuideListItem } from '../../types/content';
+
+interface Props {
+  guide: GuideListItem;
+  class?: string;
+}
+
+const { guide, class: className } = Astro.props;
+const { slug, title, summary, difficulty, coverImage, estimatedMinutes, itemCount, curator } =
+  guide;
+const href = `/guides/${slug}`;
+
+// Deterministic accent for the generated placeholder when a guide has no cover.
+const vizIndex = (slug.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 6) + 1;
+
+const meta = [
+  itemCount > 0 ? `${itemCount} ${itemCount === 1 ? 'resource' : 'resources'}` : null,
+  estimatedMinutes ? `~${formatMinutes(estimatedMinutes)}` : null,
+].filter(Boolean);
+---
+
+<article class:list={['guide-card', className]} data-guide-card data-slug={slug}>
+  <a href={href} class="guide-card__link">
+    <div class="guide-card__media" data-viz={vizIndex}>
+      {coverImage ? (
+        <img
+          src={coverImage.src}
+          srcset={directusSrcset(coverImage.id, [480, 800, 1200])}
+          sizes="(min-width: 64rem) 420px, (min-width: 48rem) 50vw, 100vw"
+          width={coverImage.width}
+          height={coverImage.height}
+          alt={coverImage.alt}
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span class="guide-card__glyph" aria-hidden="true">◆</span>
+      )}
+      <DifficultyTag difficulty={difficulty} class="guide-card__difficulty" />
+    </div>
+
+    <div class="guide-card__body">
+      <h3 class="guide-card__title">{title}</h3>
+      <p class="guide-card__summary">{summary}</p>
+      <div class="guide-card__meta">
+        {meta.map((part) => <span>{part}</span>)}
+        <span class="guide-card__curator">{curator.name}</span>
+      </div>
+      <div class="guide-card__progress" data-guide-progress hidden>
+        <div class="guide-card__bar"><span data-progress-fill></span></div>
+        <span class="guide-card__resume" data-progress-label>Resume</span>
+      </div>
+    </div>
+  </a>
+</article>
+
+<style>
+  .guide-card {
+    height: 100%;
+  }
+
+  .guide-card__link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .guide-card__media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-2);
+    display: grid;
+    place-items: center;
+  }
+
+  /* Generated placeholder: a calm tinted field keyed off the guide slug. */
+  .guide-card__media[data-viz='1'] { --viz: var(--viz-1); }
+  .guide-card__media[data-viz='2'] { --viz: var(--viz-2); }
+  .guide-card__media[data-viz='3'] { --viz: var(--viz-3); }
+  .guide-card__media[data-viz='4'] { --viz: var(--viz-4); }
+  .guide-card__media[data-viz='5'] { --viz: var(--viz-5); }
+  .guide-card__media[data-viz='6'] { --viz: var(--viz-6); }
+
+  .guide-card__media:not(:has(img)) {
+    background:
+      radial-gradient(120% 120% at 85% 0%, color-mix(in srgb, var(--viz) 22%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-2), var(--bg-1));
+  }
+
+  .guide-card__glyph {
+    color: color-mix(in srgb, var(--viz) 55%, var(--text-3));
+    font-size: 2.5rem;
+    opacity: 0.7;
+  }
+
+  .guide-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-3) var(--ease-out);
+  }
+
+  .guide-card__link:hover .guide-card__media img {
+    transform: scale(1.03);
+  }
+
+  .guide-card__difficulty {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+  }
+
+  .guide-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding-top: var(--space-4);
+  }
+
+  .guide-card__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-xl);
+    font-weight: 560;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .guide-card__link:hover .guide-card__title {
+    color: var(--accent);
+  }
+
+  .guide-card__summary {
+    margin-top: var(--space-2);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .guide-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-1);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .guide-card__curator {
+    margin-left: auto;
+    color: var(--text-2);
+  }
+
+  .guide-card__progress {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+  }
+
+  /* `display: flex` above would otherwise override the UA `[hidden] { display: none }`,
+     so re-assert it — the resume row only appears once the enhancer reveals it. */
+  .guide-card__progress[hidden] {
+    display: none;
+  }
+
+  .guide-card__bar {
+    flex: 1;
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: var(--bg-3);
+    overflow: hidden;
+  }
+
+  .guide-card__bar span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width var(--dur-3) var(--ease-out);
+  }
+
+  .guide-card__resume {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+  }
+</style>

@@ -3,9 +3,20 @@
  * homepage copy, and feature flags. Code-owned UI text lives here, not in Directus.
  */
 
+/** Read a public boolean env flag (available server + client via Astro's import.meta.env). */
+function envFlag(name: string): boolean {
+  const env = import.meta.env as Record<string, string | undefined>;
+  return (env[name] ?? process.env[name]) === 'true';
+}
+
 export const FLAGS = {
-  /** Flip true when the Courses release (v4.1) ships. Gates nav item + home teaser. */
-  COURSES_ENABLED: false,
+  /**
+   * Gates the Guides nav item + home teaser. Defaults off so merging to production
+   * (whose Directus has no guides yet) stays clean; set `PUBLIC_GUIDES_ENABLED=true`
+   * on an environment whose Directus has the Field Guides schema (e.g. staging) to
+   * light up the full experience. The `/guides` pages are reachable regardless.
+   */
+  GUIDES_ENABLED: envFlag('PUBLIC_GUIDES_ENABLED'),
   /** Newsletter capture has no backend yet (01 §6) — keep the footer slot hidden. */
   SHOW_NEWSLETTER: false,
 } as const;
@@ -21,9 +32,9 @@ const BASE_NAV: NavItem[] = [
   { label: 'Dream Team', href: '/dream-team' },
 ];
 
-/** Primary nav, with Courses inserted after Blog only when enabled (03 §2). */
-export const NAV_ITEMS: NavItem[] = FLAGS.COURSES_ENABLED
-  ? [BASE_NAV[0], BASE_NAV[1], { label: 'Courses', href: '/courses' }, ...BASE_NAV.slice(2)]
+/** Primary nav, with Guides inserted after Blog only when enabled (03 §2). */
+export const NAV_ITEMS: NavItem[] = FLAGS.GUIDES_ENABLED
+  ? [BASE_NAV[0], BASE_NAV[1], { label: 'Guides', href: '/guides' }, ...BASE_NAV.slice(2)]
   : BASE_NAV;
 
 export interface SocialLink {
@@ -53,9 +64,9 @@ export const HOME_HERO = {
   subhead:
     'A premium field journal for data systems, applied AI, analytics craft, and the engineering patterns that turn signal into leverage.',
   primaryCta: { label: 'Read the field notes', href: '/blog' },
-  /** Until courses ship the secondary CTA points at the work (05 §1.1). */
-  secondaryCta: FLAGS.COURSES_ENABLED
-    ? { label: 'Explore courses', href: '/courses' }
+  /** Until guides ship the secondary CTA points at the work (05 §1.1). */
+  secondaryCta: FLAGS.GUIDES_ENABLED
+    ? { label: 'Explore guides', href: '/guides' }
     : { label: 'See the work', href: '/projects' },
 } as const;
 

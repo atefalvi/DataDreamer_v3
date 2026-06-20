@@ -1,0 +1,247 @@
+---
+/**
+ * V4-GUIDE-004 — Field Guide catalogue `/guides` (05 §14). Public, SSR.
+ * Lists published guides with a featured lead, SSR topic + difficulty filters
+ * (`?topic=` / `?level=`), and a responsive card grid. Curated learning paths;
+ * starting/reading a guide is login-gated on the detail page.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GuideCard from '../../components/guides/GuideCard.astro';
+import GuideCardFeatured from '../../components/guides/GuideCardFeatured.astro';
+import EmptyState from '../../components/ui/EmptyState.astro';
+import { guidesRepo } from '../../lib/repositories';
+import { itemListJsonLd, collectionPageJsonLd } from '../../lib/seo/jsonld';
+import { absoluteUrl } from '../../lib/seo/meta';
+import type { GuideListItem, GuideDifficulty } from '../../types/content';
+
+let all: GuideListItem[] = [];
+try {
+  const { items } = await guidesRepo.list({ pageSize: 60 });
+  all = items;
+} catch (error) {
+  console.error('[guides] list unavailable:', error instanceof Error ? error.message : error);
+}
+
+const activeTopic = Astro.url.searchParams.get('topic');
+const activeLevel = Astro.url.searchParams.get('level');
+
+// Topic facets that actually have guides, busiest first (parity with /projects).
+const topicCounts = new Map<string, { name: string; slug: string; count: number }>();
+for (const guide of all) {
+  for (const topic of guide.topics) {
+    const entry = topicCounts.get(topic.slug) ?? { ...topic, count: 0 };
+    entry.count += 1;
+    topicCounts.set(topic.slug, entry);
+  }
+}
+const topics = [...topicCounts.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+const LEVELS: { label: string; value: GuideDifficulty }[] = [
+  { label: 'Beginner', value: 'beginner' },
+  { label: 'Intermediate', value: 'intermediate' },
+  { label: 'Advanced', value: 'advanced' },
+];
+
+const isFiltered = Boolean(activeTopic || activeLevel);
+const visible = all.filter(
+  (g) =>
+    (!activeTopic || g.topics.some((t) => t.slug === activeTopic)) &&
+    (!activeLevel || g.difficulty === activeLevel),
+);
+
+// Featured lead shows only on the unfiltered view; the grid lists the remainder.
+const featured = !isFiltered ? (all.find((g) => g.featured) ?? all[0]) : undefined;
+const gridItems = featured ? visible.filter((g) => g.slug !== featured.slug) : visible;
+
+const buildHref = (params: Record<string, string | null>) => {
+  const next = new URLSearchParams();
+  const topic = 'topic' in params ? params.topic : activeTopic;
+  const level = 'level' in params ? params.level : activeLevel;
+  if (topic) next.set('topic', topic);
+  if (level) next.set('level', level);
+  const qs = next.toString();
+  return qs ? `/guides?${qs}` : '/guides';
+};
+
+const description =
+  'Curated learning paths through topics worth knowing — assembled by practitioners who learned them first.';
+
+const jsonLd = [
+  collectionPageJsonLd({ name: 'Field Guides — DataDreamer', url: '/guides', description }),
+  itemListJsonLd({
+    name: 'DataDreamer Field Guides',
+    items: all.map((g) => ({ '@type': 'CreativeWork', name: g.title, url: absoluteUrl(`/guides/${g.slug}`) })),
+  }),
+];
+---
+
+<BaseLayout
+  title="Field Guides"
+  description={description}
+  ogImage={{ url: '/og/og-guides.png' }}
+  jsonLd={jsonLd}
+>
+  <div class="guides container-content">
+    <header class="guides__head">
+      <p class="kicker">Field Guides</p>
+      <h1>Guides</h1>
+      <p class="guides__intro">{description}</p>
+    </header>
+
+    {all.length === 0 ? (
+      <EmptyState message="The first Field Guides are being assembled. Check back soon." icon="compass" />
+    ) : (
+      <>
+        {featured && (
+          <section class="guides__featured" aria-label="Featured guide">
+            <GuideCardFeatured guide={featured} />
+          </section>
+        )}
+
+        {topics.length > 0 && (
+          <nav class="guides__filters" aria-label="Filter guides">
+            <div class="guides__filtergroup" role="group" aria-label="Topic">
+              <a href={buildHref({ topic: null })} class:list={['filterchip', { 'is-active': !activeTopic }]}>
+                All topics
+              </a>
+              {topics.map((topic) => (
+                <a
+                  href={buildHref({ topic: topic.slug })}
+                  class:list={['filterchip', { 'is-active': activeTopic === topic.slug }]}
+                >
+                  {topic.name} <span class="filterchip__count">{topic.count}</span>
+                </a>
+              ))}
+            </div>
+            <div class="guides__filtergroup guides__filtergroup--levels" role="group" aria-label="Difficulty">
+              <a href={buildHref({ level: null })} class:list={['filterchip', { 'is-active': !activeLevel }]}>
+                All levels
+              </a>
+              {LEVELS.map((level) => (
+                <a
+                  href={buildHref({ level: level.value })}
+                  class:list={['filterchip', { 'is-active': activeLevel === level.value }]}
+                >
+                  {level.label}
+                </a>
+              ))}
+            </div>
+          </nav>
+        )}
+
+        {gridItems.length === 0 && !featured ? (
+          <EmptyState
+            message="No guides match these filters yet."
+            icon="search-x"
+            action={{ label: 'Clear filters', href: '/guides' }}
+          />
+        ) : (
+          <section class="guides__grid" aria-label="All guides">
+            {gridItems.map((guide) => <GuideCard guide={guide} />)}
+          </section>
+        )}
+      </>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .guides {
+    padding-block: calc(var(--nav-height) + var(--section-y)) var(--section-y);
+  }
+
+  .guides__head h1 {
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .guides__intro {
+    max-width: 60ch;
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  .guides__featured {
+    margin-top: var(--space-8);
+  }
+
+  .guides__filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-4) var(--space-6);
+    margin-top: var(--space-8);
+    padding-bottom: var(--space-5);
+    border-bottom: 1px solid var(--border-1);
+  }
+
+  .guides__filtergroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .filterchip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    background: var(--bg-1);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+    transition:
+      color var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      background var(--dur-2) var(--ease-out);
+  }
+
+  .filterchip:hover {
+    color: var(--text-1);
+    border-color: var(--border-2);
+  }
+
+  .filterchip.is-active {
+    color: var(--text-1);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--bg-1));
+  }
+
+  .filterchip__count {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .filterchip.is-active .filterchip__count {
+    color: var(--accent);
+  }
+
+  .guides__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-7);
+    margin-top: var(--space-7);
+  }
+
+  @media (min-width: 48rem) {
+    .guides__grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-8) var(--space-6);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .guides__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

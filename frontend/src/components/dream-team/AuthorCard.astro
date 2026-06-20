@@ -17,7 +17,7 @@ const href = `/dream-team/${author.slug}`;
 const specialties = author.specialties.map((s) => s.name);
 const counts = [
   author.postCount > 0 ? `${author.postCount} post${author.postCount === 1 ? '' : 's'}` : null,
-  author.courseCount > 0 ? `${author.courseCount} course${author.courseCount === 1 ? '' : 's'}` : null,
+  author.guideCount > 0 ? `${author.guideCount} guide${author.guideCount === 1 ? '' : 's'}` : null,
 ].filter(Boolean);
 ---
 

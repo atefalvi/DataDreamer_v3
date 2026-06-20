@@ -1,0 +1,99 @@
+---
+/**
+ * VideoEmbed (05 §15) — YouTube facade. Renders a branded placeholder + play button;
+ * the privacy-friendly `youtube-nocookie` iframe is injected only on interaction, so no
+ * YouTube JS (and no third-party request) loads until the learner asks for it. No remote
+ * thumbnail is fetched, keeping the CSP img-src tight.
+ */
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  videoId: string;
+  title: string;
+}
+
+const { videoId, title } = Astro.props;
+---
+
+<div class="video" data-yt-facade data-video-id={videoId}>
+  <button type="button" class="video__play" aria-label={`Play video: ${title}`}>
+    <span class="video__btn"><Icon name="play" size={24} /></span>
+    <span class="video__label">Watch on YouTube</span>
+  </button>
+</div>
+
+<style>
+  .video {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border-1);
+    background:
+      radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+      linear-gradient(160deg, var(--bg-2), var(--bg-1));
+  }
+
+  .video__play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: var(--space-3);
+    justify-items: center;
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+
+  .video__btn {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    color: var(--text-on-accent);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--accent) 30%, transparent);
+    transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+  }
+
+  .video__play:hover .video__btn {
+    transform: scale(1.06);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--accent) 38%, transparent);
+  }
+
+  .video__label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .video :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>
+
+<script>
+  // Delegated: swap the facade for the nocookie iframe on first interaction.
+  document.addEventListener('click', (event) => {
+    const trigger = (event.target as HTMLElement).closest<HTMLElement>('[data-yt-facade] .video__play');
+    if (!trigger) return;
+    const facade = trigger.closest<HTMLElement>('[data-yt-facade]');
+    const id = facade?.dataset.videoId;
+    if (!facade || !id) return;
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
+    iframe.title = 'YouTube video player';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    iframe.allowFullscreen = true;
+    facade.replaceChildren(iframe);
+  });
+</script>

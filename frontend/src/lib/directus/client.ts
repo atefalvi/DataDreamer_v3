@@ -25,4 +25,15 @@ function build() {
   return READ_TOKEN ? base.with(staticToken(READ_TOKEN)) : base;
 }
 
+/** Shared read client — Public role (or the optional read token). Never user-scoped. */
 export const directus = build();
+
+/**
+ * Per-request client bound to a learner's Directus access token (v4.1). Used only for
+ * the authenticated guide reader and progress writes so Directus itself enforces the
+ * `guide_reader` policy (gated item content + own-progress rows). Build a fresh one per
+ * request — never cache a user-scoped client.
+ */
+export function directusForUser(accessToken: string) {
+  return createDirectus<Schema>(DIRECTUS_URL).with(rest()).with(staticToken(accessToken));
+}

@@ -24,7 +24,7 @@ function makeAuthors(n: number): GraphAuthorInput[] {
       id: `a${String(i + 1).padStart(2, '0')}`,
       specialtyIds: i % 3 === 0 ? [primary.id, secondary.id] : [primary.id],
       posts: (i * 7) % 20,
-      courses: i % 4,
+      guides: i % 4,
     };
   });
 }
@@ -111,7 +111,7 @@ describe('computeGraphLayout', () => {
   it('handles authors whose primary specialty is absent (falls back to center)', () => {
     const specialties = specialtiesFor(3);
     const authors: GraphAuthorInput[] = [
-      { id: 'x1', specialtyIds: ['missing'], posts: 1, courses: 0 },
+      { id: 'x1', specialtyIds: ['missing'], posts: 1, guides: 0 },
       ...makeAuthors(2),
     ];
     const layout = computeGraphLayout(specialties, authors);

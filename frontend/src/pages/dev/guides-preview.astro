@@ -1,0 +1,104 @@
+---
+/**
+ * DEV ONLY — visual harness for the Field Guides components with mock data, so the
+ * premium look can be reviewed without a seeded Directus. Excluded from the sitemap
+ * (astro.config filters /dev/*) and 404'd in production.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GuideCard from '../../components/guides/GuideCard.astro';
+import GuideCardFeatured from '../../components/guides/GuideCardFeatured.astro';
+import GuideHero from '../../components/guides/GuideHero.astro';
+import GuideAccessPanel from '../../components/guides/GuideAccessPanel.astro';
+import GuideSection from '../../components/guides/GuideSection.astro';
+import '../../styles/prose.css';
+import type { Guide, GuideItem, GuideListItem, GuideSection as GuideSectionT } from '../../types/content';
+
+if (import.meta.env.PROD) return Astro.rewrite('/404');
+
+const curator = { slug: 'atef-alvi', name: 'Atef Alvi' };
+const topics = [
+  { name: 'Data Engineering', slug: 'data-engineering' },
+  { name: 'Airflow', slug: 'airflow' },
+];
+
+const cards: GuideListItem[] = [
+  { id: 'g1', slug: 'learn-airflow', title: 'Learn Airflow the real way', summary: 'The exact path I followed to go from zero to running production DAGs — ordered, no fluff.', difficulty: 'beginner', estimatedMinutes: 360, itemCount: 8, sectionCount: 2, featured: true, curator, topics },
+  { id: 'g2', slug: 'dbt-foundations', title: 'dbt, from models to production', summary: 'Build a real analytics project with tests, docs, and CI — the parts tutorials skip.', difficulty: 'intermediate', estimatedMinutes: 300, itemCount: 11, sectionCount: 3, featured: false, curator, topics: [{ name: 'Analytics', slug: 'analytics' }] },
+  { id: 'g3', slug: 'rag-that-works', title: 'RAG that actually works', summary: 'Retrieval, chunking, evals, and the failure modes nobody warns you about.', difficulty: 'advanced', estimatedMinutes: 420, itemCount: 14, sectionCount: 4, featured: false, curator, topics: [{ name: 'AI & Agents', slug: 'ai-agents' }] },
+];
+
+function item(over: Partial<GuideItem> & Pick<GuideItem, 'id' | 'type' | 'title'>): GuideItem {
+  return { locked: false, ...over };
+}
+
+const readerItems: GuideItem[] = [
+  item({ id: 'i1', type: 'youtube', title: 'Airflow in 100 seconds', url: 'https://youtu.be/dQw4w9WgXcQ', description: 'A fast mental model before you install anything.', estimatedMinutes: 5, difficulty: 'beginner', whyIncludedHtml: '<p>Sets the vocabulary (DAG, task, operator) so the next steps land.</p>', focusOnHtml: '<p>Just the DAG → task → operator relationship. Ignore the Kubernetes bits.</p>' }),
+  item({ id: 'i2', type: 'github_repo', title: 'Starter docker-compose for local Airflow', url: 'https://github.com/example/airflow-quickstart', description: 'Clone, `docker compose up`, open localhost:8080.', estimatedMinutes: 20, whyIncludedHtml: '<p>Saves you the painful manual setup the official guide walks through.</p>', notesHtml: '<p>On Apple Silicon set <code>platform: linux/amd64</code> or the scheduler crashes.</p>' }),
+  item({ id: 'i3', type: 'personal_note', title: 'How I debug a stuck task', description: "My checklist when a DAG won't move.", estimatedMinutes: 10, bodyHtml: '<p>When a task is stuck in <code>queued</code>:</p><ol><li>Check the scheduler logs.</li><li>Check pool / concurrency limits.</li></ol>', whyIncludedHtml: '<p>The thing nobody writes down and everyone re-learns the hard way.</p>' }),
+];
+
+const readerSection: GuideSectionT = { id: 's1', title: 'Get something running', descriptionHtml: "<p>Don't read docs yet — get a DAG executing on your machine first.</p>", items: readerItems };
+const lockedSection: GuideSectionT = { id: 's1l', title: 'Get something running', items: readerItems.map((i) => ({ ...i, locked: true })) };
+
+const guide: Guide = {
+  ...cards[0],
+  whyThisPathHtml: '<p>Most Airflow tutorials drown you in setup. This path skips that and gets you to a working DAG fast, then fills in scheduling and debugging once you have something to break.</p>',
+  expectedOutcomeHtml: "<p>You'll write, schedule, and debug your own DAGs and wire them to external systems.</p>",
+  recommendedAudience: 'Engineers comfortable with Python who have never run a scheduler.',
+  curators: [curator, { slug: 'maria-khan', name: 'Maria Khan' }],
+  specialties: [],
+  sections: [readerSection],
+  unlocked: true,
+};
+
+const progress = { status: 'in-progress' as const, percent: 37, completedCount: 3, remainingCount: 5, totalCount: 8, estMinutesRemaining: 215, resumeItemId: 'i2' };
+const done = new Set(['i1']);
+---
+
+<BaseLayout title="Guides preview (dev)" description="Dev harness" noindex>
+  <div class="dev container-content">
+    <p class="dev__label">Catalogue cards</p>
+    <GuideCardFeatured guide={cards[0]} />
+    <div class="dev__grid">
+      {cards.map((g) => <GuideCard guide={g} />)}
+    </div>
+
+    <p class="dev__label">Guide hero + access (signed out)</p>
+    <GuideHero guide={guide} />
+    <GuideAccessPanel guide={guide} signedIn={false} />
+
+    <p class="dev__label">Access panel (in progress)</p>
+    <GuideAccessPanel guide={guide} signedIn={true} progress={progress} />
+
+    <p class="dev__label">Section + items — reader (unlocked)</p>
+    <GuideSection section={readerSection} index={0} completedIds={done} />
+
+    <p class="dev__label">Items — public preview (locked)</p>
+    <GuideSection section={lockedSection} index={0} />
+  </div>
+</BaseLayout>
+
+<style>
+  .dev {
+    padding-block: calc(var(--nav-height) + var(--space-8)) var(--section-y);
+    max-width: 56rem;
+    display: grid;
+    gap: var(--space-6);
+  }
+  .dev__label {
+    margin-top: var(--space-7);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .dev__grid {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 48rem) {
+    .dev__grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>

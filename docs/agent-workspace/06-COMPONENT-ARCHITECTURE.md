@@ -14,7 +14,7 @@ frontend/src/components/
 ├── blog/          # post cards, TOC, reading progress, prose helpers
 ├── projects/      # project cards, fact rail
 ├── dream-team/    # graph, author cards, profile header
-├── courses/       # v4.1: course cards, lesson list, progress, study hub
+├── guides/        # v4.1: guide cards, hero, sections, items, progress (Field Guides)
 └── about/         # about-only sections
 ```
 
@@ -36,7 +36,9 @@ Astro components are server-rendered by default. The **only** client scripts in 
 | Lightbox | blog/Lightbox (mounted only on pages w/ imagegrid) | dialog |
 | Team graph enhancer | dream-team/TeamGraph | hover/dim/tooltips (SVG itself is SSR) |
 
-v4.1 adds: lesson video facade, mark-complete/enroll fetchers, auth form validation.
+v4.1 adds (Field Guides): auth forms/account shell, YouTube video facade, and the guide
+progress island (`lib/guides/progress.ts` + GuideProgress bar + per-item complete
+toggles + catalogue card resume state) backed by protected Astro API endpoints.
 Everything else is HTML+CSS. **No framework islands (React/etc.) — plain `<script>`
 modules.** Adding a framework requires architecture sign-off via handoff.
 
@@ -105,13 +107,20 @@ modules.** Adding a framework requires architecture sign-off via handoff.
 - `ProjectCard.astro` — `project: ProjectListItem` (from content collection).
 - `FactRail.astro` — `facts: {label, value|chips|links}[]`.
 
-### courses/ (v4.1)
-- `CourseCard.astro` — `course: CourseListItem`, `enrollment?: EnrollmentSummary`.
-- `LessonList.astro` — `lessons`, `completions?`, `currentLessonId?`.
-- `StudyHub.astro` — `resources: Resource[]`, `isAuthenticated: boolean`.
-- `VideoEmbed.astro` — `youtubeId`, `title` (facade; 05 §16).
-- `MarkCompleteButton.astro` — `lessonId`, `state: 'idle'|'saving'|'done'` (07 §8).
-- `CourseCtaBlock.astro` — `course`, `authState`, `enrollment?` — the four-state CTA.
+### guides/ (v4.1 — Field Guides)
+- `GuideCard.astro` — `guide: GuideListItem` (catalogue card; progress upgrade via the
+  client island, 05 §14).
+- `GuideCardFeatured.astro` — featured variant (cover + summary + meta).
+- `GuideHero.astro` — `guide: Guide` (title, summary, curator, meta).
+- `GuideProgress.astro` — client island: status pill, percent bar, counts, time
+  remaining, Start/Resume button; reads `lib/guides/progress.ts` (09 §10).
+- `GuideSection.astro` — `section: GuideSection` (title, description, items slot).
+- `GuideItem.astro` — `item: GuideItem` — renders by `type` (video facade / link / pdf
+  / file / inline markdown), curator annotations (`whyIncluded`/`focusOn`/`notes`),
+  and the authenticated complete toggle.
+- `VideoEmbed.astro` — `url`, `title` (YouTube facade; 05 §15).
+- `ItemCompleteToggle.astro` — `guideSlug`, `itemId` — authenticated completion toggle
+  (optimistic; no network), `aria-pressed`.
 
 ## 7. View-model types (single source: `src/types/content.ts`)
 
@@ -127,13 +136,30 @@ interface Post extends PostListItem { bodyHtml: string; headings: Heading[];
   readingMinutes: number }
 interface AuthorRef { slug; name; avatar?: ImageRef }
 interface AuthorSummary extends AuthorRef { roleTitle; specialties: SpecialtyRef[];
-  postCount: number; courseCount: number }
+  postCount: number; guideCount: number }
 interface Author extends AuthorSummary { bioHtml; statement?; links: AuthorLink[];
   tools: string[]; featuredWork: FeaturedLink[] }
 interface ImageRef { id; src; width?; height?; alt }  // src builders attach srcset params
 interface TopicRef { name; slug }   interface SpecialtyRef { name; slug; colorKey }
 interface Heading { id; text; depth: 2|3 }
-// course types mirror PRD §9 — defined in v4.1 task V4-CRS-001
+
+// Field Guides (v4.1) — view-models defined in V4-GUIDE-002 (08 §4 / §8.6):
+interface GuideListItem { slug; title; summary; difficulty: 'beginner'|'intermediate'|
+  'advanced'; coverImage?: ImageRef; estimatedMinutes?: number; itemCount: number;
+  featured: boolean; curator: AuthorRef; topics: TopicRef[] }
+interface GuideItem { id; type: GuideItemType; title; description?; url?;
+  asset?: ImageRef; bodyHtml?: string; whyIncludedHtml?; focusOnHtml?; notesHtml?;
+  estimatedMinutes?: number; difficulty?: 'beginner'|'intermediate'|'advanced' }
+interface GuideSection { id; title; descriptionHtml?: string; items: GuideItem[] }
+interface Guide extends GuideListItem { whyThisPathHtml: string; expectedOutcomeHtml?;
+  recommendedAudience?; curators: AuthorRef[]; specialties: SpecialtyRef[];
+  sections: GuideSection[] }
+type GuideItemType = 'youtube'|'external_url'|'pdf'|'uploaded_file'|'notebooklm'|
+  'github_repo'|'code_sample'|'cheat_sheet'|'personal_note'|'exercise'|'docs_page';
+// NOTE: no progress fields on these content view-models — progress is a separate,
+// per-user concern fetched from `guide_progress` and merged at render for logged-in
+// readers (server-backed; 09 §10). Anonymous visitors get the preview shape only
+// (no item bodies/notes/urls/assets).
 ```
 
 > Deviation (V4-ARC-001): `readingMinutes` is **required on `Post` but optional on
@@ -151,7 +177,7 @@ interface Heading { id; text; depth: 2|3 }
 | **Refactor into v4 modules** | `lib/renderMarkdown.ts` → `lib/markdown/` (pipeline preserved + upgraded, 09 §6); `lib/directus.ts` → `lib/directus/client.ts` + `lib/repositories/*`; `lib/content.ts` formatters → `lib/format.ts` |
 | **Replace (new implementation, same job)** | MainLayout → BaseLayout; Navigation → SiteNav+MobileMenu; Footer → SiteFooter; Logo → brand assets + `ui/Icon` usage; global.css → tokens.css+base.css+prose.css; PageHero → SectionHeader/PageHeader; ProjectCard, TableOfContents, RelatedLogs→RelatedPosts, AuthorChip→Avatar+meta, Callout/Expandable/PullQuote → pipeline-emitted markup + prose.css |
 | **Delete (after replacement lands)** | HeroCanvas.astro, HeroTagline.astro, about/AboutHero canvas code, grain overlay + cursor canvas (in MainLayout), `public/masks/*`, `public/logo.svg` (replaced), dead `blog/{Callout,Expandable,PullQuote}.astro` |
-| **Migrate later (v4.1)** | none — courses are net-new |
+| **Migrate later (v4.1)** | none — Field Guides/auth are net-new; do not migrate the retired LMS surface |
 
 Deletion discipline: a file is deleted in the same task that ships its replacement,
 never before; each deletion listed in the task's diff summary in the handoff.

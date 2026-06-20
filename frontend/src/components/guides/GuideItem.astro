@@ -1,0 +1,322 @@
+---
+/**
+ * GuideItem (05 §15) — one curated resource. Renders by `type` and carries the curator
+ * annotations that are the value of a guide. Two modes:
+ *  - locked (public preview): type, title, description, meta only.
+ *  - unlocked (authenticated reader): the open affordance (embed/link/download/inline
+ *    markdown), curator notes, and a completion toggle.
+ */
+import Icon from '../ui/Icon.astro';
+import VideoEmbed from './VideoEmbed.astro';
+import { ITEM_TYPE_META, hostnameOf, youtubeId } from '../../lib/guides/itemTypes';
+import { formatMinutes } from '../../lib/guides/progress';
+import type { GuideItem } from '../../types/content';
+
+interface Props {
+  item: GuideItem;
+  /** Initial completion state (reader only). */
+  completed?: boolean;
+}
+
+const { item, completed = false } = Astro.props;
+const meta = ITEM_TYPE_META[item.type];
+const unlocked = !item.locked;
+
+const ytId = item.type === 'youtube' ? youtubeId(item.url) : undefined;
+const host = hostnameOf(item.url);
+const isLink = unlocked && meta.open === 'link' && item.url;
+const isDownload = unlocked && meta.open === 'download' && (item.asset || item.url);
+const inlineHtml = unlocked && meta.open === 'inline' ? item.bodyHtml : undefined;
+const downloadHref = item.asset?.src ?? item.url;
+
+const annotations = unlocked
+  ? [
+      { label: "Why it's here", icon: 'lightbulb', html: item.whyIncludedHtml },
+      { label: 'Focus on', icon: 'crosshair', html: item.focusOnHtml },
+      { label: "Curator's notes", icon: 'pencil-line', html: item.notesHtml },
+    ].filter((a) => a.html)
+  : [];
+
+const metaBits = [
+  item.estimatedMinutes ? `~${formatMinutes(item.estimatedMinutes)}` : null,
+  item.difficulty ? item.difficulty.charAt(0).toUpperCase() + item.difficulty.slice(1) : null,
+].filter(Boolean);
+---
+
+<article
+  class:list={['g-item', { 'g-item--locked': item.locked }]}
+  id={`item-${item.id}`}
+  data-item
+  data-item-id={item.id}
+  data-completed={completed ? 'true' : 'false'}
+>
+  <div class="g-item__head">
+    <span class="g-item__type" data-type={item.type}>
+      <Icon name={meta.icon} size={16} />
+      <span>{meta.label}</span>
+    </span>
+
+    <h3 class="g-item__title">{item.title}</h3>
+
+    {unlocked ? (
+      <button
+        type="button"
+        class="g-item__toggle"
+        data-item-toggle
+        aria-pressed={completed ? 'true' : 'false'}
+      >
+        <Icon name="check" size={16} />
+        <span class="g-item__toggle-label">{completed ? 'Done' : 'Mark done'}</span>
+      </button>
+    ) : (
+      <span class="g-item__locked-badge" title="Sign in to open">
+        <Icon name="lock" size={16} />
+      </span>
+    )}
+  </div>
+
+  {item.description && <p class="g-item__desc">{item.description}</p>}
+
+  {metaBits.length > 0 && (
+    <p class="g-item__meta">{metaBits.join(' · ')}</p>
+  )}
+
+  {unlocked && (
+    <div class="g-item__open">
+      {ytId && <VideoEmbed videoId={ytId} title={item.title} />}
+
+      {isLink && (
+        <a class="g-item__link" href={item.url} target="_blank" rel="noopener noreferrer">
+          <Icon name={meta.icon} size={20} />
+          <span>Open{host ? ` on ${host}` : ''}</span>
+          <Icon name="arrow-up-right" size={16} />
+        </a>
+      )}
+
+      {isDownload && downloadHref && (
+        <a class="g-item__link" href={downloadHref} target="_blank" rel="noopener noreferrer" download>
+          <Icon name="download" size={20} />
+          <span>Download {meta.label}</span>
+        </a>
+      )}
+
+      {inlineHtml && <div class="g-item__body prose" set:html={inlineHtml} />}
+    </div>
+  )}
+
+  {annotations.length > 0 && (
+    <div class="g-item__annotations">
+      {annotations.map((a) => (
+        <div class="annotation" data-annotation>
+          <span class="annotation__label"><Icon name={a.icon} size={16} />{a.label}</span>
+          <div class="annotation__body prose" set:html={a.html} />
+        </div>
+      ))}
+    </div>
+  )}
+</article>
+
+<style>
+  .g-item {
+    position: relative;
+    padding: var(--space-5);
+    padding-left: var(--space-6);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-1);
+    transition: border-color var(--dur-2) var(--ease-out);
+  }
+
+  .g-item::before {
+    content: '';
+    position: absolute;
+    inset-block: var(--space-4);
+    left: 0;
+    width: 3px;
+    border-radius: var(--radius-full);
+    background: var(--border-2);
+    transition: background var(--dur-2) var(--ease-out);
+  }
+
+  .g-item[data-completed='true']::before {
+    background: var(--success);
+  }
+
+  .g-item:hover {
+    border-color: var(--border-2);
+  }
+
+  .g-item--locked {
+    background: color-mix(in srgb, var(--bg-1) 70%, transparent);
+  }
+
+  .g-item__head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .g-item__type {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--bg-2);
+    border: 1px solid var(--border-1);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+  }
+
+  .g-item__type :global(svg) {
+    color: var(--accent);
+  }
+
+  .g-item__title {
+    font-family: var(--font-text);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+    font-weight: 650;
+    letter-spacing: -0.005em;
+  }
+
+  .g-item__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+      color var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out),
+      background var(--dur-2) var(--ease-out);
+  }
+
+  .g-item__toggle :global(svg) {
+    opacity: 0.5;
+    transition: opacity var(--dur-2) var(--ease-out);
+  }
+
+  .g-item__toggle:hover {
+    color: var(--text-1);
+    border-color: var(--text-3);
+  }
+
+  .g-item__toggle[aria-pressed='true'] {
+    color: var(--success);
+    border-color: color-mix(in srgb, var(--success) 50%, var(--border-2));
+    background: color-mix(in srgb, var(--success) 12%, transparent);
+  }
+
+  .g-item__toggle[aria-pressed='true'] :global(svg) {
+    opacity: 1;
+  }
+
+  .g-item__locked-badge {
+    display: inline-grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--radius-full);
+    background: var(--bg-2);
+    color: var(--text-3);
+  }
+
+  .g-item__desc {
+    margin-top: var(--space-3);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .g-item__meta {
+    margin-top: var(--space-2);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .g-item__open {
+    margin-top: var(--space-4);
+  }
+
+  .g-item__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-md);
+    background: var(--bg-2);
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+  }
+
+  .g-item__link:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--bg-2));
+    color: var(--text-1);
+  }
+
+  .g-item__body {
+    margin-top: var(--space-3);
+    font-size: var(--fs-sm);
+  }
+
+  .g-item__annotations {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--border-1);
+  }
+
+  .annotation {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .annotation__label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .annotation__label :global(svg) {
+    color: var(--accent);
+  }
+
+  .annotation__body {
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  @media (max-width: 47.999rem) {
+    .g-item__head {
+      grid-template-columns: 1fr auto;
+    }
+    .g-item__type {
+      grid-column: 1 / -1;
+      justify-self: start;
+    }
+  }
+</style>

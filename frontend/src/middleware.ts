@@ -1,5 +1,6 @@
 import { defineMiddleware } from 'astro:middleware';
 import { RepositoryError } from './lib/repositories/errors';
+import { resolveUser, hasSessionCookie } from './lib/auth/session';
 
 const IS_STAGING =
   process.env.DEPLOY_ENV === 'staging' || import.meta.env.DEPLOY_ENV === 'staging';
@@ -82,9 +83,11 @@ function applyHeaders(request: Request, response: Response, nonce?: string): voi
   if (IS_STAGING) response.headers.set('X-Robots-Tag', 'noindex');
 
   // Edge caching only for successful HTML GETs (09 §8). Errors/non-HTML never cached
-  // here; hashed static assets keep the adapter's immutable default.
+  // here; hashed static assets keep the adapter's immutable default. A page/endpoint
+  // that already set Cache-Control (authenticated guide reader, /account, API) wins —
+  // never downgrade `private, no-store` to a shared cache.
   const isHtml = (response.headers.get('content-type') ?? '').includes('text/html');
-  if (isHtml) {
+  if (isHtml && !response.headers.has('Cache-Control')) {
     if (request.method !== 'GET' || response.status >= 400) {
       response.headers.set('Cache-Control', 'no-store');
     } else {
@@ -97,6 +100,17 @@ function applyHeaders(request: Request, response: Response, nonce?: string): voi
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  // Attach the learner session when a session cookie is present (v4.1, 09 §10).
+  // Anonymous requests carry no cookie → zero auth overhead.
+  if (hasSessionCookie(context.cookies)) {
+    context.locals.user = (await resolveUser(context.cookies)) ?? undefined;
+  }
+
+  // Protect the account page (the only login-required route).
+  if (context.url.pathname === '/account' && !context.locals.user) {
+    return context.redirect('/login?next=%2Faccount', 302);
+  }
+
   let response: Response;
   try {
     response = await next();

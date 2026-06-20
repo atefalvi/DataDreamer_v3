@@ -1,0 +1,89 @@
+---
+/**
+ * GuideSection (05 §15) — an ordered group of items inside a guide. Renders a mono index
+ * + title, optional description prose, then its items.
+ */
+import GuideItem from './GuideItem.astro';
+import type { GuideSection } from '../../types/content';
+
+interface Props {
+  section: GuideSection;
+  index: number;
+  /** Item ids the learner has completed (reader only). */
+  completedIds?: Set<string>;
+}
+
+const { section, index, completedIds } = Astro.props;
+const ordinal = String(index + 1).padStart(2, '0');
+const doneCount = completedIds
+  ? section.items.filter((item) => completedIds.has(item.id)).length
+  : 0;
+---
+
+<section class="g-section" aria-label={section.title}>
+  <header class="g-section__head">
+    <span class="g-section__index">{ordinal}</span>
+    <h2 class="g-section__title">{section.title}</h2>
+    {completedIds && section.items.length > 0 && (
+      <span class="g-section__count">{doneCount}/{section.items.length}</span>
+    )}
+  </header>
+
+  {section.descriptionHtml && (
+    <div class="g-section__desc prose" set:html={section.descriptionHtml} />
+  )}
+
+  <div class="g-section__items">
+    {section.items.map((item) => (
+      <GuideItem item={item} completed={completedIds?.has(item.id) ?? false} />
+    ))}
+  </div>
+</section>
+
+<style>
+  .g-section + .g-section {
+    margin-top: var(--space-8);
+  }
+
+  .g-section__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border-1);
+  }
+
+  .g-section__index {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+  }
+
+  .g-section__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+    font-weight: 560;
+    letter-spacing: -0.01em;
+  }
+
+  .g-section__count {
+    margin-left: auto;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .g-section__desc {
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  .g-section__items {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-5);
+  }
+</style>

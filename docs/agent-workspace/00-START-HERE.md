@@ -8,10 +8,11 @@ complete, binding plan. It was produced from a full audit of the real codebase o
 
 - **What**: full redesign of data-dreamer.net — retiring the brutalist v3 look for
   "Observatory", a premium dark-first editorial-technical system; restructuring
-  content (blog, projects, new Dream Team, courses); narrowing Directus to editorial
-  content only.
+  content (blog, projects, new Dream Team, Field Guides); narrowing Directus to clear
+  editorial + lightweight learner-progress boundaries.
 - **Stack**: Astro 5 SSR + Directus + Coolify. No UI framework. Plain CSS tokens.
-- **Releases**: v4.0 = core redesign (no auth). v4.1 = Courses + learner accounts.
+- **Releases**: v4.0 = core redesign. v4.1 = Field Guides with login-gated reader
+  progress.
 - **Your rules**: `14-AGENT-INSTRUCTIONS.md` — read it before any work, every session.
 - **Current state + your next task**: `15-HANDOFF.md` (top entry) + `13-TASKS.md`
   (status board).
@@ -24,7 +25,7 @@ complete, binding plan. It was produced from a full audit of the real codebase o
 | Before any UI task | `04-DESIGN-SYSTEM.md` + the page's blueprint in `05-PAGE-BLUEPRINTS.md` + `11-RESPONSIVE-ACCESSIBILITY.md` |
 | Before any interactive/animated work | `07-ANIMATION-INTERACTION-SPEC.md` (pseudocode is canonical) |
 | Before any data/Directus task | `08-DIRECTUS-CONTENT-MODEL.md` + `09-TECHNICAL-ARCHITECTURE.md` §4–6 |
-| Before courses work (v4.1) | `docs/COURSES_PRD.md` **as amended by** `08 §4/§9` and `05 §14–18` |
+| Before Field Guides/auth work (v4.1) | `docs/COURSES_PRD.md` **as historical context only, amended by** `08 §4/§9` and `05 §14–18` |
 | For context/why | `01-PRODUCT-VISION.md`, `02-EXISTING-SITE-AUDIT.md`, `03-INFORMATION-ARCHITECTURE.md` |
 
 ## Document map
@@ -37,7 +38,7 @@ complete, binding plan. It was produced from a full audit of the real codebase o
 | `04-DESIGN-SYSTEM.md` | "Observatory": tokens, type, color, grid, motion, logo spec, buttons, states |
 | `05-PAGE-BLUEPRINTS.md` | Every page: sections, responsive layouts, states, SEO, acceptance criteria; **callout spec §3a** |
 | `06-COMPONENT-ARCHITECTURE.md` | Component inventory + contracts, hydration policy, keep/refactor/replace/delete |
-| `07-ANIMATION-INTERACTION-SPEC.md` | Pseudocode: hero, nav/menu focus trap, team graph, TOC, lightbox, course actions |
+| `07-ANIMATION-INTERACTION-SPEC.md` | Pseudocode: hero, nav/menu focus trap, team graph, TOC, lightbox, guide actions |
 | `08-DIRECTUS-CONTENT-MODEL.md` | v4 schema, migrations, access policies, query contracts, PRD conflict table |
 | `09-TECHNICAL-ARCHITECTURE.md` | Directory tree, deps, repositories, markdown pipeline, caching, errors, CI |
 | `10-SEO-OG-METADATA.md` | Meta contract, JSON-LD matrix, OG inventory + temp/final image process |
@@ -64,6 +65,6 @@ complete, binding plan. It was produced from a full audit of the real codebase o
 ## Conflict resolution
 
 Numbered docs define **intent**; `15-HANDOFF.md` defines **current state**;
-`13-TASKS.md` defines **work**. COURSES_PRD remains authoritative for course
-functionality except where `08 §9` amends it. If two docs disagree, file a handoff
-`decision` entry rather than guessing.
+`13-TASKS.md` defines **work**. COURSES_PRD is historical context only for v4.1; the
+current Field Guides/auth decisions live in `01`, `03`, `05`, `08`, `09`, and `13`.
+If two docs disagree, file a handoff `decision` entry rather than guessing.

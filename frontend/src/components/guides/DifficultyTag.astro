@@ -1,0 +1,51 @@
+---
+/**
+ * DifficultyTag — small pill with a status dot for a guide/item difficulty.
+ * beginner → success, intermediate → info, advanced → warning (calm, not alarming).
+ */
+import type { GuideDifficulty } from '../../types/content';
+
+interface Props {
+  difficulty: GuideDifficulty;
+  class?: string;
+}
+
+const { difficulty, class: className } = Astro.props;
+const label = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+---
+
+<span class:list={['difficulty-tag', className]} data-difficulty={difficulty}>
+  <span class="difficulty-tag__dot" aria-hidden="true"></span>
+  {label}
+</span>
+
+<style>
+  .difficulty-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-0) 62%, transparent);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-1);
+    color: var(--text-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .difficulty-tag__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-full);
+    background: var(--difficulty-color, var(--text-3));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--difficulty-color, var(--text-3)) 22%, transparent);
+  }
+
+  .difficulty-tag[data-difficulty='beginner'] { --difficulty-color: var(--success); }
+  .difficulty-tag[data-difficulty='intermediate'] { --difficulty-color: var(--info); }
+  .difficulty-tag[data-difficulty='advanced'] { --difficulty-color: var(--warning); }
+</style>

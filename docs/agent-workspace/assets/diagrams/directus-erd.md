@@ -1,7 +1,9 @@
 # Directus ERD — v4
 
 Source of truth for fields: `08-DIRECTUS-CONTENT-MODEL.md`. v4.0 entities solid;
-v4.1 (courses) included below the divider comment.
+v4.1 (Field Guides) included below the divider comment. Field Guide previews are
+public; full guide reading and progress use Directus users with the low-permission
+`guide_reader` role (`09` §10).
 
 ```mermaid
 erDiagram
@@ -68,112 +70,92 @@ erDiagram
       uuid topics_id FK
     }
 
-    %% ───── v4.1 courses ─────
-    COURSES ||--o{ LESSONS : has
-    COURSES ||--o{ RESOURCES : has
-    LESSONS ||--o{ RESOURCES : may_have
-    COURSES ||--o{ COURSES_TOPICS : tagged
-    TOPICS ||--o{ COURSES_TOPICS : maps
-    COURSES ||--o{ COURSES_AUTHORS : taught_by
-    AUTHORS ||--o{ COURSES_AUTHORS : instructs
-    COURSES ||--o{ ENROLLMENTS : has
-    DIRECTUS_USERS ||--o{ ENROLLMENTS : creates
-    DIRECTUS_USERS ||--o{ LESSON_COMPLETIONS : completes
-    LESSONS ||--o{ LESSON_COMPLETIONS : tracked_by
-    COURSES ||--o{ COURSE_VOTES : receives
-    DIRECTUS_USERS ||--o{ COURSE_VOTES : submits
-    COURSES ||--o| BADGES : has
-    BADGES ||--o{ USER_BADGES : assigned_as
-    DIRECTUS_USERS ||--o{ USER_BADGES : earns
-    ENROLLMENTS }o--|| LESSONS : last_lesson
+    %% ───── v4.1 Field Guides ─────
+    GUIDES ||--o{ GUIDE_SECTIONS : contains
+    GUIDE_SECTIONS ||--o{ GUIDE_ITEMS : contains
+    GUIDES ||--o{ GUIDES_TOPICS : tagged
+    TOPICS ||--o{ GUIDES_TOPICS : maps
+    GUIDES ||--o{ GUIDES_SPECIALTIES : grouped
+    SPECIALTIES ||--o{ GUIDES_SPECIALTIES : groups
+    GUIDES ||--o{ GUIDES_AUTHORS : curated_by
+    AUTHORS ||--o{ GUIDES_AUTHORS : curates
+    AUTHORS ||--o{ GUIDES : primary_curator
+    DIRECTUS_FILES ||--o{ GUIDES : cover_image
+    DIRECTUS_FILES ||--o{ GUIDE_ITEMS : asset
+    DIRECTUS_USERS ||--o{ GUIDE_PROGRESS : owns
+    GUIDES ||--o{ GUIDE_PROGRESS : tracks
+    GUIDE_ITEMS ||--o{ GUIDE_PROGRESS : last_item
 
-    COURSES {
+    GUIDES {
       uuid id PK
       string slug UK
       string title
-      string short_description
-      text description
-      json learning_outcomes
-      string level
       string status
+      string summary
       uuid cover_image FK
-      boolean badge_enabled
-      float utility_score_cached
-      int vote_count_cached
-      int total_lessons_cached
-      int total_duration_seconds_cached
+      string difficulty "beginner|intermediate|advanced"
+      int estimated_duration_minutes
+      boolean featured
+      text why_this_path
+      text expected_outcome
+      string recommended_audience
+      uuid author FK "M2O authors (primary curator)"
       int sort
     }
-    LESSONS {
+    GUIDE_SECTIONS {
       uuid id PK
-      uuid course_id FK
-      string slug "UK per course (composite)"
+      uuid guide FK
       string title
-      int lesson_number
-      string short_summary
-      text body
-      string youtube_id
-      int duration_seconds
-      boolean is_required
-      boolean is_preview
-      string status
-    }
-    RESOURCES {
-      uuid id PK
-      uuid course_id FK
-      uuid lesson_id FK "nullable = course-level"
-      string title
-      string resource_type "pdf|file|external_link|mindmap|notebooklm"
-      uuid file FK
-      string external_url
+      text description
       int sort
-      string status
     }
-    ENROLLMENTS {
+    GUIDE_ITEMS {
       uuid id PK
-      uuid user_id FK "UK(user_id, course_id)"
-      uuid course_id FK
-      string status "enrolled|completed|archived"
-      float progress_percent_cached
-      uuid last_lesson_id FK
-      datetime started_at
-      datetime completed_at
-    }
-    LESSON_COMPLETIONS {
-      uuid id PK
-      uuid user_id FK "UK(user_id, lesson_id)"
-      uuid lesson_id FK
-      datetime completed_at
-      string completion_source
-    }
-    COURSE_VOTES {
-      uuid id PK
-      uuid user_id FK "UK(user_id, course_id)"
-      uuid course_id FK
-      int vote "1-5"
-    }
-    BADGES {
-      uuid id PK
-      uuid course_id FK
+      uuid section FK
+      string type "youtube|external_url|pdf|uploaded_file|notebooklm|github_repo|code_sample|cheat_sheet|personal_note|exercise|docs_page"
       string title
-      uuid image FK
-      string status
+      string url "link-like types"
+      uuid asset FK "pdf/uploaded_file"
+      text body "note/cheat_sheet/code/exercise markdown"
+      string description
+      text why_included
+      text focus_on
+      text notes
+      int estimated_time_minutes
+      string difficulty
+      int sort
     }
-    USER_BADGES {
+    GUIDES_TOPICS {
       uuid id PK
-      uuid user_id FK "UK(user_id, badge_id)"
-      uuid badge_id FK
-      datetime awarded_at
-    }
-    COURSES_TOPICS {
-      uuid id PK
-      uuid courses_id FK
+      uuid guides_id FK
       uuid topics_id FK
     }
-    COURSES_AUTHORS {
+    GUIDES_SPECIALTIES {
       uuid id PK
-      uuid courses_id FK
+      uuid guides_id FK
+      uuid specialties_id FK
+      int sort
+    }
+    GUIDES_AUTHORS {
+      uuid id PK
+      uuid guides_id FK
       uuid authors_id FK
       int sort
+    }
+    DIRECTUS_USERS {
+      uuid id PK
+      string email
+      uuid role FK "guide_reader for learners"
+    }
+    GUIDE_PROGRESS {
+      uuid id PK
+      uuid user FK
+      uuid guide FK
+      json completed_items "guide item ids"
+      uuid last_item FK
+      string status "not_started|in_progress|completed"
+      int percent
+      datetime started_at
+      datetime completed_at
     }
 ```

@@ -210,7 +210,7 @@ describe('authorsRepo.allWithCounts', () => {
     expect(authors[0].postCount).toBe(7);
     // specialties ordered by junction sort → primary (Data Engineering) first
     expect(authors[0].specialties.map((s) => s.slug)).toEqual(['data-engineering', 'analytics']);
-    expect(authors[0].courseCount).toBe(0);
+    expect(authors[0].guideCount).toBe(0);
   });
 });
 
