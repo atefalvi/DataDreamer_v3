@@ -190,6 +190,9 @@ export async function resolveUser(cookies: AstroCookies): Promise<SessionUser | 
 /** Only allow same-origin relative redirects (defends against open-redirect via `next`). */
 export function safeNext(next: string | null | undefined, fallback = '/guides'): string {
   if (!next) return fallback;
-  if (!next.startsWith('/') || next.startsWith('//')) return fallback;
+  // Must be a path on this origin: single leading slash, no protocol-relative `//`,
+  // no backslashes (browsers normalize `\`→`/`, so `/\evil.com` becomes `//evil.com`),
+  // and no control chars (header-injection / CRLF).
+  if (!next.startsWith('/') || next.startsWith('//') || /[\\\x00-\x1f]/.test(next)) return fallback;
   return next;
 }
