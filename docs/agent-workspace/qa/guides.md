@@ -11,6 +11,9 @@ Run on staging (Directus seeded via `scripts/v4-guides-schema.mjs`, frontend wit
 
 ## Live data layer — ✅ verified against staging Directus (api-staging / 192.168.10.211:8056)
 
+Repeatable in one command (run after each deploy step):
+`DIRECTUS_ADMIN_TOKEN=… node scripts/v4-guides-smoke.mjs <directusUrl> [frontendUrl]`
+
 End-to-end, the exact operations the frontend performs (2026-06: 10/10):
 
 - ✅ anon catalogue lists published guides only
