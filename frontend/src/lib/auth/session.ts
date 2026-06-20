@@ -16,6 +16,10 @@ const REFRESH = 'dd_rt';
 const EXP = 'dd_at_exp';
 // Directus sets this on .data-dreamer.net after OAuth (Google), shared with our app.
 const SESSION = 'directus_session_token';
+// Parent domain the Directus session cookie is scoped to, so we can clear it on logout
+// (e.g. ".data-dreamer.net"). Unset in local dev → host-only.
+const COOKIE_DOMAIN =
+  process.env.AUTH_COOKIE_DOMAIN ?? (import.meta.env as Record<string, string | undefined>).AUTH_COOKIE_DOMAIN;
 
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 const REFRESH_SKEW_MS = 30_000;
@@ -119,7 +123,11 @@ export function setSession(cookies: AstroCookies, tokens: SessionTokens): void {
 }
 
 export function clearSession(cookies: AstroCookies): void {
-  for (const name of [ACCESS, REFRESH, EXP, SESSION]) cookies.delete(name, { path: '/' });
+  for (const name of [ACCESS, REFRESH, EXP]) cookies.delete(name, { path: '/' });
+  // The Directus OAuth session cookie is domain-scoped — clear it with the domain so
+  // Google sign-out actually ends the session (host-only delete wouldn't match it).
+  cookies.delete(SESSION, { path: '/' });
+  if (COOKIE_DOMAIN) cookies.delete(SESSION, { path: '/', domain: COOKIE_DOMAIN });
 }
 
 export function hasSessionCookie(cookies: AstroCookies): boolean {
