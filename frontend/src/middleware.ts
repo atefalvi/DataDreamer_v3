@@ -1,6 +1,7 @@
 import { defineMiddleware } from 'astro:middleware';
 import { RepositoryError } from './lib/repositories/errors';
 import { resolveUser, hasSessionCookie } from './lib/auth/session';
+import { isTrustedRequestOrigin } from './lib/auth/request';
 
 const IS_STAGING =
   process.env.DEPLOY_ENV === 'staging' || import.meta.env.DEPLOY_ENV === 'staging';
@@ -100,9 +101,20 @@ function applyHeaders(request: Request, response: Response, nonce?: string): voi
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  // Astro's built-in origin check cannot account for HTTPS termination at Coolify.
+  // Enforce the same protection here against the configured public SITE_URL.
+  const unsafeMethod = !['GET', 'HEAD', 'OPTIONS'].includes(context.request.method);
+  if (unsafeMethod && context.url.pathname.startsWith('/api/') && !isTrustedRequestOrigin(context.request)) {
+    return new Response('Cross-site request forbidden', {
+      status: 403,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+  }
+
   // Attach the learner session when a session cookie is present (v4.1, 09 §10).
   // Anonymous requests carry no cookie → zero auth overhead.
-  if (hasSessionCookie(context.cookies)) {
+  const hasSession = hasSessionCookie(context.cookies);
+  if (hasSession) {
     context.locals.user = (await resolveUser(context.cookies)) ?? undefined;
   }
 
@@ -126,6 +138,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const secured = await withCspNonce(response);
+  // Navigation is personalized whenever auth cookies are present. Never let a CDN
+  // share that HTML between anonymous and authenticated visitors.
+  if (hasSession) secured.response.headers.set('Cache-Control', 'private, no-store');
   applyHeaders(context.request, secured.response, secured.nonce);
   return secured.response;
 });

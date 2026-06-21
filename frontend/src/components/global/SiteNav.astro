@@ -7,6 +7,7 @@
  */
 import ThemeToggle from './ThemeToggle.astro';
 import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
 import { NAV_ITEMS } from '../../content/site';
 import logoMark from '../../assets/brand/logo-mark.svg?raw';
 
@@ -16,6 +17,7 @@ interface Props {
 
 const { transparentOverHero = false } = Astro.props;
 const path = Astro.url.pathname.replace(/(.+)\/$/, '$1');
+const user = Astro.locals.user;
 
 function isActive(href: string): boolean {
   return href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
@@ -48,6 +50,14 @@ function isActive(href: string): boolean {
 
     <div class="site-nav__actions">
       <ThemeToggle />
+      <a
+        href={user ? '/account' : '/login'}
+        class:list={['site-nav__account', { 'is-authenticated': Boolean(user) }]}
+        aria-label={user ? 'My account' : 'Sign in'}
+      >
+        {user ? <span class="site-nav__status" aria-hidden="true"></span> : <Icon name="log-in" size={16} />}
+        <span>{user ? 'Account' : 'Sign in'}</span>
+      </a>
       <span class="site-nav__cta">
         <Button href="/connect" variant="primary" size="sm">Connect</Button>
       </span>
@@ -210,6 +220,37 @@ function isActive(href: string): boolean {
     flex-shrink: 0;
   }
 
+  .site-nav__account {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.25rem;
+    padding-inline: var(--space-3);
+    border: 1px solid color-mix(in srgb, var(--border-1) 82%, transparent);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-1) 30%, transparent);
+    color: var(--text-2);
+    font-size: var(--fs-xs);
+    font-weight: 650;
+    text-decoration: none;
+    transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+  }
+
+  .site-nav__account:hover,
+  .site-nav__account.is-authenticated {
+    color: var(--text-1);
+    border-color: color-mix(in srgb, var(--accent) 34%, var(--border-1));
+    background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
+  }
+
+  .site-nav__status {
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-full);
+    background: var(--success);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 16%, transparent);
+  }
+
   .site-nav__hamburger {
     display: none;
     flex-direction: column;
@@ -269,7 +310,8 @@ function isActive(href: string): boolean {
     }
 
     .site-nav__links,
-    .site-nav__cta {
+    .site-nav__cta,
+    .site-nav__account {
       display: none;
     }
     .site-nav__hamburger {
