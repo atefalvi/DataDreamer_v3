@@ -4,19 +4,20 @@
  */
 
 /** Read a public boolean env flag (available server + client via Astro's import.meta.env). */
-function envFlag(name: string): boolean {
+function envFlag(name: string, fallback = false): boolean {
   const env = import.meta.env as Record<string, string | undefined>;
-  return (env[name] ?? process.env[name]) === 'true';
+  const value = env[name] ?? process.env[name];
+  if (value === undefined) return fallback;
+  return value === 'true';
 }
 
 export const FLAGS = {
   /**
-   * Gates the Guides nav item + home teaser. Defaults off so merging to production
-   * (whose Directus has no guides yet) stays clean; set `PUBLIC_GUIDES_ENABLED=true`
-   * on an environment whose Directus has the Field Guides schema (e.g. staging) to
-   * light up the full experience. The `/guides` pages are reachable regardless.
+   * Guides shipped in v4.1, so this defaults on. Set
+   * `PUBLIC_GUIDES_ENABLED=false` for an explicit operational rollback.
+   * The `/guides` pages remain reachable so existing links do not become 404s.
    */
-  GUIDES_ENABLED: envFlag('PUBLIC_GUIDES_ENABLED'),
+  GUIDES_ENABLED: envFlag('PUBLIC_GUIDES_ENABLED', true),
   /** Newsletter capture has no backend yet (01 §6) — keep the footer slot hidden. */
   SHOW_NEWSLETTER: false,
 } as const;

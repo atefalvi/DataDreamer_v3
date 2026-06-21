@@ -58,19 +58,19 @@ lives HERE (edit the Status column) + narrative in `15-HANDOFF.md`.
 | V4-PERF-001 | Budgets & Lighthouse audit | D | Phase B | done |
 | V4-PERF-002 | Font loading tuning | D | PERF-001 | done |
 | V4-PERF-003 | CSP rollout | D | PERF-001 | done |
-| V4-REL-001 | v4.0 production release | E | Phase D | todo |
+| V4-REL-001 | v4.0 production release | E | Phase D | done |
 | V4-CMS-006 | Drop retired fields/collections | E | REL-001 soak | todo |
 | V4-DOC-001 | README/SETUP refresh | E | REL-001 | todo |
-| V4-GUIDE-001 | Field Guides schema + public preview policies + seed | C | REL-001 | todo |
-| V4-AUTH-001 | Directus reader auth + progress policy baseline | C | GUIDE-001 | todo |
-| V4-GUIDE-002 | Repository + view-models + mappers (guides) | C | AUTH-001 | todo |
-| V4-AUTH-002 | Login/signup/session/account UI | C | AUTH-001 | todo |
-| V4-GUIDE-003 | Server progress API + deriveProgress | C | GUIDE-002, AUTH-002 | todo |
-| V4-GUIDE-004 | Catalogue page `/guides` + GuideCard | C | GUIDE-002, AUTH-002 | todo |
-| V4-GUIDE-005 | Guide preview + gated reader `/guides/[slug]` | C | GUIDE-002, GUIDE-003, AUTH-002 | todo |
-| V4-GUIDE-006 | Nav/home integration + flag flip | C | GUIDE-004, GUIDE-005 | todo |
-| V4-GUIDE-007 | Authoring/curation guide (Directus workflow) | C | GUIDE-001 | todo |
-| V4-QA-004 | Field Guides QA matrix | C | GUIDE-006 | todo |
+| V4-GUIDE-001 | Field Guides schema + public preview policies + seed | C | REL-001 | done |
+| V4-AUTH-001 | Directus reader auth + progress policy baseline | C | GUIDE-001 | done |
+| V4-GUIDE-002 | Repository + view-models + mappers (guides) | C | AUTH-001 | done |
+| V4-AUTH-002 | Login/signup/session/account UI | C | AUTH-001 | done |
+| V4-GUIDE-003 | Server progress API + deriveProgress | C | GUIDE-002, AUTH-002 | done |
+| V4-GUIDE-004 | Catalogue page `/guides` + GuideCard | C | GUIDE-002, AUTH-002 | done |
+| V4-GUIDE-005 | Guide preview + gated reader `/guides/[slug]` | C | GUIDE-002, GUIDE-003, AUTH-002 | done |
+| V4-GUIDE-006 | Nav/home integration + flag flip | C | GUIDE-004, GUIDE-005 | done |
+| V4-GUIDE-007 | Authoring/curation guide (Directus workflow) | C | GUIDE-001 | done |
+| V4-QA-004 | Field Guides QA matrix | C | GUIDE-006 | in progress |
 | V4-REL-002 | v4.1 release | C | QA-004 | todo |
 
 ---

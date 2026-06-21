@@ -649,6 +649,33 @@
       </section>
 
       <section>
+        <h2>Production Readiness Update · 2026-06-20</h2>
+        <div class="grid">
+          <article class="card third">
+            <h3>Implemented</h3>
+            <p>PR #40 is merged into <code>main</code>: catalogue, preview, gated reader, email/Google auth, progress, account, schema script, and QA smoke tooling are present.</p>
+          </article>
+          <article class="card third">
+            <h3>Frontend corrected</h3>
+            <p>Guides now default on with an explicit false rollback. Navigation exposes Sign in or Account state, authenticated HTML is private, and logout uses proxy-safe same-origin validation.</p>
+          </article>
+          <article class="card third">
+            <h3>Production blocker</h3>
+            <p>The live Directus currently returns <code>403</code> for anonymous guide reads, so the deployed catalogue has no records. Apply the schema/seed and configure a server-only read token or verified field-limited preview policy.</p>
+          </article>
+        </div>
+        <div class="note">
+          <strong>Required rollout order</strong>
+          <ol>
+            <li>Run <code>scripts/v4-guides-schema.mjs</code> against production with a temporary admin token.</li>
+            <li>Keep <code>guide_items</code> bodies, URLs, notes, assets, and progress unavailable to Public.</li>
+            <li>Set the frontend's server-only <code>DIRECTUS_TOKEN</code> if the Directus edition cannot express field/row preview rules.</li>
+            <li>Redeploy the frontend, then run <code>scripts/v4-guides-smoke.mjs</code> and the browser matrix.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section>
         <h2>Revised Task Sequence</h2>
         <div class="grid">
           <article class="card full">
@@ -676,7 +703,7 @@
           </article>
           <article class="card third">
             <h3>Permission leaks</h3>
-            <p>Public role must not read guide item bodies, notes, resource URLs, files, or progress rows.</p>
+            <p>Public must not read guide item bodies, notes, resource URLs, files, or progress rows. If custom Directus rules are unavailable, keep Public closed and use a server-only read token with preview-safe repository fields.</p>
           </article>
           <article class="card third">
             <h3>SSO configuration</h3>

@@ -17,6 +17,43 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-20] V4-QA-004 production auth/guide journey — in progress
+
+**Did**: Audited the merged Field Guides release on `main` and the live production
+frontend. Confirmed PR #40 is present. Fixed the release flag so Guides defaults on
+with an explicit `PUBLIC_GUIDES_ENABLED=false` rollback, added signed-in/account state
+to desktop and mobile navigation, made session-bearing HTML private/no-store, and
+replaced Astro's proxy-incompatible origin check with an app-owned CSRF check against
+`SITE_URL`/forwarded origin. Hardened the mobile account menu with My Guides and Sign
+out actions.
+
+**Files**: `frontend/astro.config.mjs`, `frontend/.env.example`, `frontend/src/content/site.ts`,
+`frontend/src/middleware.ts`, `frontend/src/lib/auth/request.ts` + tests,
+`frontend/src/components/global/SiteNav.astro`, `MobileMenu.astro`; docs `13`, `15`,
+and `reports/field-guides-auth-plan.html`.
+
+**Decisions / deviations**: Guides are now release-default-on because v4.1 has merged;
+the flag is rollback-only. Astro `security.checkOrigin` is disabled only because
+Coolify TLS termination makes Astro compare the browser's HTTPS Origin to an internal
+HTTP URL; all unsafe `/api/*` requests now receive explicit same-origin validation.
+
+**Validation**: production `/guides` is live but empty; anonymous production Directus
+requests to all guide collections return 403. Production logout currently returns the
+Astro pre-handler 403. Locally: `astro check` 0/0/0; 87 tests passed; build passed;
+built-server proxy simulation returned 303 for a legitimate production-origin logout,
+403 for a hostile origin, rendered Guides + Sign in in nav, and returned
+`Cache-Control: private, no-store` for session-bearing HTML.
+
+**Next**: deploy this frontend fix, apply/verify the production guide schema + seed,
+and provide the frontend server a read path (`DIRECTUS_TOKEN` or correctly constrained
+public preview policy). Then run `scripts/v4-guides-smoke.mjs` against production and
+finish the browser matrix before marking V4-QA-004 done and starting V4-REL-002.
+
+**Warnings**: Do not open unrestricted Public read access to `guide_items`; item body,
+URLs, notes, and assets are login-gated. The current self-hosted Directus edition noted
+in `scripts/v4-guides-schema.mjs` rejected custom field/row rules during staging, so
+use a server-only read token unless that restriction has been resolved.
+
 ## [2026-06-15] Field Guides auth plan — done
 
 **Did**: Reconciled v4.1 planning around the owner decision that Field Guides are

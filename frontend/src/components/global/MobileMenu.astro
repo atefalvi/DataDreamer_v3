@@ -9,6 +9,7 @@ import Icon from '../ui/Icon.astro';
 import { NAV_ITEMS, SOCIAL_LINKS } from '../../content/site';
 
 const path = Astro.url.pathname.replace(/(.+)\/$/, '$1');
+const user = Astro.locals.user;
 const isActive = (href: string) =>
   href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
 ---
@@ -30,6 +31,31 @@ const isActive = (href: string) =>
         </li>
       ))}
     </ul>
+
+    <div class="mobile-menu__account" data-authenticated={user ? '' : undefined}>
+      {user ? (
+        <>
+          <div class="mobile-menu__identity">
+            <span class="mobile-menu__status" aria-hidden="true"></span>
+            <span>
+              <strong>{user.firstName ? `Signed in as ${user.firstName}` : 'Signed in'}</strong>
+              <small>{user.email}</small>
+            </span>
+          </div>
+          <div class="mobile-menu__account-actions">
+            <a href="/account"><Icon name="user-round" size={20} /> My guides</a>
+            <form method="post" action="/api/auth/logout">
+              <button type="submit"><Icon name="log-out" size={20} /> Sign out</button>
+            </form>
+          </div>
+        </>
+      ) : (
+        <div class="mobile-menu__account-actions">
+          <a href="/login"><Icon name="log-in" size={20} /> Sign in</a>
+          <a href="/signup">Create account</a>
+        </div>
+      )}
+    </div>
 
     <div class="mobile-menu__cta">
       <Button href="/connect" variant="primary" size="lg">Connect</Button>
@@ -122,7 +148,82 @@ const isActive = (href: string) =>
   }
 
   .mobile-menu__cta {
-    margin-top: var(--space-6);
+    margin-top: var(--space-3);
+  }
+
+  .mobile-menu__account {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-1) 58%, transparent);
+  }
+
+  .mobile-menu__identity {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .mobile-menu__identity > span:last-child {
+    display: grid;
+    min-width: 0;
+  }
+
+  .mobile-menu__identity strong {
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+  }
+
+  .mobile-menu__identity small {
+    overflow: hidden;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-menu__status {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--success);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 16%, transparent);
+  }
+
+  .mobile-menu__account-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .mobile-menu__account-actions form {
+    margin: 0;
+  }
+
+  .mobile-menu__account-actions a,
+  .mobile-menu__account-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    width: 100%;
+    min-height: 2.75rem;
+    padding-inline: var(--space-3);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+    color: var(--text-1);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    text-decoration: none;
+    cursor: pointer;
   }
 
   .mobile-menu__cta :global(.ui-button) {
