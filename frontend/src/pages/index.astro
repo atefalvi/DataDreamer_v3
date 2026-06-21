@@ -35,10 +35,12 @@ try {
 // Field Guides teaser (v4.1) — only fetched/rendered when the release flag is on.
 let guides: GuideListItem[] = [];
 if (FLAGS.GUIDES_ENABLED) {
+  // Decorative teaser — degrade to no section on any read failure (no per-request log
+  // spam; the /guides catalogue is the place that surfaces a real read problem).
   try {
     guides = await guidesRepo.latest(3);
-  } catch (error) {
-    console.error('[home] guides unavailable:', error instanceof Error ? error.message : error);
+  } catch {
+    guides = [];
   }
 }
 
