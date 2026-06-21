@@ -12,8 +12,9 @@ import logoMark from '../../assets/brand/logo-mark.svg?raw';
 let topics: TopicRef[] = [];
 try {
   topics = await topicsRepo.top(5);
-} catch (error) {
-  console.error('[SiteFooter] topics unavailable:', error instanceof Error ? error.message : error);
+} catch {
+  // Decorative footer list — degrade to empty silently (runs on every page; no spam).
+  topics = [];
 }
 
 const exploreLinks = [{ label: 'Home', href: '/' }, ...NAV_ITEMS, { label: 'Connect', href: '/connect' }];
