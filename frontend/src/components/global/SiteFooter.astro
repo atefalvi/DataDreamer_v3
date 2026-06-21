@@ -38,6 +38,10 @@ const iconFor = (name: string) => socialSvg[name] ?? socialSvg.mail;
         </span>
       </a>
       <p class="site-footer__mission">{SITE.mission}</p>
+      <a href="/connect" class="site-footer__connect">
+        Start a conversation
+        <span aria-hidden="true">→</span>
+      </a>
       {FLAGS.SHOW_NEWSLETTER && (
         <div class="site-footer__newsletter">{/* Newsletter signup — enabled when infra exists (01 §6). */}</div>
       )}
@@ -152,6 +156,37 @@ const iconFor = (name: string) => socialSvg[name] ?? socialSvg.mail;
     color: var(--text-2);
     font-size: var(--fs-lg);
     line-height: var(--lh-lg);
+  }
+
+  .site-footer__connect {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+    min-height: 2.75rem;
+    padding-inline: var(--space-5);
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    color: var(--text-on-accent);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    text-decoration: none;
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 22%, transparent);
+    transition: background var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  }
+
+  .site-footer__connect:hover {
+    background: var(--accent-hover);
+    color: var(--text-on-accent);
+    transform: translateY(-1px);
+  }
+
+  .site-footer__connect span {
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  .site-footer__connect:hover span {
+    transform: translateX(3px);
   }
 
   .site-footer__heading {

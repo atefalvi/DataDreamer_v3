@@ -17,6 +17,16 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-20] Guides nav/footer UX + account menu — done
+**Did**: Reworked the global shell per owner feedback. Removed the nav "Connect" button and replaced it with an account control: a "Sign in" pill for anonymous visitors and an avatar + dropdown (My guides · Sign out) for signed-in learners. Moved the primary Connect action to the footer as a "Start a conversation →" CTA (GitHub/LinkedIn/Email already live there). Sign out is now reachable from the nav dropdown (and still the mobile menu); the logout endpoint passes the app CSRF gate (verified 303 locally).
+**Files**: `frontend/src/components/global/SiteNav.astro`, `SiteFooter.astro`.
+**Decisions / deviations**: Account dropdown uses native `<details>` + a small close-on-outside-click/Escape script (no framework). Avatar shows initials from `firstName`/email local-part; no Directus avatar fetch (keeps reads cheap).
+**Validation**: `astro check` 0/0/0; 87 tests pass; build passes. Browser-verified anonymous state (nav "Sign in", footer CTA, no Connect in nav). Logout POST returns 303 (not 403) locally.
+**Next**: Once deployed, confirm the signed-in avatar dropdown + Sign out on prod (owner is logged in). Then finish V4-QA-004 prod smoke once the prod guide schema/seed + `DIRECTUS_SERVICE_TOKEN` are in place.
+**Warnings**: Signed-in dropdown couldn't be screenshotted here (sandbox can't mint a real session); markup/styles typecheck and follow the token system.
+
+---
+
 ## [2026-06-20] V4-QA-004 production auth/guide journey — in progress
 
 **Did**: Audited the merged Field Guides release on `main` and the live production
