@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// Stub the Directus clients: `directus` (preview reads) and the server guide client.
-const { request, userRequest } = vi.hoisted(() => ({ request: vi.fn(), userRequest: vi.fn() }));
+// Every guide query goes through the isolated server-only guide client.
+const { serviceRequest } = vi.hoisted(() => ({ serviceRequest: vi.fn() }));
 vi.mock('../../directus/client', () => ({
-  directus: { request },
-  directusForService: () => ({ request: userRequest }),
+  directusForService: () => ({ request: serviceRequest }),
   PUBLIC_DIRECTUS_URL: 'https://cms.test',
   DIRECTUS_URL: 'https://cms.test',
 }));
@@ -13,8 +12,7 @@ import * as guidesRepo from '../guides';
 import type { GuideRow } from '../../directus/schema';
 
 beforeEach(() => {
-  request.mockReset();
-  userRequest.mockReset();
+  serviceRequest.mockReset();
 });
 
 function guideRow(): GuideRow {
@@ -58,7 +56,7 @@ function guideRow(): GuideRow {
 
 describe('guidesRepo.previewBySlug (public preview gating)', () => {
   it('returns the preview shape with all items locked and gated fields withheld', async () => {
-    request.mockResolvedValueOnce([guideRow()]);
+    serviceRequest.mockResolvedValueOnce([guideRow()]);
     const guide = await guidesRepo.previewBySlug('learn-airflow');
     expect(guide).not.toBeNull();
     expect(guide!.unlocked).toBe(false);
@@ -75,28 +73,28 @@ describe('guidesRepo.previewBySlug (public preview gating)', () => {
   });
 
   it('orders sections and items by sort', async () => {
-    request.mockResolvedValueOnce([guideRow()]);
+    serviceRequest.mockResolvedValueOnce([guideRow()]);
     const guide = await guidesRepo.previewBySlug('learn-airflow');
     expect(guide!.sections.map((s) => s.title)).toEqual(['Foundations', 'Deeper']);
     expect(guide!.sections[0].items.map((i) => i.id)).toEqual(['i1', 'i2']);
   });
 
   it('dedupes curators (primary author + junction)', async () => {
-    request.mockResolvedValueOnce([guideRow()]);
+    serviceRequest.mockResolvedValueOnce([guideRow()]);
     const guide = await guidesRepo.previewBySlug('learn-airflow');
     expect(guide!.curators.map((c) => c.slug)).toEqual(['atef-alvi', 'maria-khan']);
     expect(guide!.itemCount).toBe(3);
   });
 
   it('returns null when no published guide matches', async () => {
-    request.mockResolvedValueOnce([]);
+    serviceRequest.mockResolvedValueOnce([]);
     expect(await guidesRepo.previewBySlug('missing')).toBeNull();
   });
 });
 
 describe('guidesRepo.readerBySlug (authenticated reader)', () => {
   it('unlocks gated fields and renders markdown bodies + annotations', async () => {
-    userRequest.mockResolvedValueOnce([guideRow()]);
+    serviceRequest.mockResolvedValueOnce([guideRow()]);
     const guide = await guidesRepo.readerBySlug('learn-airflow', 'token-123');
     expect(guide!.unlocked).toBe(true);
 
@@ -114,16 +112,16 @@ describe('guidesRepo.readerBySlug (authenticated reader)', () => {
   });
 
   it('falls back to the public preview without a token', async () => {
-    request.mockResolvedValueOnce([guideRow()]);
+    serviceRequest.mockResolvedValueOnce([guideRow()]);
     const guide = await guidesRepo.readerBySlug('learn-airflow');
     expect(guide!.unlocked).toBe(false);
-    expect(userRequest).not.toHaveBeenCalled();
+    expect(serviceRequest).toHaveBeenCalledOnce();
   });
 });
 
 describe('guidesRepo.list', () => {
   it('maps cards and computes item/section counts', async () => {
-    request.mockResolvedValueOnce([guideRow()]);
+    serviceRequest.mockResolvedValueOnce([guideRow()]);
     const page = await guidesRepo.list({ pageSize: 9 });
     expect(page.items).toHaveLength(1);
     expect(page.items[0].itemCount).toBe(3);
@@ -132,7 +130,7 @@ describe('guidesRepo.list', () => {
   });
 
   it('flags hasMore when the over-fetch returns an extra row', async () => {
-    request.mockResolvedValueOnce([guideRow(), guideRow()]);
+    serviceRequest.mockResolvedValueOnce([guideRow(), guideRow()]);
     const page = await guidesRepo.list({ pageSize: 1 });
     expect(page.items).toHaveLength(1);
     expect(page.hasMore).toBe(true);
@@ -160,7 +158,7 @@ describe('guidesRepo.toStoredProgress', () => {
 
 describe('guidesRepo.myGuides', () => {
   it('maps progress rows to account cards, dropping rows without a guide', async () => {
-    userRequest.mockResolvedValueOnce([
+    serviceRequest.mockResolvedValueOnce([
       { id: 'p1', user: 'u1', percent: 40, status: 'in-progress', guide: { id: 'g1', slug: 'learn-airflow', title: 'Learn Airflow' } },
       { id: 'p2', user: 'u1', percent: 100, status: 'completed', guide: { id: 'g2', slug: 'dbt-basics', title: 'dbt basics' } },
       { id: 'p3', user: 'u1', percent: 10, status: 'in-progress', guide: null }, // unpublished/filtered → dropped

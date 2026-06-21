@@ -23,8 +23,7 @@ const SERVICE_TOKEN = env('DIRECTUS_SERVICE_TOKEN') ?? READ_TOKEN;
 
 function build() {
   const base = createDirectus<Schema>(DIRECTUS_URL).with(rest());
-  const token = READ_TOKEN ?? SERVICE_TOKEN;
-  return token ? base.with(staticToken(token)) : base;
+  return READ_TOKEN ? base.with(staticToken(READ_TOKEN)) : base;
 }
 
 /** Shared read client — Public role (or the optional read token). Never user-scoped. */
