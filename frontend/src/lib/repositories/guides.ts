@@ -129,7 +129,7 @@ export async function list(query: GuideListQuery = {}): Promise<GuideListPage> {
     client.request<GuideRow[]>(
       readItems('guides', {
         filter,
-        sort: ['-featured', 'sort', '-date_created'],
+        sort: ['-featured', 'sort'],
         limit: pageSize + 1,
         offset: (page - 1) * pageSize,
         fields: GUIDE_CARD_FIELDS as Fields,
@@ -148,7 +148,7 @@ export async function latest(limit = 3): Promise<GuideListItem[]> {
     client.request<GuideRow[]>(
       readItems('guides', {
         filter: PUBLISHED,
-        sort: ['-featured', 'sort', '-date_created'],
+        sort: ['-featured', 'sort'],
         limit,
         fields: GUIDE_CARD_FIELDS as Fields,
       }),
@@ -219,7 +219,7 @@ export async function myGuides(userId: string): Promise<AccountGuideProgress[]> 
     client.request<GuideProgressRow[]>(
       readItems('guide_progress', {
         filter: { user: { _eq: userId }, guide: { status: { _eq: 'published' } } },
-        sort: ['-date_updated'] as Fields,
+        sort: ['-started_at'] as Fields,
         limit: 100,
         fields: [
           'percent',

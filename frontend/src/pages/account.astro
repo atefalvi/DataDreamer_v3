@@ -6,14 +6,15 @@
  * noindex; personalized HTML is private/no-store (set below + middleware).
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import EmptyState from '../components/ui/EmptyState.astro';
 import Icon from '../components/ui/Icon.astro';
 import { guidesRepo } from '../lib/repositories';
-import type { AccountGuideProgress } from '../types/content';
+import { formatMinutes } from '../lib/guides/progress';
+import type { AccountGuideProgress, GuideListItem } from '../types/content';
 
 const user = Astro.locals.user;
 
 let guides: AccountGuideProgress[] = [];
+let recommended: GuideListItem | undefined;
 if (user) {
   Astro.response.headers.set('Cache-Control', 'private, no-store');
   try {
@@ -21,12 +22,19 @@ if (user) {
   } catch (error) {
     console.error('[account] myGuides failed:', error instanceof Error ? error.message : error);
   }
+  if (guides.length === 0) {
+    try {
+      recommended = (await guidesRepo.latest(1))[0];
+    } catch {
+      recommended = undefined;
+    }
+  }
 }
 
 const inProgress = guides.filter((g) => g.status !== 'completed');
 const completed = guides.filter((g) => g.status === 'completed');
 
-const displayName = user?.firstName || user?.email?.split('@')[0] || '';
+const displayName = user?.firstName || user?.email?.split('@')[0] || 'Reader';
 const initials =
   displayName
     .split(/[.\s_-]+/)
@@ -54,7 +62,7 @@ const benefits = [
         <div class="account__id">
           <p class="kicker">Your account</p>
           <h1>{user.firstName ? `Welcome back, ${user.firstName}` : 'Welcome back'}</h1>
-          <p class="account__email">{user.email}</p>
+          <p class="account__email">{user.email || 'Reader account · session active'}</p>
         </div>
         <form method="post" action="/api/auth/logout" class="account__signout-form">
           <button type="submit" class="account__signout"><Icon name="log-out" size={16} /> Sign out</button>
@@ -62,11 +70,25 @@ const benefits = [
       </section>
 
       {guides.length === 0 ? (
-        <EmptyState
-          message="You haven’t started a guide yet. Pick one and your progress will show up here."
-          icon="compass"
-          action={{ label: 'Browse Field Guides', href: '/guides' }}
-        />
+        <section class="account__start">
+          <div class="account__start-copy">
+            <p class="kicker">Begin a path</p>
+            <h2>{recommended?.title ?? 'Your first guide is waiting.'}</h2>
+            <p>
+              {recommended?.summary ?? 'Choose a Field Guide and this page will become your resume point, progress record, and completed-path archive.'}
+            </p>
+          </div>
+          {recommended && (
+            <dl class="account__start-facts">
+              <div><dt>Level</dt><dd>{recommended.difficulty}</dd></div>
+              <div><dt>Resources</dt><dd>{recommended.itemCount}</dd></div>
+              <div><dt>Time</dt><dd>{recommended.estimatedMinutes ? `~${formatMinutes(recommended.estimatedMinutes)}` : 'Self-paced'}</dd></div>
+            </dl>
+          )}
+          <a href={recommended ? `/guides/${recommended.slug}` : '/guides'} class="account__start-cta">
+            {recommended ? 'Preview this guide' : 'Browse Field Guides'} <Icon name="arrow-right" size={16} />
+          </a>
+        </section>
       ) : (
         <>
           {inProgress.length > 0 && (
@@ -212,6 +234,83 @@ const benefits = [
   }
 
   .account__section { margin-top: var(--space-8); }
+
+  .account__start {
+    display: grid;
+    gap: var(--space-6);
+    margin-top: var(--space-4);
+    padding: var(--space-7);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 64%),
+      var(--bg-1);
+  }
+
+  .account__start-copy h2 {
+    max-width: 22ch;
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+    font-weight: 560;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  .account__start-copy > p:last-child {
+    max-width: 52ch;
+    margin-top: var(--space-3);
+    color: var(--text-2);
+    line-height: var(--lh-base);
+  }
+
+  .account__start-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    border-block: 1px solid var(--border-1);
+  }
+
+  .account__start-facts div {
+    display: grid;
+    gap: var(--space-1);
+    padding-block: var(--space-4);
+  }
+
+  .account__start-facts div + div {
+    padding-inline-start: var(--space-4);
+    border-left: 1px solid var(--border-1);
+  }
+
+  .account__start-facts dt,
+  .account__start-facts dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .account__start-facts dt { color: var(--text-3); text-transform: uppercase; }
+  .account__start-facts dd { color: var(--text-1); text-transform: capitalize; }
+
+  .account__start-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    width: fit-content;
+    min-height: 2.875rem;
+    padding-inline: var(--space-5);
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    color: var(--text-on-accent);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    text-decoration: none;
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+
+  .account__start-cta:hover { background: var(--accent-hover); color: var(--text-on-accent); }
 
   .account__h2 {
     font-family: var(--font-text);
@@ -386,5 +485,7 @@ const benefits = [
     .account__signout { width: 100%; justify-content: center; }
     .account-row { flex-wrap: wrap; }
     .account-row__main { flex-basis: 100%; }
+    .account__start { padding: var(--space-5); }
+    .account__start-cta { width: 100%; }
   }
 </style>

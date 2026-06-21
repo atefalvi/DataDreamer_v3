@@ -22,7 +22,7 @@ function isActive(href: string): boolean {
 }
 
 // Avatar initials from the learner's name or email local-part (e.g. "guide-user" → "GU").
-const displayName = user?.firstName || user?.email?.split('@')[0] || '';
+const displayName = user?.firstName || user?.email?.split('@')[0] || 'Reader';
 const initials =
   displayName
     .split(/[.\s_-]+/)
@@ -73,7 +73,7 @@ const initials =
               <span class="site-nav__avatar-badge site-nav__avatar-badge--lg" aria-hidden="true">{initials}</span>
               <span class="site-nav__dropdown-meta">
                 <strong>{user.firstName ?? 'Your account'}</strong>
-                <small>{user.email}</small>
+                <small>{user.email || 'Reader session active'}</small>
               </span>
             </div>
             <a href="/account" role="menuitem"><Icon name="compass" size={16} /> My guides</a>

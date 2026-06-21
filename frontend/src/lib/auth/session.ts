@@ -18,13 +18,36 @@ const EXP = 'dd_at_exp';
 const SESSION = 'directus_session_token';
 // Parent domain the Directus session cookie is scoped to, so we can clear it on logout
 // (e.g. ".data-dreamer.net"). Unset in local dev → host-only.
-const COOKIE_DOMAIN =
-  process.env.AUTH_COOKIE_DOMAIN ?? (import.meta.env as Record<string, string | undefined>).AUTH_COOKIE_DOMAIN;
-
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 const REFRESH_SKEW_MS = 30_000;
 
 const isProd = (process.env.NODE_ENV ?? import.meta.env.MODE) === 'production';
+
+export function authCookieDomain(
+  configuredDomain: string | undefined,
+  siteUrl: string,
+  production: boolean,
+): string | undefined {
+  if (configuredDomain?.trim()) return configuredDomain.trim();
+  if (!production) return undefined;
+
+  try {
+    const hostname = new URL(siteUrl).hostname.toLowerCase();
+    if (hostname === 'data-dreamer.net' || hostname.endsWith('.data-dreamer.net')) {
+      return '.data-dreamer.net';
+    }
+  } catch {
+    // A malformed SITE_URL must not broaden cookie scope.
+  }
+
+  return undefined;
+}
+
+const COOKIE_DOMAIN = authCookieDomain(
+  process.env.AUTH_COOKIE_DOMAIN ?? (import.meta.env as Record<string, string | undefined>).AUTH_COOKIE_DOMAIN,
+  SITE_URL,
+  isProd,
+);
 
 export interface SessionTokens {
   accessToken: string;
@@ -100,7 +123,7 @@ export async function register(email: string, password: string, firstName?: stri
   });
 }
 
-type MeResponse = { data: { id: string; email: string; first_name?: string; last_name?: string } };
+type MeResponse = { data: { id: string; email?: string; first_name?: string; last_name?: string } };
 
 export async function fetchMe(accessToken: string): Promise<Omit<SessionUser, 'accessToken'>> {
   const body = await api<MeResponse>('/users/me?fields=id,email,first_name,last_name', {
@@ -109,7 +132,7 @@ export async function fetchMe(accessToken: string): Promise<Omit<SessionUser, 'a
   });
   return {
     id: body.data.id,
-    email: body.data.email,
+    email: body.data.email ?? '',
     firstName: body.data.first_name ?? undefined,
     lastName: body.data.last_name ?? undefined,
   };

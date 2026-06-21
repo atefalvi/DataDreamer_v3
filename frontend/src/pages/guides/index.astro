@@ -24,6 +24,7 @@ try {
 
 const activeTopic = Astro.url.searchParams.get('topic');
 const activeLevel = Astro.url.searchParams.get('level');
+const user = Astro.locals.user;
 
 // Topic facets that actually have guides, busiest first (parity with /projects).
 const topicCounts = new Map<string, { name: string; slug: string; count: number }>();
@@ -83,9 +84,27 @@ const jsonLd = [
 >
   <div class="guides container-content">
     <header class="guides__head">
-      <p class="kicker">Field Guides</p>
-      <h1>Guides</h1>
-      <p class="guides__intro">{description}</p>
+      <div class="guides__head-copy">
+        <p class="kicker">Field Guides</p>
+        <h1>Learn from a path,<br />not a pile of links.</h1>
+        <p class="guides__intro">{description}</p>
+      </div>
+      <aside class="guides__status" aria-label="Guide access status">
+        <p>{all.length.toString().padStart(2, '0')} published {all.length === 1 ? 'path' : 'paths'}</p>
+        {user ? (
+          <>
+            <strong>Reader access active</strong>
+            <span>{user.firstName || user.email ? `Signed in as ${user.firstName || user.email}` : 'Reader session active'}</span>
+            <a href="/account">Open my learning <span aria-hidden="true">→</span></a>
+          </>
+        ) : (
+          <>
+            <strong>Preview the route. Sign in to begin.</strong>
+            <span>Accounts unlock resources, curator notes, and saved progress.</span>
+            <a href="/login?next=%2Fguides">Sign in <span aria-hidden="true">→</span></a>
+          </>
+        )}
+      </aside>
     </header>
 
     {all.length === 0 ? (
@@ -156,7 +175,8 @@ const jsonLd = [
     font-size: var(--fs-4xl);
     line-height: var(--lh-4xl);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
+    text-wrap: balance;
   }
 
   .guides__intro {
@@ -165,6 +185,47 @@ const jsonLd = [
     color: var(--text-2);
     font-size: var(--fs-lg);
     line-height: var(--lh-lg);
+  }
+
+  .guides__head {
+    display: grid;
+    gap: var(--space-7);
+    padding-bottom: var(--space-7);
+    border-bottom: 1px solid var(--border-2);
+  }
+
+  .guides__status {
+    display: grid;
+    align-content: end;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border-left: 2px solid var(--accent);
+    background: color-mix(in srgb, var(--bg-1) 64%, transparent);
+  }
+
+  .guides__status p,
+  .guides__status span {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .guides__status strong {
+    color: var(--text-1);
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 560;
+  }
+
+  .guides__status a {
+    display: inline-flex;
+    gap: var(--space-2);
+    width: fit-content;
+    margin-top: var(--space-2);
+    color: var(--accent);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    text-decoration: none;
   }
 
   .guides__featured {
@@ -233,6 +294,11 @@ const jsonLd = [
   }
 
   @media (min-width: 48rem) {
+    .guides__head {
+      grid-template-columns: minmax(0, 1.25fr) minmax(17rem, 0.75fr);
+      align-items: end;
+    }
+
     .guides__grid {
       grid-template-columns: repeat(2, 1fr);
       gap: var(--space-8) var(--space-6);

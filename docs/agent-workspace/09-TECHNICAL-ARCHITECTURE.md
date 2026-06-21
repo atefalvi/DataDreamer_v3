@@ -194,6 +194,15 @@ OpenID and redirects back through an allow-listed frontend URL. Middleware reads
 session, sets `Astro.locals.user`, and guards only `/account` plus the authenticated
 reader state on `/guides/[slug]`.
 
+Directus OAuth sets `directus_session_token` for the shared `.data-dreamer.net` parent
+domain. Logout therefore clears both host-scoped JSON-auth cookies and that exact
+domain-scoped cookie. `AUTH_COOKIE_DOMAIN` can override the scope; production also
+infers `.data-dreamer.net` from `SITE_URL` so a missing Coolify variable cannot leave a
+Google session behind. Local and unrelated hosts remain host-only. The authenticated
+identity policy should expose only the current user's `id`, `email`, `first_name`, and
+`last_name` through `/users/me`; account UI must remain usable if a restricted service
+identity returns only `id`.
+
 **Progress API** = `/api/guides/progress`, backed by `guide_progress`:
 
 ```

@@ -115,6 +115,17 @@ const jsonLd = [
     )}
 
     <div class="guide__path">
+      <header class="guide__path-head">
+        <div>
+          <p class="kicker">The learning path</p>
+          <h2>{guide.sections.length} {guide.sections.length === 1 ? 'stage' : 'stages'}, in a deliberate order.</h2>
+        </div>
+        <p>
+          {signedIn
+            ? 'Mark each resource as you finish it. Your next step stays synchronized with your account.'
+            : 'The complete route is visible below. Sign in to open the resources and curator notes.'}
+        </p>
+      </header>
       {guide.sections.map((section, i) => (
         <GuideSection section={section} index={i} completedIds={signedIn ? completedIds : undefined} />
       ))}
@@ -167,7 +178,7 @@ const jsonLd = [
 <style>
   .guide {
     padding-block: calc(var(--nav-height) + var(--section-y)) var(--section-y);
-    max-width: 56rem;
+    max-width: 62rem;
   }
 
   .guide__intro {
@@ -210,6 +221,32 @@ const jsonLd = [
 
   .guide__path {
     margin-top: var(--space-9);
+  }
+
+  .guide__path-head {
+    display: grid;
+    gap: var(--space-4);
+    margin-bottom: var(--space-7);
+    padding-block: var(--space-6);
+    border-block: 1px solid var(--border-2);
+  }
+
+  .guide__path-head h2 {
+    max-width: 22ch;
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+    font-weight: 560;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  .guide__path-head > p {
+    max-width: 42ch;
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
   }
 
   .guide__curators,
@@ -284,5 +321,21 @@ const jsonLd = [
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
+  }
+
+  @media (min-width: 48rem) {
+    .guide__intro {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-8);
+    }
+
+    .guide__audience {
+      grid-column: 1 / -1;
+    }
+
+    .guide__path-head {
+      grid-template-columns: minmax(0, 1.1fr) minmax(16rem, 0.9fr);
+      align-items: end;
+    }
   }
 </style>

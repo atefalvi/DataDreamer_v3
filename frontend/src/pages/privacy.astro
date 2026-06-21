@@ -1,111 +1,266 @@
 ---
-/**
- * V4-PAGE-003 — Privacy (05 §11). Static prose page: data collected (none in v4.0
- * beyond standard server logs), hosting disclosure, and the one client-side preference
- * we store (theme). Indexable (no noindex). Extended in v4.1 when accounts ship.
- */
+/** Privacy policy for the account-backed Field Guides release. */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../content/site';
 import '../styles/prose.css';
 
-const updated = 'June 13, 2026';
+const updated = 'June 21, 2026';
+const sections = [
+  ['information', 'Information we handle'],
+  ['use', 'How we use it'],
+  ['storage', 'Cookies and storage'],
+  ['services', 'Services and sharing'],
+  ['retention', 'Retention and choices'],
+] as const;
 ---
 
 <BaseLayout
   title="Privacy"
-  description="How DataDreamer handles data: what is collected (almost nothing), what is stored, and how to get in touch."
+  description="A plain-language explanation of how DataDreamer handles account, learning, and site data."
   ogImage={{ url: '/og/og-default.png' }}
 >
-  <div class="page container-content">
-    <header class="page__head">
-      <p class="kicker">Privacy</p>
-      <h1>Privacy policy</h1>
-      <p class="page__meta">Last updated {updated}</p>
+  <main class="privacy container-content">
+    <header class="privacy__head">
+      <div>
+        <p class="kicker">Privacy</p>
+        <h1>Clear data practices,<br />without the fine-print maze.</h1>
+      </div>
+      <p class="privacy__dek">
+        DataDreamer uses the minimum information needed to run learner accounts, remember
+        Field Guide progress, and keep the service secure. We do not sell personal data,
+        run advertising profiles, or use cross-site tracking.
+      </p>
+      <p class="privacy__meta">Effective {updated}</p>
     </header>
 
-    <div class="prose">
-      <p>
-        DataDreamer is an independent publication. This policy explains, in plain language, what
-        happens to data when you visit. The short version: we collect almost nothing, sell nothing,
-        and run no advertising or third-party tracking.
-      </p>
+    <div class="privacy__layout">
+      <aside class="privacy__rail" aria-label="Privacy policy sections">
+        <p>On this page</p>
+        <nav>
+          {sections.map(([id, label], index) => (
+            <a href={`#${id}`}><span>{String(index + 1).padStart(2, '0')}</span>{label}</a>
+          ))}
+        </nav>
+      </aside>
 
-      <h2>What we collect</h2>
-      <p>
-        We do not ask you to create an account, fill in forms, or hand over personal information to
-        read anything on this site. There is no analytics pixel, no advertising network, and no
-        cross-site tracking.
-      </p>
-      <p>
-        Like virtually every website, our hosting provider records standard <strong>server logs</strong>
-        for each request — typically the IP address, timestamp, requested URL, referrer, and browser
-        user-agent. These logs exist for security, debugging, and aggregate traffic understanding, are
-        retained only for a limited period, and are not used to build a profile of you.
-      </p>
+      <div class="prose privacy__prose">
+        <section id="information">
+          <p class="privacy__section-number">01</p>
+          <h2>Information we handle</h2>
+          <p>
+            You can browse the publication and preview Field Guides without an account. If
+            you create an account, Directus stores your email address, account identifier,
+            optional name, authentication details, and account status. Passwords are handled
+            by Directus and are not visible to DataDreamer staff as readable text.
+          </p>
+          <p>
+            When you use a Field Guide, we store the guide you started, completed resource
+            identifiers, your last position, completion percentage, status, and relevant
+            timestamps. This is what lets the reader resume across devices.
+          </p>
+          <p>
+            Our infrastructure also creates standard request and security logs. These may
+            include an IP address, timestamp, requested URL, referrer, browser user-agent,
+            and error details. We use them to operate, protect, and debug the service.
+          </p>
+        </section>
 
-      <h2>Cookies &amp; local storage</h2>
-      <p>
-        We set no tracking cookies. The only thing stored in your browser is a single
-        <code>theme</code> preference in <code>localStorage</code>, so the site remembers whether you
-        chose light or dark mode. It never leaves your device and you can clear it at any time.
-      </p>
+        <section id="use">
+          <p class="privacy__section-number">02</p>
+          <h2>How we use it</h2>
+          <p>We process this information only to:</p>
+          <ul>
+            <li>create and secure your account;</li>
+            <li>open account-only Field Guide content;</li>
+            <li>save, calculate, and display learning progress;</li>
+            <li>respond to support, privacy, or security requests; and</li>
+            <li>maintain service reliability and prevent abuse.</li>
+          </ul>
+          <p>
+            We do not use guide progress to make automated decisions about you, and we do
+            not sell or rent account information.
+          </p>
+        </section>
 
-      <h2>Third parties</h2>
-      <p>
-        Fonts are self-hosted, so no font CDN sees your visit. Content is served through our hosting
-        and CMS infrastructure, which processes requests solely to deliver pages. We do not share data
-        with advertisers or data brokers. Outbound links (for example to GitHub or LinkedIn) are
-        governed by those services’ own privacy policies once you follow them.
-      </p>
+        <section id="storage">
+          <p class="privacy__section-number">03</p>
+          <h2>Cookies and browser storage</h2>
+          <p>
+            Signed-in sessions require strictly necessary, HTTP-only authentication cookies.
+            Depending on how you sign in, these may include short-lived access and refresh
+            credentials or a Directus session token. They are used only to keep you signed in,
+            authorize guide access, and sign you out. Blocking them prevents account features
+            from working.
+          </p>
+          <p>
+            A <code>theme</code> preference is stored in your browser's local storage so the
+            site remembers light or dark mode. It is not used for tracking and can be removed
+            through your browser controls.
+          </p>
+        </section>
 
-      <h2>Your choices</h2>
-      <p>
-        Because we don’t collect personal data, there’s little to request, correct, or delete. You can
-        block cookies and local storage in your browser without breaking the site (you’ll simply lose
-        the saved theme preference). If you email us, we keep that correspondence only as long as needed
-        to reply.
-      </p>
+        <section id="services">
+          <p class="privacy__section-number">04</p>
+          <h2>Services and sharing</h2>
+          <p>
+            DataDreamer uses self-managed hosting and Directus to deliver content, accounts,
+            and progress. Those systems process information only as needed to provide and
+            secure the service. Fonts are self-hosted and we do not send visits to an
+            advertising or analytics network.
+          </p>
+          <p>
+            If you choose “Continue with Google,” Google provides Directus with the basic
+            identity details needed to create or locate your account, such as your email and
+            profile name. Google's own privacy terms apply to that sign-in interaction. We may
+            also disclose information when legally required or when necessary to protect the
+            service and its users.
+          </p>
+          <p>
+            Links to third-party resources, GitHub, LinkedIn, and other sites are governed by
+            those services after you leave DataDreamer.
+          </p>
+        </section>
 
-      <h2>Changes</h2>
-      <p>
-        As DataDreamer grows — for example when learner accounts arrive in a future release — this
-        policy will be updated to describe any new data handling, with the revision date above.
-      </p>
+        <section id="retention">
+          <p class="privacy__section-number">05</p>
+          <h2>Retention and your choices</h2>
+          <p>
+            Account and progress records remain while your account is active so the service
+            can preserve your learning history. Operational logs are kept only for the period
+            needed for security and troubleshooting. Support correspondence is retained as
+            needed to resolve the request and maintain an appropriate record.
+          </p>
+          <p>
+            You may ask to access, correct, or delete account information and guide progress.
+            Signing out removes active DataDreamer session cookies from your browser; clearing
+            browser storage removes the saved theme preference. Some limited records may be
+            retained where required for security, legal compliance, or resolving disputes.
+          </p>
+        </section>
 
-      <h2>Contact</h2>
-      <p>
-        Questions about privacy? Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> or use the
-        <a href="/connect">contact page</a>.
-      </p>
+        <section id="changes">
+          <p class="privacy__section-number">06</p>
+          <h2>Changes and contact</h2>
+          <p>
+            We will revise this page when the way DataDreamer handles information materially
+            changes and will update the effective date above.
+          </p>
+          <p>
+            For a privacy request or question, email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+            or use the <a href="/connect">contact page</a>.
+          </p>
+        </section>
+      </div>
     </div>
-  </div>
+  </main>
 </BaseLayout>
 
 <style>
-  .page {
-    max-width: var(--container-prose);
+  .privacy {
     padding-block: calc(var(--nav-height) + var(--section-y)) var(--section-y);
   }
 
-  .page__head {
-    margin-bottom: var(--space-7);
+  .privacy__head {
+    display: grid;
+    gap: var(--space-5);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--border-2);
   }
 
-  .page__head h1 {
+  .privacy__head h1 {
+    max-width: 15ch;
     margin-top: var(--space-3);
     font-family: var(--font-display);
     font-size: var(--fs-4xl);
     line-height: var(--lh-4xl);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
+    text-wrap: balance;
   }
 
-  .page__meta {
-    margin-top: var(--space-3);
+  .privacy__dek {
+    max-width: 48rem;
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  .privacy__meta,
+  .privacy__rail > p,
+  .privacy__section-number {
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+  }
+
+  .privacy__layout {
+    display: grid;
+    gap: var(--space-8);
+    margin-top: var(--space-8);
+  }
+
+  .privacy__rail nav {
+    display: grid;
+    margin-top: var(--space-3);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .privacy__rail a {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--border-1);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+  }
+
+  .privacy__rail a:hover { color: var(--accent); }
+  .privacy__rail a span { color: var(--accent); font-family: var(--font-mono); font-size: var(--fs-xs); }
+
+  .privacy__prose {
+    max-width: var(--container-prose);
+  }
+
+  .privacy__prose section {
+    scroll-margin-top: calc(var(--nav-height) + var(--space-6));
+  }
+
+  .privacy__prose section + section {
+    margin-top: var(--space-7);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .privacy__section-number {
+    margin-bottom: var(--space-2);
+    color: var(--accent);
+  }
+
+  .privacy__prose section h2 {
+    margin-top: 0;
+  }
+
+  @media (min-width: 64rem) {
+    .privacy__head {
+      grid-template-columns: minmax(0, 1.1fr) minmax(22rem, 0.9fr);
+      align-items: end;
+    }
+
+    .privacy__meta { grid-column: 1 / -1; }
+
+    .privacy__layout {
+      grid-template-columns: 15rem minmax(0, 1fr);
+      gap: var(--space-9);
+      align-items: start;
+    }
+
+    .privacy__rail {
+      position: sticky;
+      top: calc(var(--nav-height) + var(--space-6));
+    }
   }
 </style>
