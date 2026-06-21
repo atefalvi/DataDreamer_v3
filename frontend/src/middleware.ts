@@ -118,10 +118,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
     context.locals.user = (await resolveUser(context.cookies)) ?? undefined;
   }
 
-  // Protect the account page (the only login-required route).
-  if (context.url.pathname === '/account' && !context.locals.user) {
-    return context.redirect('/login?next=%2Faccount', 302);
-  }
+  // /account renders its own onboarding view when signed out (no private data), so it is
+  // no longer redirected here — the page decides what to show.
 
   let response: Response;
   try {

@@ -1,89 +1,136 @@
 ---
 /**
- * /account (05 §18) — minimal "My guides". Protected by middleware (anonymous → /login).
- * Lists the learner's in-progress and completed guides with progress + continue links.
- * Not a student dashboard: no badges, scores, certificates, or payment state. noindex.
+ * /account (05 §18). Two states:
+ *  - Anonymous → a premium onboarding/sign-in page (no dead redirect).
+ *  - Signed in → a lightweight learning dashboard: profile + My Guides + progress.
+ * noindex; personalized HTML is private/no-store (set below + middleware).
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EmptyState from '../components/ui/EmptyState.astro';
+import Icon from '../components/ui/Icon.astro';
 import { guidesRepo } from '../lib/repositories';
 import type { AccountGuideProgress } from '../types/content';
 
 const user = Astro.locals.user;
-if (!user) {
-  return Astro.redirect('/login?next=%2Faccount', 302);
-}
-Astro.response.headers.set('Cache-Control', 'private, no-store');
 
 let guides: AccountGuideProgress[] = [];
-try {
-  guides = await guidesRepo.myGuides(user.id);
-} catch (error) {
-  console.error('[account] myGuides failed:', error instanceof Error ? error.message : error);
+if (user) {
+  Astro.response.headers.set('Cache-Control', 'private, no-store');
+  try {
+    guides = await guidesRepo.myGuides(user.id);
+  } catch (error) {
+    console.error('[account] myGuides failed:', error instanceof Error ? error.message : error);
+  }
 }
 
 const inProgress = guides.filter((g) => g.status !== 'completed');
 const completed = guides.filter((g) => g.status === 'completed');
-const greeting = user.firstName ? `Welcome back, ${user.firstName}` : 'Welcome back';
+
+const displayName = user?.firstName || user?.email?.split('@')[0] || '';
+const initials =
+  displayName
+    .split(/[.\s_-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? '')
+    .join('') || 'U';
+
+const benefits = [
+  { icon: 'bookmark', title: 'Save your progress', text: 'Pick up any guide where you left off — your path is remembered.' },
+  { icon: 'lock-open', title: 'Unlock the full path', text: 'Open every resource, embed, and the curator’s notes for each step.' },
+  { icon: 'compass', title: 'A vetted route', text: 'Follow ordered paths built by practitioners — skip the endless searching.' },
+];
 ---
 
-<BaseLayout title="My account" description="Your DataDreamer Field Guides." noindex>
-  <div class="account container-content">
-    <header class="account__head">
-      <p class="kicker">Your account</p>
-      <h1>{greeting}</h1>
-      <p class="account__email">{user.email}</p>
-    </header>
+<BaseLayout
+  title={user ? 'My account' : 'Sign in'}
+  description="Your DataDreamer Field Guides — save progress and continue learning."
+  noindex
+>
+  {user ? (
+    <div class="account container-content">
+      <section class="account__profile">
+        <span class="account__avatar" aria-hidden="true">{initials}</span>
+        <div class="account__id">
+          <p class="kicker">Your account</p>
+          <h1>{user.firstName ? `Welcome back, ${user.firstName}` : 'Welcome back'}</h1>
+          <p class="account__email">{user.email}</p>
+        </div>
+        <form method="post" action="/api/auth/logout" class="account__signout-form">
+          <button type="submit" class="account__signout"><Icon name="log-out" size={16} /> Sign out</button>
+        </form>
+      </section>
 
-    {guides.length === 0 ? (
-      <EmptyState
-        message="You haven't started a guide yet."
-        icon="compass"
-        action={{ label: 'Browse Field Guides', href: '/guides' }}
-      />
-    ) : (
-      <>
-        {inProgress.length > 0 && (
-          <section class="account__section" aria-label="In progress">
-            <h2 class="account__h2">Continue learning</h2>
-            <ul class="account__list">
-              {inProgress.map((g) => (
-                <li class="account-row">
-                  <div class="account-row__main">
+      {guides.length === 0 ? (
+        <EmptyState
+          message="You haven’t started a guide yet. Pick one and your progress will show up here."
+          icon="compass"
+          action={{ label: 'Browse Field Guides', href: '/guides' }}
+        />
+      ) : (
+        <>
+          {inProgress.length > 0 && (
+            <section class="account__section" aria-label="In progress">
+              <h2 class="account__h2">Continue learning</h2>
+              <ul class="account__list">
+                {inProgress.map((g) => (
+                  <li class="account-row">
+                    <div class="account-row__main">
+                      <a href={`/guides/${g.slug}`} class="account-row__title">{g.title}</a>
+                      <div class="account-row__bar"><span style={`width:${g.percent}%`}></span></div>
+                    </div>
+                    <span class="account-row__pct">{g.percent}%</span>
+                    <a href={`/guides/${g.slug}`} class="account-row__cta">Continue →</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {completed.length > 0 && (
+            <section class="account__section" aria-label="Completed">
+              <h2 class="account__h2">Completed</h2>
+              <ul class="account__list">
+                {completed.map((g) => (
+                  <li class="account-row account-row--done">
+                    <span class="account-row__check" aria-hidden="true">✓</span>
                     <a href={`/guides/${g.slug}`} class="account-row__title">{g.title}</a>
-                    <div class="account-row__bar"><span style={`width:${g.percent}%`}></span></div>
-                  </div>
-                  <span class="account-row__pct">{g.percent}%</span>
-                  <a href={`/guides/${g.slug}`} class="account-row__cta">Continue →</a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {completed.length > 0 && (
-          <section class="account__section" aria-label="Completed">
-            <h2 class="account__h2">Completed</h2>
-            <ul class="account__list">
-              {completed.map((g) => (
-                <li class="account-row account-row--done">
-                  <span class="account-row__check" aria-hidden="true">✓</span>
-                  <a href={`/guides/${g.slug}`} class="account-row__title">{g.title}</a>
-                  <a href={`/guides/${g.slug}`} class="account-row__cta">Review →</a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-      </>
-    )}
-
-    <footer class="account__foot">
-      <form method="post" action="/api/auth/logout">
-        <button type="submit" class="account__signout">Sign out</button>
-      </form>
-    </footer>
-  </div>
+                    <a href={`/guides/${g.slug}`} class="account-row__cta">Review →</a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
+      )}
+    </div>
+  ) : (
+    <div class="account account--onboard container-content">
+      <section class="onboard">
+        <p class="kicker">Field Guides</p>
+        <h1 class="onboard__title">Your learning, saved.</h1>
+        <p class="onboard__lede">
+          Create a free account to open every guide, track your progress across the path,
+          and pick up exactly where you left off.
+        </p>
+        <div class="onboard__actions">
+          <a class="onboard__cta" href="/login?next=%2Faccount">Sign in</a>
+          <a class="onboard__ghost" href="/guides">Browse guides<span aria-hidden="true">→</span></a>
+        </div>
+        <ul class="onboard__benefits">
+          {benefits.map((b) => (
+            <li>
+              <span class="onboard__benefit-icon"><Icon name={b.icon} size={20} /></span>
+              <div>
+                <strong>{b.title}</strong>
+                <p>{b.text}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  )}
 </BaseLayout>
 
 <style>
@@ -92,25 +139,79 @@ const greeting = user.firstName ? `Welcome back, ${user.firstName}` : 'Welcome b
     max-width: 52rem;
   }
 
-  .account__head h1 {
-    margin-top: var(--space-3);
+  /* ── Signed-in dashboard ── */
+  .account__profile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 55%),
+      var(--bg-1);
+  }
+
+  .account__avatar {
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: var(--radius-full);
+    background: linear-gradient(150deg, var(--accent), var(--accent-press));
+    color: var(--text-on-accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+  }
+
+  .account__id {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .account__id h1 {
+    margin-top: var(--space-1);
     font-family: var(--font-display);
-    font-size: var(--fs-3xl);
-    line-height: var(--lh-3xl);
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
     font-weight: 600;
     letter-spacing: -0.01em;
   }
 
   .account__email {
-    margin-top: var(--space-2);
+    margin-top: var(--space-1);
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
   }
 
-  .account__section {
-    margin-top: var(--space-8);
+  .account__signout-form { margin: 0; }
+
+  .account__signout {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-2);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
   }
+
+  .account__signout:hover {
+    border-color: var(--danger);
+    color: var(--text-1);
+  }
+
+  .account__section { margin-top: var(--space-8); }
 
   .account__h2 {
     font-family: var(--font-text);
@@ -138,26 +239,12 @@ const greeting = user.firstName ? `Welcome back, ${user.firstName}` : 'Welcome b
     transition: border-color var(--dur-2) var(--ease-out);
   }
 
-  .account-row:hover {
-    border-color: var(--border-2);
-  }
+  .account-row:hover { border-color: var(--border-2); }
 
-  .account-row__main {
-    flex: 1;
-    min-width: 0;
-    display: grid;
-    gap: var(--space-2);
-  }
+  .account-row__main { flex: 1; min-width: 0; display: grid; gap: var(--space-2); }
 
-  .account-row__title {
-    color: var(--text-1);
-    font-weight: 650;
-    text-decoration: none;
-  }
-
-  .account-row__title:hover {
-    color: var(--accent);
-  }
+  .account-row__title { color: var(--text-1); font-weight: 650; text-decoration: none; }
+  .account-row__title:hover { color: var(--accent); }
 
   .account-row__bar {
     height: 4px;
@@ -173,11 +260,7 @@ const greeting = user.firstName ? `Welcome back, ${user.firstName}` : 'Welcome b
     background: var(--accent);
   }
 
-  .account-row__pct {
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-  }
+  .account-row__pct { color: var(--text-3); font-family: var(--font-mono); font-size: var(--fs-xs); }
 
   .account-row__cta {
     color: var(--accent);
@@ -187,9 +270,7 @@ const greeting = user.firstName ? `Welcome back, ${user.firstName}` : 'Welcome b
     white-space: nowrap;
   }
 
-  .account-row--done .account-row__title {
-    flex: 1;
-  }
+  .account-row--done .account-row__title { flex: 1; }
 
   .account-row__check {
     display: inline-grid;
@@ -203,35 +284,107 @@ const greeting = user.firstName ? `Welcome back, ${user.firstName}` : 'Welcome b
     font-weight: 700;
   }
 
-  .account__foot {
-    margin-top: var(--space-9);
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--border-1);
+  /* ── Anonymous onboarding ── */
+  .onboard__title {
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
   }
 
-  .account__signout {
-    padding: var(--space-3) var(--space-5);
+  .onboard__lede {
+    max-width: 52ch;
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  .onboard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .onboard__cta {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.875rem;
+    padding-inline: var(--space-6);
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    color: var(--text-on-accent);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    text-decoration: none;
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 22%, transparent);
+    transition: background var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  }
+
+  .onboard__cta:hover { background: var(--accent-hover); color: var(--text-on-accent); transform: translateY(-1px); }
+
+  .onboard__ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.875rem;
+    padding-inline: var(--space-5);
     border: 1px solid var(--border-2);
     border-radius: var(--radius-full);
-    background: transparent;
-    color: var(--text-2);
-    font-family: var(--font-text);
+    color: var(--text-1);
     font-size: var(--fs-sm);
-    cursor: pointer;
-    transition: border-color var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color var(--dur-2) var(--ease-out);
   }
 
-  .account__signout:hover {
-    border-color: var(--danger);
-    color: var(--text-1);
+  .onboard__ghost:hover { border-color: var(--accent); }
+
+  .onboard__benefits {
+    display: grid;
+    gap: var(--space-4);
+    margin: var(--space-8) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .onboard__benefits li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-1) 60%, transparent);
+  }
+
+  .onboard__benefit-icon {
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-md);
+    background: var(--accent-subtle);
+    color: var(--accent);
+  }
+
+  .onboard__benefits strong { color: var(--text-1); font-size: var(--fs-base); font-weight: 650; }
+  .onboard__benefits p { margin-top: var(--space-1); color: var(--text-2); font-size: var(--fs-sm); line-height: var(--lh-sm); }
+
+  @media (min-width: 48rem) {
+    .onboard__benefits { grid-template-columns: repeat(3, 1fr); }
   }
 
   @media (max-width: 47.999rem) {
-    .account-row {
-      flex-wrap: wrap;
-    }
-    .account-row__main {
-      flex-basis: 100%;
-    }
+    .account__profile { flex-wrap: wrap; }
+    .account__signout-form { flex-basis: 100%; }
+    .account__signout { width: 100%; justify-content: center; }
+    .account-row { flex-wrap: wrap; }
+    .account-row__main { flex-basis: 100%; }
   }
 </style>

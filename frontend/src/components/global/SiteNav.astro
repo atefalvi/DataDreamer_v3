@@ -8,7 +8,6 @@
 import ThemeToggle from './ThemeToggle.astro';
 import Icon from '../ui/Icon.astro';
 import { NAV_ITEMS } from '../../content/site';
-import logoMark from '../../assets/brand/logo-mark.svg?raw';
 
 interface Props {
   transparentOverHero?: boolean;
@@ -40,7 +39,10 @@ const initials =
 >
   <div class="site-nav__inner container-wide">
     <a href="/" class="site-nav__brand" aria-label="DataDreamer — home">
-      <span class="site-nav__mark" set:html={logoMark} />
+      <span class="site-nav__mark" aria-hidden="true">
+        <img src="/data-dreamer-logo-pop-dark.svg" alt="" width="34" height="34" class="site-nav__logo site-nav__logo--dark" />
+        <img src="/data-dreamer-logo-pop-light.svg" alt="" width="34" height="34" class="site-nav__logo site-nav__logo--light" />
+      </span>
       <span class="site-nav__wordmark" aria-hidden="true">
         <span>Data</span>
         <span>Dreamer</span>
@@ -176,12 +178,21 @@ const initials =
     outline-offset: 4px;
   }
 
-  .site-nav__mark :global(svg) {
-    display: block;
-    height: 34px;
-    width: auto;
-    color: var(--text-1);
+  .site-nav__mark {
+    display: inline-flex;
+    flex-shrink: 0;
   }
+
+  .site-nav__logo {
+    display: block;
+    width: 34px;
+    height: 34px;
+  }
+
+  /* Theme swap: dark mark on the dark UI, light mark in light theme. Default = dark. */
+  .site-nav__logo--light { display: none; }
+  :global([data-theme='light']) .site-nav__logo--dark { display: none; }
+  :global([data-theme='light']) .site-nav__logo--light { display: block; }
 
   .site-nav__wordmark {
     display: grid;
@@ -444,7 +455,8 @@ const initials =
       -webkit-backdrop-filter: blur(16px);
     }
 
-    .site-nav__mark :global(svg) {
+    .site-nav__logo {
+      width: 26px;
       height: 26px;
     }
 
