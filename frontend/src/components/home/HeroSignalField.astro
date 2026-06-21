@@ -264,6 +264,65 @@ const staticNodes = [
     }
   }
 
+  /* Tablet is an authored composition, not a compressed desktop grid. The studio
+     index becomes a full-width instrument rail below the editorial copy. */
+  @media (min-width: 48rem) and (max-width: 63.999rem) {
+    .hero,
+    .hero__inner {
+      min-height: min(82svh, 52rem);
+    }
+
+    .hero__inner {
+      align-content: end;
+      align-items: initial;
+      gap: var(--space-7);
+      padding-block: calc(var(--nav-height) + var(--space-8)) var(--space-7);
+    }
+
+    .hero__copy {
+      max-width: 43rem;
+    }
+
+    .hero__headline {
+      max-width: 12ch;
+      font-size: var(--fs-4xl);
+      line-height: var(--lh-4xl);
+    }
+
+    .hero__sub {
+      max-width: 37rem;
+      font-size: var(--fs-lg);
+      line-height: var(--lh-lg);
+    }
+
+    .hero__brief {
+      width: 100%;
+      padding: var(--space-4) var(--space-5) var(--space-5);
+      border-radius: var(--radius-sm);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero__brief dl {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0;
+    }
+
+    .hero__brief div {
+      display: block;
+      min-width: 0;
+      padding: var(--space-4) var(--space-5) 0 0;
+    }
+
+    .hero__brief div + div {
+      padding-inline-start: var(--space-5);
+      border-left: 1px solid var(--border-1);
+    }
+
+    .hero__brief dd {
+      margin-top: var(--space-2);
+    }
+  }
+
   @media (max-width: 47.999rem) {
     .hero {
       min-height: 90svh;

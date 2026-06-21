@@ -409,6 +409,17 @@ anonymous permissions denied for gated item fields/progress writes; a11y (auth f
 toggles, embeds, links); indexability + JSON-LD; JS-disabled preview. **Accept**:
 `qa/guides.md` checklist complete; blockers fixed or filed.
 
+**Production hardening note (2026-06-21)**: Guide Server reads must sort `guides` only
+by `-featured,sort` and `guide_progress` by `-started_at`; its policy intentionally
+does not expose `date_created`/`date_updated`. Google logout must clear
+`directus_session_token` at `Domain=.data-dreamer.net`; the frontend infers this scope
+from production `SITE_URL`, with `AUTH_COOKIE_DOMAIN` remaining the explicit override.
+For named account UI, the authenticated identity policy should allow `/users/me` to
+read the current user's `id,email,first_name,last_name`; the UI deliberately falls back
+to “Reader session active” when only `id` is available. Code and responsive QA are
+complete locally; production deploy + progress mutation/reload and email/Google login
+smokes remain before this task can move to done.
+
 ### V4-REL-002 — v4.1 release
 **Objective**: release protocol re-run; production smoke on the live seed guide (browse,
 preview, Google/email login, start, complete an item, reload, resume). **Accept**:

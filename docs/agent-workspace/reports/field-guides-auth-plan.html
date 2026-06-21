@@ -660,8 +660,8 @@
             <p>Guides now default on with an explicit false rollback. Navigation exposes Sign in or Account state, authenticated HTML is private, and logout uses proxy-safe same-origin validation.</p>
           </article>
           <article class="card third">
-            <h3>Production blocker</h3>
-            <p>The live Directus currently returns <code>403</code> for anonymous guide reads, so the deployed catalogue has no records. Apply the schema/seed and configure a non-admin Guide Server token for Astro.</p>
+            <h3>Deploy pending</h3>
+            <p>The production Guide Server token now reads the seeded guide, sections, and items. The live frontend still shows the empty state until the hardened query contract is deployed with <code>DIRECTUS_SERVICE_TOKEN</code> on the frontend resource.</p>
           </article>
         </div>
         <div class="note">
@@ -672,6 +672,11 @@
             <li>Create a non-admin service user with the Guide Server role and set its static token as frontend <code>DIRECTUS_SERVICE_TOKEN</code>.</li>
             <li>Redeploy the frontend, then run <code>scripts/v4-guides-smoke.mjs</code> and the browser matrix.</li>
           </ol>
+        </div>
+        <div class="note">
+          <strong>June 21 hardening findings</strong>
+          <p>The Guide Server policy does not expose system timestamps, so frontend lists sort by approved editorial fields (<code>-featured,sort</code>) and progress lists sort by <code>-started_at</code>. OAuth logout clears the shared <code>.data-dreamer.net</code> cookie even when Coolify omits the optional cookie-domain override.</p>
+          <p>For a named account display, allow authenticated users to read their own <code>id</code>, <code>email</code>, <code>first_name</code>, and <code>last_name</code> through <code>/users/me</code>. Until then, the account and navigation use a clear “Reader session active” fallback instead of blank labels.</p>
         </div>
       </section>
 

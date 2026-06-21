@@ -39,7 +39,7 @@ const isActive = (href: string) =>
             <span class="mobile-menu__status" aria-hidden="true"></span>
             <span>
               <strong>{user.firstName ? `Signed in as ${user.firstName}` : 'Signed in'}</strong>
-              <small>{user.email}</small>
+              <small>{user.email || 'Reader session active'}</small>
             </span>
           </div>
           <div class="mobile-menu__account-actions">

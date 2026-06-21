@@ -17,6 +17,41 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-21] V4-QA-004 production auth + guide hardening — in progress
+
+**Did**: Fixed the live-guide query contract for the restricted Guide Server policy
+(`guides` no longer sorts by forbidden `date_created`; account progress no longer
+sorts by forbidden `date_updated`). Hardened logout so the Directus OAuth cookie is
+cleared at `.data-dreamer.net` even when Coolify omits `AUTH_COOKIE_DOMAIN`. Reworked
+the Field Guides catalogue, public/signed-in reader hierarchy, account empty state,
+privacy policy, and tablet homepage hero/Studio Index. Added resilient reader identity
+labels when `/users/me` exposes only `id`.
+
+**Files**: auth session + tests; guide repository; SiteNav/MobileMenu; Guide access,
+home hero, account, guide catalogue/detail, and privacy pages; docs `09`, `13`, `15`,
+`qa/guides.md`, and the auth planning report.
+
+**Decisions / deviations**: The server-only token remains out of git. Production
+`SITE_URL` is the safe fallback source for the OAuth cookie domain; unrelated/local
+hosts never receive a broadened scope. The Guide Server identity currently cannot read
+its own email/name fields, so the UI shows “Reader session active”; Directus should
+allow own-user reads of `id,email,first_name,last_name` for full identity display.
+
+**Validation**: Production Directus token reads 1 published guide / 2 sections / 4
+items. Local production-data render verified anonymous and signed-in catalogue,
+preview, reader, and account states; responsive screenshots at 390/820/1200/1440.
+Production-mode logout: legitimate request 303 with `.data-dreamer.net` deletion;
+hostile origin 403. `astro check` 0/0/0; 90 tests passed; production build passed.
+
+**Next**: On the production Coolify frontend resource set the provided token as
+server-only `DIRECTUS_SERVICE_TOKEN`, deploy this branch after merge, then complete the
+live login → start → progress → reload → account → logout matrix. Add current-user
+profile field reads to the authenticated Directus identity policy. Keep V4-QA-004 in
+progress until those production checks pass; then start V4-REL-002.
+
+**Warnings**: Production `/guides` still rendered the empty state before this deploy.
+Do not add this token to `PUBLIC_*`, git, browser code, or the Directus Public policy.
+
 ## [2026-06-20] Guides nav/footer UX + account menu — done
 **Did**: Reworked the global shell per owner feedback. Removed the nav "Connect" button and replaced it with an account control: a "Sign in" pill for anonymous visitors and an avatar + dropdown (My guides · Sign out) for signed-in learners. Moved the primary Connect action to the footer as a "Start a conversation →" CTA (GitHub/LinkedIn/Email already live there). Sign out is now reachable from the nav dropdown (and still the mobile menu); the logout endpoint passes the app CSRF gate (verified 303 locally).
 **Files**: `frontend/src/components/global/SiteNav.astro`, `SiteFooter.astro`.

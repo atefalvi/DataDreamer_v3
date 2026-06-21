@@ -5,7 +5,7 @@ Run on staging (Directus seeded via `scripts/v4-guides-schema.mjs`, frontend wit
 
 ## Automated (CI gate) — ✅ passing
 
-`astro check` 0 errors · 84 unit tests · production build. Includes the pure
+`astro check` 0 errors · 90 unit tests · production build. Includes the pure
 `deriveProgress` engine, repo preview/reader gating + ordering + curator dedup, and the
 `safeNext` open-redirect guard.
 
@@ -27,21 +27,38 @@ End-to-end, the exact operations the frontend performs (2026-06: 10/10):
   client-side by clearing cookies, the standard pattern. ponytail: server-side token
   revocation skipped — add a session-mode `/auth/logout` call if the exfil-window matters.)
 
-## Browser pass — ⏳ pending staging frontend redeploy (`PUBLIC_GUIDES_ENABLED=true`)
+## Production hardening pass — 2026-06-21
+
+- ✅ Guide Server token reads one published guide, two sections, and four items.
+- ✅ Catalogue repository no longer requests forbidden `guides.date_created`.
+- ✅ Account repository no longer requests forbidden `guide_progress.date_updated`.
+- ✅ Production-mode logout returns 303, clears the OAuth cookie at
+  `.data-dreamer.net`, and rejects a hostile origin with 403.
+- ✅ Anonymous + signed-in guide, account, privacy, and tablet-home states rendered
+  against production Directus data at 390, 820, 1200, and 1440 CSS pixels.
+- ✅ Google provider is registered at the production Directus `/auth` endpoint.
+- ⏳ Production frontend still shows the empty catalogue until the new code is deployed
+  with `DIRECTUS_SERVICE_TOKEN` set on the frontend resource.
+- ⏳ Guide Server `/users/me` currently returns only `id`; grant own-user read access to
+  `email`, `first_name`, and `last_name` for named account UI. The shipped fallback is
+  “Reader session active.”
+
+## Browser pass — ⏳ production deploy required
 
 Rendering/interaction is verified via the `/dev/guides-preview` harness (dark + light);
 the items below need the live staging frontend (Coolify redeploy) to tick:
 
 ## Journeys
 
-- [ ] **Catalogue** `/guides` — seed guide shows as a card; featured lead renders; topic
+- [x] **Catalogue (local production-data render)** `/guides` — seed guide shows as a card; featured lead renders; topic
       + difficulty chips filter via URL (`?topic=`, `?level=`); empty filter → empty state.
-- [ ] **Preview (anonymous)** `/guides/learn-airflow-the-real-way` — hero, why/outcome,
+- [x] **Preview (anonymous, local production-data render)** `/guides/learn-airflow-the-real-way` — hero, why/outcome,
       syllabus titles visible; item bodies/links/notes hidden; "Sign in to start" gate shown.
 - [ ] **Sign up** → returns to the guide; reader unlocks (item embeds/links/notes appear).
 - [ ] **Progress** — toggle items; bar/percent/counts/“time left” update; reload persists;
       `/account` lists the guide with % and Continue.
-- [ ] **Sign out** → guide drops back to the preview gate.
+- [x] **Sign out contract** → same-origin POST returns 303 and clears host + parent-domain cookies.
+- [ ] **Production sign out browser journey** → account returns to anonymous state after deploy.
 
 ## Per-item type (in the reader)
 
