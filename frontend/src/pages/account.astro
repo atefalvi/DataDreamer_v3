@@ -17,7 +17,7 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
 
 let guides: AccountGuideProgress[] = [];
 try {
-  guides = await guidesRepo.myGuides(user.accessToken);
+  guides = await guidesRepo.myGuides(user.id);
 } catch (error) {
   console.error('[account] myGuides failed:', error instanceof Error ? error.message : error);
 }

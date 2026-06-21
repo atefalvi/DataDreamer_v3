@@ -29,8 +29,9 @@ out actions.
 
 **Files**: `frontend/astro.config.mjs`, `frontend/.env.example`, `frontend/src/content/site.ts`,
 `frontend/src/middleware.ts`, `frontend/src/lib/auth/request.ts` + tests,
-`frontend/src/components/global/SiteNav.astro`, `MobileMenu.astro`; docs `13`, `15`,
-and `reports/field-guides-auth-plan.html`.
+`frontend/src/components/global/SiteNav.astro`, `MobileMenu.astro`;
+`scripts/v4-guides-schema.mjs`, `scripts/README.md`; docs `13`, `15`, and
+`reports/field-guides-auth-plan.html`.
 
 **Decisions / deviations**: Guides are now release-default-on because v4.1 has merged;
 the flag is rollback-only. Astro `security.checkOrigin` is disabled only because
@@ -45,14 +46,15 @@ built-server proxy simulation returned 303 for a legitimate production-origin lo
 `Cache-Control: private, no-store` for session-bearing HTML.
 
 **Next**: deploy this frontend fix, apply/verify the production guide schema + seed,
-and provide the frontend server a read path (`DIRECTUS_TOKEN` or correctly constrained
-public preview policy). Then run `scripts/v4-guides-smoke.mjs` against production and
+create a non-admin Guide Server service user/token, and set frontend
+`DIRECTUS_SERVICE_TOKEN`. Then run `scripts/v4-guides-smoke.mjs` against production and
 finish the browser matrix before marking V4-QA-004 done and starting V4-REL-002.
 
 **Warnings**: Do not open unrestricted Public read access to `guide_items`; item body,
 URLs, notes, and assets are login-gated. The current self-hosted Directus edition noted
 in `scripts/v4-guides-schema.mjs` rejected custom field/row rules during staging, so
-use a server-only read token unless that restriction has been resolved.
+the script now removes old unrestricted Public/learner guide permissions and requires
+a non-admin Guide Server token unless that restriction has been resolved.
 
 ## [2026-06-15] Field Guides auth plan — done
 

@@ -19,21 +19,22 @@ export const PUBLIC_DIRECTUS_URL =
   env('PUBLIC_DIRECTUS_URL') ?? env('DIRECTUS_URL') ?? DIRECTUS_URL;
 
 const READ_TOKEN = env('DIRECTUS_TOKEN');
+const SERVICE_TOKEN = env('DIRECTUS_SERVICE_TOKEN') ?? READ_TOKEN;
 
 function build() {
   const base = createDirectus<Schema>(DIRECTUS_URL).with(rest());
-  return READ_TOKEN ? base.with(staticToken(READ_TOKEN)) : base;
+  const token = READ_TOKEN ?? SERVICE_TOKEN;
+  return token ? base.with(staticToken(token)) : base;
 }
 
 /** Shared read client — Public role (or the optional read token). Never user-scoped. */
 export const directus = build();
 
 /**
- * Per-request client bound to a learner's Directus access token (v4.1). Used only for
- * the authenticated guide reader and progress writes so Directus itself enforces the
- * `guide_reader` policy (gated item content + own-progress rows). Build a fresh one per
- * request — never cache a user-scoped client.
+ * Server-only guide client. The Astro auth bridge verifies the learner before using
+ * this non-admin token for gated content and explicitly user-scoped progress.
  */
-export function directusForUser(accessToken: string) {
-  return createDirectus<Schema>(DIRECTUS_URL).with(rest()).with(staticToken(accessToken));
+export function directusForService() {
+  if (!SERVICE_TOKEN) throw new Error('DIRECTUS_SERVICE_TOKEN (or DIRECTUS_TOKEN) is required for guide access.');
+  return createDirectus<Schema>(DIRECTUS_URL).with(rest()).with(staticToken(SERVICE_TOKEN));
 }

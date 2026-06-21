@@ -5,9 +5,10 @@
  *   guides → guide_sections → guide_items   (the curated path)
  *   guides_topics / guides_specialties / guides_authors   (taxonomy + curators)
  *   guide_progress   (one row per user+guide, server-backed progress)
- * plus the public **preview** read policy (item bodies/notes/urls stay gated) and a
- * low-permission `guide_reader` role/policy (full item content + own progress), and
- * seeds one realistic guide for dev + QA.
+ * plus a low-permission `guide_reader` role/policy and one realistic seed guide.
+ * Public guide access stays closed on Directus editions that cannot express field-
+ * limited rules; the Astro server uses a server-only DIRECTUS_TOKEN and requests only
+ * preview-safe fields for anonymous pages.
  *
  * Idempotent: skips anything that already exists.
  *
@@ -180,14 +181,16 @@ async function buildRelations() {
 // IMPORTANT: this Directus edition restricts custom permission *rules* — both row
 // filters (e.g. status=published, user=$CURRENT_USER) and field-level subsets raise
 // `custom_permission_rules_enabled is a restricted resource`. Only all-or-nothing
-// (`fields: ['*']`, no filter) is permitted. So the public-preview-vs-gated-reader
-// distinction and progress ownership are enforced at the APP layer instead:
+// (`fields: ['*']`, no filter) is permitted. Never compensate by granting unrestricted
+// Public read: that exposes gated item bodies through the Directus API. Public guide
+// collections stay closed and anonymous SSR reads use a server-only DIRECTUS_TOKEN.
+// The public-preview-vs-gated-reader distinction is enforced at the APP layer:
 //   - the repository queries published guides only and requests preview fields for
 //     anonymous visitors (lib/repositories/guides.ts);
 //   - the page renders gated content only when locals.user is set;
 //   - the progress endpoint always writes the session user's own id.
-// On a licensed Directus, tighten these to status=published / field subsets /
-// user=$CURRENT_USER (see the git history of this file for the rule-based version).
+// On a Directus instance that supports custom rules, field-limited Public preview and
+// user=$CURRENT_USER progress rules may replace the server-token fallback.
 
 async function findPolicyId(name) {
   const policies = await api('/policies?fields=id,name&limit=200');
@@ -207,8 +210,18 @@ async function ensurePermission(policy, collection, action, fields = ['*']) {
   }
 }
 
+async function removePermission(policy, collection, action) {
+  const query = `/permissions?filter[policy][_eq]=${policy}&filter[collection][_eq]=${collection}&filter[action][_eq]=${action}&fields=id&limit=100`;
+  const existing = await api(query).catch(() => []);
+  for (const permission of existing) {
+    await api(`/permissions/${permission.id}`, { method: 'DELETE', headers: auth });
+    console.log(`- permission ${collection}.${action}`);
+  }
+}
+
 let publicPolicyId;
 let readerPolicyId;
+let serverPolicyId;
 
 async function ensureGuideReaderRole() {
   const roles = await api('/roles?fields=id,name&limit=200');
@@ -238,26 +251,64 @@ async function ensureGuideReaderRole() {
   return role.id;
 }
 
+async function ensureGuideServerRole() {
+  const roles = await api('/roles?fields=id,name&limit=200');
+  let role = roles.find((r) => r.name === 'Guide Server');
+  if (!role) {
+    role = await api('/roles', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ name: 'Guide Server', icon: 'dns', description: 'Non-admin Astro server access for guide previews, reader content, and scoped progress.', admin_access: false, app_access: false }) });
+    console.log('+ role Guide Server');
+  } else {
+    console.log('= role Guide Server');
+  }
+
+  const policies = await api('/policies?fields=id,name&limit=200');
+  let policy = policies.find((p) => p.name === 'Guide Server');
+  if (!policy) {
+    policy = await api('/policies', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ name: 'Guide Server', icon: 'dns', description: 'Server-only guide data access policy', admin_access: false, app_access: false }) });
+    console.log('+ policy Guide Server');
+  } else {
+    console.log('= policy Guide Server');
+  }
+  serverPolicyId = policy.id;
+
+  const access = await api(`/access?filter[role][_eq]=${role.id}&filter[policy][_eq]=${policy.id}&fields=id&limit=1`).catch(() => []);
+  if (!access.length) {
+    await api('/access', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ role: role.id, policy: policy.id }) }).catch((e) => console.log(`! access link: ${e.message}`));
+  }
+  return role.id;
+}
+
 const GUIDE_READ_COLLECTIONS = ['guides', 'guide_sections', 'guide_items', 'guides_topics', 'guides_specialties', 'guides_authors'];
 
 async function buildPermissions() {
   publicPolicyId = await findPolicyId('Public');
   if (!publicPolicyId) throw new Error('Could not find the Public policy.');
 
-  // Public: read access to the guide content (all-or-nothing). The app shows only
-  // published guides + preview fields to anonymous visitors (see note above).
+  // Public remains closed. This is intentionally destructive for any old unrestricted
+  // guide permissions created by earlier versions of this script.
   for (const collection of GUIDE_READ_COLLECTIONS) {
-    await ensurePermission(publicPolicyId, collection, 'read');
+    await removePermission(publicPolicyId, collection, 'read');
   }
 
-  // Guide reader: same reads + own-progress CRUD (ownership enforced in the app).
+  // Browser learner sessions prove identity only. Remove older broad data permissions
+  // so a learner cannot bypass the Astro gate by calling Directus directly.
   await ensureGuideReaderRole();
   for (const collection of GUIDE_READ_COLLECTIONS) {
-    await ensurePermission(readerPolicyId, collection, 'read');
+    await removePermission(readerPolicyId, collection, 'read');
   }
-  await ensurePermission(readerPolicyId, 'guide_progress', 'read');
-  await ensurePermission(readerPolicyId, 'guide_progress', 'create');
-  await ensurePermission(readerPolicyId, 'guide_progress', 'update');
+  for (const action of ['read', 'create', 'update', 'delete']) {
+    await removePermission(readerPolicyId, 'guide_progress', action);
+  }
+
+  // The non-admin server token is never sent to browsers. Astro filters published
+  // guides/preview fields and scopes every progress query by the verified user id.
+  await ensureGuideServerRole();
+  for (const collection of [...GUIDE_READ_COLLECTIONS, 'authors', 'topics', 'specialties', 'directus_files']) {
+    await ensurePermission(serverPolicyId, collection, 'read');
+  }
+  for (const action of ['read', 'create', 'update']) {
+    await ensurePermission(serverPolicyId, 'guide_progress', action);
+  }
 }
 
 // ── 4. seed ─────────────────────────────────────────────────────────────────────
@@ -297,4 +348,4 @@ await buildCollections();
 await buildRelations();
 await buildPermissions();
 await seed();
-console.log('\nDone. Configure registration (default role = Guide Reader), SMTP, CORS/cookies, and optional Google OpenID in the Directus admin (see reports/field-guides-auth-plan.html).');
+console.log('\nDone. Public and Guide Reader collection access are closed. Create a non-admin service user with the Guide Server role and static token, set it as frontend DIRECTUS_SERVICE_TOKEN (or DIRECTUS_TOKEN), then configure registration (default role = Guide Reader), SMTP, CORS/cookies, and optional Google OpenID (see reports/field-guides-auth-plan.html).');

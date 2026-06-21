@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// Stub the Directus clients: `directus` (public reads) and `directusForUser` (reader).
+// Stub the Directus clients: `directus` (preview reads) and the server guide client.
 const { request, userRequest } = vi.hoisted(() => ({ request: vi.fn(), userRequest: vi.fn() }));
 vi.mock('../../directus/client', () => ({
   directus: { request },
-  directusForUser: () => ({ request: userRequest }),
+  directusForService: () => ({ request: userRequest }),
   PUBLIC_DIRECTUS_URL: 'https://cms.test',
   DIRECTUS_URL: 'https://cms.test',
 }));

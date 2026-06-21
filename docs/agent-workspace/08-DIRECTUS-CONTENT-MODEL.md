@@ -196,17 +196,19 @@ Archiving a guide keeps progress rows but the reader UI no longer exposes the gu
 
 ### 4.7 What was dropped vs. the old "courses" plan
 `enrollments`, `lesson_completions`, `course_votes`, `badges`, `user_badges`, the
-`student` Directus role, the `service` token, and Directus Flows for aggregate
-recompute. None are needed: guide access uses the low-permission `guide_reader` role
-and progress is a single user-owned row. Migration impact is tracked in
+`student` Directus role and Directus Flows for aggregate recompute. Guide access uses
+the low-permission `guide_reader` identity role and progress is one user-owned row.
+On Directus editions without custom field/row rules, a non-admin Guide Server token is
+required by Astro; it never reaches the browser. Migration impact is tracked in
 `12-IMPLEMENTATION-ROADMAP.md` and `13-TASKS.md`.
 
 ## 5. Access policies
 
 | Role | Access |
 |---|---|
-| **Public** | read published: `posts`, `authors`, `specialties`, `topics`, junctions, `directus_files` (asset transform reads); v4.1 adds published guide preview fields (`guides` card/landing fields, topic/author/specialty relations, section titles/descriptions) but not `guide_items.body`, curator notes, or progress |
-| **guide_reader** | Public access plus full published guide item content; create/read/update own `guide_progress`; read own profile via `/users/me` |
+| **Public** | read published editorial collections and assets; guide collections remain closed when field-limited rules are unavailable |
+| **guide_reader** | authenticate and read own profile via `/users/me`; Astro gates the reader using this verified session |
+| **Guide Server** | non-admin, server-only full guide/progress access; Astro filters published/preview fields and scopes progress queries by verified user id |
 | **editor** | full CRUD on content collections via Directus app |
 
 v4.1 adds authenticated end-user access, but only for guide reading/progress. The v3
@@ -349,9 +351,10 @@ is authoritative for v4.1 except where the table below re-adopts it.
    until v4.0 ships — rollback path).
 5. v4.1 **V4-GUIDE-001 / V4-AUTH-001** — Field Guides suite per §4: create `guides`,
    `guide_sections`, `guide_items` + the three junctions; create `guide_reader` role
-   and `guide_progress`; add Public preview permissions and authenticated reader
-   permissions; seed one realistic guide (2–3 sections, ~8 mixed-type items). No
-   service token, no Flows. Ends with a fresh `snapshot.yaml` committed.
+   and `guide_progress`; add Guide Reader identity and Guide Server data policies;
+   seed one realistic guide (2–3 sections, ~8 mixed-type items). No Flows. Keep the
+   Guide Server static token only in frontend server env. Ends with a fresh
+   `snapshot.yaml` committed.
 
 Rollback: every migration task records the inverse operation in the handoff before
 running; DB backup precedes every schema-touching task.
