@@ -8,7 +8,7 @@
  *    server-only Guide Server token and explicit published/user filters.
  */
 import { readItems, createItem, updateItem } from '@directus/sdk';
-import { directus, directusForService } from '../directus/client';
+import { directusForService } from '../directus/client';
 import { toImageRef } from '../images';
 import { guard } from './errors';
 import { mapGuide, mapGuideListItem } from './_mappers';
@@ -124,8 +124,9 @@ export async function list(query: GuideListQuery = {}): Promise<GuideListPage> {
   if (query.topic) filter.topics = { topics_id: { slug: { _eq: query.topic } } };
   if (query.level) filter.difficulty = { _eq: query.level };
 
+  const client = directusForService();
   const rows = await guard('guides.list', () =>
-    directus.request<GuideRow[]>(
+    client.request<GuideRow[]>(
       readItems('guides', {
         filter,
         sort: ['-featured', 'sort', '-date_created'],
@@ -142,8 +143,9 @@ export async function list(query: GuideListQuery = {}): Promise<GuideListPage> {
 }
 
 export async function latest(limit = 3): Promise<GuideListItem[]> {
+  const client = directusForService();
   const rows = await guard('guides.latest', () =>
-    directus.request<GuideRow[]>(
+    client.request<GuideRow[]>(
       readItems('guides', {
         filter: PUBLISHED,
         sort: ['-featured', 'sort', '-date_created'],
@@ -157,8 +159,9 @@ export async function latest(limit = 3): Promise<GuideListItem[]> {
 
 /** Public preview of a guide (gated content withheld). Null when no published match. */
 export async function previewBySlug(slug: string): Promise<Guide | null> {
+  const client = directusForService();
   const rows = await guard('guides.previewBySlug', () =>
-    directus.request<GuideRow[]>(
+    client.request<GuideRow[]>(
       readItems('guides', {
         filter: { ...PUBLISHED, slug: { _eq: slug } },
         limit: 1,
