@@ -2,8 +2,8 @@
  * /api/guides/progress (v4.1) — server-backed Field Guide progress (09 §10).
  * POST upserts the current learner's `guide_progress` row and returns the freshly
  * derived progress. Auth comes from the session (locals.user); writes go through the
- * learner's token so Directus enforces own-row-only access. JSON only; requires the
- * `X-Requested-With` header (CSRF defence alongside SameSite=Lax cookies).
+ * non-admin server token with every query explicitly scoped to the verified user id.
+ * JSON only; requires the `X-Requested-With` header plus same-origin middleware.
  */
 import type { APIRoute } from 'astro';
 import { guidesRepo } from '../../../lib/repositories';
@@ -46,7 +46,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   const now = new Date().toISOString();
   try {
-    await guidesRepo.saveProgress(user.accessToken, user.id, guide.id, {
+    await guidesRepo.saveProgress(user.id, guide.id, {
       completed_items: completedItemIds,
       last_item: last ?? null,
       status: derived.status,

@@ -28,7 +28,7 @@ try {
     ? await guidesRepo.readerBySlug(slug!, user.accessToken)
     : await guidesRepo.previewBySlug(slug!);
   if (guide && user) {
-    stored = await guidesRepo.progressFor(guide.id, user.accessToken);
+    stored = await guidesRepo.progressFor(guide.id, user.id);
   }
 } catch (error) {
   console.error('[guide] load failed:', error instanceof Error ? error.message : error);

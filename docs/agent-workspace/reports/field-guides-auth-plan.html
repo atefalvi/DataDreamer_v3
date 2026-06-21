@@ -443,34 +443,34 @@
             <tr>
               <th>Collection</th>
               <th>Purpose</th>
-              <th>Public access</th>
-              <th>Guide reader access</th>
+              <th>Anonymous experience</th>
+              <th>Signed-in experience</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><code>guides</code></td>
               <td>Top-level Field Guide / learning path.</td>
-              <td>Published preview fields.</td>
-              <td>Published full guide fields.</td>
+              <td>Astro returns published preview fields; Directus stays closed.</td>
+              <td>Astro returns the published full guide after session verification.</td>
             </tr>
             <tr>
               <td><code>guide_sections</code></td>
               <td>Ordered syllabus groups.</td>
-              <td>Section title and description.</td>
-              <td>Full section data.</td>
+              <td>Astro returns section title and description.</td>
+              <td>Astro returns full section data.</td>
             </tr>
             <tr>
               <td><code>guide_items</code></td>
               <td>Curated resources and notes.</td>
-              <td>Title/type only for syllabus preview.</td>
-              <td>Body, notes, URLs, assets, embeds, metadata.</td>
+              <td>Astro returns title/type only for syllabus preview.</td>
+              <td>Astro returns body, notes, URLs, assets, embeds, metadata.</td>
             </tr>
             <tr>
               <td><code>guides_topics</code>, <code>guides_specialties</code>, <code>guides_authors</code></td>
               <td>Taxonomy and curator relationships.</td>
-              <td>Readable for previews.</td>
-              <td>Readable.</td>
+              <td>Returned through preview-safe Astro queries.</td>
+              <td>Returned through authenticated Astro queries.</td>
             </tr>
             <tr>
               <td><code>directus_users</code></td>
@@ -482,7 +482,7 @@
               <td><code>guide_progress</code></td>
               <td>One row per user and guide.</td>
               <td>No access.</td>
-              <td>Create/read/update only where <code>user = $CURRENT_USER</code>.</td>
+              <td>Astro service queries are always filtered to the verified user id.</td>
             </tr>
           </tbody>
         </table>
@@ -516,11 +516,11 @@
           <div class="step">
             <div class="num">01</div>
             <div>
-              <h3>Create the reader role</h3>
+              <h3>Create identity and server roles</h3>
               <p>
-                In Directus, add a low-permission <code>guide_reader</code> role.
-                It should not be an admin/editor role. It only needs published guide
-                item reads and own-progress writes.
+                Use <code>guide_reader</code> only for learner identity and
+                <code>Guide Server</code> for a non-admin static token held by Astro.
+                Browser sessions receive no direct guide/progress collection access.
               </p>
             </div>
           </div>
@@ -661,15 +661,15 @@
           </article>
           <article class="card third">
             <h3>Production blocker</h3>
-            <p>The live Directus currently returns <code>403</code> for anonymous guide reads, so the deployed catalogue has no records. Apply the schema/seed and configure a server-only read token or verified field-limited preview policy.</p>
+            <p>The live Directus currently returns <code>403</code> for anonymous guide reads, so the deployed catalogue has no records. Apply the schema/seed and configure a non-admin Guide Server token for Astro.</p>
           </article>
         </div>
         <div class="note">
           <strong>Required rollout order</strong>
           <ol>
             <li>Run <code>scripts/v4-guides-schema.mjs</code> against production with a temporary admin token.</li>
-            <li>Keep <code>guide_items</code> bodies, URLs, notes, assets, and progress unavailable to Public.</li>
-            <li>Set the frontend's server-only <code>DIRECTUS_TOKEN</code> if the Directus edition cannot express field/row preview rules.</li>
+            <li>Keep guide collections unavailable to Public and browser learner sessions when field/row rules are unsupported.</li>
+            <li>Create a non-admin service user with the Guide Server role and set its static token as frontend <code>DIRECTUS_SERVICE_TOKEN</code>.</li>
             <li>Redeploy the frontend, then run <code>scripts/v4-guides-smoke.mjs</code> and the browser matrix.</li>
           </ol>
         </div>
@@ -703,7 +703,7 @@
           </article>
           <article class="card third">
             <h3>Permission leaks</h3>
-            <p>Public must not read guide item bodies, notes, resource URLs, files, or progress rows. If custom Directus rules are unavailable, keep Public closed and use a server-only read token with preview-safe repository fields.</p>
+            <p>Public and browser learner sessions must not read guide collections directly. Astro uses the server-only Guide Server token, requests preview-safe fields, and scopes progress by the verified user id.</p>
           </article>
           <article class="card third">
             <h3>SSO configuration</h3>

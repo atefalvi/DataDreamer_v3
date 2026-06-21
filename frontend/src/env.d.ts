@@ -6,7 +6,7 @@ interface GuideReaderUser {
   email: string;
   firstName?: string;
   lastName?: string;
-  /** Directus access token for this request — used to build a user-scoped client. */
+  /** Directus access token used only to resolve/verify this learner session. */
   accessToken: string;
 }
 

@@ -320,22 +320,24 @@ SETUP works (agent performs it).
 **Objective**: create the `08` §4 collections — `guides`, `guide_sections`,
 `guide_items` + junctions `guides_topics`, `guides_specialties`, `guides_authors` —
 with fields, enums, per-type validation conditions, and `(parent, sort)` ordering.
-Add **Public preview permissions** filtered to published guides: cards, landing-page
-fields, topics/authors/specialties, section titles/descriptions, and item titles/types
-only. Public must not read item bodies, notes, URLs, assets, or progress. Seed one
+Add preview-safe access filtered to published guides. Where the installed Directus
+edition cannot express field/row rules, keep Public and Guide Reader collection access
+closed and use a non-admin, server-only Guide Server token; Astro must request only
+preview fields for anonymous visitors and explicitly scope progress by user id. Seed one
 realistic guide (2–3 sections, ~8 mixed-type items incl. youtube/github_repo/pdf/
 personal_note) for dev + QA. Deliver as a `scripts/v4-guides-schema.mjs` admin script;
-commit a fresh `snapshot.yaml`. **No service token, no Directus Flows.** **Accept**:
-anonymous read of the published seed preview works; anonymous item-body read is denied;
-draft guide is not publicly readable; snapshot committed.
+commit a fresh `snapshot.yaml`. **No admin token in frontend, no Directus Flows.** **Accept**:
+anonymous frontend preview of the published seed works; direct anonymous item-body read
+is denied; draft guide is not publicly readable; snapshot committed.
 
 ### V4-AUTH-001 — Directus reader auth + progress policy baseline
-**Objective**: create Directus `guide_reader` role, `guide_progress` collection
-(`08` §4.5), user-owned policies, registration default-role setup notes, email/reset
+**Objective**: create Directus `guide_reader` identity role, non-admin Guide Server
+policy, `guide_progress` collection (`08` §4.5), registration default-role setup notes, email/reset
 setup notes, Google OpenID env checklist, CORS/cookie checklist, and permission
 snapshot. **Scope**: Directus schema/policy script + docs only; no frontend UI.
-**Accept**: `guide_reader` can read published guide item content and only their own
-progress; Public cannot read gated fields or write progress; Google/email setup steps
+**Accept**: browser learner/Public sessions cannot read guide/progress collections
+directly; the Astro server reads published content and scopes progress to the verified
+user using its non-admin service token; Google/email setup steps
 are documented for staging and production.
 
 ### V4-GUIDE-002 — Repository + view-models + mappers (guides)

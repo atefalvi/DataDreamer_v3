@@ -4,11 +4,11 @@
  * Access model (report "public preview, gated reader"):
  *  - `list`, `latest`, `previewBySlug` use the shared Public read client and request
  *    only preview-safe fields (no item bodies/urls/assets/notes).
- *  - `readerBySlug` / `progressFor` use a per-request client bound to the learner's
- *    Directus access token, so Directus enforces the `guide_reader` policy.
+ *  - middleware verifies the learner session; gated reads/progress then use the
+ *    server-only Guide Server token and explicit published/user filters.
  */
 import { readItems, createItem, updateItem } from '@directus/sdk';
-import { directus, directusForUser } from '../directus/client';
+import { directus, directusForService } from '../directus/client';
 import { toImageRef } from '../images';
 import { guard } from './errors';
 import { mapGuide, mapGuideListItem } from './_mappers';
@@ -171,12 +171,12 @@ export async function previewBySlug(slug: string): Promise<Guide | null> {
 }
 
 /**
- * Authenticated reader view — full content. Uses the learner's token so Directus
- * enforces the `guide_reader` policy. Falls back to the public preview without a token.
+ * Authenticated reader view — full content. A learner token proves this call followed
+ * an authenticated request; Directus data access stays on the server-only client.
  */
 export async function readerBySlug(slug: string, accessToken?: string): Promise<Guide | null> {
   if (!accessToken) return previewBySlug(slug);
-  const client = directusForUser(accessToken);
+  const client = directusForService();
   const rows = await guard('guides.readerBySlug', () =>
     client.request<GuideRow[]>(
       readItems('guides', {
@@ -190,16 +190,16 @@ export async function readerBySlug(slug: string, accessToken?: string): Promise<
   return mapGuide(rows[0], true);
 }
 
-/** The current learner's stored progress for a guide, or null. Token required. */
+/** The current learner's stored progress for a guide, or null. */
 export async function progressFor(
   guideId: string,
-  accessToken: string,
+  userId: string,
 ): Promise<StoredGuideProgress | null> {
-  const client = directusForUser(accessToken);
+  const client = directusForService();
   const rows = await guard('guides.progressFor', () =>
     client.request<GuideProgressRow[]>(
       readItems('guide_progress', {
-        filter: { guide: { _eq: guideId } },
+        filter: { guide: { _eq: guideId }, user: { _eq: userId } },
         limit: 1,
         fields: ['completed_items', 'last_item', 'started_at', 'completed_at'] as Fields,
       }),
@@ -210,12 +210,12 @@ export async function progressFor(
 }
 
 /** The signed-in learner's guides for the account page, most recently touched first. */
-export async function myGuides(accessToken: string): Promise<AccountGuideProgress[]> {
-  const client = directusForUser(accessToken);
+export async function myGuides(userId: string): Promise<AccountGuideProgress[]> {
+  const client = directusForService();
   const rows = await guard('guides.myGuides', () =>
     client.request<GuideProgressRow[]>(
       readItems('guide_progress', {
-        filter: { guide: { status: { _eq: 'published' } } },
+        filter: { user: { _eq: userId }, guide: { status: { _eq: 'published' } } },
         sort: ['-date_updated'] as Fields,
         limit: 100,
         fields: [
@@ -256,17 +256,16 @@ export interface ProgressFields {
   completed_at: string | null;
 }
 
-/** Upsert the learner's progress row (user-scoped via their token). */
+/** Upsert the learner's progress row, scoped by the verified session user. */
 export async function saveProgress(
-  accessToken: string,
   userId: string,
   guideId: string,
   fields: ProgressFields,
 ): Promise<void> {
-  const client = directusForUser(accessToken);
+  const client = directusForService();
   await guard('guides.saveProgress', async () => {
     const existing = await client.request<GuideProgressRow[]>(
-      readItems('guide_progress', { filter: { guide: { _eq: guideId } }, limit: 1, fields: ['id'] as Fields }),
+      readItems('guide_progress', { filter: { guide: { _eq: guideId }, user: { _eq: userId } }, limit: 1, fields: ['id'] as Fields }),
     );
     if (existing.length) {
       await client.request(updateItem('guide_progress', existing[0].id, fields as never));
