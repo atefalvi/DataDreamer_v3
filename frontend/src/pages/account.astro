@@ -52,9 +52,7 @@ const benefits = [
   {user ? (
     <div class="account container-content">
       <section class="account__profile">
-        <span class:list={['account__avatar', { 'has-image': identity?.avatarUrl }]} aria-hidden="true">
-          {identity?.avatarUrl ? <img src={identity.avatarUrl} alt="" width="72" height="72" /> : identity?.initials}
-        </span>
+        <span class="account__avatar" aria-hidden="true">{identity?.initials}</span>
         <div class="account__id">
           <p class="kicker">Your account</p>
           <h1>{identity?.firstName ? `Welcome back, ${identity.firstName}` : 'Welcome back'}</h1>

@@ -58,16 +58,12 @@ const identity = user ? userIdentity(user) : undefined;
       {user ? (
         <details class="site-nav__menu" data-account-menu>
           <summary class="site-nav__avatar" aria-label="Account menu" aria-haspopup="menu">
-            <span class:list={['site-nav__avatar-badge', { 'has-image': identity?.avatarUrl }]} aria-hidden="true">
-              {identity?.avatarUrl ? <img src={identity.avatarUrl} alt="" width="36" height="36" /> : identity?.initials}
-            </span>
+            <span class="site-nav__avatar-badge" aria-hidden="true">{identity?.initials}</span>
             <Icon name="chevron-down" size={16} />
           </summary>
           <div class="site-nav__dropdown" role="menu">
             <div class="site-nav__dropdown-id">
-              <span class:list={['site-nav__avatar-badge', 'site-nav__avatar-badge--lg', { 'has-image': identity?.avatarUrl }]} aria-hidden="true">
-                {identity?.avatarUrl ? <img src={identity.avatarUrl} alt="" width="44" height="44" /> : identity?.initials}
-              </span>
+              <span class="site-nav__avatar-badge site-nav__avatar-badge--lg" aria-hidden="true">{identity?.initials}</span>
               <span class="site-nav__dropdown-meta">
                 <strong>{identity?.displayName}</strong>
                 <small>{identity?.secondary}</small>
