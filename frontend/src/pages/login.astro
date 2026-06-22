@@ -6,7 +6,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AuthShell from '../components/auth/AuthShell.astro';
 import { safeNext } from '../lib/auth/session';
-import GoogleButton from '../components/auth/GoogleButton.astro';
 
 const rawNext = Astro.url.searchParams.get('next');
 const next = safeNext(rawNext, '/guides');
@@ -34,8 +33,6 @@ const notice = registered
         {notice.text}
       </p>
     )}
-
-    <GoogleButton next={next} />
 
     <form method="post" action="/api/auth/login" class="auth-form">
       <input type="hidden" name="next" value={next} />
