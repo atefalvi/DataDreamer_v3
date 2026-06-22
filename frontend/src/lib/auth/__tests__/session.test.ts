@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { authCookieDomain, safeNext } from '../session';
+import { authCookieDomain, googleStartUrl, safeNext } from '../session';
 
 describe('safeNext (open-redirect guard)', () => {
   it('allows same-origin paths', () => {
@@ -33,5 +33,15 @@ describe('authCookieDomain', () => {
   it('keeps local and unrelated hosts scoped to the current host', () => {
     expect(authCookieDomain(undefined, 'http://127.0.0.1:4321', false)).toBeUndefined();
     expect(authCookieDomain(undefined, 'https://example.com', true)).toBeUndefined();
+  });
+});
+
+describe('googleStartUrl', () => {
+  it('uses one fixed callback without a dynamic learner destination', () => {
+    const start = new URL(googleStartUrl());
+    const redirect = new URL(start.searchParams.get('redirect') ?? '');
+    expect(start.pathname).toBe('/auth/login/google');
+    expect(redirect.pathname).toBe('/api/auth/google/callback');
+    expect(redirect.search).toBe('');
   });
 });

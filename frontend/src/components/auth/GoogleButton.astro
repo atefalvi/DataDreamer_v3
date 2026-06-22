@@ -3,9 +3,8 @@
  * Lowest-friction path: a new Google user is auto-provisioned as a Guide Reader.
  * NOTE: an email that already exists as a non-Google Directus user can't use Google
  * (Directus won't link providers) — those accounts sign in with email/password. */
-import { googleStartUrl } from '../../lib/auth/session';
 const { next } = Astro.props as { next: string };
-const href = googleStartUrl(next);
+const href = `/api/auth/google?next=${encodeURIComponent(next)}`;
 ---
 
 <a class="auth-google" href={href}>

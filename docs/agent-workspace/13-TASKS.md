@@ -414,6 +414,9 @@ by `-featured,sort` and `guide_progress` by `-started_at`; its policy intentiona
 does not expose `date_created`/`date_updated`. Google logout must clear
 `directus_session_token` at `Domain=.data-dreamer.net`; the frontend infers this scope
 from production `SITE_URL`, with `AUTH_COOKIE_DOMAIN` remaining the explicit override.
+Google login uses the fixed app callback `/api/auth/google/callback`; dynamic guide
+destinations are stored in a short-lived HttpOnly cookie because Directus validates the
+complete redirect URL against `AUTH_GOOGLE_REDIRECT_ALLOW_LIST`.
 For named account UI, `/users/me` should expose the current user's
 `id,email,first_name,last_name,avatar`; the UI suppresses generic role-era labels such
 as “Admin,” uses email/neutral identity fallbacks, and renders Directus avatars when

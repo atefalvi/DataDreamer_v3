@@ -86,8 +86,8 @@ services:
       AUTH_GOOGLE_SYNC_USER_INFO: "true"
       AUTH_GOOGLE_LABEL: "Google"
       AUTH_GOOGLE_MODE: "session"
-      # Where Directus may send the browser after OAuth (the app origin(s)).
-      AUTH_GOOGLE_REDIRECT_ALLOW_LIST: "${APP_ORIGIN}"
+      # One exact app callback. The app stores the intended guide path server-side.
+      AUTH_GOOGLE_REDIRECT_ALLOW_LIST: "${GOOGLE_REDIRECT_URL}"
       # Share the session cookie across subdomains so the app can read it.
       SESSION_COOKIE_DOMAIN: "${SESSION_COOKIE_DOMAIN}"
       SESSION_COOKIE_SAME_SITE: "lax"
