@@ -160,9 +160,14 @@ export function hasSessionCookie(cookies: AstroCookies): boolean {
   return Boolean(cookies.get(ACCESS)?.value || cookies.get(REFRESH)?.value || cookies.get(SESSION)?.value);
 }
 
-/** Browser → Directus Google OAuth; Directus returns to `next` with a session cookie. */
+/**
+ * Browser → Directus Google OAuth. We route the post-OAuth redirect through `/login`
+ * (carrying `next`) so both outcomes are handled gracefully: on success `/login` sees the
+ * fresh session cookie and forwards to `next`; on failure Directus appends `?reason=…`
+ * and `/login` shows a friendly message instead of dumping an error code on the guide.
+ */
 export function googleStartUrl(next: string | null | undefined): string {
-  const redirect = `${SITE_URL}${safeNext(next)}`;
+  const redirect = `${SITE_URL}/login?next=${encodeURIComponent(safeNext(next))}`;
   return `${PUBLIC_DIRECTUS_URL}/auth/login/google?redirect=${encodeURIComponent(redirect)}`;
 }
 
