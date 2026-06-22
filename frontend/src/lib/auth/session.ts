@@ -61,6 +61,7 @@ export interface SessionUser {
   email: string;
   firstName?: string;
   lastName?: string;
+  avatarUrl?: string;
   accessToken: string;
 }
 
@@ -123,18 +124,20 @@ export async function register(email: string, password: string, firstName?: stri
   });
 }
 
-type MeResponse = { data: { id: string; email?: string; first_name?: string; last_name?: string } };
+type MeResponse = { data: { id: string; email?: string; first_name?: string; last_name?: string; avatar?: string | { id?: string } } };
 
 export async function fetchMe(accessToken: string): Promise<Omit<SessionUser, 'accessToken'>> {
-  const body = await api<MeResponse>('/users/me?fields=id,email,first_name,last_name', {
+  const body = await api<MeResponse>('/users/me?fields=id,email,first_name,last_name,avatar', {
     method: 'GET',
     headers: { Authorization: `Bearer ${accessToken}` },
   });
+  const avatarId = typeof body.data.avatar === 'string' ? body.data.avatar : body.data.avatar?.id;
   return {
     id: body.data.id,
     email: body.data.email ?? '',
     firstName: body.data.first_name ?? undefined,
     lastName: body.data.last_name ?? undefined,
+    avatarUrl: avatarId ? `${PUBLIC_DIRECTUS_URL}/assets/${avatarId}?width=160&height=160&fit=cover&quality=82` : undefined,
   };
 }
 

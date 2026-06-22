@@ -7,7 +7,7 @@
  *   guide_progress   (one row per user+guide, server-backed progress)
  * plus a low-permission `guide_reader` role/policy and one realistic seed guide.
  * Public guide access stays closed on Directus editions that cannot express field-
- * limited rules; the Astro server uses a server-only DIRECTUS_TOKEN and requests only
+ * limited rules; the Astro server uses a server-only DIRECTUS_SERVICE_TOKEN and requests only
  * preview-safe fields for anonymous pages.
  *
  * Idempotent: skips anything that already exists.
@@ -183,7 +183,7 @@ async function buildRelations() {
 // `custom_permission_rules_enabled is a restricted resource`. Only all-or-nothing
 // (`fields: ['*']`, no filter) is permitted. Never compensate by granting unrestricted
 // Public read: that exposes gated item bodies through the Directus API. Public guide
-// collections stay closed and anonymous SSR reads use a server-only DIRECTUS_TOKEN.
+// collections stay closed and Astro guide reads use a server-only DIRECTUS_SERVICE_TOKEN.
 // The public-preview-vs-gated-reader distinction is enforced at the APP layer:
 //   - the repository queries published guides only and requests preview fields for
 //     anonymous visitors (lib/repositories/guides.ts);
@@ -227,7 +227,7 @@ async function ensureGuideReaderRole() {
   const roles = await api('/roles?fields=id,name&limit=200');
   let role = roles.find((r) => r.name === 'Guide Reader');
   if (!role) {
-    role = await api('/roles', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ name: 'Guide Reader', icon: 'school', description: 'Low-permission learners: read full guide content + own progress.', admin_access: false, app_access: false }) });
+    role = await api('/roles', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ name: 'Guide Reader', icon: 'school', description: 'Low-permission learner identity; Astro gates guide content and scopes progress.', admin_access: false, app_access: false }) });
     console.log('+ role Guide Reader');
   } else {
     console.log('= role Guide Reader');
@@ -348,4 +348,4 @@ await buildCollections();
 await buildRelations();
 await buildPermissions();
 await seed();
-console.log('\nDone. Public and Guide Reader collection access are closed. Create a non-admin service user with the Guide Server role and static token, set it as frontend DIRECTUS_SERVICE_TOKEN (or DIRECTUS_TOKEN), then configure registration (default role = Guide Reader), SMTP, CORS/cookies, and optional Google OpenID (see reports/field-guides-auth-plan.html).');
+console.log('\nDone. Public and Guide Reader collection access are closed. Create a non-admin service user with the Guide Server role and static token, set it as frontend DIRECTUS_SERVICE_TOKEN, then configure registration (default role = Guide Reader), SMTP, CORS/cookies, and optional Google OpenID (see reports/field-guides-auth-plan.html).');

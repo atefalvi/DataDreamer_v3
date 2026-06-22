@@ -4,8 +4,8 @@
  * v4.0 public reads use the Directus Public role. Where the Public role is not open
  * (e.g. the greenfield staging instance), set a read-only `DIRECTUS_TOKEN` and the
  * client attaches it as a static token. This replaces the v3 admin email/password
- * login (audit 02 §4, 08 §5). Server writes in v4.1 will use a separate
- * `DIRECTUS_SERVICE_TOKEN` — never this read token, never a `PUBLIC_` var.
+ * login (audit 02 §4, 08 §5). Gated guides use one separate Guide Server static
+ * token in `DIRECTUS_SERVICE_TOKEN` — never a learner token and never a `PUBLIC_` var.
  */
 import { createDirectus, rest, staticToken } from '@directus/sdk';
 import type { Schema } from './schema';
@@ -19,7 +19,7 @@ export const PUBLIC_DIRECTUS_URL =
   env('PUBLIC_DIRECTUS_URL') ?? env('DIRECTUS_URL') ?? DIRECTUS_URL;
 
 const READ_TOKEN = env('DIRECTUS_TOKEN');
-const SERVICE_TOKEN = env('DIRECTUS_SERVICE_TOKEN') ?? READ_TOKEN;
+const SERVICE_TOKEN = env('DIRECTUS_SERVICE_TOKEN');
 
 function build() {
   const base = createDirectus<Schema>(DIRECTUS_URL).with(rest());
@@ -34,6 +34,6 @@ export const directus = build();
  * this non-admin token for gated content and explicitly user-scoped progress.
  */
 export function directusForService() {
-  if (!SERVICE_TOKEN) throw new Error('DIRECTUS_SERVICE_TOKEN (or DIRECTUS_TOKEN) is required for guide access.');
+  if (!SERVICE_TOKEN) throw new Error('DIRECTUS_SERVICE_TOKEN is required for guide access. Use the Guide Server service-user static token.');
   return createDirectus<Schema>(DIRECTUS_URL).with(rest()).with(staticToken(SERVICE_TOKEN));
 }

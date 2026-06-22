@@ -93,8 +93,8 @@ const jsonLd = [
         <p>{all.length.toString().padStart(2, '0')} published {all.length === 1 ? 'path' : 'paths'}</p>
         {user ? (
           <>
-            <strong>Reader access active</strong>
-            <span>{user.firstName || user.email ? `Signed in as ${user.firstName || user.email}` : 'Reader session active'}</span>
+            <strong>Your library is ready.</strong>
+            <span>Open a path, save each step, and return exactly where you stopped.</span>
             <a href="/account">Open my learning <span aria-hidden="true">→</span></a>
           </>
         ) : (

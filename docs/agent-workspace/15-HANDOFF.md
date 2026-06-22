@@ -17,6 +17,41 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-21] V4-QA-004 auth identity + mobile graph — in progress
+
+**Did**: Removed the ambiguous guide-token fallback: `DIRECTUS_SERVICE_TOKEN` now means
+only the dedicated Guide Server service-user static token. Added a non-mutating service
+check and production/local env guidance. Centralized learner identity, suppressed
+generic “Admin” labels, added Directus avatar support with monogram fallback, refined
+catalogue/account/nav copy, and replaced the filtered mobile logo with the clean inline
+brand mark. Added an independent SVG camera to the Dream Team graph: +/-/fit controls,
+wheel/pinch zoom, background pan, node drag compatibility, and person-focused mobile
+framing.
+
+**Files**: auth identity/session + tests; global brand/nav/mobile menu; account and guide
+catalogue; Directus client/env/compose; Dream Team page/enhancer; guide service check;
+docs `05`, `09`, `11`, `13`, `15`, scripts README, and `qa/guides.md`.
+
+**Decisions / deviations**: Guide Server is infrastructure and never a learner login.
+Human accounts use Guide Reader. The owner-requested mobile graph now mounts below LG,
+superseding the earlier list-only blueprint; the author list remains the accessible
+equivalent. Camera state is ephemeral and does not enter URL/data state.
+
+**Validation**: Production Guide Server contract: 1 published guide / 2 sections / 4
+items. Local production-data `/guides` renders the real guide. Browser QA at 1440 and
+390: clean logo geometry, zero horizontal overflow, graph opens on a visible person,
+zoom 100→120%, controls/inspector accessible. `astro check`, tests, and build pass
+(final rerun required after docs/tests).
+
+**Next**: Set the existing Guide Server static token as server-only
+`DIRECTUS_SERVICE_TOKEN` on the production frontend and redeploy. Then execute live
+email + Google login → guide start → progress → reload → account → logout before
+closing V4-QA-004 and starting V4-REL-002.
+
+**Warnings**: Never put the service token in `PUBLIC_*`, git, learner accounts, browser
+storage, or the backend resource. The backend needs Google/registration/cookie config,
+not `DIRECTUS_SERVICE_TOKEN`.
+
 ## [2026-06-21] V4-QA-004 production auth + guide hardening — in progress
 
 **Did**: Fixed the live-guide query contract for the restricted Guide Server policy

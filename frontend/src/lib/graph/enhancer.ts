@@ -10,6 +10,11 @@ export function initTeamGraph(): void {
   const svg = document.querySelector<SVGSVGElement>('[data-team-graph]');
   if (!stage || !svg) return;
 
+  const camera = svg.querySelector<SVGGElement>('[data-team-camera]');
+  const zoomIn = stage.querySelector<HTMLButtonElement>('[data-team-zoom-in]');
+  const zoomOut = stage.querySelector<HTMLButtonElement>('[data-team-zoom-out]');
+  const fitButton = stage.querySelector<HTMLButtonElement>('[data-team-fit]');
+  const zoomStatus = stage.querySelector<HTMLOutputElement>('[data-team-zoom-status]');
   const search = stage.querySelector<HTMLInputElement>('[data-team-search]');
   const resetButton = stage.querySelector<HTMLButtonElement>('[data-team-reset-layout]');
   const clearButton = stage.querySelector<HTMLButtonElement>('[data-team-clear-selection]');
@@ -19,7 +24,7 @@ export function initTeamGraph(): void {
   const inspectorMeta = stage.querySelector<HTMLElement>('[data-team-inspector-meta]');
   const nodeElements = Array.from(svg.querySelectorAll<SVGGraphicsElement>('.tg-node'));
   const linkElements = Array.from(svg.querySelectorAll<SVGGElement>('.tg-link-group'));
-  if (!nodeElements.length || !inspector || !inspectorTitle || !inspectorSummary || !inspectorMeta) return;
+  if (!camera || !nodeElements.length || !inspector || !inspectorTitle || !inspectorSummary || !inspectorMeta) return;
 
   type NodeState = {
     element: SVGGraphicsElement;
@@ -110,6 +115,14 @@ export function initTeamGraph(): void {
   let dragStart = { x: 0, y: 0 };
   let dragMoved = false;
   let suppressClick = false;
+  const cameraState = { scale: 1, x: 0, y: 0 };
+  const MIN_SCALE = 0.6;
+  const MAX_SCALE = 2.6;
+  const pointers = new Map<number, { x: number; y: number }>();
+  let panPointerId: number | null = null;
+  let panOrigin = { x: 0, y: 0, cameraX: 0, cameraY: 0 };
+  let pinchDistance = 0;
+  let pinchScale = 1;
 
   const escapeHtml = (value: string) =>
     value
@@ -118,13 +131,51 @@ export function initTeamGraph(): void {
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;');
 
-  const svgPoint = (event: PointerEvent) => {
-    const matrix = svg.getScreenCTM();
+  const pointFor = (element: SVGGraphicsElement, clientX: number, clientY: number) => {
+    const matrix = element.getScreenCTM();
     if (!matrix) return null;
     const point = svg.createSVGPoint();
-    point.x = event.clientX;
-    point.y = event.clientY;
+    point.x = clientX;
+    point.y = clientY;
     return point.matrixTransform(matrix.inverse());
+  };
+
+  const svgPoint = (event: PointerEvent) => pointFor(svg, event.clientX, event.clientY);
+  const graphPoint = (event: PointerEvent) => pointFor(camera, event.clientX, event.clientY);
+
+  const renderCamera = () => {
+    camera.setAttribute('transform', `translate(${cameraState.x} ${cameraState.y}) scale(${cameraState.scale})`);
+    if (zoomStatus) zoomStatus.value = `${Math.round(cameraState.scale * 100)}%`;
+    zoomOut?.toggleAttribute('disabled', cameraState.scale <= MIN_SCALE + 0.001);
+    zoomIn?.toggleAttribute('disabled', cameraState.scale >= MAX_SCALE - 0.001);
+  };
+
+  const zoomAt = (nextScale: number, point?: { x: number; y: number }) => {
+    const box = svg.viewBox.baseVal;
+    const anchor = point ?? { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    const scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, nextScale));
+    const worldX = (anchor.x - cameraState.x) / cameraState.scale;
+    const worldY = (anchor.y - cameraState.y) / cameraState.scale;
+    cameraState.x = anchor.x - worldX * scale;
+    cameraState.y = anchor.y - worldY * scale;
+    cameraState.scale = scale;
+    renderCamera();
+  };
+
+  const fitCamera = () => {
+    const box = svg.viewBox.baseVal;
+    const mobile = window.matchMedia('(max-width: 41.999rem)').matches;
+    const tablet = !mobile && window.matchMedia('(max-width: 63.999rem)').matches;
+    svg.setAttribute('preserveAspectRatio', mobile ? 'xMidYMid slice' : 'xMidYMid meet');
+    cameraState.scale = tablet ? 1.12 : 1;
+    const focal = mobile ? nodes.find((node) => node.type === 'person') : undefined;
+    cameraState.x = focal
+      ? box.x + box.width / 2 - focal.x * cameraState.scale
+      : box.x + (box.width * (1 - cameraState.scale)) / 2;
+    cameraState.y = focal
+      ? box.y + box.height / 2 - focal.y * cameraState.scale
+      : box.y + (box.height * (1 - cameraState.scale)) / 2;
+    renderCamera();
   };
 
   const clamp = (node: NodeState, x: number, y: number) => {
@@ -344,8 +395,9 @@ export function initTeamGraph(): void {
   for (const node of nodes) {
     node.element.addEventListener('pointerdown', (event) => {
       if (event.pointerType === 'mouse' && event.button !== 0) return;
-      const point = svgPoint(event);
+      const point = graphPoint(event);
       if (!point) return;
+      event.stopPropagation();
       dragged = node;
       dragPointerId = event.pointerId;
       dragMoved = false;
@@ -380,7 +432,7 @@ export function initTeamGraph(): void {
 
   svg.addEventListener('pointermove', (event) => {
     if (!dragged || event.pointerId !== dragPointerId) return;
-    const point = svgPoint(event);
+    const point = graphPoint(event);
     if (!point) return;
     const distance = Math.hypot(point.x - dragStart.x, point.y - dragStart.y);
     if (distance > 3) dragMoved = true;
@@ -413,6 +465,73 @@ export function initTeamGraph(): void {
   svg.addEventListener('pointerup', finishDrag);
   svg.addEventListener('pointercancel', finishDrag);
 
+  svg.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if ((event.target as Element).closest('.tg-node')) return;
+    const point = svgPoint(event);
+    if (!point) return;
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    svg.setPointerCapture?.(event.pointerId);
+    if (pointers.size === 1) {
+      panPointerId = event.pointerId;
+      panOrigin = { x: point.x, y: point.y, cameraX: cameraState.x, cameraY: cameraState.y };
+    } else if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinchDistance = Math.hypot(b.x - a.x, b.y - a.y);
+      pinchScale = cameraState.scale;
+      panPointerId = null;
+    }
+  });
+
+  svg.addEventListener('pointermove', (event) => {
+    if (!pointers.has(event.pointerId)) return;
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pointers.size === 2) {
+      event.preventDefault();
+      const [a, b] = [...pointers.values()];
+      const distance = Math.hypot(b.x - a.x, b.y - a.y);
+      const midpoint = pointFor(svg, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      if (pinchDistance > 0 && midpoint) zoomAt(pinchScale * (distance / pinchDistance), midpoint);
+      return;
+    }
+    if (panPointerId !== event.pointerId) return;
+    const point = svgPoint(event);
+    if (!point) return;
+    event.preventDefault();
+    cameraState.x = panOrigin.cameraX + point.x - panOrigin.x;
+    cameraState.y = panOrigin.cameraY + point.y - panOrigin.y;
+    renderCamera();
+  });
+
+  const finishCameraPointer = (event: PointerEvent) => {
+    if (!pointers.has(event.pointerId)) return;
+    pointers.delete(event.pointerId);
+    svg.releasePointerCapture?.(event.pointerId);
+    panPointerId = null;
+    pinchDistance = 0;
+    if (pointers.size === 1) {
+      const [id, remaining] = [...pointers.entries()][0];
+      const point = pointFor(svg, remaining.x, remaining.y);
+      if (point) {
+        panPointerId = id;
+        panOrigin = { x: point.x, y: point.y, cameraX: cameraState.x, cameraY: cameraState.y };
+      }
+    }
+  };
+  svg.addEventListener('pointerup', finishCameraPointer);
+  svg.addEventListener('pointercancel', finishCameraPointer);
+
+  svg.addEventListener('wheel', (event) => {
+    event.preventDefault();
+    const point = pointFor(svg, event.clientX, event.clientY);
+    if (!point) return;
+    zoomAt(cameraState.scale * (event.deltaY > 0 ? 0.9 : 1.1), point);
+  }, { passive: false });
+
+  zoomIn?.addEventListener('click', () => zoomAt(cameraState.scale * 1.2));
+  zoomOut?.addEventListener('click', () => zoomAt(cameraState.scale / 1.2));
+  fitButton?.addEventListener('click', fitCamera);
+
   search?.addEventListener('input', applyFocus);
   clearButton?.addEventListener('click', () => select(null));
   resetButton?.addEventListener('click', () => {
@@ -430,6 +549,7 @@ export function initTeamGraph(): void {
     }
     render();
     applyFocus();
+    fitCamera();
   });
 
   document.addEventListener('keydown', (event) => {
@@ -450,5 +570,6 @@ export function initTeamGraph(): void {
   });
 
   render();
+  fitCamera();
   setInspector(null);
 }

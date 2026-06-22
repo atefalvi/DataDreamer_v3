@@ -1,0 +1,16 @@
+---
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg class:list={['brand-mark', className]} viewBox="0 0 1024 1024" aria-hidden="true" focusable="false">
+  <path fill="currentColor" d="M717 205h102v102h103v410H819v102H717v103H467c-137 0-248 0-248-1 1 0 7-2 12-3 41-10 73-48 76-90l1-9h409V717h102V307H717V205H205v512h-9c-36 3-68 26-84 59-4 9-8 22-8 26 0 2 0 3-1 4-1 0-1-117-1-352V103l308-1h307ZM614 614v103H307V307h307v103h103v204Zm0 0V410H410v204Z" />
+  <path fill="#fd2e00" d="m307 811 1 8-1 9c-3 42-35 80-76 90l-12 3h18c-27 0-43 0-44-1-21-2-45-13-60-28-17-17-28-39-30-64-1-7-1-118-1-368v-7 353c1 0 1-2 1-4 0-4 4-17 9-26 15-33 48-56 84-59h9l9 1c29 2 59 19 75 43 10 15 17 33 18 50Z" />
+</svg>
+
+<style>
+  .brand-mark { display: block; width: 100%; height: 100%; }
+</style>

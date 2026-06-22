@@ -414,11 +414,13 @@ by `-featured,sort` and `guide_progress` by `-started_at`; its policy intentiona
 does not expose `date_created`/`date_updated`. Google logout must clear
 `directus_session_token` at `Domain=.data-dreamer.net`; the frontend infers this scope
 from production `SITE_URL`, with `AUTH_COOKIE_DOMAIN` remaining the explicit override.
-For named account UI, the authenticated identity policy should allow `/users/me` to
-read the current user's `id,email,first_name,last_name`; the UI deliberately falls back
-to “Reader session active” when only `id` is available. Code and responsive QA are
-complete locally; production deploy + progress mutation/reload and email/Google login
-smokes remain before this task can move to done.
+For named account UI, `/users/me` should expose the current user's
+`id,email,first_name,last_name,avatar`; the UI suppresses generic role-era labels such
+as “Admin,” uses email/neutral identity fallbacks, and renders Directus avatars when
+available. `DIRECTUS_SERVICE_TOKEN` is now the sole Field Guide service credential and
+must contain the Guide Server service-user static token. Local guide data, responsive
+identity/logo, and mobile graph zoom/pan QA are complete; production deploy + progress
+mutation/reload and email/Google login smokes remain before this task can move to done.
 
 ### V4-REL-002 — v4.1 release
 **Objective**: release protocol re-run; production smoke on the live seed guide (browse,

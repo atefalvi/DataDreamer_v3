@@ -3,9 +3,43 @@
 Run on staging (Directus seeded via `scripts/v4-guides-schema.mjs`, frontend with
 `PUBLIC_GUIDES_ENABLED=true`).
 
+## Credential and role runbook
+
+There are two identities and only one production service secret:
+
+1. **Guide Server service user** — Directus User Directory account with role **Guide
+   Server**, no admin/app access, and a static token. Put that token only on the Coolify
+   **frontend** resource as `DIRECTUS_SERVICE_TOKEN`. It lets Astro read guide data and
+   write progress after Astro verifies a human session. It is not used to sign in.
+2. **Guide Reader human user** — every email/Google learner account. Registration and
+   Google `AUTH_GOOGLE_DEFAULT_ROLE_ID` must assign this role. Human tokens/cookies are
+   session identity only and never become `DIRECTUS_SERVICE_TOKEN`.
+
+Frontend production env: `DIRECTUS_URL` (internal server URL),
+`PUBLIC_DIRECTUS_URL=https://api.data-dreamer.net`,
+`DIRECTUS_SERVICE_TOKEN=<Guide Server static token>`,
+`SITE_URL=https://data-dreamer.net`, `PUBLIC_GUIDES_ENABLED=true`, and
+`AUTH_COOKIE_DOMAIN=.data-dreamer.net`. Do not set this secret as `PUBLIC_*` and do not
+put it on the backend resource.
+
+Backend production env: Directus/database core vars plus `CORS_ORIGIN`, `APP_ORIGIN`,
+`GUIDE_READER_ROLE_ID`, `SESSION_COOKIE_DOMAIN=.data-dreamer.net`,
+`SESSION_COOKIE_SECURE=true`, and Google `AUTH_GOOGLE_CLIENT_ID` /
+`AUTH_GOOGLE_CLIENT_SECRET`. The compose file supplies the remaining provider settings.
+In Directus Settings, enable User Registration and select **Guide Reader** as its default
+role. In Google Cloud, authorize
+`https://api.data-dreamer.net/auth/login/google/callback`.
+
+To rotate the service token: generate a new static token on the Guide Server user,
+replace `DIRECTUS_SERVICE_TOKEN` in the frontend, redeploy, run
+`v4-guides-service-check.mjs`, then revoke the old token. Never paste it into source or
+browser storage. User names/avatars live on each Directus user record; Google sync
+keeps first name, last name, and email current. Avatar upload is optional because the UI
+has a monogram fallback.
+
 ## Automated (CI gate) — ✅ passing
 
-`astro check` 0 errors · 90 unit tests · production build. Includes the pure
+`astro check` 0 errors · 93 unit tests · production build. Includes the pure
 `deriveProgress` engine, repo preview/reader gating + ordering + curator dedup, and the
 `safeNext` open-redirect guard.
 
@@ -30,6 +64,8 @@ End-to-end, the exact operations the frontend performs (2026-06: 10/10):
 ## Production hardening pass — 2026-06-21
 
 - ✅ Guide Server token reads one published guide, two sections, and four items.
+- ✅ `v4-guides-service-check.mjs` validates the frontend credential without printing
+  or mutating it; guide credentials no longer fall back to `DIRECTUS_TOKEN`.
 - ✅ Catalogue repository no longer requests forbidden `guides.date_created`.
 - ✅ Account repository no longer requests forbidden `guide_progress.date_updated`.
 - ✅ Production-mode logout returns 303, clears the OAuth cookie at
@@ -39,9 +75,11 @@ End-to-end, the exact operations the frontend performs (2026-06: 10/10):
 - ✅ Google provider is registered at the production Directus `/auth` endpoint.
 - ⏳ Production frontend still shows the empty catalogue until the new code is deployed
   with `DIRECTUS_SERVICE_TOKEN` set on the frontend resource.
-- ⏳ Guide Server `/users/me` currently returns only `id`; grant own-user read access to
-  `email`, `first_name`, and `last_name` for named account UI. The shipped fallback is
-  “Reader session active.”
+- ✅ Identity UI no longer exposes role language or generic “Admin” labels. It supports
+  Directus avatars and uses a monogram/email fallback when profile fields are absent.
+- ✅ Mobile brand mark uses the clean inline source paths (no blur filters or theme swap).
+- ✅ Dream Team map has keyboard zoom controls, wheel/pinch zoom, drag pan, fit/reset,
+  a person-focused mobile opening view, and zero horizontal overflow at 390px.
 
 ## Browser pass — ⏳ production deploy required
 

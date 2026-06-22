@@ -68,6 +68,7 @@ services:
       PUBLIC_URL: "${DIRECTUS_PUBLIC_URL:-http://localhost:8056}"
       CORS_ENABLED: "true"
       CORS_ORIGIN: "${CORS_ORIGIN:-http://localhost:4321}"
+      CORS_CREDENTIALS: "true"
 
       # Google SSO for Field Guides (v4.1). Set the secret + role/domain in the
       # deployment env (Coolify). Google console redirect URI must be:
@@ -78,11 +79,16 @@ services:
       AUTH_GOOGLE_CLIENT_ID: "${AUTH_GOOGLE_CLIENT_ID}"
       AUTH_GOOGLE_CLIENT_SECRET: "${AUTH_GOOGLE_CLIENT_SECRET}"
       AUTH_GOOGLE_SCOPE: "openid email profile"
+      AUTH_GOOGLE_IDENTIFIER_KEY: "email"
       AUTH_GOOGLE_ALLOW_PUBLIC_REGISTRATION: "true"
+      AUTH_GOOGLE_REQUIRE_VERIFIED_EMAIL: "true"
       AUTH_GOOGLE_DEFAULT_ROLE_ID: "${GUIDE_READER_ROLE_ID}"
+      AUTH_GOOGLE_SYNC_USER_INFO: "true"
+      AUTH_GOOGLE_LABEL: "Google"
+      AUTH_GOOGLE_MODE: "session"
       # Where Directus may send the browser after OAuth (the app origin(s)).
       AUTH_GOOGLE_REDIRECT_ALLOW_LIST: "${APP_ORIGIN}"
       # Share the session cookie across subdomains so the app can read it.
       SESSION_COOKIE_DOMAIN: "${SESSION_COOKIE_DOMAIN}"
       SESSION_COOKIE_SAME_SITE: "lax"
-      #SESSION_COOKIE_SECURE: "true"
+      SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-false}"

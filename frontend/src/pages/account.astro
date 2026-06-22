@@ -10,6 +10,7 @@ import Icon from '../components/ui/Icon.astro';
 import { guidesRepo } from '../lib/repositories';
 import { formatMinutes } from '../lib/guides/progress';
 import type { AccountGuideProgress, GuideListItem } from '../types/content';
+import { userIdentity } from '../lib/auth/identity';
 
 const user = Astro.locals.user;
 
@@ -34,14 +35,7 @@ if (user) {
 const inProgress = guides.filter((g) => g.status !== 'completed');
 const completed = guides.filter((g) => g.status === 'completed');
 
-const displayName = user?.firstName || user?.email?.split('@')[0] || 'Reader';
-const initials =
-  displayName
-    .split(/[.\s_-]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? '')
-    .join('') || 'U';
+const identity = user ? userIdentity(user) : undefined;
 
 const benefits = [
   { icon: 'bookmark', title: 'Save your progress', text: 'Pick up any guide where you left off — your path is remembered.' },
@@ -58,11 +52,13 @@ const benefits = [
   {user ? (
     <div class="account container-content">
       <section class="account__profile">
-        <span class="account__avatar" aria-hidden="true">{initials}</span>
+        <span class:list={['account__avatar', { 'has-image': identity?.avatarUrl }]} aria-hidden="true">
+          {identity?.avatarUrl ? <img src={identity.avatarUrl} alt="" width="72" height="72" /> : identity?.initials}
+        </span>
         <div class="account__id">
           <p class="kicker">Your account</p>
-          <h1>{user.firstName ? `Welcome back, ${user.firstName}` : 'Welcome back'}</h1>
-          <p class="account__email">{user.email || 'Reader account · session active'}</p>
+          <h1>{identity?.firstName ? `Welcome back, ${identity.firstName}` : 'Welcome back'}</h1>
+          <p class="account__email">{identity?.secondary}</p>
         </div>
         <form method="post" action="/api/auth/logout" class="account__signout-form">
           <button type="submit" class="account__signout"><Icon name="log-out" size={16} /> Sign out</button>
@@ -186,7 +182,11 @@ const benefits = [
     font-family: var(--font-mono);
     font-size: var(--fs-lg);
     font-weight: 700;
+    overflow: hidden;
   }
+
+  .account__avatar.has-image { background: var(--bg-2); }
+  .account__avatar img { width: 100%; height: 100%; object-fit: cover; }
 
   .account__id {
     flex: 1;

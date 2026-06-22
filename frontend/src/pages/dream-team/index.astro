@@ -104,38 +104,6 @@ const jsonLd = [
         {showGraph && layout && (
           <section class="dt-stage" aria-label="Interactive Dream Team network" data-team-network>
             <span class="dt-stage__bg" aria-hidden="true"></span>
-            <div class="dt-stage__panel dt-inspector" aria-live="polite" data-team-inspector>
-              <div class="dt-panel__head">
-                <div>
-                  <p class="kicker">Network map</p>
-                  <h2 data-team-inspector-title>Select a node</h2>
-                </div>
-                <button class="dt-help" type="button" aria-label="Network interaction help">
-                  <Icon name="circle-help" size={16} />
-                  <span>Search, select, or drag nodes. Reset returns the original layout.</span>
-                </button>
-              </div>
-
-              <p class="dt-panel__summary" data-team-inspector-summary>Select a node for details.</p>
-
-              <label class="dt-search" for="team-search">
-                <span>Search network</span>
-                <input id="team-search" type="search" placeholder="Search people or skills" data-team-search />
-              </label>
-
-              <div class="dt-actions" aria-label="Network actions">
-                <button type="button" data-team-reset-layout>Reset layout</button>
-                <button type="button" data-team-clear-selection>Clear selection</button>
-              </div>
-
-              <div class="dt-inspector__meta" data-team-inspector-meta>
-                <span>{authors.length} people</span>
-                <span>{specialties.length} skills</span>
-                <span>{sharedSkillCount} shared</span>
-                <span>{graphLinkCount} links</span>
-              </div>
-            </div>
-
             <div class="dt-stage__canvas">
               <div class="dt-stage__topline" aria-hidden="true">
                 <span>{graphNodeCount} nodes</span>
@@ -166,6 +134,7 @@ const jsonLd = [
                   })}
                 </defs>
 
+                <g data-team-camera>
                 <ellipse class="tg-orbit tg-orbit--outer" cx={GRAPH.cx} cy={GRAPH.cy} rx={GRAPH.rx} ry={GRAPH.ry} />
                 <ellipse class="tg-orbit tg-orbit--inner" cx={GRAPH.cx} cy={GRAPH.cy} rx={GRAPH.rx * 0.58} ry={GRAPH.ry * 0.54} />
                 <circle class="tg-core" cx={GRAPH.cx} cy={GRAPH.cy} r="176" fill="url(#tg-core)" />
@@ -276,7 +245,46 @@ const jsonLd = [
                     );
                   })}
                 </g>
+                </g>
               </svg>
+              <div class="dt-camera" aria-label="Map zoom controls">
+                <button type="button" aria-label="Zoom out" title="Zoom out" data-team-zoom-out><Icon name="minus" size={20} /></button>
+                <output data-team-zoom-status aria-live="polite">100%</output>
+                <button type="button" aria-label="Zoom in" title="Zoom in" data-team-zoom-in><Icon name="plus" size={20} /></button>
+                <button type="button" aria-label="Fit network to view" title="Fit network to view" data-team-fit><Icon name="maximize-2" size={20} /></button>
+              </div>
+            </div>
+
+            <div class="dt-stage__panel dt-inspector" aria-live="polite" data-team-inspector>
+              <div class="dt-panel__head">
+                <div>
+                  <p class="kicker">Network map</p>
+                  <h2 data-team-inspector-title>Select a node</h2>
+                </div>
+                <button class="dt-help" type="button" aria-label="Network interaction help">
+                  <Icon name="circle-help" size={16} />
+                  <span>Drag nodes or the map. Pinch, scroll, or use the controls to zoom.</span>
+                </button>
+              </div>
+
+              <p class="dt-panel__summary" data-team-inspector-summary>Select a node for details.</p>
+
+              <label class="dt-search" for="team-search">
+                <span>Search network</span>
+                <input id="team-search" type="search" placeholder="Search people or skills" data-team-search />
+              </label>
+
+              <div class="dt-actions" aria-label="Network actions">
+                <button type="button" data-team-reset-layout>Reset layout</button>
+                <button type="button" data-team-clear-selection>Clear selection</button>
+              </div>
+
+              <div class="dt-inspector__meta" data-team-inspector-meta>
+                <span>{authors.length} people</span>
+                <span>{specialties.length} skills</span>
+                <span>{sharedSkillCount} shared</span>
+                <span>{graphLinkCount} links</span>
+              </div>
             </div>
           </section>
         )}
@@ -549,6 +557,54 @@ const jsonLd = [
     text-transform: uppercase;
   }
 
+  .dt-camera {
+    position: absolute;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid color-mix(in srgb, var(--border-2) 78%, transparent);
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--bg-0) 84%, transparent);
+    backdrop-filter: blur(18px) saturate(130%);
+    -webkit-backdrop-filter: blur(18px) saturate(130%);
+    box-shadow: var(--shadow-2);
+  }
+
+  .dt-camera button {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+
+  .dt-camera button:hover,
+  .dt-camera button:focus-visible {
+    background: color-mix(in srgb, var(--accent) 12%, var(--bg-2));
+    color: var(--text-1);
+    outline: none;
+  }
+
+  .dt-camera button:focus-visible { box-shadow: inset 0 0 0 2px var(--focus-ring); }
+  .dt-camera button:disabled { cursor: not-allowed; opacity: 0.34; }
+
+  .dt-camera output {
+    min-width: 3.25rem;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-align: center;
+  }
+
   .tg {
     width: 100%;
     height: clamp(30rem, 62vh, 48rem);
@@ -556,7 +612,10 @@ const jsonLd = [
     overflow: visible;
     touch-action: none;
     user-select: none;
+    cursor: grab;
   }
+
+  .tg:active { cursor: grabbing; }
 
   .tg-orbit {
     fill: none;
@@ -827,17 +886,34 @@ const jsonLd = [
     }
 
     .dt-actions {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .tg {
-      height: 34rem;
-      min-height: 34rem;
+      height: 29rem;
+      min-height: 29rem;
     }
 
     .dt-stage__topline {
       position: static;
       padding: var(--space-4) var(--space-4) 0;
+    }
+
+    .dt-stage__panel,
+    .dt-inspector {
+      gap: var(--space-3);
+    }
+
+    .dt-camera {
+      right: var(--space-3);
+      bottom: var(--space-3);
+    }
+
+    .dt-camera output { display: none; }
+
+    .dt-camera button {
+      width: 42px;
+      height: 42px;
     }
   }
 
