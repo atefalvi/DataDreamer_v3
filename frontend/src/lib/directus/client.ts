@@ -37,3 +37,17 @@ export function directusForService() {
   if (!SERVICE_TOKEN) throw new Error('DIRECTUS_SERVICE_TOKEN is required for guide access. Use the Guide Server service-user static token.');
   return createDirectus<Schema>(DIRECTUS_URL).with(rest()).with(staticToken(SERVICE_TOKEN));
 }
+
+/**
+ * Server-only REST bridge for Directus system endpoints that are not represented by
+ * the content SDK schema (for example, the verified learner's user profile/avatar).
+ */
+export async function directusServiceFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  if (!SERVICE_TOKEN) {
+    throw new Error('DIRECTUS_SERVICE_TOKEN is required for server profile access.');
+  }
+
+  const headers = new Headers(init.headers);
+  headers.set('Authorization', `Bearer ${SERVICE_TOKEN}`);
+  return fetch(`${DIRECTUS_URL}${path}`, { ...init, headers });
+}

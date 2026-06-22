@@ -417,10 +417,13 @@ from production `SITE_URL`, with `AUTH_COOKIE_DOMAIN` remaining the explicit ove
 Google login uses the fixed app callback `/api/auth/google/callback`; dynamic guide
 destinations are stored in a short-lived HttpOnly cookie because Directus validates the
 complete redirect URL against `AUTH_GOOGLE_REDIRECT_ALLOW_LIST`.
-For named account UI, `/users/me` should expose the current user's
-`id,email,first_name,last_name,avatar`; the UI suppresses generic role-era labels such
-as “Admin,” uses email/neutral identity fallbacks, and renders Directus avatars when
-available. `DIRECTUS_SERVICE_TOKEN` is now the sole Field Guide service credential and
+For named account UI, the learner token verifies only `/users/me?id`; Astro then uses
+the server-only Guide Server policy to read that exact user's
+`email,first_name,last_name,provider,avatar`. The UI suppresses generic role-era labels,
+uses a monogram fallback, and proxies private Directus avatars through the authenticated
+same-origin app route. Google sync supplies name/email but not a Directus file avatar;
+upload that field on the user record when a photo is wanted. `DIRECTUS_SERVICE_TOKEN` is
+the sole Field Guide service credential and
 must contain the Guide Server service-user static token. Local guide data, responsive
 identity/logo, and mobile graph zoom/pan QA are complete; production deploy + progress
 mutation/reload and email/Google login smokes remain before this task can move to done.

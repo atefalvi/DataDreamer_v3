@@ -17,6 +17,35 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-22] V4-QA-004 learner profile enrichment — in progress
+
+**Did**: Kept Guide Reader browser permissions closed while adding server-side profile
+enrichment for the already-verified learner id. Added a private same-origin avatar
+proxy, real avatar rendering in desktop/mobile account controls, and a resolved
+learning-profile panel on `/account` with name, email, provider, membership status,
+guide progress, and sign-out. Google-created users now display their synced name/email;
+Directus file avatars remain an intentional manual upload.
+
+**Files**: auth session/identity/types/tests, Directus service bridge, avatar API,
+navigation/mobile menu/account UI, guide schema/service check, tasks/model/architecture,
+QA/report/handoff docs.
+
+**Decisions / deviations**: Do not open `directus_users` to browser learner tokens.
+Guide Server reads the system collection server-side, but Astro requests only the id
+first verified by that learner's `/users/me` session. Google does not populate the
+Directus file-based Avatar field.
+
+**Validation**: 96 tests; Astro check 0/0/0; production build; account and account-menu
+browser review at 390×844 and 1280×800 with Maria's Google identity; no overflow or
+console errors. Temporary mock identity code was removed after visual QA.
+
+**Next**: Rerun `scripts/v4-guides-schema.mjs` against production with an admin token,
+run the service check, deploy the frontend, upload Maria's Avatar in Directus if wanted,
+then verify nav/account/avatar/progress/logout live before closing V4-QA-004.
+
+**Warnings**: Until the Guide Server policy gains `directus_users` read access, the app
+degrades safely to the monogram/neutral identity fallback.
+
 ## [2026-06-22] V4-QA-004 fixed Google callback — in progress
 
 **Did**: Replaced dynamic Directus OAuth return URLs (`/login?next=…`) with a fixed

@@ -10,7 +10,7 @@ Scripts you actually run today.
 | Script | What it does | How to run |
 |---|---|---|
 | `v4-guides-schema.mjs` | **v4.1 Field Guides** — creates guide/progress collections, Guide Reader identity and Guide Server data roles, and one sample guide. Public and browser-session collection access stay closed; Astro uses a non-admin `DIRECTUS_SERVICE_TOKEN`. Idempotent. | `DIRECTUS_URL=… DIRECTUS_ADMIN_TOKEN=… node scripts/v4-guides-schema.mjs` |
-| `v4-guides-service-check.mjs` | Non-mutating check that the frontend Guide Server credential can read one published guide, section, and full item body. Never prints the token. | `DIRECTUS_URL=… DIRECTUS_SERVICE_TOKEN=… node scripts/v4-guides-service-check.mjs` |
+| `v4-guides-service-check.mjs` | Non-mutating check that the frontend Guide Server credential can read one published guide, section, full item body, and learner profile id. Never prints token or user data. | `DIRECTUS_URL=… DIRECTUS_SERVICE_TOKEN=… node scripts/v4-guides-service-check.mjs` |
 | `release-smoke.mjs` | Post-deploy smoke test (status codes, redirects, RSS, sitemap, OG fetch). | `node scripts/release-smoke.mjs https://data-dreamer.net` |
 | `v4-guides-smoke.mjs` | **Field Guides QA** — full reader journey (anon catalogue/preview → register/login → gated read → progress) against a live env; verifies Google SSO is registered. | `DIRECTUS_ADMIN_TOKEN=… node scripts/v4-guides-smoke.mjs <directusUrl> [frontendUrl]` |
 | `generate-og-temp.mjs` | (Re)generate the temporary section OG images in `frontend/public/og/`. | `node scripts/generate-og-temp.mjs` |

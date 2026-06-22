@@ -8,7 +8,7 @@
  * Directus enforces the `guide_reader` policy on reads/writes.
  */
 import type { AstroCookies } from 'astro';
-import { DIRECTUS_URL, PUBLIC_DIRECTUS_URL } from '../directus/client';
+import { DIRECTUS_URL, PUBLIC_DIRECTUS_URL, directusServiceFetch } from '../directus/client';
 import { SITE_URL } from '../seo/meta';
 
 const ACCESS = 'dd_at';
@@ -62,7 +62,10 @@ export interface SessionUser {
   email: string;
   firstName?: string;
   lastName?: string;
+  provider?: string;
+  avatarId?: string;
   avatarUrl?: string;
+  createdAt?: string;
   accessToken: string;
 }
 
@@ -125,21 +128,53 @@ export async function register(email: string, password: string, firstName?: stri
   });
 }
 
-type MeResponse = { data: { id: string; email?: string; first_name?: string; last_name?: string; avatar?: string | { id?: string } } };
+type DirectusUserProfile = {
+  id: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  provider?: string;
+  avatar?: string | { id?: string };
+  date_created?: string;
+};
+
+type MeResponse = { data: Pick<DirectusUserProfile, 'id'> };
+type ProfileResponse = { data: DirectusUserProfile };
+
+export function toSessionProfile(
+  verifiedId: string,
+  profile?: DirectusUserProfile,
+): Omit<SessionUser, 'accessToken'> {
+  const avatarId = typeof profile?.avatar === 'string' ? profile.avatar : profile?.avatar?.id;
+  return {
+    id: verifiedId,
+    email: profile?.email ?? '',
+    firstName: profile?.first_name ?? undefined,
+    lastName: profile?.last_name ?? undefined,
+    provider: profile?.provider ?? undefined,
+    avatarId,
+    avatarUrl: avatarId ? '/api/auth/avatar' : undefined,
+    createdAt: profile?.date_created ?? undefined,
+  };
+}
+
+async function fetchServerProfile(id: string): Promise<DirectusUserProfile | undefined> {
+  const fields = 'id,email,first_name,last_name,provider,avatar,date_created';
+  const response = await directusServiceFetch(`/users/${encodeURIComponent(id)}?fields=${fields}`);
+  if (!response.ok) return undefined;
+  const body = (await response.json()) as ProfileResponse;
+  return body.data;
+}
 
 export async function fetchMe(accessToken: string): Promise<Omit<SessionUser, 'accessToken'>> {
-  const body = await api<MeResponse>('/users/me?fields=id,email,first_name,last_name,avatar', {
+  // The learner token proves identity but intentionally has no broad user-directory
+  // access. The server credential enriches only that already-verified user id.
+  const body = await api<MeResponse>('/users/me?fields=id', {
     method: 'GET',
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  const avatarId = typeof body.data.avatar === 'string' ? body.data.avatar : body.data.avatar?.id;
-  return {
-    id: body.data.id,
-    email: body.data.email ?? '',
-    firstName: body.data.first_name ?? undefined,
-    lastName: body.data.last_name ?? undefined,
-    avatarUrl: avatarId ? `${PUBLIC_DIRECTUS_URL}/assets/${avatarId}?width=160&height=160&fit=cover&quality=82` : undefined,
-  };
+  const profile = await fetchServerProfile(body.data.id).catch(() => undefined);
+  return toSessionProfile(body.data.id, profile);
 }
 
 export function setSession(cookies: AstroCookies, tokens: SessionTokens): void {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { authCookieDomain, googleStartUrl, safeNext } from '../session';
+import { authCookieDomain, googleStartUrl, safeNext, toSessionProfile } from '../session';
 
 describe('safeNext (open-redirect guard)', () => {
   it('allows same-origin paths', () => {
@@ -43,5 +43,36 @@ describe('googleStartUrl', () => {
     expect(start.pathname).toBe('/auth/login/google');
     expect(redirect.pathname).toBe('/api/auth/google/callback');
     expect(redirect.search).toBe('');
+  });
+});
+
+describe('toSessionProfile', () => {
+  it('maps the server-enriched Directus profile to a private app avatar route', () => {
+    expect(toSessionProfile('verified-user', {
+      id: 'verified-user',
+      email: 'maria.thehr@gmail.com',
+      first_name: 'Maria',
+      last_name: 'Khan',
+      provider: 'google',
+      avatar: { id: 'avatar-file' },
+      date_created: '2026-06-22T12:00:00Z',
+    })).toEqual({
+      id: 'verified-user',
+      email: 'maria.thehr@gmail.com',
+      firstName: 'Maria',
+      lastName: 'Khan',
+      provider: 'google',
+      avatarId: 'avatar-file',
+      avatarUrl: '/api/auth/avatar',
+      createdAt: '2026-06-22T12:00:00Z',
+    });
+  });
+
+  it('keeps a verified session usable when profile enrichment is unavailable', () => {
+    expect(toSessionProfile('verified-user')).toMatchObject({
+      id: 'verified-user',
+      email: '',
+      avatarUrl: undefined,
+    });
   });
 });

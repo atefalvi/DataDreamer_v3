@@ -303,9 +303,14 @@ async function buildPermissions() {
   // The non-admin server token is never sent to browsers. Astro filters published
   // guides/preview fields and scopes every progress query by the verified user id.
   await ensureGuideServerRole();
+  // `directus_users` is server-only. Astro first verifies `/users/me` with the
+  // learner token, then reads only that exact id to render the account identity.
   for (const collection of [...GUIDE_READ_COLLECTIONS, 'authors', 'topics', 'specialties', 'directus_files']) {
     await ensurePermission(serverPolicyId, collection, 'read');
   }
+  await ensurePermission(serverPolicyId, 'directus_users', 'read', [
+    'id', 'email', 'first_name', 'last_name', 'provider', 'avatar', 'date_created',
+  ]);
   for (const action of ['read', 'create', 'update']) {
     await ensurePermission(serverPolicyId, 'guide_progress', action);
   }
