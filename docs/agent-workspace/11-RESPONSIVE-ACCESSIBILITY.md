@@ -9,7 +9,7 @@
 | (base) | <480 | SM small mobile | Single column everything; type at scale minimums; chips/scrollers become horizontal scroll with fade masks; stat grids 2×2 |
 | `--bp-sm` 480 | 480–767 | LM large mobile | Compact post cards regain one-line meta rows; 2-up small grids (badges, avatars) |
 | `--bp-md` 768 | 768–1023 | TP tablet portrait | **Nav switches** hamburger→inline links; hero canvas mounts (07 §2.8); 2-col card grids; article TOC still collapsed |
-| `--bp-lg` 1024 | 1024–1279 | TL tablet landscape | Sidebars/rails appear (TOC, fact rail); **team graph mounts**; guide item annotations go 2-col; asymmetric grids activate |
+| `--bp-lg` 1024 | 1024–1279 | TL tablet landscape | Sidebars/rails appear (TOC, fact rail); team graph expands to its two-column inspector layout; guide item annotations go 2-col; asymmetric grids activate |
 | `--bp-xl` 1280 | 1280–1535 | DT desktop | Full 12-col compositions, offset work grid |
 | `--bp-2xl` 1536 | ≥1536 | WD wide | Nothing new appears — containers clamp, gutters grow. Deliberate: ultra-wide gets calm margins, not more columns |
 
@@ -98,6 +98,11 @@ all interactive elements reachable.
 | Progress bars (v4.1) | `role="progressbar"` + `aria-valuenow/min/max` + visible "X of N" text |
 | Forms (v4.1) | label-for everything; errors `aria-describedby` + summary `role="alert"` focus target; `autocomplete` attrs; no placeholder-as-label |
 | Toasts/announcements | one shared visually-hidden `aria-live="polite"` region (copy code, copied email); `assertive` reserved for form failures |
+
+The Dream Team graph is progressively enhanced on all breakpoints. Phone view starts
+on a person-focused crop rather than shrinking the full desktop atlas; users can pan,
+pinch/wheel zoom, or use explicit 44px +/-/fit controls. Camera state is ephemeral and
+does not alter node data or URL state. The complete author list follows the graph.
 
 ### 6. Screen-reader QA script (V4-QA-003)
 VoiceOver/Safari + NVDA/Firefox passes: navigate home by landmarks/headings; open

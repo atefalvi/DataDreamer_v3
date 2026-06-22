@@ -7,7 +7,9 @@
  */
 import ThemeToggle from './ThemeToggle.astro';
 import Icon from '../ui/Icon.astro';
+import BrandMark from './BrandMark.astro';
 import { NAV_ITEMS } from '../../content/site';
+import { userIdentity } from '../../lib/auth/identity';
 
 interface Props {
   transparentOverHero?: boolean;
@@ -21,15 +23,7 @@ function isActive(href: string): boolean {
   return href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
 }
 
-// Avatar initials from the learner's name or email local-part (e.g. "guide-user" → "GU").
-const displayName = user?.firstName || user?.email?.split('@')[0] || 'Reader';
-const initials =
-  displayName
-    .split(/[.\s_-]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? '')
-    .join('') || 'U';
+const identity = user ? userIdentity(user) : undefined;
 ---
 
 <nav
@@ -40,8 +34,7 @@ const initials =
   <div class="site-nav__inner container-wide">
     <a href="/" class="site-nav__brand" aria-label="DataDreamer — home">
       <span class="site-nav__mark" aria-hidden="true">
-        <img src="/data-dreamer-logo-pop-dark.svg" alt="" width="34" height="34" class="site-nav__logo site-nav__logo--dark" />
-        <img src="/data-dreamer-logo-pop-light.svg" alt="" width="34" height="34" class="site-nav__logo site-nav__logo--light" />
+        <BrandMark class="site-nav__logo" />
       </span>
       <span class="site-nav__wordmark" aria-hidden="true">
         <span>Data</span>
@@ -65,15 +58,19 @@ const initials =
       {user ? (
         <details class="site-nav__menu" data-account-menu>
           <summary class="site-nav__avatar" aria-label="Account menu" aria-haspopup="menu">
-            <span class="site-nav__avatar-badge" aria-hidden="true">{initials}</span>
+            <span class:list={['site-nav__avatar-badge', { 'has-image': identity?.avatarUrl }]} aria-hidden="true">
+              {identity?.avatarUrl ? <img src={identity.avatarUrl} alt="" width="36" height="36" /> : identity?.initials}
+            </span>
             <Icon name="chevron-down" size={16} />
           </summary>
           <div class="site-nav__dropdown" role="menu">
             <div class="site-nav__dropdown-id">
-              <span class="site-nav__avatar-badge site-nav__avatar-badge--lg" aria-hidden="true">{initials}</span>
+              <span class:list={['site-nav__avatar-badge', 'site-nav__avatar-badge--lg', { 'has-image': identity?.avatarUrl }]} aria-hidden="true">
+                {identity?.avatarUrl ? <img src={identity.avatarUrl} alt="" width="44" height="44" /> : identity?.initials}
+              </span>
               <span class="site-nav__dropdown-meta">
-                <strong>{user.firstName ?? 'Your account'}</strong>
-                <small>{user.email || 'Reader session active'}</small>
+                <strong>{identity?.displayName}</strong>
+                <small>{identity?.secondary}</small>
               </span>
             </div>
             <a href="/account" role="menuitem"><Icon name="compass" size={16} /> My guides</a>
@@ -180,19 +177,20 @@ const initials =
 
   .site-nav__mark {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    color: var(--text-1);
   }
 
-  .site-nav__logo {
+  .site-nav__mark :global(.site-nav__logo) {
     display: block;
     width: 34px;
     height: 34px;
+    shape-rendering: geometricPrecision;
   }
-
-  /* Theme swap: dark mark on the dark UI, light mark in light theme. Default = dark. */
-  .site-nav__logo--light { display: none; }
-  :global([data-theme='light']) .site-nav__logo--dark { display: none; }
-  :global([data-theme='light']) .site-nav__logo--light { display: block; }
 
   .site-nav__wordmark {
     display: grid;
@@ -319,6 +317,15 @@ const initials =
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     font-weight: 700;
+    overflow: hidden;
+  }
+
+  .site-nav__avatar-badge.has-image { background: var(--bg-2); }
+
+  .site-nav__avatar-badge img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .site-nav__avatar-badge--lg {
@@ -455,7 +462,12 @@ const initials =
       -webkit-backdrop-filter: blur(16px);
     }
 
-    .site-nav__logo {
+    .site-nav__mark {
+      width: 28px;
+      height: 28px;
+    }
+
+    .site-nav__mark :global(.site-nav__logo) {
       width: 26px;
       height: 26px;
     }

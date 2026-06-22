@@ -64,9 +64,10 @@ big-bang rewrite commit.**
 | `PUBLIC_DIRECTUS_URL` | client-visible | asset URL base (keep v3 comment block explaining the pair — it earned its keep) |
 | `SITE_URL` | server | `https://data-dreamer.net` (stop hardcoding in layout) |
 | `DIRECTUS_TOKEN` | server only | **optional** read-only static token (V4-ARC-001). Used by `lib/directus/client.ts` where the Public role isn't open (e.g. greenfield staging). Unset → reads via Public role. Never `PUBLIC_` |
+| `DIRECTUS_SERVICE_TOKEN` | frontend server only | **required for Field Guides**. Value is the static token of the dedicated non-admin **Guide Server** service user. It never falls back to `DIRECTUS_TOKEN`; never use an admin or learner token; never prefix `PUBLIC_`. Verify with `scripts/v4-guides-service-check.mjs`. |
 | removed | — | `DIRECTUS_EMAIL`, `DIRECTUS_PASSWORD` (08 §5); no frontend admin login path |
 | v4.1 Directus/Coolify | backend | Directus auth/SSO vars for registration, cookies, CORS credentials, email, and Google OpenID (`AUTH_PROVIDERS`, `AUTH_GOOGLE_*`, `USER_REGISTER_URL_ALLOW_LIST`, `PASSWORD_RESET_URL_ALLOW_LIST`, cookie-domain settings). No frontend admin credentials. |
-| v4.1 frontend | server | Auth route configuration only (`SITE_URL`, Directus URLs, optional CSRF/session signing secret if the Astro bridge stores any local session metadata). Do not expose auth secrets with `PUBLIC_`. |
+| v4.1 frontend | server | `SITE_URL`, Directus URLs, `DIRECTUS_SERVICE_TOKEN`, and `AUTH_COOKIE_DOMAIN`. Do not expose auth secrets with `PUBLIC_`. Human login sessions remain separate from the Guide Server credential. |
 
 `.env.example` updated in lockstep; Coolify var changes listed in handoff before deploy.
 

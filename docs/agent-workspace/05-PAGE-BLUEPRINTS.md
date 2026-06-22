@@ -225,7 +225,8 @@ Full interaction spec + pseudocode: 07 §5. Blueprint:
 - **Purpose**: present the collective; route to author pages. **Primary**: open an
   author. **Secondary**: filter by specialty.
 - **Sections**: 1) header (kicker "The people", H1 "Dream Team", intro). 2) **Graph
-  stage** (TL+ only): SVG constellation, container-wide, height `min(72vh, 760px)`.
+  stage**: SVG constellation, container-wide, height `min(72vh, 760px)` on TL+ and a
+  compact person-focused map viewport on TP-.
   Specialty anchors arranged on a golden-angle ring; author nodes (avatar circles
   44–56px by post+guide count) cluster around their primary specialty; hairline edges
   author→each-of-their-specialties; specialty labels mono. Hover/focus: node lifts
@@ -234,8 +235,10 @@ Full interaction spec + pseudocode: 07 §5. Blueprint:
   double as filters (dim non-matching nodes). 3) **Member list** (all breakpoints;
   the graph's accessible equivalent): grouped by specialty, `AuthorCard` (avatar,
   name, role, specialties, counts). On TL+ the list sits below the graph under a
-  "Everyone" kicker; on TP- the list **is** the page (graph not rendered at all —
-  not just hidden: component not mounted).
+  "Everyone" kicker. **Production deviation (V4-QA-004, owner-approved):** TP- also
+  renders a compact interactive graph before the list. It opens on one person at a
+  legible map scale and provides pan, pinch/wheel zoom, visible +/-/fit controls, and
+  the same full list immediately below. The list remains the accessible source of truth.
 - **Behavior**: deterministic layout (seeded by author id — same positions every
   visit); no physics simulation; keyboard = roving tabindex over nodes in
   specialty-then-name order; Escape clears filter; reduced-motion: no idle drift, no
@@ -251,8 +254,10 @@ Full interaction spec + pseudocode: 07 §5. Blueprint:
 - **A11y**: SVG `role="group" aria-label="Team constellation; the list below contains
   the same people"`; every node link has accessible name "{name}, {role}"; tooltips
   `aria-hidden` (duplicate info); filter chips toggle with `aria-pressed`.
-- **Acceptance**: graph never traps focus; 60fps hover on mid-range laptop; positions
-  stable across reloads; list-only mobile passes all flows; zero horizontal scroll.
+- **Acceptance**: graph never traps focus; zoom controls are keyboard accessible and
+  at least 44px; mobile can pan/pinch without page overflow; 60fps hover on mid-range
+  laptop; positions stable across reloads; the equivalent list passes all flows; zero
+  horizontal scroll.
 - **Risks**: collision overlap with >20 authors (mitigation: collision-relax loop with
   cap, 07 §5.4); avatar quality variance (enforce 512px square uploads in Directus).
 - **Tree**: `dream-team/index.astro → PageHeader / TeamGraph(SVG, TL+) /

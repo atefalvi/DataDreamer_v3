@@ -7,9 +7,11 @@
 import Button from '../ui/Button.astro';
 import Icon from '../ui/Icon.astro';
 import { NAV_ITEMS, SOCIAL_LINKS } from '../../content/site';
+import { userIdentity } from '../../lib/auth/identity';
 
 const path = Astro.url.pathname.replace(/(.+)\/$/, '$1');
 const user = Astro.locals.user;
+const identity = user ? userIdentity(user) : undefined;
 const isActive = (href: string) =>
   href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
 ---
@@ -36,10 +38,12 @@ const isActive = (href: string) =>
       {user ? (
         <>
           <div class="mobile-menu__identity">
-            <span class="mobile-menu__status" aria-hidden="true"></span>
+            <span class:list={['mobile-menu__avatar', { 'has-image': identity?.avatarUrl }]} aria-hidden="true">
+              {identity?.avatarUrl ? <img src={identity.avatarUrl} alt="" width="40" height="40" /> : identity?.initials}
+            </span>
             <span>
-              <strong>{user.firstName ? `Signed in as ${user.firstName}` : 'Signed in'}</strong>
-              <small>{user.email || 'Reader session active'}</small>
+              <strong>{identity?.displayName}</strong>
+              <small>{identity?.secondary}</small>
             </span>
           </div>
           <div class="mobile-menu__account-actions">
@@ -262,6 +266,24 @@ const isActive = (href: string) =>
     color: var(--text-1);
     background: var(--bg-2);
   }
+
+  .mobile-menu__avatar {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    overflow: hidden;
+    border-radius: var(--radius-full);
+    background: linear-gradient(150deg, var(--accent), var(--accent-press));
+    color: var(--text-on-accent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+  }
+
+  .mobile-menu__avatar.has-image { background: var(--bg-2); }
+  .mobile-menu__avatar img { width: 100%; height: 100%; object-fit: cover; }
 
   @media (prefers-reduced-motion: reduce) {
     .mobile-menu {
