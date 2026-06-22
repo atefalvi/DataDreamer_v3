@@ -27,6 +27,8 @@ const notice = registered
     ? { type: 'error', text: "That email and password don't match." }
     : error === 'missing'
       ? { type: 'error', text: 'Enter your email and password.' }
+      : error === 'oauth_session'
+        ? { type: 'error', text: 'Google sign-in completed, but the session could not be attached. Try again or use email and password.' }
       : reason === 'INVALID_PROVIDER'
         ? { type: 'error', text: 'That Google account’s email already has a password login here. Sign in with your email and password below.' }
         : reason

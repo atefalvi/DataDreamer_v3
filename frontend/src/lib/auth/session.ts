@@ -16,6 +16,7 @@ const REFRESH = 'dd_rt';
 const EXP = 'dd_at_exp';
 // Directus sets this on .data-dreamer.net after OAuth (Google), shared with our app.
 const SESSION = 'directus_session_token';
+const OAUTH_NEXT = 'dd_oauth_next';
 // Parent domain the Directus session cookie is scoped to, so we can clear it on logout
 // (e.g. ".data-dreamer.net"). Unset in local dev → host-only.
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -161,14 +162,31 @@ export function hasSessionCookie(cookies: AstroCookies): boolean {
 }
 
 /**
- * Browser → Directus Google OAuth. We route the post-OAuth redirect through `/login`
- * (carrying `next`) so both outcomes are handled gracefully: on success `/login` sees the
- * fresh session cookie and forwards to `next`; on failure Directus appends `?reason=…`
- * and `/login` shows a friendly message instead of dumping an error code on the guide.
+ * Browser → Directus Google OAuth. Directus always returns to one fixed callback so its
+ * redirect allow-list can remain exact. The intended guide path lives in a short-lived,
+ * HttpOnly app cookie and is restored by the callback.
  */
-export function googleStartUrl(next: string | null | undefined): string {
-  const redirect = `${SITE_URL}/login?next=${encodeURIComponent(safeNext(next))}`;
+export function googleStartUrl(): string {
+  const redirect = `${SITE_URL}/api/auth/google/callback`;
   return `${PUBLIC_DIRECTUS_URL}/auth/login/google?redirect=${encodeURIComponent(redirect)}`;
+}
+
+/** Persist the post-login destination without making it part of Directus' allow-list. */
+export function rememberOAuthNext(cookies: AstroCookies, next: string | null | undefined): void {
+  cookies.set(OAUTH_NEXT, safeNext(next), {
+    path: '/api/auth/google',
+    httpOnly: true,
+    secure: isProd,
+    sameSite: 'lax',
+    maxAge: 60 * 10,
+  });
+}
+
+/** Consume the one-time OAuth destination. */
+export function takeOAuthNext(cookies: AstroCookies): string {
+  const next = safeNext(cookies.get(OAUTH_NEXT)?.value);
+  cookies.delete(OAUTH_NEXT, { path: '/api/auth/google' });
+  return next;
 }
 
 /**

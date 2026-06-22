@@ -22,13 +22,20 @@ Frontend production env: `DIRECTUS_URL` (internal server URL),
 `AUTH_COOKIE_DOMAIN=.data-dreamer.net`. Do not set this secret as `PUBLIC_*` and do not
 put it on the backend resource.
 
-Backend production env: Directus/database core vars plus `CORS_ORIGIN`, `APP_ORIGIN`,
+Backend production env: Directus/database core vars plus `CORS_ORIGIN`,
 `GUIDE_READER_ROLE_ID`, `SESSION_COOKIE_DOMAIN=.data-dreamer.net`,
 `SESSION_COOKIE_SECURE=true`, and Google `AUTH_GOOGLE_CLIENT_ID` /
-`AUTH_GOOGLE_CLIENT_SECRET`. The compose file supplies the remaining provider settings.
+`AUTH_GOOGLE_CLIENT_SECRET`. Set
+`GOOGLE_REDIRECT_URL=https://data-dreamer.net/api/auth/google/callback`; Directus allows
+that one exact return URL while the app keeps the intended guide path in an HttpOnly
+cookie. The compose file supplies the remaining provider settings.
 In Directus Settings, enable User Registration and select **Guide Reader** as its default
 role. In Google Cloud, authorize
 `https://api.data-dreamer.net/auth/login/google/callback`.
+
+Production must use a `DIRECTUS_SECRET` of at least 32 bytes; generate 32 random bytes
+as 64 hex characters with `openssl rand -hex 32`. Rotating this value invalidates
+existing signed sessions, so deploy it deliberately and expect users to sign in again.
 
 To rotate the service token: generate a new static token on the Guide Server user,
 replace `DIRECTUS_SERVICE_TOKEN` in the frontend, redeploy, run
@@ -39,7 +46,7 @@ has a monogram fallback.
 
 ## Automated (CI gate) — ✅ passing
 
-`astro check` 0 errors · 93 unit tests · production build. Includes the pure
+`astro check` 0 errors · 94 unit tests · production build. Includes the pure
 `deriveProgress` engine, repo preview/reader gating + ordering + curator dedup, and the
 `safeNext` open-redirect guard.
 

@@ -17,6 +17,34 @@ a decision. Keep entries factual and short; link docs instead of repeating them.
 
 ---
 
+## [2026-06-22] V4-QA-004 fixed Google callback — in progress
+
+**Did**: Replaced dynamic Directus OAuth return URLs (`/login?next=…`) with a fixed
+same-origin callback. `/api/auth/google` stores the validated destination in a
+10-minute HttpOnly cookie, sends Directus the exact `/api/auth/google/callback` URL,
+and the callback consumes the cookie after resolving the Directus session. OAuth
+provider/session failures return to the polished login notice.
+
+**Files**: auth session/tests, Google button, Google start/callback routes, login page,
+backend compose, tasks, QA, and handoff docs.
+
+**Validation**: fixed callback URL unit test; local HTTP contract confirms 302 +
+HttpOnly destination cookie + `private, no-store`, callback consumes the cookie and
+preserves `/guides`; `astro check` 0/0/0, 94 tests, production build, compose config.
+
+**Deployment**: production backend must set
+`GOOGLE_REDIRECT_URL=https://data-dreamer.net/api/auth/google/callback`, redeploy
+Directus, then deploy the matching frontend commit. Remove/ignore the old `APP_ORIGIN`
+redirect value. Google Cloud's authorized redirect URI remains
+`https://api.data-dreamer.net/auth/login/google/callback`.
+
+**Next**: rerun Google login from `/login?next=/guides`, confirm the guide opens signed
+in, then complete progress/reload/logout QA before closing V4-QA-004.
+
+**Warning**: Production logs report `SECRET` shorter than 32 bytes. Rotate
+`DIRECTUS_SECRET` to `openssl rand -hex 32`; existing sessions will need to sign in
+again. This warning is independent of the redirect failure.
+
 ## [2026-06-21] V4-QA-004 auth identity + mobile graph — in progress
 
 **Did**: Removed the ambiguous guide-token fallback: `DIRECTUS_SERVICE_TOKEN` now means
