@@ -6,7 +6,10 @@ interface GuideReaderUser {
   email: string;
   firstName?: string;
   lastName?: string;
+  provider?: string;
+  avatarId?: string;
   avatarUrl?: string;
+  createdAt?: string;
   /** Directus access token used only to resolve/verify this learner session. */
   accessToken: string;
 }

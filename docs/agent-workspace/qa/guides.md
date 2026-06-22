@@ -40,13 +40,16 @@ existing signed sessions, so deploy it deliberately and expect users to sign in 
 To rotate the service token: generate a new static token on the Guide Server user,
 replace `DIRECTUS_SERVICE_TOKEN` in the frontend, redeploy, run
 `v4-guides-service-check.mjs`, then revoke the old token. Never paste it into source or
-browser storage. User names/avatars live on each Directus user record; Google sync
-keeps first name, last name, and email current. Avatar upload is optional because the UI
-has a monogram fallback.
+browser storage. The Guide Server policy must have read access to `directus_users` and
+`directus_files`; rerun `v4-guides-schema.mjs` with an admin token after this policy
+change. Astro verifies the learner id first, then requests only that user's profile.
+Google sync keeps first name, last name, and email current but does not create a
+Directus file avatar. To show a photo, open User Directory → learner → Avatar, upload a
+square image, save, then sign in/reload; the UI otherwise uses a monogram fallback.
 
 ## Automated (CI gate) — ✅ passing
 
-`astro check` 0 errors · 94 unit tests · production build. Includes the pure
+`astro check` 0 errors · unit tests · production build. Includes the pure
 `deriveProgress` engine, repo preview/reader gating + ordering + curator dedup, and the
 `safeNext` open-redirect guard.
 
@@ -83,7 +86,9 @@ End-to-end, the exact operations the frontend performs (2026-06: 10/10):
 - ⏳ Production frontend still shows the empty catalogue until the new code is deployed
   with `DIRECTUS_SERVICE_TOKEN` set on the frontend resource.
 - ✅ Identity UI no longer exposes role language or generic “Admin” labels. It supports
-  Directus avatars and uses a monogram/email fallback when profile fields are absent.
+  a server-enriched current-user profile, private avatar proxy, and monogram fallback.
+- ⏳ Rerun the schema script in production so Guide Server can read `directus_users`;
+  rerun `v4-guides-service-check.mjs` until it reports learner profile read available.
 - ✅ Mobile brand mark uses the clean inline source paths (no blur filters or theme swap).
 - ✅ Dream Team map has keyboard zoom controls, wheel/pinch zoom, drag pan, fit/reset,
   a person-focused mobile opening view, and zero horizontal overflow at 390px.

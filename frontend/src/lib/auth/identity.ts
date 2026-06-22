@@ -7,11 +7,12 @@ export interface UserIdentity {
   firstName?: string;
   initials: string;
   secondary: string;
+  providerLabel: string;
   avatarUrl?: string;
 }
 
 /** Keep service-role labels and placeholder names out of the learner experience. */
-export function userIdentity(user: Pick<SessionUser, 'email' | 'firstName' | 'lastName' | 'avatarUrl'>): UserIdentity {
+export function userIdentity(user: Pick<SessionUser, 'email' | 'firstName' | 'lastName' | 'provider' | 'avatarUrl'>): UserIdentity {
   const firstName = user.firstName?.trim();
   const lastName = user.lastName?.trim();
   const usefulFirstName = firstName && !GENERIC_NAMES.has(firstName.toLowerCase()) ? firstName : undefined;
@@ -33,6 +34,7 @@ export function userIdentity(user: Pick<SessionUser, 'email' | 'firstName' | 'la
     firstName: usefulFirstName,
     initials,
     secondary: user.email || 'Signed in securely',
+    providerLabel: user.provider?.toLowerCase() === 'google' ? 'Google connected' : 'Email account',
     avatarUrl: user.avatarUrl,
   };
 }

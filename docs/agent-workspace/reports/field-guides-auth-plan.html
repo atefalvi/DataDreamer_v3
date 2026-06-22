@@ -676,7 +676,7 @@
         <div class="note">
           <strong>June 21 hardening findings</strong>
           <p>The Guide Server policy does not expose system timestamps, so frontend lists sort by approved editorial fields (<code>-featured,sort</code>) and progress lists sort by <code>-started_at</code>. OAuth logout clears the shared <code>.data-dreamer.net</code> cookie even when Coolify omits the optional cookie-domain override.</p>
-          <p>For a named account display, allow authenticated users to read their own <code>id</code>, <code>email</code>, <code>first_name</code>, and <code>last_name</code> through <code>/users/me</code>. Until then, the account and navigation use a clear “Reader session active” fallback instead of blank labels.</p>
+          <p>The learner session verifies only its own id through <code>/users/me</code>. Astro then uses the non-admin Guide Server credential to enrich that exact profile with email, name, provider, and avatar; the browser never receives user-directory access. Google sync supplies name and email but does not create Directus's file-based avatar, so a profile photo is uploaded on the user record and served through the authenticated app proxy.</p>
         </div>
       </section>
 

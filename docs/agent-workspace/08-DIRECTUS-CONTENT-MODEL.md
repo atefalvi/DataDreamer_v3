@@ -207,8 +207,8 @@ required by Astro; it never reaches the browser. Migration impact is tracked in
 | Role | Access |
 |---|---|
 | **Public** | read published editorial collections and assets; guide collections remain closed when field-limited rules are unavailable |
-| **guide_reader** | authenticate and read own profile via `/users/me`; Astro gates the reader using this verified session |
-| **Guide Server** | non-admin, server-only full guide/progress access; Astro filters published/preview fields and scopes progress queries by verified user id |
+| **guide_reader** | authenticate via `/users/me`; Astro gates the reader using this verified user id and never grants browser access to the user directory |
+| **Guide Server** | non-admin, server-only guide/progress access plus explicit `directus_users`/`directus_files` reads; Astro filters published content, scopes progress, and enriches only the already-verified current user profile/avatar |
 | **editor** | full CRUD on content collections via Directus app |
 
 v4.1 adds authenticated end-user access, but only for guide reading/progress. The v3

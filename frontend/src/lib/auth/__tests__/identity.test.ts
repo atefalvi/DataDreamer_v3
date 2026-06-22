@@ -7,12 +7,14 @@ describe('userIdentity', () => {
       email: 'maria@example.com',
       firstName: 'Maria',
       lastName: 'Khan',
+      provider: 'google',
       avatarUrl: 'https://api.example.com/assets/avatar',
     })).toEqual({
       displayName: 'Maria Khan',
       firstName: 'Maria',
       initials: 'MK',
       secondary: 'maria@example.com',
+      providerLabel: 'Google connected',
       avatarUrl: 'https://api.example.com/assets/avatar',
     });
   });
@@ -29,6 +31,7 @@ describe('userIdentity', () => {
       displayName: 'DataDreamer member',
       initials: 'DD',
       secondary: 'Signed in securely',
+      providerLabel: 'Email account',
     });
   });
 });
