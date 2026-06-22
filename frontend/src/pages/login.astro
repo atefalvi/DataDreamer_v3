@@ -18,13 +18,20 @@ Astro.response.headers.set('Cache-Control', 'private, no-store');
 
 const error = Astro.url.searchParams.get('error');
 const registered = Astro.url.searchParams.get('registered');
+// Directus appends ?reason=… when an OAuth (Google) login can't complete — most often
+// because the Google email already exists as a password account (Directus won't link them).
+const reason = Astro.url.searchParams.get('reason');
 const notice = registered
   ? { type: 'info', text: 'Account created — sign in to continue.' }
   : error === 'invalid'
     ? { type: 'error', text: "That email and password don't match." }
     : error === 'missing'
       ? { type: 'error', text: 'Enter your email and password.' }
-      : null;
+      : reason === 'INVALID_PROVIDER'
+        ? { type: 'error', text: 'That Google account’s email already has a password login here. Sign in with your email and password below.' }
+        : reason
+          ? { type: 'error', text: 'Google sign-in didn’t complete. Try again, or use your email and password below.' }
+          : null;
 ---
 
 <BaseLayout title="Sign in" description="Sign in to your DataDreamer account." noindex>
