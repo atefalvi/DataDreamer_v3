@@ -54,7 +54,8 @@ const { hasImageGrid = false } = Astro.props;
   .article-lightbox figure {
     display: grid;
     gap: var(--space-3);
-    margin: 0;
+    margin: var(--space-7) 0 0;
+    padding-inline: var(--space-8);
     max-height: calc(min(100dvh - var(--space-6), 56rem) - (var(--space-5) * 2));
   }
 
@@ -122,11 +123,11 @@ const { hasImageGrid = false } = Astro.props;
   }
 
   .article-lightbox__nav--prev {
-    left: calc(var(--space-4) * -0.5);
+    left: var(--space-4);
   }
 
   .article-lightbox__nav--next {
-    right: calc(var(--space-4) * -0.5);
+    right: var(--space-4);
   }
 
   @media (max-width: 47.999rem) {
@@ -148,6 +149,7 @@ const { hasImageGrid = false } = Astro.props;
 
     .article-lightbox figure {
       grid-area: figure;
+      padding-inline: 0;
       max-height: calc(100dvh - var(--space-4) - (var(--space-4) * 2));
     }
 
@@ -166,7 +168,7 @@ const { hasImageGrid = false } = Astro.props;
     }
 
     .article-lightbox figure {
-      margin-block-start: var(--space-6);
+      margin-block-start: var(--space-8);
     }
 
     .article-lightbox__nav--prev {
@@ -197,13 +199,14 @@ const { hasImageGrid = false } = Astro.props;
     const prev = dialog.querySelector<HTMLButtonElement>('[data-lightbox-prev]');
     const next = dialog.querySelector<HTMLButtonElement>('[data-lightbox-next]');
     const items = [...prose.querySelectorAll<HTMLButtonElement>('.ig-item')];
+    let activeItems: HTMLButtonElement[] = [];
     let index = 0;
     let touchX = 0;
 
     const show = (nextIndex: number) => {
-      if (!items.length || !image || !caption) return;
-      index = (nextIndex + items.length) % items.length;
-      const item = items[index];
+      if (!activeItems.length || !image || !caption) return;
+      index = (nextIndex + activeItems.length) % activeItems.length;
+      const item = activeItems[index];
       const itemImage = item.querySelector('img');
       const src = item.dataset.src || itemImage?.getAttribute('src') || '';
       const alt = itemImage?.getAttribute('alt') || '';
@@ -211,11 +214,13 @@ const { hasImageGrid = false } = Astro.props;
       const text = item.dataset.caption || alt;
       image.alt = alt;
       image.src = src;
-      caption.textContent = `${index + 1} / ${items.length}${text ? ` — ${text}` : ''}`;
+      caption.textContent = `${index + 1} / ${activeItems.length}${text ? ` — ${text}` : ''}`;
     };
 
-    const open = (nextIndex: number) => {
-      show(nextIndex);
+    const open = (item: HTMLButtonElement) => {
+      const grid = item.closest('.image-grid');
+      activeItems = grid ? [...grid.querySelectorAll<HTMLButtonElement>('.ig-item')] : [item];
+      show(Math.max(0, activeItems.indexOf(item)));
       dialog.showModal();
       document.body.style.overflow = 'hidden';
       close?.focus();
@@ -226,8 +231,8 @@ const { hasImageGrid = false } = Astro.props;
       document.body.style.overflow = '';
     };
 
-    items.forEach((item, itemIndex) => {
-      item.addEventListener('click', () => open(itemIndex));
+    items.forEach((item) => {
+      item.addEventListener('click', () => open(item));
     });
     close?.addEventListener('click', closeDialog);
     prev?.addEventListener('click', () => show(index - 1));
