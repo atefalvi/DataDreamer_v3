@@ -33,15 +33,21 @@ services:
       start_period: 30s
 
   directus:
-    image: directus/directus:12.0.2
+    # Custom image (see Dockerfile) that bakes in the google-picture-url hook extension.
+    # Coolify does not populate repo-relative bind mounts, so the extension must be in the
+    # image rather than mounted at /directus/extensions.
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       # Host 8056 → container 8055 (feature/v4-guides): keeps local dev off the
       # production Directus port (8055) so the two don't collide.
       - "${DIRECTUS_PORT:-8055}:8055"
     volumes:
       - "${DIRECTUS_UPLOADS_PATH:-/mnt/datadreamer/uploads}:/directus/uploads"
-      - "${DIRECTUS_EXTENSIONS_PATH:-/mnt/datadreamer/extensions}:/directus/extensions"
-      - "./extensions/directus-extension-google-picture-url:/directus/extensions/directus-extension-google-picture-url:ro"
+      # No /directus/extensions mount: the extension is baked into the image and a mount
+      # here would shadow it. Re-add a persistent mount only if you install extensions via
+      # the Directus marketplace UI (and then bake or copy this hook into that volume too).
       - "./snapshot.yaml:/directus/snapshot.yaml:ro"
     depends_on:
       database:
