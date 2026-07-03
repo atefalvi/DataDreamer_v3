@@ -23,7 +23,7 @@ const guides = await read('/items/guides?filter[status][_eq]=published&fields=id
 if (!guides.length) throw new Error('Credential works, but Directus has no published guide. Run the guide seed or publish a guide.');
 // The frontend verifies a learner's id with their own session before requesting this
 // server-only profile read. Do not print user data from this infrastructure check.
-await read('/users?fields=id&limit=1');
+await read('/users?fields=id,google_picture_url&limit=1');
 const full = await read(`/items/guides?filter[id][_eq]=${guides[0].id}&fields=sections.id,sections.items.id,sections.items.body&limit=1`);
 const sections = full[0]?.sections ?? [];
 const items = sections.flatMap((section) => section.items ?? []);

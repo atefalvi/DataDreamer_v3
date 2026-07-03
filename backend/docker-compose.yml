@@ -41,6 +41,7 @@ services:
     volumes:
       - "${DIRECTUS_UPLOADS_PATH:-/mnt/datadreamer/uploads}:/directus/uploads"
       - "${DIRECTUS_EXTENSIONS_PATH:-/mnt/datadreamer/extensions}:/directus/extensions"
+      - "./extensions/directus-extension-google-picture-url:/directus/extensions/directus-extension-google-picture-url:ro"
       - "./snapshot.yaml:/directus/snapshot.yaml:ro"
     depends_on:
       database:

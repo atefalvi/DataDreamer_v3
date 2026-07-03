@@ -86,8 +86,32 @@ async function ensureAlias(collection, field, special) {
   }
 }
 
+async function ensureGooglePictureField() {
+  if (await exists('/fields/directus_users/google_picture_url')) {
+    console.log('= field directus_users.google_picture_url');
+    return;
+  }
+  await api('/fields/directus_users', {
+    method: 'POST',
+    headers: jsonHeaders,
+    body: JSON.stringify({
+      field: 'google_picture_url',
+      type: 'string',
+      meta: {
+        interface: 'input',
+        width: 'full',
+        note: 'Google OIDC picture URL used only when no Directus avatar file is uploaded.',
+      },
+      schema: { length: 2048, is_nullable: true },
+    }),
+  });
+  console.log('+ field directus_users.google_picture_url');
+}
+
 // ── 1. collections ───────────────────────────────────────────────────────────
 async function buildCollections() {
+  await ensureGooglePictureField();
+
   await ensureCollection('guides',
     { icon: 'explore', note: 'Field Guides — curated learning paths', sort_field: 'sort', archive_field: 'status', archive_value: 'archived', unarchive_value: 'draft' },
     [
@@ -309,7 +333,7 @@ async function buildPermissions() {
     await ensurePermission(serverPolicyId, collection, 'read');
   }
   await ensurePermission(serverPolicyId, 'directus_users', 'read', [
-    'id', 'email', 'first_name', 'last_name', 'provider', 'avatar', 'date_created',
+    'id', 'email', 'first_name', 'last_name', 'provider', 'avatar', 'google_picture_url', 'date_created',
   ]);
   for (const action of ['read', 'create', 'update']) {
     await ensurePermission(serverPolicyId, 'guide_progress', action);

@@ -9,6 +9,7 @@ describe('userIdentity', () => {
       lastName: 'Khan',
       provider: 'google',
       avatarUrl: 'https://api.example.com/assets/avatar',
+      googlePictureUrl: 'https://lh3.googleusercontent.com/a/photo',
     })).toEqual({
       displayName: 'Maria Khan',
       firstName: 'Maria',
@@ -16,6 +17,29 @@ describe('userIdentity', () => {
       secondary: 'maria@example.com',
       providerLabel: 'Google connected',
       avatarUrl: 'https://api.example.com/assets/avatar',
+    });
+  });
+
+  it('uses a Google picture URL when no Directus avatar URL exists', () => {
+    expect(userIdentity({
+      email: 'maria@example.com',
+      firstName: 'Maria',
+      provider: 'google',
+      googlePictureUrl: 'https://lh3.googleusercontent.com/a/photo',
+    })).toMatchObject({
+      initials: 'M',
+      avatarUrl: 'https://lh3.googleusercontent.com/a/photo',
+    });
+  });
+
+  it('falls back to initials when neither avatar source exists', () => {
+    expect(userIdentity({
+      email: 'maria@example.com',
+      firstName: 'Maria',
+      provider: 'google',
+    })).toMatchObject({
+      initials: 'M',
+      avatarUrl: undefined,
     });
   });
 
