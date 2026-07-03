@@ -832,23 +832,26 @@
   height: 1.375rem;
   border: 1px solid var(--border-2);
   border-radius: var(--radius-sm, 4px);
+  background: color-mix(in srgb, var(--text-3) 8%, var(--bg-2));
   color: var(--text-2);
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   font-weight: 700;
   line-height: 1;
-  transform: translateY(0.08em);
+  transform: translateY(0.04em);
 }
 
 .prose .checklist-block__text,
 .blog-content .checklist-block__text {
   min-width: 0;
   line-height: var(--lh-base);
+  transform: translateY(-0.08em);
 }
 
 .prose .checklist-block__item--done .checklist-block__marker,
 .blog-content .checklist-block__item--done .checklist-block__marker {
   border-color: color-mix(in srgb, var(--success) 55%, var(--border-2));
+  background: color-mix(in srgb, var(--success) 12%, var(--bg-2));
   color: var(--success);
 }
 
@@ -860,18 +863,21 @@
 .prose .checklist-block__item--risk .checklist-block__marker,
 .blog-content .checklist-block__item--risk .checklist-block__marker {
   border-color: color-mix(in srgb, var(--danger) 55%, var(--border-2));
+  background: color-mix(in srgb, var(--danger) 12%, var(--bg-2));
   color: var(--danger);
 }
 
 .prose .checklist-block__item--question .checklist-block__marker,
 .blog-content .checklist-block__item--question .checklist-block__marker {
   border-color: color-mix(in srgb, var(--info) 55%, var(--border-2));
+  background: color-mix(in srgb, var(--info) 12%, var(--bg-2));
   color: var(--info);
 }
 
 .prose .checklist-block__item--highlight .checklist-block__marker,
 .blog-content .checklist-block__item--highlight .checklist-block__marker {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border-2));
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-2));
   color: var(--accent);
 }
 
