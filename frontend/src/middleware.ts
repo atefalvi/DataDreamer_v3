@@ -31,7 +31,7 @@ function createNonce(): string {
 function csp(nonce?: string): string {
   const scriptNonce = nonce ? `'nonce-${nonce}'` : undefined;
   const styleNonce = nonce ? `'nonce-${nonce}'` : undefined;
-  const imageSources = ["'self'", 'data:', DIRECTUS_ORIGIN].filter(Boolean).join(' ');
+  const imageSources = ["'self'", 'data:', DIRECTUS_ORIGIN, 'https://lh3.googleusercontent.com'].filter(Boolean).join(' ');
   const connectSources = ["'self'", DIRECTUS_ORIGIN].filter(Boolean).join(' ');
 
   return [
