@@ -11,6 +11,7 @@ const fixtures = [
   "real-post-001-retry-patterns.md",
   "real-post-002-fine-tuning.md",
   "real-post-003-wysiwyg-cleanup.md",
+  "rich-content-blocks.md",
 ];
 
 async function fixture(name: string): Promise<string> {
@@ -47,7 +48,59 @@ describe("renderMarkdown v4 pipeline", () => {
     expect(result.html).toContain('class="code-block__copy" type="button" aria-label="Copy code"');
     expect(result.html).toContain("<figcaption>Loss curve after epoch three</figcaption>");
     expect(result.html).toContain(":::mystery Unsupported Block");
-    expect(result.html).toContain(":::warning Inner Callout");
+    // One safe nested level (v4.2): callouts now render inside a top-level block.
+    expect(result.html).toContain('aria-label="Warning: Inner Callout"');
+  });
+
+  it("renders the v4.2 rich content block set", async () => {
+    const result = await renderMarkdown(await fixture("rich-content-blocks.md"));
+    const html = result.html;
+
+    // checklist — all six states from markers, unmarked line stays neutral
+    for (const state of ["done", "pending", "risk", "question", "highlight", "neutral"]) {
+      expect(html).toContain(`checklist-block__item--${state}`);
+    }
+    expect(html).toContain("Keep this unmarked item neutral.");
+
+    // embed — privacy-friendly YouTube iframe + graceful fallback link
+    expect(html).toContain("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
+    expect(html).toMatch(/<iframe[^>]+loading="lazy"[^>]+allowfullscreen/);
+    expect(html).toContain('class="embed-block__fallback" href="https://example.com/talk"');
+
+    // metric / metrics — tones, word→symbol translation, explicit symbols pass through
+    expect(html).toContain("metric-card--green");
+    expect(html).toContain("metric-card--red");
+    expect(html).toContain("metric-card--yellow");
+    expect(html).toContain('class="metric-grid" data-count="3"');
+    expect(html).toContain(">↓<");
+    expect(html).toContain(">↑<");
+    expect(html).toContain(">—<");
+
+    // formula — server-rendered KaTeX with caption; inline + block math also render
+    expect(html).toContain('class="formula-block__math"');
+    expect(html).toContain("katex");
+    expect(html).toContain('class="formula-block__caption"');
+
+    // detail alias + one nested level (text panel + callout inside details)
+    expect(html.split('<details class="expand">').length - 1).toBe(2);
+    expect(html).toContain('class="text-block__title"');
+    expect(html).toContain("callout--warning");
+
+    // divider — patterns, label, tone
+    expect(html).toContain("divider-block--dash");
+    expect(html).toContain("divider-block--x");
+    expect(html).toContain("divider-block--star");
+    expect(html).toContain("divider-block--accent");
+    expect(html).toContain('class="divider-block__label"');
+
+    // image grid — contract preserved + title + caption passthrough
+    expect(html).toContain('class="image-grid" data-count="2"');
+    expect(html).toContain('class="ig-item" type="button" data-src=');
+    expect(html).toContain('data-caption="Main dashboard view"');
+    expect(html).toContain('class="image-grid__title"');
+
+    // nested blockquote hierarchy survives
+    expect(html).toMatch(/<blockquote>[\s\S]*?<blockquote>/);
   });
 
   it("normalizes Directus WYSIWYG block wrappers before parsing", async () => {

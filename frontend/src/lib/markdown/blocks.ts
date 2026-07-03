@@ -1,7 +1,35 @@
 import type { CalloutType, MarkdownBlockType, MdNode } from "./types";
 import { calloutTypes } from "./types";
 
-const supportedBlocks = new Set<string>([...calloutTypes, "details", "quote", "imagegrid"]);
+const supportedBlocks = new Set<string>([
+  ...calloutTypes,
+  "details",
+  "detail", // alias, normalized to "details" in parseBlockOpen
+  "quote",
+  "imagegrid",
+  "checklist",
+  "embed",
+  "metric",
+  "metrics",
+  "formula",
+  "divider",
+  "text",
+]);
+
+/**
+ * Blocks whose body is plain text (markers, `key: value` fields, URLs, LaTeX) rather
+ * than markdown content. Their body is sliced from the raw source so markdown parsing
+ * can't mangle it (e.g. `*`/`-` checklist markers becoming lists, `_` in LaTeX becoming
+ * emphasis, `---` metric separators becoming thematic breaks).
+ */
+const rawBodyBlocks = new Set<MarkdownBlockType>([
+  "checklist",
+  "embed",
+  "metric",
+  "metrics",
+  "formula",
+  "divider",
+]);
 
 interface BlockOpen {
   type: MarkdownBlockType;
@@ -27,9 +55,16 @@ export function wysiwygNormalize(raw: string): string {
     .replace(/<\/p>/gi, "\n\n")
     .replace(/<p[^>]*>/gi, "");
 
+  // Isolate ::: fences on their own blank-line-separated lines — but never inside a
+  // code fence, so articles can show ::: authoring syntax in examples verbatim.
+  let inCodeFence = false;
   return cleaned
     .split("\n")
-    .map((line) => (line.trim().startsWith(":::") ? `\n${line.trim()}\n` : line))
+    .map((line) => {
+      if (line.trim().startsWith("```")) inCodeFence = !inCodeFence;
+      if (inCodeFence || !line.trim().startsWith(":::")) return line;
+      return `\n${line.trim()}\n`;
+    })
     .join("\n");
 }
 
@@ -55,21 +90,30 @@ function parseBlockOpen(value: string): BlockOpen | null {
   if (!supportedBlocks.has(rawType)) return null;
 
   const title = match[3] ?? match[4] ?? match[5] ?? match[2];
-  const type = rawType as MarkdownBlockType;
+  const type = (rawType === "detail" ? "details" : rawType) as MarkdownBlockType;
   return {
     type,
     title: title?.trim() || (calloutTypes.includes(type as CalloutType) ? sentenceCase(type) : undefined),
   };
 }
 
-function transformBlockChildren(children: MdNode[], depth = 0): MdNode[] {
+function rawBody(blockChildren: MdNode[], source: string): string {
+  const start = blockChildren[0]?.position?.start?.offset;
+  const end = blockChildren[blockChildren.length - 1]?.position?.end?.offset;
+  if (typeof start !== "number" || typeof end !== "number") return "";
+  return source.slice(start, end);
+}
+
+function transformBlockChildren(children: MdNode[], source: string, depth = 0): MdNode[] {
   const nextChildren: MdNode[] = [];
   for (let index = 0; index < children.length; index += 1) {
     const child = children[index];
     const marker = paragraphText(child);
     const blockOpen = marker ? parseBlockOpen(marker) : null;
 
-    if (!blockOpen || (depth > 0 && calloutTypes.includes(blockOpen.type as CalloutType))) {
+    // One safe nested level: blocks (including callouts and :::text) parse inside a
+    // depth-0 block; anything deeper stays plain content (no recursion below depth 1).
+    if (!blockOpen) {
       nextChildren.push(child);
       continue;
     }
@@ -102,11 +146,22 @@ function transformBlockChildren(children: MdNode[], depth = 0): MdNode[] {
       break;
     }
 
+    if (rawBodyBlocks.has(blockOpen.type)) {
+      nextChildren.push({
+        type: "customBlock",
+        blockType: blockOpen.type,
+        blockTitle: blockOpen.title,
+        blockBody: rawBody(blockChildren, source),
+        children: [],
+      });
+      continue;
+    }
+
     nextChildren.push({
       type: "customBlock",
       blockType: blockOpen.type,
       blockTitle: blockOpen.title,
-      children: depth < 1 ? transformBlockChildren(blockChildren, depth + 1) : blockChildren,
+      children: depth < 1 ? transformBlockChildren(blockChildren, source, depth + 1) : blockChildren,
     });
   }
 
@@ -114,8 +169,8 @@ function transformBlockChildren(children: MdNode[], depth = 0): MdNode[] {
 }
 
 export function remarkCustomBlocks() {
-  return (tree: MdNode) => {
+  return (tree: MdNode, file: { toString(): string }) => {
     if (!tree.children) return;
-    tree.children = transformBlockChildren(tree.children);
+    tree.children = transformBlockChildren(tree.children, String(file));
   };
 }
