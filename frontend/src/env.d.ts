@@ -10,7 +10,6 @@ interface GuideReaderUser {
   avatarId?: string;
   avatarUrl?: string;
   googlePictureUrl?: string;
-  createdAt?: string;
   /** Directus access token used only to resolve/verify this learner session. */
   accessToken: string;
 }

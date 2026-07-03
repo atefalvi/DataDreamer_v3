@@ -333,7 +333,7 @@ async function buildPermissions() {
     await ensurePermission(serverPolicyId, collection, 'read');
   }
   await ensurePermission(serverPolicyId, 'directus_users', 'read', [
-    'id', 'email', 'first_name', 'last_name', 'provider', 'avatar', 'google_picture_url', 'date_created',
+    'id', 'email', 'first_name', 'last_name', 'provider', 'avatar', 'google_picture_url',
   ]);
   for (const action of ['read', 'create', 'update']) {
     await ensurePermission(serverPolicyId, 'guide_progress', action);

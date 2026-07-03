@@ -70,7 +70,6 @@ describe('toSessionProfile', () => {
       provider: 'google',
       avatar: { id: 'avatar-file' },
       google_picture_url: 'https://lh3.googleusercontent.com/a/photo',
-      date_created: '2026-06-22T12:00:00Z',
     })).toEqual({
       id: 'verified-user',
       email: 'maria.thehr@gmail.com',
@@ -80,7 +79,6 @@ describe('toSessionProfile', () => {
       avatarId: 'avatar-file',
       avatarUrl: '/api/auth/avatar',
       googlePictureUrl: 'https://lh3.googleusercontent.com/a/photo',
-      createdAt: '2026-06-22T12:00:00Z',
     });
   });
 

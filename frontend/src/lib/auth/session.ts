@@ -66,7 +66,6 @@ export interface SessionUser {
   avatarId?: string;
   avatarUrl?: string;
   googlePictureUrl?: string;
-  createdAt?: string;
   accessToken: string;
 }
 
@@ -137,7 +136,6 @@ type DirectusUserProfile = {
   provider?: string;
   avatar?: string | { id?: string };
   google_picture_url?: string;
-  date_created?: string;
 };
 
 type MeResponse = { data: Pick<DirectusUserProfile, 'id'> };
@@ -167,12 +165,11 @@ export function toSessionProfile(
     avatarId,
     avatarUrl: avatarId ? '/api/auth/avatar' : undefined,
     googlePictureUrl: safeHttpsUrl(profile?.google_picture_url),
-    createdAt: profile?.date_created ?? undefined,
   };
 }
 
 async function fetchServerProfile(id: string): Promise<DirectusUserProfile | undefined> {
-  const fields = 'id,email,first_name,last_name,provider,avatar,google_picture_url,date_created';
+  const fields = 'id,email,first_name,last_name,provider,avatar,google_picture_url';
   const response = await directusServiceFetch(`/users/${encodeURIComponent(id)}?fields=${fields}`);
   if (!response.ok) return undefined;
   const body = (await response.json()) as ProfileResponse;
