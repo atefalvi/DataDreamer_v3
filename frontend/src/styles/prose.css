@@ -139,30 +139,37 @@
 .prose blockquote,
 .blog-content blockquote {
   margin: 0;
-  padding: var(--space-5);
-  border-left: 3px solid var(--accent);
-  background: var(--bg-1);
-  color: var(--text-1);
+  padding: 0 0 0 var(--space-5);
+  border-left: 2px solid var(--accent);
+  background: transparent;
+  color: var(--text-2);
 }
 
 /* Nested quotes (>>) — indented, softer continuing rule so the hierarchy reads as
    connected to the parent quote rather than a detached box. */
 .prose blockquote blockquote,
 .blog-content blockquote blockquote {
-  margin-block: var(--space-3);
-  margin-inline-start: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-left: 2px solid color-mix(in srgb, var(--accent) 45%, var(--border-2));
-  background: var(--bg-2);
+  margin: var(--space-3) 0 0;
+  padding: 0 0 0 var(--space-4);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 42%, var(--border-2));
+  background: transparent;
   color: var(--text-2);
   font-size: var(--fs-sm);
   line-height: var(--lh-sm);
 }
 
-.prose blockquote > p + blockquote,
-.blog-content blockquote > p + blockquote,
+.prose blockquote p,
+.blog-content blockquote p {
+  margin: 0;
+  color: inherit;
+}
+
+.prose blockquote p + p,
+.blog-content blockquote p + p,
 .prose blockquote > blockquote + p,
-.blog-content blockquote > blockquote + p {
+.blog-content blockquote > blockquote + p,
+.prose blockquote > p + blockquote,
+.blog-content blockquote > p + blockquote {
   margin-top: var(--space-3);
 }
 
