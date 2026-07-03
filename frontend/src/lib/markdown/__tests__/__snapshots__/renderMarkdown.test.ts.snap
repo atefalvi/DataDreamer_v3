@@ -237,12 +237,45 @@ exports[`renderMarkdown v4 pipeline > matches the golden HTML for rich-content-b
 <div class="divider-block divider-block--neutral divider-block--x" role="separator"><span class="divider-block__mark" aria-hidden="true">×</span></div>
 <div class="divider-block divider-block--accent divider-block--star" role="separator" aria-label="Phase two"><span class="divider-block__label">Phase two</span></div>
 <figure class="image-grid-block"><figcaption class="image-grid__title">Product screenshots</figcaption><div class="image-grid" data-count="2"><button class="ig-item" type="button" data-src="https://api.data-dreamer.net/assets/135423d8-e08d-46cd-b1ce-2189d53efa46.png?width=1440&#x26;format=webp&#x26;quality=82" data-index="0" data-caption="Main dashboard view" aria-label="Open image: Dashboard state"><img src="https://api.data-dreamer.net/assets/135423d8-e08d-46cd-b1ce-2189d53efa46.png?width=1440&#x26;format=webp&#x26;quality=82" alt="Dashboard state" loading="lazy" decoding="async"></button><button class="ig-item" type="button" data-src="https://api.data-dreamer.net/assets/14d306d4-3af4-4e46-b73b-3d82009eaa9b.png?width=1440&#x26;format=webp&#x26;quality=82" data-index="1" aria-label="Open image: Content model"><img src="https://api.data-dreamer.net/assets/14d306d4-3af4-4e46-b73b-3d82009eaa9b.png?width=1440&#x26;format=webp&#x26;quality=82" alt="Content model" loading="lazy" decoding="async"></button></div></figure>
+<p>Standard quote authoring:</p>
+<div class="code-block"><div class="code-block__header"><span class="code-block__language">md</span><button class="code-block__copy" type="button" aria-label="Copy code" data-code-copy=""><svg class="code-block__icon code-block__icon--copy" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="13" height="13" x="9" y="9" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><svg class="code-block__icon code-block__icon--done" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span class="visually-hidden" data-copy-label="">Copy</span></button></div><pre class="shiki shiki-themes github-light-default github-dark-default" style="--shiki-light:#1f2328;--shiki-dark:#e6edf3;--shiki-light-bg:#ffffff;--shiki-dark-bg:#0d1117" tabindex="0"><code><span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">> Main quoted idea</span></span></code></pre></div>
+<blockquote>
+<p>Main quoted idea</p>
+</blockquote>
+<p>Continuous nested quote authoring:</p>
+<div class="code-block"><div class="code-block__header"><span class="code-block__language">md</span><button class="code-block__copy" type="button" aria-label="Copy code" data-code-copy=""><svg class="code-block__icon code-block__icon--copy" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="13" height="13" x="9" y="9" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><svg class="code-block__icon code-block__icon--done" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span class="visually-hidden" data-copy-label="">Copy</span></button></div><pre class="shiki shiki-themes github-light-default github-dark-default" style="--shiki-light:#1f2328;--shiki-dark:#e6edf3;--shiki-light-bg:#ffffff;--shiki-dark-bg:#0d1117" tabindex="0"><code><span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">> Main quoted idea</span></span>
+<span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">>> Nested subpoint</span></span>
+<span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">>> Another nested subpoint</span></span>
+<span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">></span></span>
+<span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">> Return to main quote</span></span></code></pre></div>
 <blockquote>
 <p>Main quoted idea</p>
 <blockquote>
 <p>Nested subpoint
-Another nested subpoint
-Return to main quote</p>
+Another nested subpoint</p>
 </blockquote>
+<p>Return to main quote</p>
+</blockquote>
+<p>Interrupted quote authoring:</p>
+<div class="code-block"><div class="code-block__header"><span class="code-block__language">md</span><button class="code-block__copy" type="button" aria-label="Copy code" data-code-copy=""><svg class="code-block__icon code-block__icon--copy" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="13" height="13" x="9" y="9" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><svg class="code-block__icon code-block__icon--done" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span class="visually-hidden" data-copy-label="">Copy</span></button></div><pre class="shiki shiki-themes github-light-default github-dark-default" style="--shiki-light:#1f2328;--shiki-dark:#e6edf3;--shiki-light-bg:#ffffff;--shiki-dark-bg:#0d1117" tabindex="0"><code><span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">> Main quoted idea</span></span>
+<span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">>> Nested subpoint</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#1F2328;--shiki-dark:#E6EDF3">some text here</span></span>
+<span class="line"></span>
+<span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">>> Another nested subpoint</span></span>
+<span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">></span></span>
+<span class="line"><span style="--shiki-light:#116329;--shiki-dark:#7EE787">> Return to main quote</span></span></code></pre></div>
+<blockquote>
+<p>Main quoted idea</p>
+<blockquote>
+<p>Nested subpoint</p>
+</blockquote>
+</blockquote>
+<p>some text here</p>
+<blockquote>
+<blockquote>
+<p>Another nested subpoint</p>
+</blockquote>
+<p>Return to main quote</p>
 </blockquote>"
 `;

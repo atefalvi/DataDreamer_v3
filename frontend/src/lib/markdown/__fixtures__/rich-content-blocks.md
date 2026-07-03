@@ -93,7 +93,48 @@ tone: accent
 ![Content model](https://api.data-dreamer.net/assets/14d306d4-3af4-4e46-b73b-3d82009eaa9b.png)
 :::
 
+Standard quote authoring:
+
+```md
+> Main quoted idea
+```
+
+> Main quoted idea
+
+Continuous nested quote authoring:
+
+```md
 > Main quoted idea
 >> Nested subpoint
 >> Another nested subpoint
+>
+> Return to main quote
+```
+
+> Main quoted idea
+>> Nested subpoint
+>> Another nested subpoint
+>
+> Return to main quote
+
+Interrupted quote authoring:
+
+```md
+> Main quoted idea
+>> Nested subpoint
+
+some text here
+
+>> Another nested subpoint
+>
+> Return to main quote
+```
+
+> Main quoted idea
+>> Nested subpoint
+
+some text here
+
+>> Another nested subpoint
+>
 > Return to main quote
