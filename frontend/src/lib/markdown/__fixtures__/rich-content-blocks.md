@@ -45,6 +45,18 @@ symbol: neutral
 tone: yellow
 :::
 
+Quote callout authoring:
+
+```md
+:::quote
+Simple systems are easier to trust.
+:::
+```
+
+:::quote
+Simple systems are easier to trust.
+:::
+
 :::formula Renewal rate
 value: \text{Renewal Rate} = \frac{\text{Renewed Accounts}}{\text{Eligible Accounts}} \times 100
 caption: Keep the denominator consistent.
@@ -91,6 +103,12 @@ tone: accent
 :::imagegrid Product screenshots
 ![Dashboard state](https://api.data-dreamer.net/assets/135423d8-e08d-46cd-b1ce-2189d53efa46.png "Main dashboard view")
 ![Content model](https://api.data-dreamer.net/assets/14d306d4-3af4-4e46-b73b-3d82009eaa9b.png)
+:::
+
+:::imagegrid Detail screenshots
+![Chart detail](https://api.data-dreamer.net/assets/8d024edb-4d0a-4ea9-ae1a-fd12a73fa92d.png)
+![Run state](https://api.data-dreamer.net/assets/135423d8-e08d-46cd-b1ce-2189d53efa46.png)
+![Review state](https://api.data-dreamer.net/assets/14d306d4-3af4-4e46-b73b-3d82009eaa9b.png)
 :::
 
 Standard quote authoring:

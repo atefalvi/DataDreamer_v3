@@ -800,7 +800,9 @@
   padding: var(--space-5);
   border: 1px solid var(--border-1);
   border-radius: var(--radius-lg);
-  background: var(--bg-1);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-2) 28%, transparent), transparent 72%),
+    var(--bg-1);
 }
 
 .prose .checklist-block__list,
@@ -814,9 +816,10 @@
 
 .prose .checklist-block__item,
 .blog-content .checklist-block__item {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-3);
-  align-items: baseline;
+  align-items: start;
   padding: 0;
 }
 
@@ -834,7 +837,13 @@
   font-size: var(--fs-xs);
   font-weight: 700;
   line-height: 1;
-  transform: translateY(0.2em);
+  transform: translateY(0.08em);
+}
+
+.prose .checklist-block__text,
+.blog-content .checklist-block__text {
+  min-width: 0;
+  line-height: var(--lh-base);
 }
 
 .prose .checklist-block__item--done .checklist-block__marker,
@@ -920,7 +929,7 @@
   border: 1px solid var(--border-1);
   border-radius: var(--radius-lg);
   background:
-    radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--metric-tone, var(--text-3)) 7%, transparent), transparent 55%),
+    radial-gradient(120% 120% at 0% 0%, color-mix(in srgb, var(--metric-tone, var(--text-3)) 12%, transparent), transparent 55%),
     var(--bg-1);
 }
 
