@@ -10,13 +10,19 @@ const { hasImageGrid = false } = Astro.props;
 
 {hasImageGrid && (
   <dialog class="article-lightbox" data-article-lightbox aria-label="Image viewer">
-    <button type="button" class="article-lightbox__close" data-lightbox-close aria-label="Close image viewer">Close</button>
-    <button type="button" class="article-lightbox__nav article-lightbox__nav--prev" data-lightbox-prev aria-label="Previous image">Prev</button>
+    <button type="button" class="article-lightbox__close" data-lightbox-close aria-label="Close image viewer">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+    </button>
+    <button type="button" class="article-lightbox__nav article-lightbox__nav--prev" data-lightbox-prev aria-label="Previous image">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+    </button>
     <figure>
       <img data-lightbox-image alt="" />
       <figcaption data-lightbox-caption aria-live="polite"></figcaption>
     </figure>
-    <button type="button" class="article-lightbox__nav article-lightbox__nav--next" data-lightbox-next aria-label="Next image">Next</button>
+    <button type="button" class="article-lightbox__nav article-lightbox__nav--next" data-lightbox-next aria-label="Next image">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+    </button>
   </dialog>
 )}
 
@@ -60,15 +66,37 @@ const { hasImageGrid = false } = Astro.props;
 
   .article-lightbox__close,
   .article-lightbox__nav {
-    min-width: 2.75rem;
-    min-height: 2.75rem;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
     border: 1px solid var(--border-2);
     border-radius: var(--radius-full);
-    background: var(--bg-1);
+    background: color-mix(in srgb, var(--bg-1) 88%, transparent);
+    backdrop-filter: blur(6px);
     color: var(--text-1);
     cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .article-lightbox__close:hover,
+  .article-lightbox__nav:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .article-lightbox__nav:hover {
+    transform: translateY(-50%) scale(1.06);
+  }
+
+  .article-lightbox__close:focus-visible,
+  .article-lightbox__nav:focus-visible {
+    outline: 2px solid var(--focus-ring, var(--accent));
+    outline-offset: 2px;
   }
 
   .article-lightbox__close {
@@ -94,11 +122,21 @@ const { hasImageGrid = false } = Astro.props;
   @media (max-width: 47.999rem) {
     .article-lightbox {
       padding: var(--space-4);
+      padding-block-end: var(--space-5);
     }
 
+    /* Controls become an intentional row under the image instead of floating overlays. */
     .article-lightbox__nav {
       position: static;
       transform: none;
+    }
+
+    .article-lightbox__nav:hover {
+      transform: scale(1.06);
+    }
+
+    .article-lightbox figure {
+      margin-block-start: var(--space-6);
     }
   }
 </style>
@@ -129,9 +167,11 @@ const { hasImageGrid = false } = Astro.props;
       const itemImage = item.querySelector('img');
       const src = item.dataset.src || itemImage?.getAttribute('src') || '';
       const alt = itemImage?.getAttribute('alt') || '';
+      // Prefer the authored caption (markdown image title) over alt text.
+      const text = item.dataset.caption || alt;
       image.alt = alt;
       image.src = src;
-      caption.textContent = `${index + 1} / ${items.length}${alt ? ` - ${alt}` : ''}`;
+      caption.textContent = `${index + 1} / ${items.length}${text ? ` — ${text}` : ''}`;
     };
 
     const open = (nextIndex: number) => {

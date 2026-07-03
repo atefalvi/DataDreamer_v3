@@ -17,6 +17,12 @@ export interface MdNode {
   lang?: string | null;
   blockType?: MarkdownBlockType;
   blockTitle?: string;
+  /** Raw markdown body for plain-text blocks (checklist/metric/formula/…). */
+  blockBody?: string;
+  position?: {
+    start?: { offset?: number };
+    end?: { offset?: number };
+  };
   children?: MdNode[];
   data?: {
     hName?: string;
@@ -56,7 +62,18 @@ export const calloutTypes = [
 ] as const;
 
 export type CalloutType = (typeof calloutTypes)[number];
-export type MarkdownBlockType = CalloutType | "details" | "quote" | "imagegrid";
+export type MarkdownBlockType =
+  | CalloutType
+  | "details"
+  | "quote"
+  | "imagegrid"
+  | "checklist"
+  | "embed"
+  | "metric"
+  | "metrics"
+  | "formula"
+  | "divider"
+  | "text";
 
 /** Depth-first pre-order walk. Return false from the visitor to skip children. */
 export function walk<T extends { children?: T[] }>(

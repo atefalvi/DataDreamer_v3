@@ -1,9 +1,11 @@
 import rehypeShiki from "@shikijs/rehype";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import rehypeStringify from "rehype-stringify";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import remarkParse from "remark-parse";
 import remarkRehype, { type Options as RemarkRehypeOptions } from "remark-rehype";
 import { unified } from "unified";
@@ -37,9 +39,11 @@ export async function renderMarkdown(content: string): Promise<RenderedMarkdown>
   const file = await unified()
     .use(remarkParse)
     .use(remarkGfm)
+    .use(remarkMath) // inline $…$ and block $$…$$ math
     .use(remarkCustomBlocks)
     .use(remarkRehype, remarkRehypeOptions)
     .use(rehypeRaw)
+    .use(rehypeKatex) // server-side KaTeX; no client math runtime
     .use(rehypeSlug)
     .use(rehypeCollectHeadings)
     .use(rehypeAutolinkHeadings, {
