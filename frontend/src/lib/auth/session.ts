@@ -65,6 +65,7 @@ export interface SessionUser {
   provider?: string;
   avatarId?: string;
   avatarUrl?: string;
+  googlePictureUrl?: string;
   createdAt?: string;
   accessToken: string;
 }
@@ -135,11 +136,22 @@ type DirectusUserProfile = {
   last_name?: string;
   provider?: string;
   avatar?: string | { id?: string };
+  google_picture_url?: string;
   date_created?: string;
 };
 
 type MeResponse = { data: Pick<DirectusUserProfile, 'id'> };
 type ProfileResponse = { data: DirectusUserProfile };
+
+function safeHttpsUrl(value: string | undefined): string | undefined {
+  if (!value?.trim()) return undefined;
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === 'https:' ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export function toSessionProfile(
   verifiedId: string,
@@ -154,12 +166,13 @@ export function toSessionProfile(
     provider: profile?.provider ?? undefined,
     avatarId,
     avatarUrl: avatarId ? '/api/auth/avatar' : undefined,
+    googlePictureUrl: safeHttpsUrl(profile?.google_picture_url),
     createdAt: profile?.date_created ?? undefined,
   };
 }
 
 async function fetchServerProfile(id: string): Promise<DirectusUserProfile | undefined> {
-  const fields = 'id,email,first_name,last_name,provider,avatar,date_created';
+  const fields = 'id,email,first_name,last_name,provider,avatar,google_picture_url,date_created';
   const response = await directusServiceFetch(`/users/${encodeURIComponent(id)}?fields=${fields}`);
   if (!response.ok) return undefined;
   const body = (await response.json()) as ProfileResponse;
@@ -173,7 +186,15 @@ export async function fetchMe(accessToken: string): Promise<Omit<SessionUser, 'a
     method: 'GET',
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  const profile = await fetchServerProfile(body.data.id).catch(() => undefined);
+  let profile: DirectusUserProfile | undefined;
+  try {
+    profile = await fetchServerProfile(body.data.id);
+  } catch {
+    profile = undefined;
+  }
+  if (!profile) {
+    console.warn('[auth] profile enrichment unavailable; check Guide Server user-read policy');
+  }
   return toSessionProfile(body.data.id, profile);
 }
 
