@@ -43,6 +43,9 @@ const AUTHOR_DETAIL_FIELDS = [
 ] as const;
 
 const PUBLISHED = { status: { _eq: 'published' } } as const;
+// v4.2 account model: only admin-approved profiles appear on the public Dream Team.
+// Blog-author-only profiles (Contributors) stay off the team pages.
+const TEAM = { ...PUBLISHED, dream_team: { _eq: true } } as const;
 
 type Fields = any; // eslint-disable-line -- SDK dotted-field cast (09 §4.2)
 
@@ -52,7 +55,7 @@ export async function allWithCounts(): Promise<AuthorSummary[]> {
     guard('authors.allWithCounts', () =>
       directus.request<AuthorRow[]>(
         readItems('authors', {
-          filter: PUBLISHED,
+          filter: TEAM,
           sort: ['sort', 'display_name'],
           fields: AUTHOR_SUMMARY_FIELDS as Fields,
         }),
@@ -74,7 +77,7 @@ export async function bySlug(slug: string): Promise<Author | null> {
   const rows = await guard('authors.bySlug', () =>
     directus.request<AuthorRow[]>(
       readItems('authors', {
-        filter: { ...PUBLISHED, slug: { _eq: slug } },
+        filter: { ...TEAM, slug: { _eq: slug } },
         limit: 1,
         fields: AUTHOR_DETAIL_FIELDS as Fields,
       }),
@@ -94,7 +97,7 @@ export async function related(author: Author, limit = 3): Promise<AuthorSummary[
       directus.request<AuthorRow[]>(
         readItems('authors', {
           filter: {
-            ...PUBLISHED,
+            ...TEAM,
             slug: { _neq: author.slug },
             specialties: { specialties_id: { slug: { _in: specialtySlugs } } },
           },
