@@ -48,6 +48,8 @@ export interface RenderedMarkdown {
   html: string;
   headings: Heading[];
   readingMinutes: number;
+  /** True when the document contains an :::imagegrid block (page mounts the lightbox). */
+  hasImageGrid: boolean;
 }
 
 export const calloutTypes = [

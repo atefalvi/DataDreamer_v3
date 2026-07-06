@@ -20,7 +20,7 @@ if (!slug) return Astro.rewrite('/404');
 
 let author: Author | null = null;
 try {
-  author = await authorsRepo.bySlug(slug);
+  author = await authorsRepo.bySlug(slug, Astro.locals);
 } catch (error) {
   console.error('[author] lookup failed:', error instanceof Error ? error.message : error);
 }
@@ -29,7 +29,7 @@ if (!author) return Astro.rewrite('/404');
 let posts: PostListItem[] = [];
 let related: AuthorSummary[] = [];
 try {
-  [posts, related] = await Promise.all([postsRepo.byAuthor(slug, 10), authorsRepo.related(author, 3)]);
+  [posts, related] = await Promise.all([postsRepo.byAuthor(slug, 10), authorsRepo.related(author, 3, Astro.locals)]);
 } catch (error) {
   console.error('[author] sections failed:', error instanceof Error ? error.message : error);
 }

@@ -105,12 +105,13 @@ export function mapPostListItem(row: PostRow): PostListItem {
 }
 
 export async function mapPost(row: PostRow): Promise<Post> {
-  const { html, headings, readingMinutes } = await renderMarkdown(row.content ?? '');
+  const { html, headings, readingMinutes, hasImageGrid } = await renderMarkdown(row.content ?? '');
   return {
     ...mapPostListItem(row),
     bodyHtml: html,
     headings,
     readingMinutes,
+    hasImageGrid,
   };
 }
 

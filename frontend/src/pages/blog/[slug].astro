@@ -75,7 +75,7 @@ if (isPagination) {
 
   try {
     [author, related, neighbors] = await Promise.all([
-      authorsRepo.bySlug(post.author.slug),
+      authorsRepo.bySlug(post.author.slug, Astro.locals),
       postsRepo.related(post, 3),
       postsRepo.neighbors(post),
     ]);
@@ -131,7 +131,7 @@ if (isPagination) {
     { label: post.title },
   ]);
   jsonLd = [articleJsonLd, breadcrumbJsonLd];
-  hasImageGrid = post.bodyHtml.includes('class="image-grid"');
+  hasImageGrid = post.hasImageGrid;
   hasRelated = related.length > 0;
   hasNeighbors = Boolean(neighbors.previous || neighbors.next);
 }

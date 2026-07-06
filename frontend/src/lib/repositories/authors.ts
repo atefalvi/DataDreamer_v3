@@ -49,8 +49,8 @@ const TEAM = { ...PUBLISHED, dream_team: { _eq: true } } as const;
 
 type Fields = any; // eslint-disable-line -- SDK dotted-field cast (09 §4.2)
 
-/** All published authors with their published-post counts (graph + list). */
-export async function allWithCounts(): Promise<AuthorSummary[]> {
+/** All team authors with their published-post counts (graph + list). */
+export async function allWithCounts(scope?: object): Promise<AuthorSummary[]> {
   const [rows, counts] = await Promise.all([
     guard('authors.allWithCounts', () =>
       directus.request<AuthorRow[]>(
@@ -61,19 +61,19 @@ export async function allWithCounts(): Promise<AuthorSummary[]> {
         }),
       ),
     ),
-    countsByAuthorId(),
+    countsByAuthorId(scope),
   ]);
   return rows.map((row) => mapAuthorSummary(row, counts.get(row.id) ?? 0));
 }
 
 /** Compact avatar refs for the homepage team strip (05 §1). */
-export async function forTeamStrip(limit = 8): Promise<AuthorRef[]> {
-  const summaries = await allWithCounts();
+export async function forTeamStrip(limit = 8, scope?: object): Promise<AuthorRef[]> {
+  const summaries = await allWithCounts(scope);
   return summaries.slice(0, limit).map(({ slug, name, avatar }) => ({ slug, name, avatar, dreamTeam: true }));
 }
 
 /** Full author by slug, or null if none / unpublished. */
-export async function bySlug(slug: string): Promise<Author | null> {
+export async function bySlug(slug: string, scope?: object): Promise<Author | null> {
   const rows = await guard('authors.bySlug', () =>
     directus.request<AuthorRow[]>(
       readItems('authors', {
@@ -84,12 +84,12 @@ export async function bySlug(slug: string): Promise<Author | null> {
     ),
   );
   if (!rows.length) return null;
-  const counts = await countsByAuthorId();
+  const counts = await countsByAuthorId(scope);
   return mapAuthor(rows[0], counts.get(rows[0].id) ?? 0);
 }
 
 /** Up to `limit` other authors sharing a specialty with the given author. */
-export async function related(author: Author, limit = 3): Promise<AuthorSummary[]> {
+export async function related(author: Author, limit = 3, scope?: object): Promise<AuthorSummary[]> {
   const specialtySlugs = author.specialties.map((s) => s.slug);
   if (!specialtySlugs.length) return [];
   const [rows, counts] = await Promise.all([
@@ -107,7 +107,7 @@ export async function related(author: Author, limit = 3): Promise<AuthorSummary[
         }),
       ),
     ),
-    countsByAuthorId(),
+    countsByAuthorId(scope),
   ]);
   return rows.map((row) => mapAuthorSummary(row, counts.get(row.id) ?? 0));
 }

@@ -92,6 +92,8 @@ export interface Post extends PostListItem {
   bodyHtml: string;
   headings: Heading[];
   readingMinutes: number;
+  /** From the markdown pipeline: the body contains an :::imagegrid (mount the lightbox). */
+  hasImageGrid: boolean;
 }
 
 export interface ProjectLinkRef {

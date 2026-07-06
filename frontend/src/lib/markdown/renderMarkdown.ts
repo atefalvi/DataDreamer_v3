@@ -72,6 +72,7 @@ export async function renderMarkdown(content: string): Promise<RenderedMarkdown>
     html: String(file),
     headings: (file.data.headings as Heading[] | undefined) ?? [],
     readingMinutes: readingMinutes(normalized),
+    hasImageGrid: Boolean(file.data.hasImageGrid),
   };
 }
 
