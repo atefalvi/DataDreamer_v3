@@ -30,6 +30,13 @@ Dream Team pages and blog bylines — a profile just isn't on the team unless fl
   `dream_team`/`slug`/`user` fields, or see other users.
 - **Revoke:** flip `dream_team` off / set role back to `guide_reader`.
 
+**Content-trust policy (decided 2026-07-06, review §9):** Contributors are vetted,
+admin-approved authors — the markdown pipeline deliberately allows raw HTML
+(`rehype-raw`) for expressive posts. Before ever granting Contributor to someone you
+would not trust with raw HTML, add `rehype-sanitize` to the pipeline with an
+allow-list covering the block classes (callout/checklist/metric/formula/embed/
+image-grid), KaTeX output, and Shiki inline styles.
+
 ## Security posture (verified live)
 
 - Public API: `posts`/`authors`/`projects` reads are row-filtered to `status=published`

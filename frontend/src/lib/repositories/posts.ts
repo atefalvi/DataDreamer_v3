@@ -4,6 +4,7 @@
  */
 import { readItems, aggregate } from '@directus/sdk';
 import { directus } from '../directus/client';
+import type { SdkFields as Fields } from '../directus/client';
 import { guard } from './errors';
 import { cachedPerRequest } from './cache';
 import { mapPost, mapPostListItem } from './_mappers';
@@ -44,7 +45,6 @@ const PUBLISHED = { status: { _eq: 'published' } } as const;
 
 // SDK dotted-field arrays aren't generically typeable; cast at the call site only
 // (the single documented `any` exception — CODE_REVIEW 2.3 / 09 §4.2).
-type Fields = any; // eslint-disable-line
 
 export interface PostListQuery {
   topic?: string;

@@ -3,6 +3,7 @@
  */
 import { readItems } from '@directus/sdk';
 import { directus } from '../directus/client';
+import type { SdkFields as Fields } from '../directus/client';
 import { guard } from './errors';
 import { mapAuthor, mapAuthorSummary } from './_mappers';
 import { countsByAuthorId } from './posts';
@@ -47,7 +48,6 @@ const PUBLISHED = { status: { _eq: 'published' } } as const;
 // Blog-author-only profiles (Contributors) stay off the team pages.
 const TEAM = { ...PUBLISHED, dream_team: { _eq: true } } as const;
 
-type Fields = any; // eslint-disable-line -- SDK dotted-field cast (09 §4.2)
 
 /** All team authors with their published-post counts (graph + list). */
 export async function allWithCounts(scope?: object): Promise<AuthorSummary[]> {
