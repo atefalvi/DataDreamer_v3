@@ -249,7 +249,9 @@ let serverPolicyId;
 
 async function ensureGuideReaderRole() {
   const roles = await api('/roles?fields=id,name&limit=200');
-  let role = roles.find((r) => r.name === 'Guide Reader');
+  // Prod's live learner role is named "guide_reader" (env GUIDE_READER_ROLE_ID); adopt it
+  // instead of creating a duplicate "Guide Reader" (v4-account-model removed that dup).
+  let role = roles.find((r) => r.name === 'guide_reader' || r.name === 'Guide Reader');
   if (!role) {
     role = await api('/roles', { method: 'POST', headers: jsonHeaders, body: JSON.stringify({ name: 'Guide Reader', icon: 'school', description: 'Low-permission learner identity; Astro gates guide content and scopes progress.', admin_access: false, app_access: false }) });
     console.log('+ role Guide Reader');

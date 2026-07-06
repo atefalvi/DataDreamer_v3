@@ -54,6 +54,8 @@ export interface AuthorRow {
   tools?: unknown;
   featured_work?: unknown;
   sort?: number | null;
+  /** Admin approval to appear on the public Dream Team page (v4.2 account model). */
+  dream_team?: boolean | null;
   specialties?: AuthorSpecialtyRow[];
 }
 
