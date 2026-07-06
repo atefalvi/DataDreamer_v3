@@ -69,7 +69,7 @@ export async function allWithCounts(): Promise<AuthorSummary[]> {
 /** Compact avatar refs for the homepage team strip (05 §1). */
 export async function forTeamStrip(limit = 8): Promise<AuthorRef[]> {
   const summaries = await allWithCounts();
-  return summaries.slice(0, limit).map(({ slug, name, avatar }) => ({ slug, name, avatar }));
+  return summaries.slice(0, limit).map(({ slug, name, avatar }) => ({ slug, name, avatar, dreamTeam: true }));
 }
 
 /** Full author by slug, or null if none / unpublished. */

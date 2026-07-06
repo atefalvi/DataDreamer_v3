@@ -26,6 +26,7 @@ export const POST_LIST_FIELDS = [
   'cover_image.height',
   'cover_image.description',
   'author.slug',
+  'author.dream_team',
   'author.display_name',
   'author.avatar.id',
   'author.avatar.width',

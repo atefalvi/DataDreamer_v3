@@ -18,7 +18,8 @@ const project = await projectsRepo.bySlug(slug);
 if (!project) return Astro.rewrite('/404');
 
 const { title, summary, year, role, author, tags, coverImage, links, bodyHtml } = project;
-const authorHref = `/dream-team/${author.slug}`;
+// Authors without a public team profile render as plain text (no dead link).
+const authorHref = author.dreamTeam ? `/dream-team/${author.slug}` : undefined;
 
 // Prev/next in display order.
 let all: Awaited<ReturnType<typeof projectsRepo.list>> = [];
@@ -58,7 +59,7 @@ const jsonLd = [
       <p class="kicker">Case study · {year}</p>
       <h1>{title}</h1>
       <p class="case__byline">
-        By <a href={authorHref}>{author.name}</a>
+        By {authorHref ? <a href={authorHref}>{author.name}</a> : <span>{author.name}</span>}
       </p>
       <p class="case__lede">{summary}</p>
     </header>
@@ -86,7 +87,7 @@ const jsonLd = [
         <dl>
           <div>
             <dt>Author</dt>
-            <dd><a href={authorHref}>{author.name}</a></dd>
+            <dd>{authorHref ? <a href={authorHref}>{author.name}</a> : author.name}</dd>
           </div>
           <div><dt>Role</dt><dd>{role}</dd></div>
           <div><dt>Year</dt><dd>{year}</dd></div>

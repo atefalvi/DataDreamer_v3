@@ -12,6 +12,8 @@ import SectionHeader from "../../components/ui/SectionHeader.astro";
 import "../../styles/fonts.css";
 import "../../styles/base.css";
 
+if (import.meta.env.PROD) return Astro.rewrite('/404');
+
 const colorTokens = [
   ["--bg-0", "Page background"],
   ["--bg-1", "Surface"],

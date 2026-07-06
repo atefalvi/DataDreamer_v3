@@ -27,7 +27,7 @@ try {
   const summaries = await authorsRepo.allWithCounts();
   teamCount = summaries.length;
   specialtyCount = new Set(summaries.flatMap((a) => a.specialties.map((s) => s.slug))).size;
-  team = summaries.slice(0, 8).map(({ slug, name, avatar }) => ({ slug, name, avatar }));
+  team = summaries.slice(0, 8).map(({ slug, name, avatar }) => ({ slug, name, avatar, dreamTeam: true }));
 } catch (error) {
   console.error('[home] team unavailable:', error instanceof Error ? error.message : error);
 }

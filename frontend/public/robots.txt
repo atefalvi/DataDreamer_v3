@@ -1,11 +1,10 @@
 User-agent: *
 Allow: /
-Disallow: /student
 Disallow: /api
+Disallow: /dev
 Disallow: /login
 Disallow: /signup
-Disallow: /forgot-password
-Disallow: /reset-password
+Disallow: /account
 
 Sitemap: https://data-dreamer.net/sitemap-index.xml
 

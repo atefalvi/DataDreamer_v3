@@ -24,7 +24,7 @@ describe('sitemap helpers', () => {
         excerpt: 'Four retry patterns.',
         publishedAt: new Date('2026-05-12T09:00:00Z'),
         topics: [],
-        author: { slug: 'atef-alvi', name: 'Atef Alvi' },
+        author: { slug: 'atef-alvi', name: 'Atef Alvi', dreamTeam: true },
         featured: false,
       },
     ];
