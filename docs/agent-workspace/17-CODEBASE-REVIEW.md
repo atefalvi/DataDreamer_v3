@@ -565,3 +565,20 @@ session refresh — schedule as Priority 2/3.
 avatar proxy, the markdown pipeline architecture and its golden tests, the `authors`
 dual-purpose design, `prose.css`'s dual-scope selector contract, and the edge-caching
 middleware defaults. These are the load-bearing walls, and they're good ones.
+
+---
+
+## Status update — 2026-07-06 (fix pass executed)
+
+Completed (branch `fix/codebase-review-p1`): P1 #1 dev pages gated + robots (also added
+`/account`, dropped stale entries) · P1 #2 byline `dreamTeam` flag (JSON-LD, GuideHero,
+projects) · P1 #4 content-trust policy documented in 16-ACCOUNT-MODEL.md · P2 #5
+`hasImageGrid` pipeline flag replaces the HTML sniff · P2 #6 `cachedPerRequest` wired
+into `countsByAuthorId` (+ spy test) · P2 #7 Guide Server published-only row rules
+applied to prod and verified (service check green, drafts hidden) · P3 #9 shared
+`SdkFields` · P3 #10 640px grid thumbnails · P3 #11 robots cleanup.
+
+Remaining (unchanged recommendations): env-hardening window (owner: DIRECTUS_SECRET,
+SESSION_COOKIE_SECURE, secret rotation) · P2 #8 move applied scripts to migrations/
+(deferred: docs still reference rerunning them) · P3 #12 lazy page splitting · P3 #13
+OAuth refresh · P3 #14 guide_progress unique constraint (needs raw SQL).

@@ -287,6 +287,30 @@ async function removeDuplicateReaderRole() {
   }
 }
 
+/* ── 7. Guide Server defense-in-depth: published-only content reads ─────
+   The frontend only ever serves published guides (app-layer filters), but the
+   service token could read drafts. Row rules are licensed on prod, so add the
+   same constraint at the DB: guides by status, sections/items via traversal.
+   guide_progress stays unrestricted — the server reads/writes rows for any
+   verified learner (ownership is enforced by the verified-session bridge). */
+
+async function hardenGuideServer() {
+  const policies = await api('/policies?fields=id,name&limit=200');
+  const server = policies.find((p) => p.name === 'Guide Server');
+  if (!server) {
+    console.log('! Guide Server policy not found — skipping guide hardening');
+    return;
+  }
+  const PUBLISHED = { status: { _eq: 'published' } };
+  await ensurePermission(server.id, 'guides', 'read', { permissions: PUBLISHED });
+  await ensurePermission(server.id, 'guide_sections', 'read', {
+    permissions: { guide: PUBLISHED },
+  });
+  await ensurePermission(server.id, 'guide_items', 'read', {
+    permissions: { section: { guide: PUBLISHED } },
+  });
+}
+
 /* ── run ───────────────────────────────────────────────────────────────── */
 
 await ensureAuthorFields();
@@ -294,4 +318,5 @@ await backfillDreamTeam();
 await hardenPublicPolicy();
 await ensureContributor();
 await removeDuplicateReaderRole();
+await hardenGuideServer();
 console.log('\nAccount model ready: learners (guide_reader) · Dream Team (authors.dream_team) · blog authors (Contributor role) · profiles linked via authors.user.');
