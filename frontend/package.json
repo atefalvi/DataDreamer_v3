@@ -9,7 +9,10 @@
     "astro": "astro",
     "check": "astro check",
     "test": "vitest run",
-    "test:golden": "vitest run"
+    "test:golden": "vitest run",
+    "og": "npm run og:sections && npm run og:projects",
+    "og:sections": "node ../scripts/generate-og-temp.mjs",
+    "og:projects": "node ../scripts/generate-project-og.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^9.5.5",
