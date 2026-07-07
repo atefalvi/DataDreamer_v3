@@ -168,6 +168,69 @@ async function linkKnownAuthors() {
   }
 }
 
+function slugify(value) {
+  return (
+    String(value)
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'author'
+  );
+}
+
+async function uniqueAuthorSlug(base, existingSlugs, suffix) {
+  const candidate = slugify(base);
+  if (!existingSlugs.has(candidate)) {
+    existingSlugs.add(candidate);
+    return candidate;
+  }
+  const withSuffix = `${candidate}-${String(suffix).slice(0, 8)}`;
+  existingSlugs.add(withSuffix);
+  return withSuffix;
+}
+
+/* ── 2c. Backfill pending profiles for existing signed-up users ─────────
+   The author-profile hook creates draft profiles for new signups. This reconciles
+   accounts created before that hook behavior existed, so admins can approve them
+   from Content → Authors instead of manually creating/linking an author row. */
+
+async function backfillPendingAuthorProfiles() {
+  const [users, authors] = await Promise.all([
+    api('/users?fields=id,email,first_name,last_name,role.admin_access&limit=-1'),
+    api('/items/authors?fields=id,slug,user&limit=-1'),
+  ]);
+
+  const linkedUsers = new Set(authors.map((author) => author.user).filter(Boolean));
+  const existingSlugs = new Set(authors.map((author) => author.slug).filter(Boolean));
+  const pending = users.filter((user) => !user.role?.admin_access && !linkedUsers.has(user.id));
+
+  if (!pending.length) {
+    console.log('= pending author profile backfill (nothing to do)');
+    return;
+  }
+
+  for (const user of pending) {
+    const displayName =
+      [user.first_name, user.last_name].filter(Boolean).join(' ').trim() ||
+      (user.email ?? 'author').split('@')[0];
+    const slug = await uniqueAuthorSlug(displayName, existingSlugs, user.id);
+    await api('/items/authors', {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify({
+        user: user.id,
+        display_name: displayName,
+        slug,
+        role_title: 'Contributor',
+        status: 'draft',
+        dream_team: false,
+      }),
+    });
+  }
+
+  console.log(`+ created ${pending.length} pending linked author profile(s)`);
+}
+
 /* ── 3. Permission helper (rules + validation + presets aware) ─────────── */
 
 async function ensurePermission(policy, collection, action, options = {}) {
@@ -352,6 +415,7 @@ async function hardenGuideServer() {
 await ensureAuthorFields();
 await backfillDreamTeam();
 await linkKnownAuthors();
+await backfillPendingAuthorProfiles();
 await hardenPublicPolicy();
 await ensureContributor();
 await removeDuplicateReaderRole();

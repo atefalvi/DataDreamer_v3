@@ -13,14 +13,17 @@ const HEIGHT = 630;
 const MAX_BYTES = 300 * 1024;
 
 const images = [
-  ['og-default.png', 1],
-  ['og-home.png', 2],
-  ['og-blog.png', 3],
-  ['og-projects.png', 4],
-  ['og-team.png', 5],
-  ['og-about.png', 6],
-  ['og-guides.png', 7],
+  ['og-default.png', 1, 'DataDreamer', 'Dreaming in systems, building in data'],
+  ['og-home.png', 2, 'DataDreamer', 'Signal, systems, and applied intelligence'],
+  ['og-blog.png', 3, 'Writing', 'Practical notes on data, AI, and engineering'],
+  ['og-projects.png', 4, 'Projects', 'Selected work from the DataDreamer lab'],
+  ['og-team.png', 5, 'Dream Team', 'People, specialties, and shared signals'],
+  ['og-about.png', 6, 'About', 'The practice behind DataDreamer'],
+  ['og-guides.png', 7, 'Field Guides', 'Curated paths through topics worth learning'],
 ];
+
+const escapeXml = (value) =>
+  String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 
 function mulberry32(seed) {
   return function random() {
@@ -167,6 +170,38 @@ function logoMarkSvg() {
     </svg>`;
 }
 
+function textOverlaySvg(title, subtitle) {
+  return `
+    <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="textScrim" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#070b12" stop-opacity="0.72"/>
+          <stop offset="52%" stop-color="#070b12" stop-opacity="0.26"/>
+          <stop offset="100%" stop-color="#070b12" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="760" height="${HEIGHT}" fill="url(#textScrim)"/>
+      <text x="64" y="352"
+        fill="#f4f6f8"
+        font-family="Inter, Arial, Helvetica, sans-serif"
+        font-size="76"
+        font-weight="720"
+        letter-spacing="0">${escapeXml(title)}</text>
+      <text x="66" y="410"
+        fill="#aeb8c5"
+        font-family="Inter, Arial, Helvetica, sans-serif"
+        font-size="30"
+        font-weight="520"
+        letter-spacing="0">${escapeXml(subtitle)}</text>
+      <line x1="66" y1="462" x2="410" y2="462" stroke="#ff5c38" stroke-width="3"/>
+      <text x="66" y="524"
+        fill="#7e8a99"
+        font-family="JetBrains Mono, ui-monospace, monospace"
+        font-size="17"
+        letter-spacing="2.4">data-dreamer.net</text>
+    </svg>`;
+}
+
 function backgroundSvg(seed) {
   const random = mulberry32(seed);
   return `
@@ -211,10 +246,11 @@ async function writeIfChanged(path, buffer) {
   return true;
 }
 
-async function renderImage(fileName, seed) {
+async function renderImage(fileName, seed, title, subtitle) {
   const outputPath = join(OUT_DIR, fileName);
   const png = await sharp(Buffer.from(backgroundSvg(seed)))
     .composite([
+      { input: Buffer.from(textOverlaySvg(title, subtitle)), left: 0, top: 0 },
       { input: Buffer.from(brandPlateSvg()), left: 28, top: 28 },
       { input: Buffer.from(logoMarkSvg()), left: 46, top: 37 },
     ])

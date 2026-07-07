@@ -54,13 +54,17 @@ lets a Contributor edit only their **own** profile (`authors.update` is scoped t
 
 ## Admin runbook (simplified 2026-07-06)
 
-- **Make someone an author — one step:** User Directory → their account → Role =
-  **Contributor**. The `author-profile` backend hook auto-creates their linked `authors`
-  profile (name + slug prefilled from the account, `dream_team=false`). They can then
-  log into the Directus app to: write, edit, and **publish their own posts**; delete
-  their own drafts; upload files; tag topics; and edit their own profile (bio, avatar,
-  links, tools). They can never touch other people's posts, publish others' drafts,
-  or change their own `dream_team`/`slug`/`user` fields.
+- **New signup:** the `author-profile` backend hook creates a linked draft `authors`
+  profile immediately (name + slug prefilled from the account, `dream_team=false`).
+  Admins can find that row in Content → Authors and review/fill the profile before
+  approval. Draft author rows are not public.
+- **Approve someone as an author:** User Directory → their account → Role =
+  **Contributor**. The hook reuses the linked draft profile and promotes it to
+  `status=published`. They can then log into the Directus app to: write, edit, and
+  **publish their own posts**; delete their own drafts; upload files; tag topics; and
+  edit their own profile (bio, avatar, links, tools). They can never touch other
+  people's posts, publish others' drafts, or change their own `dream_team`/`slug`/`user`
+  fields.
 - **Put them on the Dream Team:** open the auto-created profile (Content → Authors)
   and toggle **Dream team** on. That's the only extra step — profile fields are already
   there for them (or you) to fill in.
