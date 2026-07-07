@@ -17,6 +17,8 @@ const { guide } = Astro.props;
 const { title, summary, difficulty, coverImage, estimatedMinutes, itemCount, curator, topics } =
   guide;
 
+const CuratorTag = curator.dreamTeam ? 'a' : 'div';
+
 const facts = [
   itemCount > 0 ? `${itemCount} ${itemCount === 1 ? 'resource' : 'resources'}` : null,
   estimatedMinutes ? `~${formatMinutes(estimatedMinutes)}` : null,
@@ -39,10 +41,14 @@ const facts = [
   <p class="g-hero__summary">{summary}</p>
 
   <div class="g-hero__meta">
-    <a href={`/dream-team/${curator.slug}`} class="g-hero__curator">
+    {/* Curators without a public team profile render as plain text (no dead link). */}
+    <CuratorTag
+      href={curator.dreamTeam ? `/dream-team/${curator.slug}` : undefined}
+      class="g-hero__curator"
+    >
       <Avatar src={curator.avatar?.src} name={curator.name} size={32} />
       <span>Curated by <strong>{curator.name}</strong></span>
-    </a>
+    </CuratorTag>
     <DifficultyTag difficulty={difficulty} />
     {facts.map((fact) => <span class="g-hero__fact">{fact}</span>)}
   </div>

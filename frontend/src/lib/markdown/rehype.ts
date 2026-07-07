@@ -12,6 +12,7 @@ interface HandlerState {
 
 interface ImageEntry {
   src: string;
+  thumb: string;
   alt: string;
   caption?: string;
 }
@@ -37,7 +38,8 @@ function imageEntries(node: MdNode): ImageEntry[] {
   walk(node, (candidate) => {
     if (candidate.type === "image" && candidate.url) {
       entries.push({
-        src: transformMarkdownImageUrl(candidate.url),
+        src: transformMarkdownImageUrl(candidate.url), // full size — lightbox target
+        thumb: transformMarkdownImageUrl(candidate.url, 640), // grid cell render
         alt: candidate.alt ?? "",
         caption: candidate.title?.trim() || undefined,
       });
@@ -335,7 +337,7 @@ export const markdownBlockHandlers = {
             },
             [
               element("img", {
-                src: image.src,
+                src: image.thumb,
                 alt: image.alt,
                 loading: "lazy",
                 decoding: "async",

@@ -34,6 +34,12 @@ export interface AuthorRef {
   slug: string;
   name: string;
   avatar?: ImageRef;
+  /**
+   * Whether this author has a public /dream-team profile page (v4.2 account model).
+   * Bylines link to the profile only when true; blog-only Contributors render as
+   * plain text. Defaults to true when the query didn't select the field.
+   */
+  dreamTeam: boolean;
 }
 
 export interface AuthorLink {
@@ -86,6 +92,8 @@ export interface Post extends PostListItem {
   bodyHtml: string;
   headings: Heading[];
   readingMinutes: number;
+  /** From the markdown pipeline: the body contains an :::imagegrid (mount the lightbox). */
+  hasImageGrid: boolean;
 }
 
 export interface ProjectLinkRef {

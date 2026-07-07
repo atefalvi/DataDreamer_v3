@@ -169,8 +169,19 @@ function transformBlockChildren(children: MdNode[], source: string, depth = 0): 
 }
 
 export function remarkCustomBlocks() {
-  return (tree: MdNode, file: { toString(): string }) => {
+  return (tree: MdNode, file: { toString(): string; data: Record<string, unknown> }) => {
     if (!tree.children) return;
     tree.children = transformBlockChildren(tree.children, String(file));
+    // Structured fact for consumers (the article page mounts the lightbox on it),
+    // instead of string-sniffing the rendered HTML.
+    file.data.hasImageGrid = hasBlock(tree.children, "imagegrid");
   };
+}
+
+function hasBlock(children: MdNode[], type: MarkdownBlockType): boolean {
+  return children.some(
+    (child) =>
+      (child.type === "customBlock" && child.blockType === type) ||
+      (child.children ? hasBlock(child.children, type) : false),
+  );
 }

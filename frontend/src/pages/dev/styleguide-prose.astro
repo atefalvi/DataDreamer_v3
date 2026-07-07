@@ -4,6 +4,8 @@ import "../../styles/fonts.css";
 import "../../styles/base.css";
 import "../../styles/prose.css";
 
+if (import.meta.env.PROD) return Astro.rewrite('/404');
+
 /**
  * V4-DS-003 review fixture: hand-authored HTML matching the markdown pipeline
  * markup contract (05 §3a, 09 §6). When ARC-002 lands, its golden-test output

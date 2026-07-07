@@ -17,7 +17,7 @@ import type { AuthorSummary } from '../../types/content';
 
 let authors: AuthorSummary[] = [];
 try {
-  authors = await authorsRepo.allWithCounts();
+  authors = await authorsRepo.allWithCounts(Astro.locals);
 } catch (error) {
   console.error('[dream-team] authors unavailable:', error instanceof Error ? error.message : error);
 }

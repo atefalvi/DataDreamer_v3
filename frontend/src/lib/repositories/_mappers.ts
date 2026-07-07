@@ -67,11 +67,14 @@ export function mapSpecialtyRef(row: SpecialtyRow): SpecialtyRef {
 }
 
 function mapAuthorRef(row: AuthorRow | undefined): AuthorRef {
-  if (!row) return { slug: 'unknown', name: 'DataDreamer' };
+  if (!row) return { slug: 'unknown', name: 'DataDreamer', dreamTeam: false };
   return {
     slug: row.slug,
     name: row.display_name,
     avatar: toImageRef(row.avatar, row.display_name),
+    // Only an explicit false (field selected, author not approved) drops the byline
+    // link; queries that don't select dream_team keep today's linking behavior.
+    dreamTeam: row.dream_team !== false,
   };
 }
 
@@ -102,12 +105,13 @@ export function mapPostListItem(row: PostRow): PostListItem {
 }
 
 export async function mapPost(row: PostRow): Promise<Post> {
-  const { html, headings, readingMinutes } = await renderMarkdown(row.content ?? '');
+  const { html, headings, readingMinutes, hasImageGrid } = await renderMarkdown(row.content ?? '');
   return {
     ...mapPostListItem(row),
     bodyHtml: html,
     headings,
     readingMinutes,
+    hasImageGrid,
   };
 }
 

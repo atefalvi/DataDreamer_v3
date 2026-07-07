@@ -51,3 +51,11 @@ export async function directusServiceFetch(path: string, init: RequestInit = {})
   headers.set('Authorization', `Bearer ${SERVICE_TOKEN}`);
   return fetch(`${DIRECTUS_URL}${path}`, { ...init, headers });
 }
+
+/**
+ * The one documented `any` exception (09 §4.2, CODE_REVIEW 2.3): the SDK cannot
+ * generically type dotted-field arrays ('author.avatar.id'), so repositories cast
+ * their `fields` option through this alias. Do not add other `any`s.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type SdkFields = any;

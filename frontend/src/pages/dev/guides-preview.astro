@@ -15,7 +15,7 @@ import type { Guide, GuideItem, GuideListItem, GuideSection as GuideSectionT } f
 
 if (import.meta.env.PROD) return Astro.rewrite('/404');
 
-const curator = { slug: 'atef-alvi', name: 'Atef Alvi' };
+const curator = { slug: 'atef-alvi', name: 'Atef Alvi', dreamTeam: true };
 const topics = [
   { name: 'Data Engineering', slug: 'data-engineering' },
   { name: 'Airflow', slug: 'airflow' },
@@ -45,7 +45,7 @@ const guide: Guide = {
   whyThisPathHtml: '<p>Most Airflow tutorials drown you in setup. This path skips that and gets you to a working DAG fast, then fills in scheduling and debugging once you have something to break.</p>',
   expectedOutcomeHtml: "<p>You'll write, schedule, and debug your own DAGs and wire them to external systems.</p>",
   recommendedAudience: 'Engineers comfortable with Python who have never run a scheduler.',
-  curators: [curator, { slug: 'maria-khan', name: 'Maria Khan' }],
+  curators: [curator, { slug: 'maria-khan', name: 'Maria Khan', dreamTeam: true }],
   specialties: [],
   sections: [readerSection],
   unlocked: true,

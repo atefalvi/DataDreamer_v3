@@ -4,7 +4,9 @@
  */
 import { readItems, aggregate } from '@directus/sdk';
 import { directus } from '../directus/client';
+import type { SdkFields as Fields } from '../directus/client';
 import { guard } from './errors';
+import { cachedPerRequest } from './cache';
 import { mapPost, mapPostListItem } from './_mappers';
 import type { PostRow } from '../directus/schema';
 import type { Post, PostListItem, PostListPage } from '../../types/content';
@@ -26,6 +28,7 @@ export const POST_LIST_FIELDS = [
   'cover_image.height',
   'cover_image.description',
   'author.slug',
+  'author.dream_team',
   'author.display_name',
   'author.avatar.id',
   'author.avatar.width',
@@ -42,7 +45,6 @@ const PUBLISHED = { status: { _eq: 'published' } } as const;
 
 // SDK dotted-field arrays aren't generically typeable; cast at the call site only
 // (the single documented `any` exception — CODE_REVIEW 2.3 / 09 §4.2).
-type Fields = any; // eslint-disable-line
 
 export interface PostListQuery {
   topic?: string;
@@ -208,8 +210,13 @@ export async function neighbors(post: Post): Promise<{ next?: PostListItem; prev
   };
 }
 
-/** Published post count grouped by author id (for author cards / graph). */
-export async function countsByAuthorId(): Promise<Map<string, number>> {
+/**
+ * Published post count grouped by author id (for author cards / graph).
+ * Pass a per-request `scope` (e.g. `Astro.locals`) to memoize — dream-team profile
+ * renders would otherwise run the identical aggregate 2-3x per request.
+ */
+export async function countsByAuthorId(scope?: object): Promise<Map<string, number>> {
+  if (scope) return cachedPerRequest(scope, 'posts.countsByAuthorId', () => countsByAuthorId());
   const command = aggregate('posts' as never, {
     aggregate: { count: ['id'] },
     groupBy: ['author'],

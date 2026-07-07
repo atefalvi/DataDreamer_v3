@@ -9,6 +9,7 @@
  */
 import { readItems, createItem, updateItem } from '@directus/sdk';
 import { directusForService } from '../directus/client';
+import type { SdkFields as Fields } from '../directus/client';
 import { toImageRef } from '../images';
 import { guard } from './errors';
 import { mapGuide, mapGuideListItem } from './_mappers';
@@ -26,7 +27,6 @@ export const DEFAULT_PAGE_SIZE = 9;
 
 // SDK dotted-field arrays aren't generically typeable; cast at the call site only
 // (the documented `any` exception — 09 §4.2, mirrors posts.ts).
-type Fields = any; // eslint-disable-line
 
 const PUBLISHED = { status: { _eq: 'published' } } as const;
 
@@ -45,6 +45,7 @@ const GUIDE_CARD_FIELDS = [
   'cover_image.height',
   'cover_image.description',
   'author.slug',
+  'author.dream_team',
   'author.display_name',
   'author.avatar.id',
   'author.avatar.width',

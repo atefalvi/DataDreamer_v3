@@ -5,6 +5,7 @@
  */
 import { readItems } from '@directus/sdk';
 import { directus } from '../directus/client';
+import type { SdkFields as Fields } from '../directus/client';
 import { guard } from './errors';
 import { mapTopic, mapTopicRef } from './_mappers';
 import type { PostRow, TopicRow } from '../directus/schema';
@@ -12,7 +13,6 @@ import type { Topic, TopicRef } from '../../types/content';
 
 const PUBLISHED = { status: { _eq: 'published' } } as const;
 
-type Fields = any; // eslint-disable-line -- SDK dotted-field cast (09 §4.2)
 
 export interface TopicWithCount {
   topic: TopicRef;

@@ -29,3 +29,19 @@ describe('cachedPerRequest', () => {
     expect(load).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('countsByAuthorId per-request memoization', () => {
+  it('runs the aggregate once per scope', async () => {
+    vi.resetModules();
+    vi.doMock('../../directus/client', () => ({ directus: { request: vi.fn().mockResolvedValue([]) } }));
+    const { countsByAuthorId } = await import('../posts');
+    const { directus } = await import('../../directus/client');
+    const scope = {};
+    await Promise.all([countsByAuthorId(scope), countsByAuthorId(scope)]);
+    await countsByAuthorId(scope);
+    expect((directus.request as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
+    await countsByAuthorId({}); // new scope → new request
+    expect((directus.request as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(2);
+    vi.doUnmock('../../directus/client');
+  });
+});
