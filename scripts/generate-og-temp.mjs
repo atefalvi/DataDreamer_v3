@@ -74,7 +74,7 @@ function svgTemplate(title, subtitle) {
       font-family="JetBrains Mono, ui-monospace, monospace"
       font-size="18"
       font-weight="600"
-      letter-spacing="2.2">TEMPORARY SOCIAL PREVIEW</text>
+      letter-spacing="2.2">SOCIAL PREVIEW</text>
 
     <text x="64" y="328"
       fill="${colors.text1}"
