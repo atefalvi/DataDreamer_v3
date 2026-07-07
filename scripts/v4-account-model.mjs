@@ -7,8 +7,8 @@
  *                                          and/or blog byline), linked to the account via
  *                                          the new `authors.user` M2O.
  *   authors.dream_team (boolean)         = admin approval to appear on /dream-team.
- *   Contributor role (+policy)           = admin approval to write blog posts in the
- *                                          Directus app: drafts only, own posts only.
+ *   Contributor role (+policy)           = admin approval to write + publish their own
+ *                                          posts in the Directus app (own posts only).
  *
  * Also hardens the Public policy (row rules are licensed on prod): drafts are no longer
  * readable anonymously, and the new `authors.user` link is never exposed publicly.
@@ -130,6 +130,44 @@ async function backfillDreamTeam() {
   console.log(`+ dream_team=true backfilled for ${pending.length} existing author(s)`);
 }
 
+/* ── 2b. Link existing profiles to their login accounts ─────────────────
+   authors.user must point at the directus_users account so one person's guide
+   login, Dream Team profile, and blog byline are the same identity (and so a
+   Contributor can edit only their own profile). New profiles get this set by the
+   admin at approval time; this reconciles the profiles that predate the field.
+   Idempotent: only links when user is null and exactly one account matches. */
+
+const KNOWN_AUTHOR_ACCOUNTS = [
+  // author slug → predicate identifying the directus_users account (email is the
+  // stable key; resolved to an id at runtime so no UUIDs are hardcoded).
+  { slug: 'syed-atef-alvi', match: (u) => u.email === 'atefalvi@gmail.com' },
+  { slug: 'maria-khan', match: (u) => u.provider === 'google' && (u.first_name ?? '').toLowerCase() === 'maria' },
+];
+
+async function linkKnownAuthors() {
+  const users = await api('/users?fields=id,email,first_name,provider&limit=200');
+  const authors = await api('/items/authors?fields=id,slug,user&limit=200');
+  for (const rule of KNOWN_AUTHOR_ACCOUNTS) {
+    const author = authors.find((a) => a.slug === rule.slug);
+    if (!author) continue;
+    if (author.user) {
+      console.log(`= author ${rule.slug} already linked`);
+      continue;
+    }
+    const matches = users.filter(rule.match);
+    if (matches.length !== 1) {
+      console.log(`! author ${rule.slug}: ${matches.length} matching accounts — link manually in the UI`);
+      continue;
+    }
+    await api(`/items/authors/${author.id}`, {
+      method: 'PATCH',
+      headers: jsonHeaders,
+      body: JSON.stringify({ user: matches[0].id }),
+    });
+    console.log(`+ linked author ${rule.slug} → its login account`);
+  }
+}
+
 /* ── 3. Permission helper (rules + validation + presets aware) ─────────── */
 
 async function ensurePermission(policy, collection, action, options = {}) {
@@ -190,7 +228,7 @@ async function ensureContributor() {
       body: JSON.stringify({
         name: 'Contributor',
         icon: 'edit_note',
-        description: 'Admin-approved blog author: writes own drafts in the Directus app; an admin publishes.',
+        description: 'Admin-approved blog author: writes and publishes their own posts in the Directus app.',
       }),
     });
     console.log('+ role Contributor');
@@ -207,7 +245,7 @@ async function ensureContributor() {
       body: JSON.stringify({
         name: 'Contributor',
         icon: 'edit_note',
-        description: 'Own draft posts + own author profile. No publish, no admin.',
+        description: 'Own posts (create/edit/publish) + own author profile. No admin, no other users\' content.',
         admin_access: false,
         app_access: true,
       }),
@@ -224,18 +262,16 @@ async function ensureContributor() {
   }
 
   const id = policy.id;
-  // Posts: create drafts, see published + own, edit/delete own unpublished. Publishing
-  // stays admin-only (validation blocks setting status to published).
+  // Posts: full authorship over OWN posts — create (starts as draft), edit, and
+  // publish. Never other people's posts; delete only while still a draft.
   await ensurePermission(id, 'posts', 'create', {
     presets: { status: 'draft' },
-    validation: { status: { _eq: 'draft' } },
   });
   await ensurePermission(id, 'posts', 'read', {
     permissions: { _or: [{ status: { _eq: 'published' } }, { user_created: OWN }] },
   });
   await ensurePermission(id, 'posts', 'update', {
-    permissions: { user_created: OWN, status: { _neq: 'published' } },
-    validation: { status: { _neq: 'published' } },
+    permissions: { user_created: OWN },
   });
   await ensurePermission(id, 'posts', 'delete', {
     permissions: { user_created: OWN, status: { _eq: 'draft' } },
@@ -315,6 +351,7 @@ async function hardenGuideServer() {
 
 await ensureAuthorFields();
 await backfillDreamTeam();
+await linkKnownAuthors();
 await hardenPublicPolicy();
 await ensureContributor();
 await removeDuplicateReaderRole();
