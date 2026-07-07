@@ -96,6 +96,9 @@ describe("renderMarkdown v4 pipeline", () => {
     // image grid — contract preserved + title + caption passthrough
     expect(html).toContain('class="image-grid" data-count="2"');
     expect(html).toContain('class="ig-item" type="button" data-src=');
+    // grid cells load the 640px transform; the lightbox data-src keeps full size
+    expect(html).toMatch(/<img src="[^"]*width=640[^"]*"/);
+    expect(html).toMatch(/data-src="[^"]*width=1440[^"]*"/);
     expect(html).toContain('data-caption="Main dashboard view"');
     expect(html).toContain('class="image-grid__title"');
 
