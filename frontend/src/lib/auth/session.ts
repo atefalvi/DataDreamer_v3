@@ -66,6 +66,15 @@ export interface SessionUser {
   avatarId?: string;
   avatarUrl?: string;
   googlePictureUrl?: string;
+  /**
+   * Approved-contributor link (v4.3): set when an `authors` profile is linked to this
+   * account (`authors.user = id`). Gates the /account Author Profile + Posts tabs —
+   * the profile's existence, not the role name, is the frontend contract.
+   */
+  hasAuthorProfile: boolean;
+  authorId?: string;
+  authorSlug?: string;
+  authorDisplayName?: string;
   accessToken: string;
 }
 
@@ -141,6 +150,9 @@ type DirectusUserProfile = {
 type MeResponse = { data: Pick<DirectusUserProfile, 'id'> };
 type ProfileResponse = { data: DirectusUserProfile };
 
+export type LinkedAuthor = { id: string; slug: string; display_name?: string; status?: string };
+type LinkedAuthorResponse = { data: LinkedAuthor[] };
+
 function safeHttpsUrl(value: string | undefined): string | undefined {
   if (!value?.trim()) return undefined;
   try {
@@ -154,6 +166,7 @@ function safeHttpsUrl(value: string | undefined): string | undefined {
 export function toSessionProfile(
   verifiedId: string,
   profile?: DirectusUserProfile,
+  author?: LinkedAuthor,
 ): Omit<SessionUser, 'accessToken'> {
   const avatarId = typeof profile?.avatar === 'string' ? profile.avatar : profile?.avatar?.id;
   return {
@@ -165,6 +178,10 @@ export function toSessionProfile(
     avatarId,
     avatarUrl: avatarId ? '/api/auth/avatar' : undefined,
     googlePictureUrl: safeHttpsUrl(profile?.google_picture_url),
+    hasAuthorProfile: Boolean(author),
+    authorId: author?.id,
+    authorSlug: author?.slug,
+    authorDisplayName: author?.display_name,
   };
 }
 
@@ -176,6 +193,15 @@ async function fetchServerProfile(id: string): Promise<DirectusUserProfile | und
   return body.data;
 }
 
+/** The author profile linked to this verified account, if any (approved contributor). */
+export async function fetchLinkedAuthor(userId: string): Promise<LinkedAuthor | undefined> {
+  const query = `/items/authors?filter[user][_eq]=${encodeURIComponent(userId)}&fields=id,slug,display_name,status&limit=1`;
+  const response = await directusServiceFetch(query);
+  if (!response.ok) return undefined;
+  const body = (await response.json()) as LinkedAuthorResponse;
+  return body.data?.[0];
+}
+
 export async function fetchMe(accessToken: string): Promise<Omit<SessionUser, 'accessToken'>> {
   // The learner token proves identity but intentionally has no broad user-directory
   // access. The server credential enriches only that already-verified user id.
@@ -183,16 +209,14 @@ export async function fetchMe(accessToken: string): Promise<Omit<SessionUser, 'a
     method: 'GET',
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  let profile: DirectusUserProfile | undefined;
-  try {
-    profile = await fetchServerProfile(body.data.id);
-  } catch {
-    profile = undefined;
-  }
+  const [profile, author] = await Promise.all([
+    fetchServerProfile(body.data.id).catch(() => undefined),
+    fetchLinkedAuthor(body.data.id).catch(() => undefined),
+  ]);
   if (!profile) {
     console.warn('[auth] profile enrichment unavailable; check Guide Server user-read policy');
   }
-  return toSessionProfile(body.data.id, profile);
+  return toSessionProfile(body.data.id, profile, author);
 }
 
 export function setSession(cookies: AstroCookies, tokens: SessionTokens): void {

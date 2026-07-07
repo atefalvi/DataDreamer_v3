@@ -1,11 +1,17 @@
 /**
- * Hook: keep each login account linked to an editable author profile.
+ * Hook: one-action author approval.
  *
- * - New users get a draft `authors` profile immediately, so admins can find them in
- *   Content → Authors and review the profile before approval.
- * - When an admin gives the account the Contributor role, the linked profile is
- *   promoted to published. dream_team stays false until separately approved.
- * - Idempotent: if a profile is already linked to the user, it is reused.
+ * When an admin sets a user's role to Contributor (User Directory → Role → Save),
+ * ensure that user has exactly one linked `authors` profile:
+ *  - none linked  → create one, prefilled from the account (display name, slug),
+ *    status published so bylines/account editing work immediately, dream_team=false
+ *    (Dream Team stays a separate, admin-only toggle).
+ *  - already linked → reuse it untouched; only a `draft` profile is promoted to
+ *    published (an `archived` profile stays archived — that was a deliberate admin
+ *    choice and approval must not silently revive it).
+ *
+ * Signups deliberately do NOT create profiles: authors = approved contributors,
+ * not every learner. Idempotent; never duplicates; never overwrites profile fields.
  */
 
 export function slugify(value) {
@@ -27,14 +33,15 @@ export default ({ action }, { services, database, getSchema }) => {
     return role?.id;
   }
 
-  async function ensureProfile(userId, status) {
-    const linked = await database("authors").where({ user: userId }).first("id");
+  async function ensureProfile(userId) {
+    const linked = await database("authors").where({ user: userId }).first("id", "status");
     if (linked) {
-      if (status === "published") {
+      if (linked.status === "draft") {
         await database("authors").where({ id: linked.id }).update({ status: "published" });
-        console.info("[author-profile] approved linked profile");
+        console.info("[author-profile] published linked draft profile");
+      } else {
+        console.info("[author-profile] profile already linked, skipping");
       }
-      console.info("[author-profile] profile already linked, skipping");
       return;
     }
 
@@ -56,10 +63,10 @@ export default ({ action }, { services, database, getSchema }) => {
       display_name: displayName,
       slug,
       role_title: "Contributor",
-      status,
+      status: "published",
       dream_team: false,
     });
-    console.info("[author-profile] created profile", { slug, status });
+    console.info("[author-profile] created profile", { slug });
   }
 
   async function onRoleChange(payload, ids) {
@@ -67,16 +74,14 @@ export default ({ action }, { services, database, getSchema }) => {
     const roleId = await contributorRoleId();
     if (!roleId || payload.role !== roleId) return;
     for (const id of ids) {
-      await ensureProfile(id, "published").catch((error) =>
+      await ensureProfile(id).catch((error) =>
         console.error("[author-profile] failed:", error.message),
       );
     }
   }
 
-  action("users.create", async ({ key }) => {
-    await ensureProfile(key, "draft").catch((error) =>
-      console.error("[author-profile] failed:", error.message),
-    );
-  });
+  // Covers both paths: promoting an existing user, and creating a user directly
+  // with the Contributor role. Plain signups (guide_reader) create no profile.
+  action("users.create", async ({ payload, key }) => onRoleChange(payload, [key]));
   action("users.update", async ({ payload, keys }) => onRoleChange(payload, keys));
 };

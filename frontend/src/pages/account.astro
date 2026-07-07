@@ -11,26 +11,62 @@ import { guidesRepo } from '../lib/repositories';
 import { formatMinutes } from '../lib/guides/progress';
 import type { AccountGuideProgress, GuideListItem } from '../types/content';
 import { userIdentity } from '../lib/auth/identity';
+import { allSpecialties, authorForEdit, ownPosts } from '../lib/account/authorProfile';
+import type { EditableAuthorProfile, OwnPost, SpecialtyOption } from '../lib/account/authorProfile';
+import { PUBLIC_DIRECTUS_URL } from '../lib/directus/client';
 
 const user = Astro.locals.user;
 
+// Contributor tabs (v4.3): visible when an authors profile is linked to this account.
+const isContributor = Boolean(user?.hasAuthorProfile);
+const TABS = ['account', 'guides', 'author', 'posts'] as const;
+type Tab = (typeof TABS)[number];
+const requestedTab = Astro.url.searchParams.get('tab') as Tab | null;
+const tab: Tab = isContributor && requestedTab && TABS.includes(requestedTab) ? requestedTab : 'account';
+const savedFlash = Astro.url.searchParams.get('saved') === '1';
+const errorFlash = Astro.url.searchParams.get('error') ?? undefined;
+
 let guides: AccountGuideProgress[] = [];
 let recommended: GuideListItem | undefined;
+let authorProfile: EditableAuthorProfile | undefined;
+let specialtyOptions: SpecialtyOption[] = [];
+let posts: OwnPost[] = [];
+
 if (user) {
   Astro.response.headers.set('Cache-Control', 'private, no-store');
-  try {
-    guides = await guidesRepo.myGuides(user.id);
-  } catch (error) {
-    console.error('[account] myGuides failed:', error instanceof Error ? error.message : error);
-  }
-  if (guides.length === 0) {
+  const showGuides = !isContributor || tab === 'guides';
+  if (showGuides) {
     try {
-      recommended = (await guidesRepo.latest(1))[0];
-    } catch {
-      recommended = undefined;
+      guides = await guidesRepo.myGuides(user.id);
+    } catch (error) {
+      console.error('[account] myGuides failed:', error instanceof Error ? error.message : error);
+    }
+    if (guides.length === 0) {
+      try {
+        recommended = (await guidesRepo.latest(1))[0];
+      } catch {
+        recommended = undefined;
+      }
     }
   }
+  if (isContributor && tab === 'author' && user.authorId) {
+    [authorProfile, specialtyOptions] = await Promise.all([
+      authorForEdit(user.authorId).catch(() => undefined),
+      allSpecialties().catch(() => []),
+    ]);
+  }
+  if (isContributor && tab === 'posts') {
+    posts = await ownPosts(user.id).catch(() => []);
+  }
 }
+
+const directusPostsUrl = `${PUBLIC_DIRECTUS_URL}/admin/content/posts`;
+const tabLabel: Record<Tab, string> = {
+  account: 'Account',
+  guides: 'Guides',
+  author: 'Author Profile',
+  posts: 'Posts',
+};
 
 const inProgress = guides.filter((g) => g.status !== 'completed');
 const completed = guides.filter((g) => g.status === 'completed');
@@ -51,6 +87,21 @@ const benefits = [
 >
   {user ? (
     <div class="account container-content">
+      {isContributor && (
+        <nav class="account__tabs" aria-label="Account sections">
+          {TABS.map((t) => (
+            <a
+              href={`/account${t === 'account' ? '' : `?tab=${t}`}`}
+              class:list={['account__tab', { 'is-active': tab === t }]}
+              aria-current={tab === t ? 'page' : undefined}
+            >
+              {tabLabel[t]}
+            </a>
+          ))}
+        </nav>
+      )}
+
+      {(!isContributor || tab === 'account') && (
       <section class="account__profile">
         <span class:list={['account__avatar', { 'has-image': identity?.avatarUrl }]} aria-hidden="true">
           {identity?.avatarUrl ? <img src={identity.avatarUrl} alt="" width="80" height="80" /> : identity?.initials}
@@ -71,8 +122,9 @@ const benefits = [
           </form>
         </div>
       </section>
+      )}
 
-      {guides.length === 0 ? (
+      {(!isContributor || tab === 'guides') && (guides.length === 0 ? (
         <section class="account__start">
           <div class="account__start-copy">
             <p class="kicker">Begin a path</p>
@@ -127,6 +179,130 @@ const benefits = [
             </section>
           )}
         </>
+      ))}
+
+      {isContributor && tab === 'author' && (
+        <section class="account__section author-editor" aria-label="Author profile">
+          <div class="author-editor__head">
+            <h2 class="account__h2">Your public author profile</h2>
+            <p class="author-editor__sub">
+              This is what readers see on your byline{authorProfile?.dreamTeam ? ' and Dream Team page' : ''}.
+              {authorProfile?.slug && authorProfile?.dreamTeam && (
+                <> View it at <a href={`/dream-team/${authorProfile.slug}`}>/dream-team/{authorProfile.slug}</a>.</>
+              )}
+              Publishing, Dream Team visibility, and your URL are managed by the site admin.
+            </p>
+          </div>
+
+          {savedFlash && <p class="account__flash account__flash--ok" role="status">Profile saved.</p>}
+          {errorFlash && <p class="account__flash account__flash--err" role="alert">{errorFlash}</p>}
+
+          {!authorProfile ? (
+            <p class="author-editor__pending">
+              Author profile setup pending — ask the site admin to complete your approval.
+            </p>
+          ) : (
+            <form method="post" action="/api/account/author" class="author-form">
+              <div class="author-form__grid">
+                <label class="author-form__field">
+                  <span>Display name</span>
+                  <input name="display_name" value={authorProfile.displayName} required minlength="2" maxlength="80" />
+                </label>
+                <label class="author-form__field">
+                  <span>Role title</span>
+                  <input name="role_title" value={authorProfile.roleTitle} maxlength="80" placeholder="e.g. People Analytics Lead" />
+                </label>
+              </div>
+
+              <label class="author-form__field">
+                <span>Bio <em>(markdown supported)</em></span>
+                <textarea name="bio" rows="6" maxlength="6000">{authorProfile.bio}</textarea>
+              </label>
+
+              <label class="author-form__field">
+                <span>Statement <em>(one line under your name)</em></span>
+                <textarea name="statement" rows="2" maxlength="600">{authorProfile.statement}</textarea>
+              </label>
+
+              <div class="author-form__grid">
+                <label class="author-form__field">
+                  <span>Links <em>(one per line: Label | https://url)</em></span>
+                  <textarea name="links" rows="3" placeholder="LinkedIn | https://linkedin.com/in/you">{authorProfile.linksText}</textarea>
+                </label>
+                <label class="author-form__field">
+                  <span>Tools <em>(comma separated)</em></span>
+                  <textarea name="tools" rows="3" placeholder="Excel, HRIS, People Metrics">{authorProfile.toolsText}</textarea>
+                </label>
+              </div>
+
+              <label class="author-form__field">
+                <span>Featured work <em>(max 2, one per line: Title | https://url | description)</em></span>
+                <textarea name="featured_work" rows="2">{authorProfile.featuredWorkText}</textarea>
+              </label>
+
+              {specialtyOptions.length > 0 && (
+                <fieldset class="author-form__specialties">
+                  <legend>Specialties</legend>
+                  <div class="author-form__checks">
+                    {specialtyOptions.map((s) => (
+                      <label class="author-form__check">
+                        <input
+                          type="checkbox"
+                          name="specialties"
+                          value={s.id}
+                          checked={authorProfile.specialtyIds.includes(s.id)}
+                        />
+                        <span>{s.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
+
+              <div class="author-form__foot">
+                <p class="author-form__note">
+                  Avatar updates are handled by the site admin for now — email a square image.
+                </p>
+                <button type="submit" class="author-form__save">Save profile</button>
+              </div>
+            </form>
+          )}
+        </section>
+      )}
+
+      {isContributor && tab === 'posts' && (
+        <section class="account__section" aria-label="Your posts">
+          <div class="author-editor__head">
+            <h2 class="account__h2">Your posts</h2>
+            <p class="author-editor__sub">
+              Writing happens in the Directus studio — sign in there with the same account
+              you use here. Drafts are yours; publishing your own posts is enabled.
+            </p>
+          </div>
+
+          <ul class="account__list">
+            {posts.map((p) => (
+              <li class="account-row">
+                <div class="account-row__main">
+                  {p.status === 'published' ? (
+                    <a href={`/blog/${p.slug}`} class="account-row__title">{p.title}</a>
+                  ) : (
+                    <span class="account-row__title">{p.title}</span>
+                  )}
+                </div>
+                <span class:list={['post-status', `post-status--${p.status}`]}>{p.status}</span>
+                <a href={`${directusPostsUrl}/${p.id}`} class="account-row__cta" rel="noopener" target="_blank">Edit →</a>
+              </li>
+            ))}
+            {posts.length === 0 && (
+              <li class="author-editor__pending">No posts yet — your first draft is a click away.</li>
+            )}
+          </ul>
+
+          <a class="account__start-cta" href={`${directusPostsUrl}/+`} rel="noopener" target="_blank">
+            Write a new post in Directus <Icon name="arrow-right" size={16} />
+          </a>
+        </section>
       )}
     </div>
   ) : (
@@ -544,5 +720,222 @@ const benefits = [
     .account-row__main { flex-basis: 100%; }
     .account__start { padding: var(--space-5); }
     .account__start-cta { width: 100%; }
+  }
+
+  /* ── Contributor tabs (v4.3) ── */
+  .account__tabs {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    padding: var(--space-1);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-full);
+    background: var(--bg-1);
+    width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .account__tab {
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-full);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+  }
+
+  .account__tab:hover { color: var(--text-1); }
+
+  .account__tab.is-active {
+    background: var(--accent);
+    color: var(--text-on-accent);
+  }
+
+  /* ── Author profile editor ── */
+  .author-editor__head { margin-bottom: var(--space-5); }
+
+  .author-editor__sub {
+    max-width: 60ch;
+    margin-top: var(--space-2);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .author-editor__sub a { color: var(--accent); }
+
+  .author-editor__pending {
+    padding: var(--space-5);
+    border: 1px dashed var(--border-2);
+    border-radius: var(--radius-md);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  .account__flash {
+    margin-bottom: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-2);
+    font-size: var(--fs-sm);
+  }
+
+  .account__flash--ok {
+    border-color: color-mix(in srgb, var(--success) 45%, var(--border-2));
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+  }
+
+  .account__flash--err {
+    border-color: color-mix(in srgb, var(--danger) 50%, var(--border-2));
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
+  }
+
+  .author-form {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-1);
+  }
+
+  .author-form__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+    gap: var(--space-4);
+  }
+
+  .author-form__field {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .author-form__field > span {
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .author-form__field em {
+    color: var(--text-3);
+    font-style: normal;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .author-form__field input,
+  .author-form__field textarea {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-md);
+    background: var(--bg-0);
+    color: var(--text-1);
+    font-family: var(--font-text);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .author-form__field input:focus-visible,
+  .author-form__field textarea:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+  }
+
+  .author-form__specialties {
+    padding: var(--space-4);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+  }
+
+  .author-form__specialties legend {
+    padding-inline: var(--space-2);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .author-form__checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .author-form__check {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+  }
+
+  .author-form__check input { accent-color: var(--accent); }
+
+  .author-form__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .author-form__note {
+    color: var(--text-3);
+    font-size: var(--fs-xs);
+  }
+
+  .author-form__save {
+    min-height: 2.75rem;
+    padding-inline: var(--space-6);
+    border: none;
+    border-radius: var(--radius-full);
+    background: var(--accent);
+    color: var(--text-on-accent);
+    font-family: var(--font-text);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    cursor: pointer;
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 22%, transparent);
+    transition: background var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+  }
+
+  .author-form__save:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  /* ── Posts tab ── */
+  .post-status {
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-full);
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .post-status--published {
+    color: var(--success);
+    border-color: color-mix(in srgb, var(--success) 45%, var(--border-2));
+  }
+
+  .post-status--draft {
+    color: var(--warning, #eab308);
+    border-color: color-mix(in srgb, var(--warning, #eab308) 45%, var(--border-2));
   }
 </style>

@@ -78,6 +78,10 @@ describe('toSessionProfile', () => {
       provider: 'google',
       avatarId: 'avatar-file',
       avatarUrl: '/api/auth/avatar',
+      hasAuthorProfile: false,
+      authorId: undefined,
+      authorSlug: undefined,
+      authorDisplayName: undefined,
       googlePictureUrl: 'https://lh3.googleusercontent.com/a/photo',
     });
   });
@@ -104,6 +108,22 @@ describe('toSessionProfile', () => {
       id: 'verified-user',
       google_picture_url: 'not a url',
     }).googlePictureUrl).toBeUndefined();
+  });
+
+  it('detects an approved contributor via the linked author profile', () => {
+    const session = toSessionProfile(
+      'verified-user',
+      { id: 'verified-user', email: 'maria.thehr@gmail.com' },
+      { id: 'author-1', slug: 'maria-khan', display_name: 'Maria Khan', status: 'published' },
+    );
+    expect(session.hasAuthorProfile).toBe(true);
+    expect(session.authorId).toBe('author-1');
+    expect(session.authorSlug).toBe('maria-khan');
+    expect(session.authorDisplayName).toBe('Maria Khan');
+  });
+
+  it('treats plain learners (no linked profile) as non-contributors', () => {
+    expect(toSessionProfile('verified-user', { id: 'verified-user' }).hasAuthorProfile).toBe(false);
   });
 
   it('keeps a verified session usable when profile enrichment is unavailable', () => {

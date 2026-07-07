@@ -52,24 +52,32 @@ lets a Contributor edit only their **own** profile (`authors.update` is scoped t
 > `scripts/v4-account-model.mjs` (`linkKnownAuthors`). New profiles get `user` set by the
 > admin at approval time.
 
-## Admin runbook (simplified 2026-07-06)
+## Admin runbook (v4.3, 2026-07-07)
 
-- **New signup:** the `author-profile` backend hook creates a linked draft `authors`
-  profile immediately (name + slug prefilled from the account, `dream_team=false`).
-  Admins can find that row in Content → Authors and review/fill the profile before
-  approval. Draft author rows are not public.
-- **Approve someone as an author:** User Directory → their account → Role =
-  **Contributor**. The hook reuses the linked draft profile and promotes it to
-  `status=published`. They can then log into the Directus app to: write, edit, and
-  **publish their own posts**; delete their own drafts; upload files; tag topics; and
-  edit their own profile (bio, avatar, links, tools). They can never touch other
-  people's posts, publish others' drafts, or change their own `dream_team`/`slug`/`user`
-  fields.
-- **Put them on the Dream Team:** open the auto-created profile (Content → Authors)
-  and toggle **Dream team** on. That's the only extra step — profile fields are already
-  there for them (or you) to fill in.
-- **Revoke:** flip `dream_team` off / set role back to `guide_reader`. Their published
-  posts stay (bylines keep working; the byline is plain text if they're not on the team).
+**To approve a user as an author:**
+1. Open the user in Directus (User Directory).
+2. Change **Role** to **Contributor**.
+3. Save.
+4. The `author-profile` hook creates or links their Author profile automatically
+   (prefilled name + slug, `dream_team=false`; an existing linked draft is published,
+   an archived one is left archived).
+5. The user can now log into the Directus studio with the same Google/email account
+   and write posts — create drafts, edit, and publish **their own** posts
+   (ownership = `post.author.user`, so admin-created posts with their byline count).
+6. The user sees **Author Profile** and **Posts** tabs in `/account` and can edit
+   their own safe profile fields (display name, role title, bio, statement, links,
+   tools, featured work, specialties) from the website.
+7. Admin still controls Dream Team visibility (`dream_team` toggle on the profile),
+   publishing status, slug, sort, roles, and all system fields.
+
+**Revoke:** set the role back to Guide Reader (site author tabs disappear only when
+the profile link is removed or the profile is archived — role controls capability,
+the linked profile controls the account tabs). Signups never create profiles;
+authors = approved contributors only.
+
+**One profile per user** is enforced three ways: DB unique constraint on
+`authors.user`, the idempotent hook, and the /account API always targeting the
+profile linked to the verified session (no client-supplied ids).
 
 **Content-trust policy (decided 2026-07-06, review §9):** Contributors are vetted,
 admin-approved authors — the markdown pipeline deliberately allows raw HTML
@@ -83,8 +91,13 @@ image-grid), KaTeX output, and Shiki inline styles.
 - Public API: `posts`/`authors`/`projects` reads are row-filtered to `status=published`
   (drafts were anonymously readable before this pass — closed now), and `authors.user`
   is excluded from the public field list.
-- Contributor permissions use row rules (`$CURRENT_USER`): create presets `status:
-  draft`; update/publish scoped to own posts; delete own drafts only.
+- Contributor permissions use row rules: ownership is `post.author.user =
+  $CURRENT_USER` (create presets `status: draft`; update/publish own; delete own
+  drafts). Own-profile edits are field-restricted at BOTH layers: the Directus policy
+  and the `/api/account/author` allow-list (`lib/account/authorForm.ts`) — user/
+  status/dream_team/slug/sort are unwritable from the website and the studio alike.
+- Seed Bot demoted from Administrator and suspended (2026-07-07); Guide User remains
+  the only service account (Guide Server role, holder of DIRECTUS_SERVICE_TOKEN).
 - Learner sessions still have zero collection access (Astro's Guide Server token gates
   everything); Google login/session handling untouched.
 - Removed the empty duplicate "Guide Reader" role/policy (live learners use

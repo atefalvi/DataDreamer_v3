@@ -10,6 +10,11 @@ interface GuideReaderUser {
   avatarId?: string;
   avatarUrl?: string;
   googlePictureUrl?: string;
+  /** True when an authors profile is linked to this account (approved contributor). */
+  hasAuthorProfile: boolean;
+  authorId?: string;
+  authorSlug?: string;
+  authorDisplayName?: string;
   /** Directus access token used only to resolve/verify this learner session. */
   accessToken: string;
 }
