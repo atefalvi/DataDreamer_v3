@@ -74,3 +74,17 @@ export async function bySlug(slug: string): Promise<Project | null> {
 export async function sitemap(): Promise<ProjectListItem[]> {
   return list();
 }
+
+/** Lightweight published-project lookup (list fields, no body) — OG cards. */
+export async function cardBySlug(slug: string): Promise<ProjectListItem | null> {
+  const rows = await guard('projects.cardBySlug', () =>
+    directus.request<ProjectRow[]>(
+      readItems('projects', {
+        filter: { status: { _eq: 'published' }, slug: { _eq: slug } },
+        limit: 1,
+        fields: PROJECT_LIST_FIELDS as Fields,
+      }),
+    ),
+  );
+  return rows.length ? mapProjectListItem(rows[0]) : null;
+}

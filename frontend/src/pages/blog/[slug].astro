@@ -10,7 +10,7 @@ import { authorsRepo, postsRepo } from '../../lib/repositories';
 import { absoluteUrl } from '../../lib/seo/meta';
 import { blogPostingJsonLd, breadcrumbListJsonLd, wordCountFromHtml } from '../../lib/seo/jsonld';
 import { blogPath, emptyBlogListing, loadBlogListing, type BlogListing as BlogListingData } from '../../lib/blog/listing';
-import { directusAssetUrl, directusSrcset } from '../../lib/images';
+import { directusSrcset } from '../../lib/images';
 import '../../styles/prose.css';
 import type { Author, Post, PostListItem } from '../../types/content';
 import type { OgImage } from '../../lib/seo/meta';
@@ -96,21 +96,14 @@ if (isPagination) {
   });
   topicNames = post.topics.map((topic) => topic.name);
   cover = post.coverImage;
-  ogImage = cover
-    ? {
-        url: directusAssetUrl(cover.id, {
-          width: 1200,
-          height: 630,
-          fit: 'cover',
-          format: 'webp',
-          quality: 80,
-        }),
-        alt: cover.alt,
-        type: 'image/webp',
-        width: 1200,
-        height: 630,
-      }
-    : { url: '/og/og-blog.png' };
+  // Dynamic branded OG card (title + author avatar + main topic) for every article.
+  ogImage = {
+    url: `/og/blog/${post.slug}.png`,
+    alt: post.title,
+    type: 'image/png',
+    width: 1200,
+    height: 630,
+  };
   const articleJsonLd = blogPostingJsonLd({
     headline: post.title,
     description: post.excerpt,

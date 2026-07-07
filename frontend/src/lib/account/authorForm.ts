@@ -2,7 +2,7 @@
  * Author-profile form parsing (v4.3, audit §11.5). Pure so it's unit-testable.
  *
  * Converts the /account Author Profile HTML form into an explicit, allow-listed
- * Directus patch. Forbidden fields (user, status, dream_team, slug, sort, id, …)
+ * Directus patch. Forbidden fields (user, status, dream_team, sort, id, …)
  * can never pass through: the patch is BUILT from named fields, not filtered from
  * the request body. JSON fields are validated with the same zod schemas the
  * repositories use, and anything invalid degrades to a readable error, not a write.
@@ -22,6 +22,7 @@ const strictFeaturedSchema = z.object({
 /** The only author columns a contributor may write from the website. */
 export const SAFE_AUTHOR_FIELDS = [
   'display_name',
+  'slug',
   'role_title',
   'bio',
   'statement',
@@ -30,10 +31,15 @@ export const SAFE_AUTHOR_FIELDS = [
   'featured_work',
 ] as const;
 
+/** Public URL slug: lowercase kebab, 3-60 chars. Uniqueness is checked server-side. */
+export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 export interface ParsedAuthorForm {
   patch: Record<string, unknown>;
   /** Selected specialty ids (junction rows are replaced separately). */
   specialtyIds: string[];
+  /** New specialty names the author proposed (created/matched server-side). */
+  newSpecialtyNames: string[];
   errors: string[];
 }
 
@@ -76,6 +82,16 @@ export function parseAuthorForm(form: FormData): ParsedAuthorForm {
   const displayName = displayNameSchema.safeParse(text('display_name'));
   if (!displayName.success) errors.push(displayName.error.issues[0]?.message ?? 'Invalid display name');
 
+  const slugRaw = text('slug').trim().toLowerCase();
+  let slug: string | undefined;
+  if (slugRaw) {
+    if (slugRaw.length < 3 || slugRaw.length > 60 || !SLUG_PATTERN.test(slugRaw)) {
+      errors.push('Slug must be 3-60 characters: lowercase letters, numbers, and single dashes (e.g. maria-khan)');
+    } else {
+      slug = slugRaw;
+    }
+  }
+
   const roleTitle = shortText(80).safeParse(text('role_title'));
   const bio = shortText(6000).safeParse(text('bio'));
   const statement = shortText(600).safeParse(text('statement'));
@@ -96,9 +112,16 @@ export function parseAuthorForm(form: FormData): ParsedAuthorForm {
     .map((value) => String(value).trim())
     .filter((value) => /^[\w-]{1,64}$/.test(value));
 
+  const newSpecialtyNames = text('new_specialties')
+    .split(/[,\n]/)
+    .map((name) => name.trim().replace(/\s+/g, ' '))
+    .filter((name) => name.length >= 2 && name.length <= 40)
+    .slice(0, 10);
+
   // The patch contains ONLY safe fields, constructed key by key.
   const patch: Record<string, unknown> = {
     display_name: displayName.success ? displayName.data : undefined,
+    slug,
     role_title: roleTitle.success ? roleTitle.data : undefined,
     bio: bio.success ? bio.data : undefined,
     statement: statement.success ? statement.data : undefined,
@@ -110,5 +133,5 @@ export function parseAuthorForm(form: FormData): ParsedAuthorForm {
     if (patch[key] === undefined) delete patch[key];
   }
 
-  return { patch, specialtyIds, errors };
+  return { patch, specialtyIds, newSpecialtyNames, errors };
 }

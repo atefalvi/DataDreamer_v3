@@ -231,3 +231,17 @@ export async function countsByAuthorId(scope?: object): Promise<Map<string, numb
   }
   return counts;
 }
+
+/** Lightweight published-post lookup (list fields, no content) — OG cards. */
+export async function cardBySlug(slug: string): Promise<PostListItem | null> {
+  const rows = await guard('posts.cardBySlug', () =>
+    directus.request<PostRow[]>(
+      readItems('posts', {
+        filter: { ...PUBLISHED, slug: { _eq: slug } },
+        limit: 1,
+        fields: POST_LIST_FIELDS as Fields,
+      }),
+    ),
+  );
+  return rows.length ? mapPostListItem(rows[0]) : null;
+}

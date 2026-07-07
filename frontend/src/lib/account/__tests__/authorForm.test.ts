@@ -48,12 +48,11 @@ describe('parseAuthorForm (contributor profile editor)', () => {
         user: 'someone-elses-uuid',
         status: 'published',
         dream_team: 'true',
-        slug: 'admin',
         sort: '1',
         id: '999',
       }),
     );
-    for (const forbidden of ['user', 'status', 'dream_team', 'slug', 'sort', 'id']) {
+    for (const forbidden of ['user', 'status', 'dream_team', 'sort', 'id']) {
       expect(patch).not.toHaveProperty(forbidden);
     }
     for (const key of Object.keys(patch)) {
@@ -75,6 +74,19 @@ describe('parseAuthorForm (contributor profile editor)', () => {
       form({ display_name: 'Maria Khan', specialties: ['3', 'DROP TABLE;', 'ok-slug'] }),
     );
     expect(junk.specialtyIds).toEqual(['3', 'ok-slug']);
+  });
+
+  it('validates the slug format and lowercases it', () => {
+    expect(parseAuthorForm(form({ display_name: 'Maria Khan', slug: 'Maria-Khan' })).patch.slug).toBe('maria-khan');
+    expect(parseAuthorForm(form({ display_name: 'Maria Khan', slug: 'bad slug!' })).errors.length).toBe(1);
+    expect(parseAuthorForm(form({ display_name: 'Maria Khan', slug: '' })).patch).not.toHaveProperty('slug');
+  });
+
+  it('collects proposed new specialties', () => {
+    const { newSpecialtyNames } = parseAuthorForm(
+      form({ display_name: 'Maria Khan', new_specialties: 'People  Analytics, x, Workforce Planning' }),
+    );
+    expect(newSpecialtyNames).toEqual(['People Analytics', 'Workforce Planning']);
   });
 
   it('caps featured work at two items', () => {

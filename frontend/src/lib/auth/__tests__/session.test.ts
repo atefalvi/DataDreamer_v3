@@ -82,6 +82,7 @@ describe('toSessionProfile', () => {
       authorId: undefined,
       authorSlug: undefined,
       authorDisplayName: undefined,
+      authorDreamTeam: false,
       googlePictureUrl: 'https://lh3.googleusercontent.com/a/photo',
     });
   });

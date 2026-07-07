@@ -299,7 +299,7 @@ async function ensureContributor() {
   await ensurePermission(id, 'authors', 'read', { fields: AUTHOR_PUBLIC_FIELDS });
   await ensurePermission(id, 'authors', 'update', {
     permissions: { user: OWN },
-    fields: ['display_name', 'role_title', 'bio', 'statement', 'avatar', 'links', 'tools', 'featured_work'],
+    fields: ['display_name', 'slug', 'role_title', 'bio', 'statement', 'avatar', 'links', 'tools', 'featured_work'],
   });
   // Own specialty tags: full control of junction rows that hang off their own profile.
   const OWN_AUTHOR_ROW = { authors_id: { user: OWN } };
@@ -369,8 +369,9 @@ async function hardenGuideServer() {
   // profile through this token. Field list mirrors the app allow-list exactly —
   // user/status/dream_team/slug/sort stay unwritable even if app code regresses.
   await ensurePermission(server.id, 'authors', 'update', {
-    fields: ['display_name', 'role_title', 'bio', 'statement', 'avatar', 'links', 'tools', 'featured_work'],
+    fields: ['display_name', 'slug', 'role_title', 'bio', 'statement', 'avatar', 'links', 'tools', 'featured_work'],
   });
+  await ensurePermission(server.id, 'specialties', 'create', {});
   await ensurePermission(server.id, 'authors_specialties', 'read', {});
   await ensurePermission(server.id, 'authors_specialties', 'create', {});
   await ensurePermission(server.id, 'authors_specialties', 'delete', {});

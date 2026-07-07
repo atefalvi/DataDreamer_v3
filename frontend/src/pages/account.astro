@@ -11,7 +11,7 @@ import { guidesRepo } from '../lib/repositories';
 import { formatMinutes } from '../lib/guides/progress';
 import type { AccountGuideProgress, GuideListItem } from '../types/content';
 import { userIdentity } from '../lib/auth/identity';
-import { allSpecialties, authorForEdit, ownPosts } from '../lib/account/authorProfile';
+import { allSpecialties, authorForEdit, ownPosts, toolSuggestions } from '../lib/account/authorProfile';
 import type { EditableAuthorProfile, OwnPost, SpecialtyOption } from '../lib/account/authorProfile';
 import { PUBLIC_DIRECTUS_URL } from '../lib/directus/client';
 
@@ -30,6 +30,7 @@ let guides: AccountGuideProgress[] = [];
 let recommended: GuideListItem | undefined;
 let authorProfile: EditableAuthorProfile | undefined;
 let specialtyOptions: SpecialtyOption[] = [];
+let toolOptions: string[] = [];
 let posts: OwnPost[] = [];
 
 if (user) {
@@ -50,9 +51,10 @@ if (user) {
     }
   }
   if (isContributor && tab === 'author' && user.authorId) {
-    [authorProfile, specialtyOptions] = await Promise.all([
+    [authorProfile, specialtyOptions, toolOptions] = await Promise.all([
       authorForEdit(user.authorId).catch(() => undefined),
       allSpecialties().catch(() => []),
+      toolSuggestions().catch(() => []),
     ]);
   }
   if (isContributor && tab === 'posts') {
@@ -61,6 +63,9 @@ if (user) {
 }
 
 const directusPostsUrl = `${PUBLIC_DIRECTUS_URL}/admin/content/posts`;
+const avatarPreview = authorProfile?.avatarId
+  ? `${PUBLIC_DIRECTUS_URL}/assets/${authorProfile.avatarId}?width=96&height=96&fit=cover&format=webp`
+  : undefined;
 const tabLabel: Record<Tab, string> = {
   account: 'Account',
   guides: 'Guides',
@@ -112,6 +117,8 @@ const benefits = [
           <p class="account__email">{identity?.secondary}</p>
           <div class="account__status" aria-label="Account status">
             <span><Icon name="badge-check" size={16} /> Field Guides member</span>
+            {isContributor && <span class="account__badge--contributor"><Icon name="pen-line" size={16} /> Contributor</span>}
+            {user.authorDreamTeam && <span class="account__badge--team"><Icon name="check" size={16} /> Dream Team</span>}
             <span><Icon name="shield-check" size={16} /> {identity?.providerLabel}</span>
           </div>
         </div>
@@ -202,7 +209,7 @@ const benefits = [
               Author profile setup pending — ask the site admin to complete your approval.
             </p>
           ) : (
-            <form method="post" action="/api/account/author" class="author-form">
+            <form method="post" action="/api/account/author" enctype="multipart/form-data" class="author-form">
               <div class="author-form__grid">
                 <label class="author-form__field">
                   <span>Display name</span>
@@ -211,6 +218,32 @@ const benefits = [
                 <label class="author-form__field">
                   <span>Role title</span>
                   <input name="role_title" value={authorProfile.roleTitle} maxlength="80" placeholder="e.g. People Analytics Lead" />
+                </label>
+              </div>
+
+              <div class="author-form__grid">
+                <label class="author-form__field">
+                  <span>Profile URL <em>(your public address)</em></span>
+                  <input
+                    name="slug"
+                    value={authorProfile.slug}
+                    minlength="3"
+                    maxlength="60"
+                    pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                    title="Lowercase letters, numbers, and single dashes"
+                  />
+                  <small class="author-form__hint">data-dreamer.net/dream-team/<strong>{authorProfile.slug}</strong> — changing it moves your page.</small>
+                </label>
+                <label class="author-form__field">
+                  <span>Avatar <em>(square JPEG/PNG/WebP, max 5 MB)</em></span>
+                  <div class="author-form__avatar-row">
+                    {avatarPreview ? (
+                      <img class="author-form__avatar" src={avatarPreview} alt="Current avatar" width="48" height="48" />
+                    ) : (
+                      <span class="author-form__avatar author-form__avatar--empty" aria-hidden="true">—</span>
+                    )}
+                    <input type="file" name="avatar_file" accept="image/jpeg,image/png,image/webp" />
+                  </div>
                 </label>
               </div>
 
@@ -229,10 +262,22 @@ const benefits = [
                   <span>Links <em>(one per line: Label | https://url)</em></span>
                   <textarea name="links" rows="3" placeholder="LinkedIn | https://linkedin.com/in/you">{authorProfile.linksText}</textarea>
                 </label>
-                <label class="author-form__field">
-                  <span>Tools <em>(comma separated)</em></span>
-                  <textarea name="tools" rows="3" placeholder="Excel, HRIS, People Metrics">{authorProfile.toolsText}</textarea>
-                </label>
+                <div class="author-form__field" data-tools-widget>
+                  <span>Tools <em>(pick from the shared list or add your own)</em></span>
+                  <div class="author-form__picker">
+                    <input type="text" list="tool-suggestions" data-tool-search placeholder="Search or type a tool…" />
+                    <button type="button" class="author-form__add" data-tool-add>Add</button>
+                  </div>
+                  <datalist id="tool-suggestions">
+                    {toolOptions.map((tool) => <option value={tool} />)}
+                  </datalist>
+                  <div class="author-form__chips" data-tool-chips aria-live="polite"></div>
+                  <label class="author-form__field">
+                    <span class="visually-hidden">Tools as a comma-separated list</span>
+                    <input name="tools" value={authorProfile.toolsText} data-tools-value placeholder="Excel, HRIS, People Metrics" />
+                  </label>
+                  <small class="author-form__hint">Matching an existing tool keeps names consistent (e.g. "excel" becomes "Excel").</small>
+                </div>
               </div>
 
               <label class="author-form__field">
@@ -240,28 +285,34 @@ const benefits = [
                 <textarea name="featured_work" rows="2">{authorProfile.featuredWorkText}</textarea>
               </label>
 
-              {specialtyOptions.length > 0 && (
-                <fieldset class="author-form__specialties">
-                  <legend>Specialties</legend>
-                  <div class="author-form__checks">
-                    {specialtyOptions.map((s) => (
-                      <label class="author-form__check">
-                        <input
-                          type="checkbox"
-                          name="specialties"
-                          value={s.id}
-                          checked={authorProfile.specialtyIds.includes(s.id)}
-                        />
-                        <span>{s.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-              )}
+              <fieldset class="author-form__specialties" data-specialties-widget>
+                <legend>Specialties</legend>
+                <p class="author-form__hint">These power your Dream Team profile and the network graph — pick everything that fits.</p>
+                {specialtyOptions.length > 6 && (
+                  <input type="text" class="author-form__filter" data-specialty-filter placeholder={`Filter ${specialtyOptions.length} specialties…`} />
+                )}
+                <div class="author-form__checks author-form__checks--scroll">
+                  {specialtyOptions.map((s) => (
+                    <label class="author-form__check" data-specialty-name={s.name.toLowerCase()}>
+                      <input
+                        type="checkbox"
+                        name="specialties"
+                        value={s.id}
+                        checked={authorProfile.specialtyIds.includes(s.id)}
+                      />
+                      <span>{s.name}</span>
+                    </label>
+                  ))}
+                </div>
+                <label class="author-form__field author-form__new">
+                  <span>Not listed? Add new <em>(comma separated — existing names are matched, not duplicated)</em></span>
+                  <input name="new_specialties" placeholder="e.g. Workforce Planning, HR Tech" />
+                </label>
+              </fieldset>
 
               <div class="author-form__foot">
                 <p class="author-form__note">
-                  Avatar updates are handled by the site admin for now — email a square image.
+                  Changes to your name, bio, links, tools, and specialties go live immediately.
                 </p>
                 <button type="submit" class="author-form__save">Save profile</button>
               </div>
@@ -299,7 +350,7 @@ const benefits = [
             )}
           </ul>
 
-          <a class="account__start-cta" href={`${directusPostsUrl}/+`} rel="noopener" target="_blank">
+          <a class="account__start-cta account__section-cta" href={`${directusPostsUrl}/+`} rel="noopener" target="_blank">
             Write a new post in Directus <Icon name="arrow-right" size={16} />
           </a>
         </section>
@@ -333,6 +384,63 @@ const benefits = [
     </div>
   )}
 </BaseLayout>
+
+
+<script>
+  // Tools chip picker — enhances the plain comma-list input (which stays functional
+  // without JS and remains the submitted field).
+  const widget = document.querySelector<HTMLElement>('[data-tools-widget]');
+  if (widget) {
+    const valueInput = widget.querySelector<HTMLInputElement>('[data-tools-value]');
+    const search = widget.querySelector<HTMLInputElement>('[data-tool-search]');
+    const addBtn = widget.querySelector<HTMLButtonElement>('[data-tool-add]');
+    const chips = widget.querySelector<HTMLElement>('[data-tool-chips]');
+    if (valueInput && search && addBtn && chips) {
+      const read = () => valueInput.value.split(',').map((t) => t.trim()).filter(Boolean);
+      const write = (tools: string[]) => {
+        valueInput.value = tools.join(', ');
+        chips.innerHTML = '';
+        for (const tool of tools) {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'author-form__chip';
+          chip.innerHTML = `${tool} <span aria-hidden="true">×</span>`;
+          chip.setAttribute('aria-label', `Remove ${tool}`);
+          chip.addEventListener('click', () => write(read().filter((t) => t !== tool)));
+          chips.appendChild(chip);
+        }
+      };
+      const add = () => {
+        const tool = search.value.trim();
+        if (!tool) return;
+        const tools = read();
+        if (!tools.some((t) => t.toLowerCase() === tool.toLowerCase())) tools.push(tool);
+        write(tools);
+        search.value = '';
+        search.focus();
+      };
+      addBtn.addEventListener('click', add);
+      search.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') { event.preventDefault(); add(); }
+      });
+      valueInput.addEventListener('change', () => write(read()));
+      write(read());
+      valueInput.closest('label')?.classList.add('author-form__source--enhanced');
+    }
+  }
+
+  // Specialty filter — hides non-matching checkboxes as the list grows.
+  const filter = document.querySelector<HTMLInputElement>('[data-specialty-filter]');
+  if (filter) {
+    filter.addEventListener('input', () => {
+      const query = filter.value.trim().toLowerCase();
+      for (const label of document.querySelectorAll<HTMLElement>('[data-specialty-name]')) {
+        const matches = !query || (label.dataset.specialtyName ?? '').includes(query);
+        label.style.display = matches ? '' : 'none';
+      }
+    });
+  }
+</script>
 
 <style>
   .account {
@@ -938,4 +1046,120 @@ const benefits = [
     color: var(--warning, #eab308);
     border-color: color-mix(in srgb, var(--warning, #eab308) 45%, var(--border-2));
   }
+  /* ── v4.3 author-form additions ── */
+  .account__badge--team { color: var(--success); }
+  .account__badge--contributor { color: var(--accent); }
+
+  .account__section-cta { margin-top: var(--space-5); }
+
+  .author-form__hint {
+    color: var(--text-3);
+    font-size: var(--fs-xs);
+    line-height: 1.5;
+  }
+
+  .author-form__hint strong { color: var(--text-2); }
+
+  .author-form__avatar-row {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  .author-form__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-2);
+    object-fit: cover;
+  }
+
+  .author-form__avatar--empty {
+    display: grid;
+    place-items: center;
+    background: var(--bg-2);
+    color: var(--text-3);
+  }
+
+  .author-form__picker {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .author-form__picker input {
+    flex: 1;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-md);
+    background: var(--bg-0);
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+  }
+
+  .author-form__add {
+    padding-inline: var(--space-5);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-md);
+    background: var(--bg-2);
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .author-form__add:hover { border-color: var(--accent); color: var(--accent); }
+
+  .author-form__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .author-form__chips:empty { display: none; }
+
+  .author-form__chip {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-full);
+    background: var(--bg-2);
+    color: var(--text-1);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+  }
+
+  .author-form__chip:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* Once chips are active, the raw comma field steps back (still submitted). */
+  .author-form__source--enhanced { display: none; }
+
+  .author-form__filter {
+    width: 100%;
+    margin-bottom: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-md);
+    background: var(--bg-0);
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+  }
+
+  .author-form__checks--scroll {
+    max-height: 16rem;
+    overflow-y: auto;
+    padding: var(--space-2);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(14rem, 100%), 1fr));
+    gap: var(--space-2);
+  }
+
+  .author-form__new { margin-top: var(--space-3); }
+
+  .author-form__specialties > .author-form__hint { margin-bottom: var(--space-3); }
+
 </style>

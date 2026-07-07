@@ -75,6 +75,8 @@ export interface SessionUser {
   authorId?: string;
   authorSlug?: string;
   authorDisplayName?: string;
+  /** Admin-approved Dream Team visibility (badge only — never editable here). */
+  authorDreamTeam?: boolean;
   accessToken: string;
 }
 
@@ -150,7 +152,7 @@ type DirectusUserProfile = {
 type MeResponse = { data: Pick<DirectusUserProfile, 'id'> };
 type ProfileResponse = { data: DirectusUserProfile };
 
-export type LinkedAuthor = { id: string; slug: string; display_name?: string; status?: string };
+export type LinkedAuthor = { id: string; slug: string; display_name?: string; status?: string; dream_team?: boolean };
 type LinkedAuthorResponse = { data: LinkedAuthor[] };
 
 function safeHttpsUrl(value: string | undefined): string | undefined {
@@ -182,6 +184,7 @@ export function toSessionProfile(
     authorId: author?.id,
     authorSlug: author?.slug,
     authorDisplayName: author?.display_name,
+    authorDreamTeam: author?.dream_team === true,
   };
 }
 
@@ -195,7 +198,7 @@ async function fetchServerProfile(id: string): Promise<DirectusUserProfile | und
 
 /** The author profile linked to this verified account, if any (approved contributor). */
 export async function fetchLinkedAuthor(userId: string): Promise<LinkedAuthor | undefined> {
-  const query = `/items/authors?filter[user][_eq]=${encodeURIComponent(userId)}&fields=id,slug,display_name,status&limit=1`;
+  const query = `/items/authors?filter[user][_eq]=${encodeURIComponent(userId)}&fields=id,slug,display_name,status,dream_team&limit=1`;
   const response = await directusServiceFetch(query);
   if (!response.ok) return undefined;
   const body = (await response.json()) as LinkedAuthorResponse;
