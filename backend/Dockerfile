@@ -9,3 +9,5 @@ FROM directus/directus:12.0.2
 
 COPY --chown=node:node extensions/directus-extension-google-picture-url \
      /directus/extensions/directus-extension-google-picture-url
+COPY --chown=node:node extensions/directus-extension-author-profile \
+     /directus/extensions/directus-extension-author-profile

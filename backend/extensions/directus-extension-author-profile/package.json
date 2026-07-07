@@ -1,0 +1,12 @@
+{
+  "name": "directus-extension-author-profile",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "directus:extension": {
+    "type": "hook",
+    "path": "dist/index.js",
+    "source": "src/index.ts",
+    "host": "^12.0.0"
+  }
+}
