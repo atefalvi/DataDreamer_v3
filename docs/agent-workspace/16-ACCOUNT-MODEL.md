@@ -79,8 +79,8 @@ image-grid), KaTeX output, and Shiki inline styles.
 - Public API: `posts`/`authors`/`projects` reads are row-filtered to `status=published`
   (drafts were anonymously readable before this pass — closed now), and `authors.user`
   is excluded from the public field list.
-- Contributor permissions use row rules (`$CURRENT_USER`) + validation (`status` can
-  never be set to `published`) + preset (`status: draft` on create).
+- Contributor permissions use row rules (`$CURRENT_USER`): create presets `status:
+  draft`; update/publish scoped to own posts; delete own drafts only.
 - Learner sessions still have zero collection access (Astro's Guide Server token gates
   everything); Google login/session handling untouched.
 - Removed the empty duplicate "Guide Reader" role/policy (live learners use
