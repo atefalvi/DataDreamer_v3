@@ -12,6 +12,9 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import satori from 'satori';
 import sharp from 'sharp';
+// ?raw bundles the SVG text into the server chunk — a filesystem read relative to the
+// source tree would 500 in production, where this module runs from dist/server/chunks.
+import logoRaw from '../../assets/brand/logo-mark.svg?raw';
 
 const require = createRequire(import.meta.url);
 
@@ -111,8 +114,7 @@ function backgroundLayer(seed: number): string {
 let logoGroup: string | undefined;
 function logoLayer(x: number, y: number, size: number): string {
   if (!logoGroup) {
-    const raw = readFileSync(new URL('../../assets/brand/logo-mark.svg', import.meta.url), 'utf8');
-    logoGroup = raw
+    logoGroup = logoRaw
       .replace(/^[\s\S]*?<svg[^>]*>/, '')
       .replace(/<\/svg>\s*$/, '')
       .replaceAll('var(--logo-ink, currentColor)', TEXT1);
