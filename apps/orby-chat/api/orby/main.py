@@ -102,6 +102,7 @@ async def boot(request: Request):
             "welcome": cfg.welcome_message,
             "maxMessageLength": cfg.max_message_length,
             "handoff": {"enabled": cfg.handoff_enabled and bool(cfg.cal_com_url), "cta": cfg.handoff_cta_text},
+            "maxQueuedMessages": cfg.max_queued_messages_per_session,
         },
         headers=_cors_headers(origin),
     )
@@ -111,6 +112,8 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=8000)
     visitor: str = Field(min_length=16, max_length=100)
     session: str | None = Field(default=None, max_length=40)
+    # Client idempotency key: retries reuse it → replay instead of re-generation.
+    client_id: str | None = Field(default=None, min_length=8, max_length=64, pattern=r"^[\w-]+$")
 
 
 @app.post("/api/chat")
@@ -142,7 +145,7 @@ async def api_chat(request: Request, body: ChatRequest):
     async def stream():
         yield f"event: meta\ndata: {json.dumps({'session': str(session_id)})}\n\n"
         try:
-            async for event, payload in chat.respond(cfg, session_id, body.message.strip()):
+            async for event, payload in chat.respond(cfg, session_id, body.message.strip(), body.client_id):
                 yield f"event: {event}\ndata: {json.dumps(payload)}\n\n"
         except Exception:  # noqa: BLE001 — stream must end cleanly; details go to logs only
             log.exception("chat stream failed session=%s", session_id)

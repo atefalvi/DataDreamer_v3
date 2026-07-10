@@ -72,12 +72,14 @@ async def save_message(
     model: str | None = None,
     latency_ms: int | None = None,
     sources: str | None = None,
+    client_msg_id: str | None = None,
 ) -> None:
     database = await db.pool()
     await database.execute(
-        "INSERT INTO chat_messages (session_id, role, content, classification, model, latency_ms, sources)"
-        " VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb)",
-        session_id, role, content, classification, model, latency_ms, sources,
+        "INSERT INTO chat_messages (session_id, role, content, classification, model, latency_ms, sources, client_msg_id)"
+        " VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8)"
+        " ON CONFLICT DO NOTHING",  # retries with the same client key never duplicate
+        session_id, role, content, classification, model, latency_ms, sources, client_msg_id,
     )
     await database.execute(
         "UPDATE chat_sessions SET message_count = message_count + 1, last_activity_at = now() WHERE id=$1",
@@ -137,3 +139,23 @@ class RateLimiter:
 
 
 rate_limiter = RateLimiter()
+
+
+async def replay_for_client_key(session_id: uuid.UUID, client_msg_id: str) -> str | None:
+    """If this client key was already answered, return the stored answer (idempotent
+    retry → replay, never a second generation). None = not answered yet."""
+    database = await db.pool()
+    row = await database.fetchrow(
+        """
+        SELECT a.content FROM chat_messages u
+        JOIN LATERAL (
+          SELECT content FROM chat_messages a
+          WHERE a.session_id = u.session_id AND a.role = 'assistant'
+            AND a.created_at > u.created_at
+          ORDER BY a.created_at ASC LIMIT 1
+        ) a ON true
+        WHERE u.session_id = $1 AND u.client_msg_id = $2 AND u.role = 'user'
+        """,
+        session_id, client_msg_id,
+    )
+    return row["content"] if row else None

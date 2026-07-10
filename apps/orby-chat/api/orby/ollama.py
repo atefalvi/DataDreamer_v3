@@ -66,6 +66,10 @@ async def chat_stream(
                         "model": model,
                         "messages": messages,
                         "stream": True,
+                        # ornith/qwen3-family are thinking models; without this the
+                        # stream spends its whole token budget on hidden reasoning
+                        # (verified live: 80 tokens of thinking, zero content).
+                        "think": False,
                         "options": {"temperature": temperature, "num_predict": max_tokens},
                     },
                 ) as response:
@@ -74,6 +78,7 @@ async def chat_stream(
                         if not line.strip():
                             continue
                         payload = json.loads(line)
+                        # never surface thinking deltas, even if a model emits them
                         delta = payload.get("message", {}).get("content", "")
                         if delta:
                             yield delta

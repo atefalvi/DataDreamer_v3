@@ -33,8 +33,8 @@ class OrbyConfig:
     allowed_origins: list[str] = field(default_factory=lambda: ["https://data-dreamer.net"])
 
     # model
-    chat_model: str = "llama3.1:8b"
-    embedding_model: str = "nomic-embed-text"
+    chat_model: str = "ornith:9b"
+    embedding_model: str = "qwen3-embedding"
     temperature: float = 0.3
     max_generation_tokens: int = 700
     request_timeout_seconds: int = 60
@@ -57,6 +57,12 @@ class OrbyConfig:
     min_retrieval_score: float = 0.35
     chunk_size: int = 1200
     chunk_overlap: int = 150
+
+    # concurrency (homelab GPU protection — tune live from Directus)
+    max_concurrent_generations: int = 2
+    max_generation_queue_size: int = 8
+    generation_queue_timeout_seconds: int = 45
+    max_queued_messages_per_session: int = 3
 
     # guardrails / budgets
     max_message_length: int = 1000
@@ -100,6 +106,14 @@ def parse_config(raw: dict) -> OrbyConfig:
         raise ValueError("max_message_length out of range")
     if not cfg.chat_model or not cfg.embedding_model:
         raise ValueError("models must be set")
+    if not (1 <= cfg.max_concurrent_generations <= 16):
+        raise ValueError("max_concurrent_generations out of range")
+    if not (0 <= cfg.max_generation_queue_size <= 100):
+        raise ValueError("max_generation_queue_size out of range")
+    if not (5 <= cfg.generation_queue_timeout_seconds <= 600):
+        raise ValueError("generation_queue_timeout_seconds out of range")
+    if not (1 <= cfg.max_queued_messages_per_session <= 10):
+        raise ValueError("max_queued_messages_per_session out of range")
     return cfg
 
 

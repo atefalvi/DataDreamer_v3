@@ -31,7 +31,7 @@ class Settings:
     # Must match the vector(N) column created by the migration. Changing it requires
     # a re-embed + new migration; the ingest command validates it against the live
     # embedding model and refuses to run on mismatch.
-    embedding_dim: int = _int("ORBY_EMBEDDING_DIM", 768)
+    embedding_dim: int = _int("ORBY_EMBEDDING_DIM", 4096)
 
     discord_webhook_url: str = os.environ.get("ORBY_DISCORD_WEBHOOK_URL", "")
 

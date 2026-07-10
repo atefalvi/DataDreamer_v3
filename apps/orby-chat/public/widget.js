@@ -47,7 +47,9 @@
       position: fixed;
       right: max(16px, env(safe-area-inset-right));
       bottom: calc(max(16px, env(safe-area-inset-bottom)) + 76px);
-      width: 380px; height: min(600px, 78vh);
+      /* desktop: ~38vw within sane bounds; host page stays visible */
+      width: clamp(360px, 38vw, 520px);
+      height: min(78dvh, 760px);
       display: none; flex-direction: column;
       background: #0A0C10;
       color: #EDEFF3;
@@ -59,9 +61,15 @@
     }
     .panel.open { display: flex; }
 
+    /* tablet: a roomier panel, still floating */
+    @media (min-width: 641px) and (max-width: 1024px) {
+      .panel { width: clamp(400px, 52vw, 560px); height: min(74dvh, 700px); }
+    }
+
+    /* mobile: full-screen sheet on the dynamic viewport, safe areas respected */
     @media (max-width: 640px) {
       .panel {
-        inset: 0; width: auto; height: auto; border-radius: 0; border: 0;
+        inset: 0; width: auto; height: 100dvh; border-radius: 0; border: 0;
         padding-top: env(safe-area-inset-top);
         padding-bottom: env(safe-area-inset-bottom);
       }
@@ -142,6 +150,19 @@
 
     .typing { align-self: flex-start; color: #858E99; font-size: 12px; padding-left: 4px; display: none; }
     .typing.on { display: block; }
+
+    .status {
+      align-self: flex-end;
+      margin: -6px 4px 0 0;
+      font-size: 10.5px;
+      font-family: ui-monospace, monospace;
+      color: #858E99;
+    }
+    .status.sent { color: #6BCF8E; }
+    .status button {
+      color: #FF8A66; font-size: 10.5px; font-family: inherit;
+      text-decoration: underline; padding: 4px; margin: -4px;
+    }
 
     @media (prefers-reduced-motion: reduce) {
       .launcher { transition: none; }
@@ -315,9 +336,12 @@
       if (!sources || !sources.length) return;
       const wrap = el('div', 'sources', { 'aria-label': 'Sources' });
       for (const source of sources.slice(0, 4)) {
-        const link = el('a', '', { href: source.url, target: '_blank', rel: 'noopener' });
-        link.textContent = source.title.length > 42 ? source.title.slice(0, 41) + '…' : source.title;
-        wrap.appendChild(link);
+        const label = source.title.length > 42 ? source.title.slice(0, 41) + '…' : source.title;
+        const chip = source.url
+          ? el('a', '', { href: source.url, target: '_blank', rel: 'noopener' })
+          : el('a', '', { role: 'note' }); // file-based knowledge: cite without a link
+        chip.textContent = label;
+        wrap.appendChild(chip);
       }
       log.appendChild(wrap);
       log.scrollTop = log.scrollHeight;
@@ -357,24 +381,66 @@
       if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); composer.requestSubmit(); }
     });
 
-    /* send + SSE */
+    /* send + SSE — with per-message status (queued → sending → sent/failed+retry)
+       and type-ahead queueing: you can keep sending while Orby is still answering. */
+    const queue = [];
     let busy = false;
-    composer.addEventListener('submit', async (event) => {
+
+    const STATUS_TEXT = { queued: 'queued…', sending: 'sending…', sent: '✓ sent', failed: 'failed —' };
+    const makeEntry = (text) => {
+      const bubble = addMessage('user', text);
+      const status = el('div', 'status', { 'aria-live': 'polite' });
+      log.appendChild(status);
+      log.scrollTop = log.scrollHeight;
+      const entry = { text, clientId: crypto.randomUUID(), bubble, status, set(state) {
+        status.textContent = STATUS_TEXT[state] || '';
+        status.classList.toggle('sent', state === 'sent');
+        if (state === 'failed') {
+          const retry = el('button', '', { type: 'button' });
+          retry.textContent = 'tap to retry';
+          retry.addEventListener('click', () => { status.textContent = ''; enqueue(entry); }, { once: true });
+          status.appendChild(retry);
+        }
+        if (state === 'sent') setTimeout(() => { if (status.classList.contains('sent')) status.textContent = ''; }, 2500);
+      } };
+      return entry;
+    };
+
+    const enqueue = (entry) => {
+      if (busy) {
+        if (queue.length >= (config.maxQueuedMessages || 3)) {
+          entry.set('failed');
+          addMessage('notice', 'Your message queue is full — wait for Orby to finish answering.');
+          return;
+        }
+        entry.set('queued');
+        queue.push(entry);
+      } else {
+        transmit(entry);
+      }
+    };
+
+    composer.addEventListener('submit', (event) => {
       event.preventDefault();
       const message = input.value.trim();
-      if (!message || busy) return;
-      busy = true; send.disabled = true;
+      if (!message) return;
       input.value = ''; input.style.height = 'auto';
-      addMessage('user', message);
+      enqueue(makeEntry(message));
+    });
+
+    async function transmit(entry) {
+      busy = true; send.disabled = queue.length >= (config.maxQueuedMessages || 3);
+      entry.set('sending');
       typing.classList.add('on');
       spriteState('thinking'); bigSprite.set('thinking'); setStatus('thinking…');
 
       let orbyBubble = null;
+      let acknowledged = false;
       try {
         const response = await fetch(`${API}/api/chat`, {
           method: 'POST', mode: 'cors',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message, visitor: visitorId, session: sessionId }),
+          body: JSON.stringify({ message: entry.text, visitor: visitorId, session: sessionId, client_id: entry.clientId }),
         });
         if (response.status === 429) throw new Error('rate');
         if (!response.ok || !response.body) throw new Error('http');
@@ -384,12 +450,15 @@
         let buffer = '';
         let eventName = 'message';
         const handle = (name, data) => {
+          if (!acknowledged) { acknowledged = true; entry.set('sent'); }
           if (name === 'meta' && data.session) {
             sessionId = data.session;
             try { sessionStorage.setItem('orby_session', sessionId); } catch { /* ignore */ }
           } else if (name === 'state') {
-            spriteState(data.state); bigSprite.set(data.state);
-            setStatus({ thinking: 'thinking…', searching: 'searching DataDreamer…', talking: 'answering…', offline: 'connection trouble' }[data.state] || 'DataDreamer assistant');
+            // backend states without a matching strip map to the closest art
+            const spriteName = { waiting: 'loading' }[data.state] || data.state;
+            spriteState(spriteName); bigSprite.set(spriteName);
+            setStatus({ thinking: 'thinking…', searching: 'searching DataDreamer…', talking: 'answering…', waiting: 'in line — Orby is helping others…', offline: 'connection trouble' }[data.state] || 'DataDreamer assistant');
           } else if (name === 'token') {
             typing.classList.remove('on');
             if (!orbyBubble) orbyBubble = addMessage('orby', '');
@@ -403,13 +472,18 @@
             spriteState(data.classification === 'datadreamer' ? 'success' : 'listening');
             bigSprite.set(bigSprite.idleName(), { force: true });
             setStatus('DataDreamer assistant');
+          } else if (name === 'rejected') {
+            typing.classList.remove('on');
+            entry.set('failed');
+            addMessage('notice', data.message || 'Orby is at capacity — please retry shortly.');
+            spriteState(data.reason === 'session_busy' ? 'listening' : 'worried');
+            setStatus('DataDreamer assistant');
           } else if (name === 'error') {
             typing.classList.remove('on');
             addMessage('notice', data.message || 'Something went wrong.');
             spriteState('error');
           }
         };
-        // minimal SSE parser
         for (;;) {
           const { value, done } = await reader.read();
           if (done) break;
@@ -426,19 +500,23 @@
             if (data) { try { handle(eventName, JSON.parse(data)); } catch { /* skip bad frame */ } }
           }
         }
+        if (!acknowledged) throw new Error('http'); // stream ended without any event
       } catch (error) {
         typing.classList.remove('on');
-        addMessage('notice', error.message === 'rate'
-          ? 'Easy there! You’re sending messages a little fast — give it a few seconds.'
-          : 'I couldn’t reach my brain just now. Please try again in a moment.');
+        entry.set('failed');
+        if (error.message === 'rate') {
+          addMessage('notice', 'Easy there! You’re sending messages a little fast — give it a few seconds.');
+        }
         spriteState('offline'); bigSprite.set('offline');
         setStatus('connection trouble');
       } finally {
         typing.classList.remove('on');
         busy = false; send.disabled = false;
         if (open) input.focus();
+        const next = queue.shift();
+        if (next) transmit(next);
       }
-    });
+    }
   }
 
   if (document.readyState === 'loading') {

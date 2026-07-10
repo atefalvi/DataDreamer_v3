@@ -23,6 +23,26 @@ apps/orby-chat/
 - **Knowledge** = published posts, projects, guide previews (gated bodies are
   excluded at the Directus-permission level), contributor profiles. Ingested on
   demand: `docker compose exec orby-api python -m orby.ingest` (`--full` to rebuild).
+- **Owner file ingestion** (PDF/Markdown/text, all local — nothing leaves the
+  homelab): copy the file into the container, then
+
+  ```bash
+  docker compose cp notes.pdf orby-api:/tmp/notes.pdf
+  docker compose exec orby-api python -m orby.ingest_files add /tmp/notes.pdf \
+      --scope team --category methodology --title "How we work"
+  # person-scoped knowledge requires explicit identity (never guessed):
+  docker compose exec orby-api python -m orby.ingest_files add /tmp/maria-cv.pdf \
+      --scope person --person-slug maria-khan --person-name "Maria Khan"
+  docker compose exec orby-api python -m orby.ingest_files list|disable|enable|delete …
+  ```
+
+  Validation: extension + magic bytes + size (20 MB) + UTF-8/no-HTML checks;
+  encrypted or image-only PDFs are rejected; duplicates are checksum-skipped;
+  extracted text is untrusted data (same delimiter policy as web content).
+- **Concurrency** (Directus → Orby, live): `max_concurrent_generations` (default 2),
+  `max_generation_queue_size`, `generation_queue_timeout_seconds`,
+  `max_queued_messages_per_session`. Busy visitors see "in line…"; a full queue gets
+  a polite retry message — the GPU can't be stampeded.
 
 ## Deploy (Coolify)
 
@@ -67,6 +87,16 @@ Bot user in Directus, delete `apps/orby-chat/` and the BaseLayout block.
 Source of truth: `docs/agent-workspace/assets/strips` (never edited by tooling).
 `node scripts/prepare-orby-assets.mjs` re-audits and regenerates
 `public/orby/` + the manifest whenever strips are added or changed.
+
+## Model + vector facts (measured live)
+
+- Chat: `ornith:9b` (qwen3.5-family thinking model). The client sends `think: false`
+  — verified: without it the whole token budget goes to hidden reasoning.
+- Embeddings: `qwen3-embedding` = **4096 dims** → `ORBY_EMBEDDING_DIM=4096`. That is
+  above pgvector's 2000-dim ANN index limit, so retrieval uses an exact cosine scan —
+  milliseconds at this corpus size; revisit past ~100k chunks.
+- Redis/Celery: deliberately deferred (ADR) — the in-process gate covers 5-10 users
+  on one container. Triggers to revisit: upload processing jobs or multiple replicas.
 
 ## Current limits (deliberate v1 scope)
 

@@ -48,8 +48,8 @@ const FIELDS = [
   str('maintenance_message', 'Orby is taking a short break — please try again soon.', ''),
   str('allowed_origins', 'https://data-dreamer.net,https://www.data-dreamer.net', 'Comma-separated origins allowed to embed the widget.'),
   // model
-  str('chat_model', 'llama3.1:8b', 'Ollama chat model name'),
-  str('embedding_model', 'nomic-embed-text', 'Ollama embedding model (dimension is pinned in the service env!)'),
+  str('chat_model', 'ornith:9b', 'Ollama chat model name'),
+  str('embedding_model', 'qwen3-embedding', 'Ollama embedding model (dimension pinned in service env: 4096)'),
   flt('temperature', 0.3, '0–2'),
   num('max_generation_tokens', 700, ''),
   num('request_timeout_seconds', 60, ''),
@@ -64,6 +64,11 @@ const FIELDS = [
   flt('min_retrieval_score', 0.35, 'Below this, Orby says it does not know (0–1).'),
   num('chunk_size', 1200, 'Ingestion chunk size, characters'),
   num('chunk_overlap', 150, ''),
+  // concurrency — homelab GPU protection (applies live, ~60s)
+  num('max_concurrent_generations', 2, 'Parallel Ollama generations (1-16)'),
+  num('max_generation_queue_size', 8, 'Visitors allowed to wait in line (0-100)'),
+  num('generation_queue_timeout_seconds', 45, 'Max wait in line before a polite retry message (5-600)'),
+  num('max_queued_messages_per_session', 3, 'Type-ahead messages a visitor may queue (1-10)'),
   // guardrails
   num('max_message_length', 1000, ''),
   num('max_messages_per_session', 60, ''),

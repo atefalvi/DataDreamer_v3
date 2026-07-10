@@ -60,9 +60,9 @@ CREATE TABLE knowledge_chunks (
   embedding vector({{EMBEDDING_DIM}}) NOT NULL
 );
 CREATE INDEX idx_chunks_document ON knowledge_chunks(document_id);
--- cosine index; fine for tens of thousands of chunks on a homelab
-CREATE INDEX idx_chunks_embedding ON knowledge_chunks
-  USING hnsw (embedding vector_cosine_ops);
+-- NO ANN index: qwen3-embedding vectors are 4096-dim, above pgvector's 2000-dim
+-- HNSW/ivfflat limit. Exact cosine scan is milliseconds at this corpus size
+-- (thousands of chunks); revisit (smaller-dim model or halfvec) beyond ~100k chunks.
 
 CREATE TABLE safety_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
