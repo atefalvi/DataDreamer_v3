@@ -71,5 +71,12 @@ const seoWithDefaults = { ...seo, alternateFeeds: [...feedMap.values()] };
       import { initReveal } from '../lib/motion/reveal';
       initReveal();
     </script>
+
+    {/* Orby chat widget — entirely separate service (apps/orby-chat). Unset
+        PUBLIC_ORBY_WIDGET_URL = no script tag = no Orby; the widget itself also
+        fails closed if its backend or the Directus `orby.enabled` flag is off. */}
+    {import.meta.env.PUBLIC_ORBY_WIDGET_URL && (
+      <script src={import.meta.env.PUBLIC_ORBY_WIDGET_URL} data-site="datadreamer" defer is:inline></script>
+    )}
   </body>
 </html>
