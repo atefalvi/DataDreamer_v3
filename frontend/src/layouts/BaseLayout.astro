@@ -28,6 +28,17 @@ const { bodyClass, transparentNav = false, ...seo } = Astro.props;
 const rssFeed = { href: absoluteUrl('/rss.xml'), title: 'DataDreamer RSS', type: 'application/rss+xml' };
 const feedMap = new Map([rssFeed, ...(seo.alternateFeeds ?? [])].map((feed) => [feed.href, feed]));
 const seoWithDefaults = { ...seo, alternateFeeds: [...feedMap.values()] };
+const orbyWidgetUrl = (() => {
+  const value = import.meta.env.PUBLIC_ORBY_WIDGET_URL;
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    if (!url.searchParams.has('v')) url.searchParams.set('v', '2702507');
+    return url.toString();
+  } catch {
+    return value;
+  }
+})();
 ---
 
 <!doctype html>
@@ -72,11 +83,11 @@ const seoWithDefaults = { ...seo, alternateFeeds: [...feedMap.values()] };
       initReveal();
     </script>
 
-    {/* Orby chat widget — entirely separate service (apps/orby-chat). Unset
+    {/* Orby chat widget — entirely separate service (github.com/atefalvi/orby). Unset
         PUBLIC_ORBY_WIDGET_URL = no script tag = no Orby; the widget itself also
         fails closed if its backend or the Directus `orby.enabled` flag is off. */}
-    {import.meta.env.PUBLIC_ORBY_WIDGET_URL && (
-      <script src={import.meta.env.PUBLIC_ORBY_WIDGET_URL} data-site="datadreamer" defer is:inline></script>
+    {orbyWidgetUrl && (
+      <script src={orbyWidgetUrl} data-site="datadreamer" defer is:inline></script>
     )}
   </body>
 </html>
