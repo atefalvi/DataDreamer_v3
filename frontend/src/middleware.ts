@@ -12,6 +12,7 @@ const DIRECTUS_ORIGIN = originOf(
     import.meta.env.PUBLIC_DIRECTUS_URL ||
     import.meta.env.DIRECTUS_URL,
 );
+const ORBY_ORIGIN = originOf(import.meta.env.PUBLIC_ORBY_WIDGET_URL);
 
 function originOf(value: string | undefined): string | undefined {
   if (!value) return undefined;
@@ -31,8 +32,8 @@ function createNonce(): string {
 function csp(nonce?: string): string {
   const scriptNonce = nonce ? `'nonce-${nonce}'` : undefined;
   const styleNonce = nonce ? `'nonce-${nonce}'` : undefined;
-  const imageSources = ["'self'", 'data:', DIRECTUS_ORIGIN, 'https://lh3.googleusercontent.com'].filter(Boolean).join(' ');
-  const connectSources = ["'self'", DIRECTUS_ORIGIN].filter(Boolean).join(' ');
+  const imageSources = ["'self'", 'data:', DIRECTUS_ORIGIN, ORBY_ORIGIN, 'https://lh3.googleusercontent.com'].filter(Boolean).join(' ');
+  const connectSources = ["'self'", DIRECTUS_ORIGIN, ORBY_ORIGIN].filter(Boolean).join(' ');
 
   return [
     "default-src 'self'",
