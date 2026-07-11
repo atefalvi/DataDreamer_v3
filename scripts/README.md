@@ -14,10 +14,13 @@ Scripts you actually run today.
 | `v4-guides-service-check.mjs` | Non-mutating check that the frontend Guide Server credential can read one published guide, section, full item body, and learner profile id. Never prints token or user data. | `DIRECTUS_URL=… DIRECTUS_SERVICE_TOKEN=… node scripts/v4-guides-service-check.mjs` |
 | `release-smoke.mjs` | Post-deploy smoke test (status codes, redirects, RSS, sitemap, OG fetch). | `node scripts/release-smoke.mjs https://data-dreamer.net` |
 | `v4-guides-smoke.mjs` | **Field Guides QA** — full reader journey (anon catalogue/preview → register/login → gated read → progress) against a live env; verifies Google SSO is registered. | `DIRECTUS_ADMIN_TOKEN=… node scripts/v4-guides-smoke.mjs <directusUrl> [frontendUrl]` |
-| `orby-directus-setup.mjs` | **Orby chat** — creates the `orby` config singleton (kill switch, prompts, models, limits) and the read-only Orby role/policy (published content only, gated guide fields excluded). Seeds `enabled=false`. Idempotent; applied to prod 2026-07-10. | `DIRECTUS_URL=… DIRECTUS_ADMIN_TOKEN=… node scripts/orby-directus-setup.mjs` |
-| `prepare-orby-assets.mjs` | **Orby chat** — audits every sprite strip in `docs/agent-workspace/assets/strips` (dimensions, frames, transparency, baselines), copies valid strips to `apps/orby-chat/public/orby/`, and generates the animation manifest + `docs/audits/orby-sprite-audit.{json,md}`. Sources are never mutated; exits non-zero on malformed strips. | `node scripts/prepare-orby-assets.mjs` |
 | `generate-og-temp.mjs` | (Re)generate the section OG images in `frontend/public/og/`. | `node scripts/generate-og-temp.mjs` or `cd frontend && npm run og:sections` |
 | `generate-project-og.mjs` | Generate per-project case-study OG images from published Directus projects and their cover assets. | `DIRECTUS_URL=… node scripts/generate-project-og.mjs` or `cd frontend && npm run og:projects` |
+
+> **Orby** (the site chat assistant) lives in its own repository —
+> [github.com/atefalvi/orby](https://github.com/atefalvi/orby) — including its Directus
+> setup script and sprite tooling. This repo only carries the widget `<script>` tag in
+> `BaseLayout.astro` (env-guarded by `PUBLIC_ORBY_WIDGET_URL`).
 
 ## migrations/
 
