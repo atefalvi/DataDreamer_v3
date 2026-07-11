@@ -23,7 +23,6 @@ Related operational docs:
 
 - `README.md` for the current v4 architecture and branch model.
 - `SETUP.md` for local development and Directus permissions.
-- `docs/RELEASE_NEXT_STEPS.md` for branch cleanup and production release steps.
 
 ---
 

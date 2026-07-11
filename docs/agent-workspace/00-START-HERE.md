@@ -1,70 +1,38 @@
-# 00 — START HERE: DataDreamer v4 Workspace
+# 00 — Documentation index
 
-You are an agent working on the **DataDreamer v4 redesign**. This directory is the
-complete, binding plan. It was produced from a full audit of the real codebase on
-2026-06-12 (branch `feature/v4-redesign`).
+DataDreamer is live in production (`main` → Coolify auto-deploy). This directory holds
+the **reference documentation** the codebase cites by number (e.g. `05 §15`, `09 §4.2`
+in code comments). The v4 build is complete — planning/process artifacts (task boards,
+handoffs, roadmaps) have been removed; git history preserves them.
 
-## The 60-second orientation
+## Design & architecture references (cited by code)
 
-- **What**: full redesign of data-dreamer.net — retiring the brutalist v3 look for
-  "Observatory", a premium dark-first editorial-technical system; restructuring
-  content (blog, projects, new Dream Team, Field Guides); narrowing Directus to clear
-  editorial + lightweight learner-progress boundaries.
-- **Stack**: Astro 5 SSR + Directus + Coolify. No UI framework. Plain CSS tokens.
-- **Releases**: v4.0 = core redesign. v4.1 = Field Guides with login-gated reader
-  progress.
-- **Your rules**: `14-AGENT-INSTRUCTIONS.md` — read it before any work, every session.
-- **Current state + your next task**: `15-HANDOFF.md` (top entry) + `13-TASKS.md`
-  (status board).
-
-## Reading order
-
-| When | Read |
+| Doc | What it is |
 |---|---|
-| Every session | `14-AGENT-INSTRUCTIONS.md` → `15-HANDOFF.md` → your task in `13-TASKS.md` |
-| Before any UI task | `04-DESIGN-SYSTEM.md` + the page's blueprint in `05-PAGE-BLUEPRINTS.md` + `11-RESPONSIVE-ACCESSIBILITY.md` |
-| Before any interactive/animated work | `07-ANIMATION-INTERACTION-SPEC.md` (pseudocode is canonical) |
-| Before any data/Directus task | `08-DIRECTUS-CONTENT-MODEL.md` + `09-TECHNICAL-ARCHITECTURE.md` §4–6 |
-| Before Field Guides/auth work (v4.1) | `docs/COURSES_PRD.md` **as historical context only, amended by** `08 §4/§9` and `05 §14–18` |
-| For context/why | `01-PRODUCT-VISION.md`, `02-EXISTING-SITE-AUDIT.md`, `03-INFORMATION-ARCHITECTURE.md` |
+| [01-PRODUCT-VISION](01-PRODUCT-VISION.md) | What DataDreamer is and who it serves |
+| [02-EXISTING-SITE-AUDIT](02-EXISTING-SITE-AUDIT.md) | The v3 audit that shaped v4 (historical baseline) |
+| [03-INFORMATION-ARCHITECTURE](03-INFORMATION-ARCHITECTURE.md) | Routes, URL contract, navigation |
+| [04-DESIGN-SYSTEM](04-DESIGN-SYSTEM.md) | Tokens, type, color — the Observatory system |
+| [05-PAGE-BLUEPRINTS](05-PAGE-BLUEPRINTS.md) | Section-by-section page specs |
+| [06-COMPONENT-ARCHITECTURE](06-COMPONENT-ARCHITECTURE.md) | Component boundaries + view-model contract |
+| [07-ANIMATION-INTERACTION-SPEC](07-ANIMATION-INTERACTION-SPEC.md) | Motion rules, reveal, reduced-motion |
+| [08-DIRECTUS-CONTENT-MODEL](08-DIRECTUS-CONTENT-MODEL.md) | Collections, fields, query contracts |
+| [09-TECHNICAL-ARCHITECTURE](09-TECHNICAL-ARCHITECTURE.md) | Repos/mappers layering, caching, errors |
+| [10-SEO-OG-METADATA](10-SEO-OG-METADATA.md) | Meta, JSON-LD, OG rules |
+| [11-RESPONSIVE-ACCESSIBILITY](11-RESPONSIVE-ACCESSIBILITY.md) | Breakpoints + a11y bar |
+| [12-IMPLEMENTATION-ROADMAP](12-IMPLEMENTATION-ROADMAP.md) | How v4 was sequenced (historical) |
 
-## Document map
+## Operational docs (current)
 
-| File | Contents |
+| Doc | What it is |
 |---|---|
-| `01-PRODUCT-VISION.md` | What v4 is, audiences, success criteria, release strategy, glossary |
-| `02-EXISTING-SITE-AUDIT.md` | Verified current-state: stack, routes, schema, callout system internals, debts |
-| `03-INFORMATION-ARCHITECTURE.md` | Route map, redirects, nav/footer model, **content classification contract** |
-| `04-DESIGN-SYSTEM.md` | "Observatory": tokens, type, color, grid, motion, logo spec, buttons, states |
-| `05-PAGE-BLUEPRINTS.md` | Every page: sections, responsive layouts, states, SEO, acceptance criteria; **callout spec §3a** |
-| `06-COMPONENT-ARCHITECTURE.md` | Component inventory + contracts, hydration policy, keep/refactor/replace/delete |
-| `07-ANIMATION-INTERACTION-SPEC.md` | Pseudocode: hero, nav/menu focus trap, team graph, TOC, lightbox, guide actions |
-| `08-DIRECTUS-CONTENT-MODEL.md` | v4 schema, migrations, access policies, query contracts, PRD conflict table |
-| `09-TECHNICAL-ARCHITECTURE.md` | Directory tree, deps, repositories, markdown pipeline, caching, errors, CI |
-| `10-SEO-OG-METADATA.md` | Meta contract, JSON-LD matrix, OG inventory + temp/final image process |
-| `11-RESPONSIVE-ACCESSIBILITY.md` | Breakpoint rationale, responsive rules, WCAG 2.2 AA contracts, QA scripts |
-| `12-IMPLEMENTATION-ROADMAP.md` | Phases A→E→C, performance budgets, parallelism, rollback |
-| `13-TASKS.md` | 46 task packets + status board — **the only place work is defined** |
-| `14-AGENT-INSTRUCTIONS.md` | Operating rules (binding) |
-| `15-HANDOFF.md` | Append-only state log — newest entry = truth about *state* |
-| `assets/page-layouts/wireframes.md` | ASCII wireframes for key pages at key breakpoints |
-| `assets/diagrams/directus-erd.md` | Mermaid ERD (v4.0 + v4.1) |
-| `assets/diagrams/site-map.md` | Mermaid route map |
-| `assets/content-models/example-records.md` | One realistic example record per collection (fixtures) |
-| `assets/design-references/design-rationale.md` | Why Observatory looks the way it does; comparables; rejected directions |
-| `qa/` (created during Phase D) | Completed QA checklists with evidence |
+| [16-ACCOUNT-MODEL](16-ACCOUNT-MODEL.md) | **The account/author model + admin runbook** (approve contributors, Dream Team, security posture) |
+| [17-CODEBASE-REVIEW](17-CODEBASE-REVIEW.md) | Architecture review + executed fix log |
+| [qa/guides.md](qa/guides.md) | Field Guides QA runbook + credential/role runbook |
+| [../AGENT_BLOG_GUIDE.md](../AGENT_BLOG_GUIDE.md) | Markdown authoring contract for posts (callouts, blocks) |
+| [../AGENT_GUIDES_GUIDE.md](../AGENT_GUIDES_GUIDE.md) | How to curate a Field Guide in Directus |
+| [../../scripts/README.md](../../scripts/README.md) | Operational scripts + applied migrations |
 
-## Five rules people break first
-
-1. Work on a `v4/<task-id>` branch off `feature/v4-redesign` — never `main`.
-2. Implement only your task's scope; update the handoff when done; **stop**.
-3. Tokens only (no raw hex/px); repositories only (no SDK in pages); zod at boundaries.
-4. The `:::` callout back-compat contract (02 §5.5) is inviolable — goldens must pass.
-5. Mobile + a11y requirements are acceptance criteria, not afterthoughts.
-
-## Conflict resolution
-
-Numbered docs define **intent**; `15-HANDOFF.md` defines **current state**;
-`13-TASKS.md` defines **work**. COURSES_PRD is historical context only for v4.1; the
-current Field Guides/auth decisions live in `01`, `03`, `05`, `08`, `09`, and `13`.
-If two docs disagree, file a handoff `decision` entry rather than guessing.
+**Orby** (the site chat assistant) lives in its own repository:
+[github.com/atefalvi/orby](https://github.com/atefalvi/orby). This repo carries only the
+env-guarded widget `<script>` tag in `BaseLayout.astro` and the CSP allowance.

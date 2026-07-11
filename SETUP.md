@@ -20,11 +20,10 @@ This guide describes the current v4 setup. The repository folder may still be na
 
 | Branch | Use |
 |---|---|
-| `feature/v4-redesign` | Main v4 integration branch and staging frontend source. |
-| `main` | Production frontend source. Merge here only during the release cutover. |
-| `v4/<task-id>` | Task branches. Already merged task branches can be deleted. |
+| `main` | The only long-lived branch. Merges auto-deploy production via Coolify. |
+| feature branches | Short-lived, merged via PR after `npm run check` + tests + build pass. |
 
-When in doubt, work from `feature/v4-redesign`.
+When in doubt, branch from `main`.
 
 ---
 

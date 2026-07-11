@@ -44,7 +44,7 @@ export const POST_DETAIL_FIELDS = [...POST_LIST_FIELDS, 'content'] as const;
 const PUBLISHED = { status: { _eq: 'published' } } as const;
 
 // SDK dotted-field arrays aren't generically typeable; cast at the call site only
-// (the single documented `any` exception — CODE_REVIEW 2.3 / 09 §4.2).
+// (the single documented `any` exception — 09 §4.2).
 
 export interface PostListQuery {
   topic?: string;

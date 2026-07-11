@@ -1,6 +1,6 @@
 # 16 — Account model (v4.2): one account, opt-in public roles
 
-Applied to production 2026-07-06 via `scripts/v4-account-model.mjs` (idempotent).
+Applied to production 2026-07-06 via `scripts/migrations/v4-account-model.mjs` (idempotent).
 
 ## The model
 
@@ -49,7 +49,7 @@ lets a Contributor edit only their **own** profile (`authors.update` is scoped t
 
 > Reconciliation note (2026-07-06): the two profiles that predate the `user` field —
 > `maria-khan` and `syed-atef-alvi` — were linked to their accounts by
-> `scripts/v4-account-model.mjs` (`linkKnownAuthors`). New profiles get `user` set by the
+> `scripts/migrations/v4-account-model.mjs` (`linkKnownAuthors`). New profiles get `user` set by the
 > admin at approval time.
 
 ## Admin runbook (v4.3, 2026-07-07)

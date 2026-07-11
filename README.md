@@ -1,138 +1,69 @@
-# DataDreamer v4
+# DataDreamer
 
-DataDreamer is an editorial data-intelligence studio site built with Astro SSR,
-Directus, and the v4 Observatory design system. The current v4 surface includes the
-homepage, writing, topic filters, project case studies, Dream Team profiles, RSS,
-sitemap/robots, OG assets, and the production-ready global shell.
+An editorial data-intelligence studio site — Astro 5 SSR + Directus 12, deployed on a
+homelab through Coolify behind Cloudflare, live at **[data-dreamer.net](https://data-dreamer.net)**.
 
-The repository directory is still named `DataDreamer_v3` for continuity, but the active
-implementation and documentation are v4.
+The surface: homepage, writing (rich markdown blocks: callouts, checklists, metrics,
+KaTeX formulas, image grids), project case studies, Dream Team profiles with a
+specialty network graph, login-gated **Field Guides** (email + Google SSO, progress
+tracking), a self-service contributor account area, dynamic per-post/project OG
+cards, RSS, and sitemap. The **Orby** chat assistant floats on top from its own
+service (see below).
 
----
+> The repo directory is named `DataDreamer_v3` for continuity; the implementation is v4.
 
-## Current Branch Model
+## Layout
 
-| Branch | Purpose |
-|---|---|
-| `feature/v4-redesign` | Active v4 integration branch and staging deploy source. |
-| `main` | Production deploy source. Do not merge v4 here until the release checklist is complete. |
-| `v4/<task-id>` | Historical task branches. Branches that already have merged PRs can be deleted. |
-| `codex/*` | Small assistant-side utility/doc branches. Merge or delete after review. |
-
-For release sequencing, use [docs/RELEASE_NEXT_STEPS.md](./docs/RELEASE_NEXT_STEPS.md).
-
----
-
-## Architecture
-
-```text
-DataDreamer_v3/
-├── frontend/                  # Astro 5 SSR frontend
-│   ├── src/
-│   │   ├── assets/             # Brand assets and project images
-│   │   ├── components/         # Global shell, UI primitives, blog, home, projects
-│   │   ├── content/            # Astro content collections, including projects
-│   │   ├── layouts/            # BaseLayout and SEO shell
-│   │   ├── lib/                # Directus repositories, markdown, SEO, graph, motion
-│   │   ├── pages/              # Routes: home, blog, projects, dream-team, connect, privacy
-│   │   └── styles/             # Observatory tokens, base, prose, fonts
-│   ├── .env.example
-│   └── Dockerfile
-├── backend/                   # Directus + Postgres + Redis compose resource
-│   ├── docker-compose.yml
-│   ├── .env.example
-│   ├── snapshot.yaml
-│   ├── extensions/
-│   └── datadreamer_backup.sql
-├── docs/
-│   ├── AGENT_BLOG_GUIDE.md
-│   ├── RELEASE_NEXT_STEPS.md
-│   └── agent-workspace/
-└── scripts/                   # active tools (OG, guides schema, smoke); see scripts/README.md
-    └── migrations/             # one-time Directus migrations already applied (history)
+```
+frontend/   Astro SSR app (the site) — deploys from main via Coolify
+backend/    Directus docker-compose + custom hook extensions (author-profile,
+            google-picture-url), baked into a custom image
+scripts/    Operational Node scripts + applied Directus migrations (see scripts/README.md)
+docs/       Reference documentation — start at docs/agent-workspace/00-START-HERE.md
 ```
 
----
+## Architecture in one paragraph
 
-## Content Ownership
+Pages never touch the Directus SDK directly: `lib/repositories/*` query with explicit
+field lists, `_mappers.ts` converts rows (`lib/directus/schema.ts`) to view-models
+(`types/content.ts`), and pages consume view-models only. Auth is a thin bridge — the
+learner's session cookie proves identity, a least-privilege **Guide Server** service
+token does the scoped reads/writes. Public API reads are row-filtered to published at
+the Directus policy level. One account per person; Dream Team visibility and blog
+authoring are admin-granted add-ons (`docs/agent-workspace/16-ACCOUNT-MODEL.md` is the
+runbook). Anonymous HTML is edge-cached (`s-maxage` + SWR); session pages are
+`private, no-store`.
 
-| Content | Source |
-|---|---|
-| Posts, authors, specialties, topics | Directus |
-| Project case studies | Astro content collection in `frontend/src/content/projects/` |
-| Navigation, homepage copy, social links, feature flags | `frontend/src/content/site.ts` |
-| About/contact/privacy page copy | Source-controlled frontend content/components |
-| Courses/auth/student dashboard | Planned v4.1 work, not part of the v4.0 release |
+## Branches
 
-Retired v3 Directus collections such as `projects`, `site_settings`, `home_settings`,
-and `about` should not be used for v4 frontend content. They remain only until the
-post-release cleanup task drops them after the v4.0 soak.
+`main` is the only long-lived branch — merges auto-deploy the frontend via Coolify.
+Feature work happens on short-lived branches merged through PRs.
 
----
+## Development
 
-## Local Development
-
-Full setup is in [SETUP.md](./SETUP.md).
+See [SETUP.md](SETUP.md). Quick start:
 
 ```bash
-# Backend
-cd backend
-cp .env.example .env
-docker compose up -d
-
-# Frontend
-cd ../frontend
-cp .env.example .env
-npm install
-npm run dev
+cd frontend && npm install && npm run dev     # http://localhost:4321
+npm run check && npx vitest run && npm run build   # the gate before any merge
 ```
 
-Frontend: `http://localhost:4321`
+Backend (local Directus) runs from `backend/docker-compose.yml` on host port 8056 so
+it never collides with production's 8055.
 
-Directus: `http://localhost:8055/admin`
+## Orby (chat assistant)
 
----
+Orby lives in its own repository — **[github.com/atefalvi/orby](https://github.com/atefalvi/orby)**
+— deployed separately at `chat.data-dreamer.net`. This repo's entire integration is an
+env-guarded `<script>` tag in `BaseLayout.astro` (`PUBLIC_ORBY_WIDGET_URL`; unset = no
+widget) plus the CSP allowance in `middleware.ts`. Runtime control (kill switch,
+prompts, models, limits) lives in the Directus `orby` collection.
 
-## Validation
+## Operations
 
-Run these before opening or merging frontend changes:
-
-```bash
-cd frontend
-npx astro check
-npm test
-npm run build
-```
-
-Release smoke:
-
-```bash
-PUBLIC_DIRECTUS_URL=http://192.168.10.211:8056 \
-  node ../scripts/release-smoke.mjs https://staging.data-dreamer.net
-```
-
----
-
-## Deployment
-
-DataDreamer uses separate Coolify resources:
-
-| Resource | Branch / source | Notes |
-|---|---|---|
-| Staging frontend | `feature/v4-redesign` | `DEPLOY_ENV=staging`; should send `X-Robots-Tag: noindex`. |
-| Production frontend | `main` | Cut over only through the v4.0 release checklist. |
-| Staging backend | Directus compose | Separate DB/uploads/extensions from production. |
-| Production backend | Directus compose | Do not run post-release drops before v4.0 soak completes. |
-
-See [docs/RELEASE_NEXT_STEPS.md](./docs/RELEASE_NEXT_STEPS.md) before touching
-production.
-
----
-
-## Guides
-
-- [SETUP.md](./SETUP.md) — local development, environment variables, Directus policies.
-- [docs/AGENT_BLOG_GUIDE.md](./docs/AGENT_BLOG_GUIDE.md) — v4 authoring guide for posts.
-- [docs/RELEASE_NEXT_STEPS.md](./docs/RELEASE_NEXT_STEPS.md) — branch cleanup and v4.0 release sequence.
-- [docs/agent-workspace/13-TASKS.md](./docs/agent-workspace/13-TASKS.md) — implementation task board.
-- [docs/agent-workspace/15-HANDOFF.md](./docs/agent-workspace/15-HANDOFF.md) — chronological handoff log.
+- **Deploys:** push to `main` → Coolify builds the frontend. Backend redeploys are
+  manual in Coolify (hook extensions ship in the image).
+- **Smoke:** `node scripts/release-smoke.mjs https://data-dreamer.net`
+- **Guides QA:** `docs/agent-workspace/qa/guides.md`
+- **Directus schema changes:** idempotent scripts in `scripts/` → move to
+  `scripts/migrations/` once applied (convention in `scripts/README.md`).

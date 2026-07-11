@@ -53,7 +53,7 @@ export async function directusServiceFetch(path: string, init: RequestInit = {})
 }
 
 /**
- * The one documented `any` exception (09 §4.2, CODE_REVIEW 2.3): the SDK cannot
+ * The one documented `any` exception (09 §4.2): the SDK cannot
  * generically type dotted-field arrays ('author.avatar.id'), so repositories cast
  * their `fields` option through this alias. Do not add other `any`s.
  */

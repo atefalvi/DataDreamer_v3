@@ -114,4 +114,4 @@ least `why_included` on most items — that judgement is what people come for.
 
 Related: `docs/agent-workspace/08-DIRECTUS-CONTENT-MODEL.md` §4 (schema),
 `docs/agent-workspace/reports/field-guides-auth-plan.html` (auth/setup), and
-`scripts/v4-guides-schema.mjs` (creates these collections + the seed example).
+`scripts/migrations/v4-guides-schema.mjs` (creates these collections + the seed example).

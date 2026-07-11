@@ -1,6 +1,6 @@
 # QA — Field Guides (V4-QA-004)
 
-Run on staging (Directus seeded via `scripts/v4-guides-schema.mjs`, frontend with
+Run on staging (Directus seeded via `scripts/migrations/v4-guides-schema.mjs`, frontend with
 `PUBLIC_GUIDES_ENABLED=true`).
 
 ## Credential and role runbook

@@ -223,7 +223,7 @@ Regression testing needed: dev pages still render in `npm run dev`; prod 404s.
 
 Severity: Medium
 Category: Security / CMS model
-Where found: `scripts/v4-guides-schema.mjs` (Guide Server permissions are
+Where found: `scripts/migrations/v4-guides-schema.mjs` (Guide Server permissions are
 all-or-nothing `fields:['*']` with no row rules — written when the staging instance
 rejected `custom_permission_rules_enabled`); `lib/repositories/guides.ts` enforces
 published/preview/ownership in app code.
