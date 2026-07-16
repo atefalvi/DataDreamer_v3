@@ -52,7 +52,7 @@ describe('userIdentity', () => {
 
   it('provides a neutral fallback when profile fields are unavailable', () => {
     expect(userIdentity({ email: '' })).toMatchObject({
-      displayName: 'DataDreamer member',
+      displayName: 'Data Dreamer member',
       initials: 'DD',
       secondary: 'Signed in securely',
       providerLabel: 'Email account',

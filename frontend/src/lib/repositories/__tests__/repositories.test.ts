@@ -12,6 +12,7 @@ import { directus } from '../../directus/client';
 import * as postsRepo from '../posts';
 import * as authorsRepo from '../authors';
 import * as topicsRepo from '../topics';
+import * as projectsRepo from '../projects';
 import { POST_DETAIL_FIELDS, POST_LIST_FIELDS } from '../posts';
 import { RepositoryError } from '../errors';
 import type { AuthorRow, PostRow } from '../../directus/schema';
@@ -30,12 +31,14 @@ function postRow(overrides: Partial<PostRow> = {}): PostRow {
     slug: 'retry-patterns',
     excerpt: 'Four retry patterns.',
     published_at: '2026-05-12T09:00:00Z',
+    date_updated: '2026-05-14T10:30:00Z',
     featured: true,
     post_number: 14,
     series_label: 'Pipelines',
     author: {
       id: 'a1',
       status: 'published',
+      dream_team: true,
       slug: 'atef-alvi',
       display_name: 'Atef Alvi',
       role_title: 'Engineer',
@@ -71,6 +74,7 @@ describe('postsRepo.list', () => {
       topics: [{ name: 'Data', slug: 'data' }],
     });
     expect(result.items[0].publishedAt).toBeInstanceOf(Date);
+    expect(result.items[0].updatedAt?.toISOString()).toBe('2026-05-14T10:30:00.000Z');
     expect(result.items[0].coverImage?.src).toBe('https://cms.test/assets/cv1');
     expect(result.items[0].coverImage?.alt).toBe('Cover');
     // list items never carry the rendered body / reading time
@@ -82,6 +86,27 @@ describe('postsRepo.list', () => {
     const result = await postsRepo.list();
     expect(result.items).toEqual([]);
     expect(result.hasMore).toBe(false);
+  });
+
+  it('supports three pages of fixture results without making later content unreachable', async () => {
+    const fixtures = Array.from({ length: 36 }, (_, index) =>
+      postRow({ id: `p${index + 1}`, slug: `post-${index + 1}`, title: `Post ${index + 1}` }),
+    );
+    request
+      .mockResolvedValueOnce(fixtures.slice(0, 13))
+      .mockResolvedValueOnce(fixtures.slice(12, 25))
+      .mockResolvedValueOnce(fixtures.slice(24, 36));
+
+    const page1 = await postsRepo.list({ page: 1, pageSize: 12 });
+    const page2 = await postsRepo.list({ page: 2, pageSize: 12 });
+    const page3 = await postsRepo.list({ page: 3, pageSize: 12 });
+
+    expect(page1).toMatchObject({ page: 1, hasMore: true });
+    expect(page2).toMatchObject({ page: 2, hasMore: true });
+    expect(page3).toMatchObject({ page: 3, hasMore: false });
+    expect([...page1.items, ...page2.items, ...page3.items].map((post) => post.slug)).toEqual(
+      fixtures.map((post) => post.slug),
+    );
   });
 
   it('throws a typed RepositoryError when the SDK fails', async () => {
@@ -145,6 +170,17 @@ describe('postsRepo.sitemap', () => {
   });
 });
 
+describe('projectsRepo.sitemap', () => {
+  it('returns lightweight published project slugs with updated timestamps', async () => {
+    request.mockResolvedValueOnce([
+      { slug: 'proof-of-work', date_updated: '2026-07-15T10:00:00Z' },
+    ]);
+    await expect(projectsRepo.sitemap()).resolves.toEqual([
+      { slug: 'proof-of-work', updatedAt: new Date('2026-07-15T10:00:00Z') },
+    ]);
+  });
+});
+
 describe('postsRepo.related', () => {
   it('falls back to latest (excluding the source) when no topic matches', async () => {
     const source = await (async () => {
@@ -182,6 +218,7 @@ function authorRow(overrides: Partial<AuthorRow> = {}): AuthorRow {
   return {
     id: 'a1',
     status: 'published',
+    dream_team: true,
     slug: 'atef-alvi',
     display_name: 'Atef Alvi',
     role_title: 'Data & Analytics Engineer',
@@ -211,6 +248,17 @@ describe('authorsRepo.allWithCounts', () => {
     // specialties ordered by junction sort → primary (Data Engineering) first
     expect(authors[0].specialties.map((s) => s.slug)).toEqual(['data-engineering', 'analytics']);
     expect(authors[0].guideCount).toBe(0);
+  });
+});
+
+describe('authorsRepo.sitemap', () => {
+  it('returns only the public profile records supplied by the Dream Team query', async () => {
+    request.mockResolvedValueOnce([
+      { slug: 'atef-alvi', date_updated: '2026-07-15T00:00:00Z' },
+    ]);
+    await expect(authorsRepo.sitemap()).resolves.toEqual([
+      { slug: 'atef-alvi', updatedAt: new Date('2026-07-15T00:00:00Z') },
+    ]);
   });
 });
 
@@ -257,5 +305,26 @@ describe('topicsRepo.withPostCounts', () => {
   it('propagates fetch failures as RepositoryError', async () => {
     request.mockRejectedValueOnce(new Error('boom'));
     await expect(topicsRepo.withPostCounts()).rejects.toBeInstanceOf(RepositoryError);
+  });
+});
+
+describe('topicsRepo.sitemap', () => {
+  it('includes only published topics with published posts and uses the latest change', async () => {
+    request
+      .mockResolvedValueOnce([
+        { slug: 'analytics', date_updated: '2026-07-01T00:00:00Z' },
+        { slug: 'empty', date_updated: '2026-07-02T00:00:00Z' },
+      ])
+      .mockResolvedValueOnce([
+        {
+          published_at: '2026-07-10T00:00:00Z',
+          date_updated: '2026-07-12T00:00:00Z',
+          topics: [{ topics_id: { slug: 'analytics' } }],
+        },
+      ]);
+    const topics = await topicsRepo.sitemap();
+    expect(topics).toEqual([
+      { slug: 'analytics', updatedAt: new Date('2026-07-12T00:00:00Z') },
+    ]);
   });
 });

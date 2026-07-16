@@ -63,7 +63,7 @@ const primaryAuthor = {
   slug: 'atef-alvi',
   display_name: 'Atef Alvi',
   role_title: 'Data & Analytics Engineer',
-  bio: 'Atef builds analytics platforms, practical AI systems, and production-grade data workflows for DataDreamer.',
+  bio: 'Atef builds analytics platforms, practical AI systems, and production-grade data workflows for Data Dreamer.',
   statement: 'The data is the model.',
   links: [
     { label: 'GitHub', url: 'https://github.com/atefalvi' },

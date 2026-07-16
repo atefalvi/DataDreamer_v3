@@ -138,6 +138,7 @@ export function creativeWorkJsonLd(input: {
   datePublished?: string;
   keywords?: string[];
   image?: string;
+  author?: PersonInput;
 }): JsonObject {
   return compact({
     '@context': 'https://schema.org',
@@ -148,6 +149,7 @@ export function creativeWorkJsonLd(input: {
     datePublished: input.datePublished,
     keywords: input.keywords?.join(', '),
     image: input.image ? absoluteUrl(input.image) : undefined,
+    author: input.author ? personJsonLd(input.author) : undefined,
   });
 }
 

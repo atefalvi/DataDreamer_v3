@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { postsSitemapXml, sitemapUrl, sitemapXml } from '../sitemap';
+import {
+  contentSitemapXml,
+  postsSitemapXml,
+  shouldIncludeStaticSitemapPage,
+  sitemapUrl,
+  sitemapXml,
+} from '../sitemap';
 import { SITE_URL } from '../meta';
 import type { PostListItem } from '../../../types/content';
 
@@ -32,4 +38,56 @@ describe('sitemap helpers', () => {
     expect(xml).toContain(`<loc>${SITE_URL}/blog/retry-patterns</loc>`);
     expect(xml).toContain('<lastmod>2026-05-12T09:00:00.000Z</lastmod>');
   });
+
+  it('prefers the Directus updated timestamp for post lastmod', () => {
+    const xml = postsSitemapXml([{
+      slug: 'updated-post',
+      title: 'Updated post',
+      excerpt: 'Updated.',
+      publishedAt: new Date('2026-05-12T09:00:00Z'),
+      updatedAt: new Date('2026-07-15T14:30:00Z'),
+      topics: [],
+      author: { slug: 'atef-alvi', name: 'Atef Alvi', dreamTeam: true },
+      featured: false,
+    }]);
+    expect(xml).toContain('<lastmod>2026-07-15T14:30:00.000Z</lastmod>');
+  });
+
+  it('renders and deduplicates all dynamic public content types', () => {
+    const xml = contentSitemapXml([
+      { path: '/projects/proof-of-work', lastmod: new Date('2026-07-01T00:00:00Z') },
+      { path: '/guides/learn-airflow' },
+      { path: '/dream-team/atef-alvi' },
+      { path: '/blog/topic/data-engineering' },
+      { path: '/guides/learn-airflow' },
+    ]);
+    expect(xml).toContain(`${SITE_URL}/projects/proof-of-work`);
+    expect(xml).toContain(`${SITE_URL}/guides/learn-airflow`);
+    expect(xml).toContain(`${SITE_URL}/dream-team/atef-alvi`);
+    expect(xml).toContain(`${SITE_URL}/blog/topic/data-engineering`);
+    expect(xml.match(/guides\/learn-airflow/g)).toHaveLength(1);
+  });
+
+  it.each([
+    '/account',
+    '/account/',
+    '/login',
+    '/signup',
+    '/404',
+    '/500',
+    '/rss.xml',
+    '/api/auth/login',
+    '/dev/styleguide',
+    '/logs/legacy',
+    '/og/blog/example.png',
+    '/sitemap-content.xml',
+    '/blog/[slug]',
+  ])('excludes %s from the generated static sitemap', (path) => {
+    expect(shouldIncludeStaticSitemapPage(`${SITE_URL}${path}`)).toBe(false);
+  });
+
+  it.each(['/', '/blog', '/projects', '/guides', '/dream-team', '/connect', '/privacy'])(
+    'keeps public route %s in the generated static sitemap',
+    (path) => expect(shouldIncludeStaticSitemapPage(`${SITE_URL}${path}`)).toBe(true),
+  );
 });

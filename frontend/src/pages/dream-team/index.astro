@@ -63,7 +63,7 @@ const sharedSkillCount = specialties.filter((s) => s.memberCount > 1).length;
 
 const jsonLd = [
   itemListJsonLd({
-    name: 'DataDreamer Dream Team',
+    name: 'Data Dreamer Dream Team',
     items: authors.map((author) =>
       personJsonLd({
         name: author.name,
@@ -78,24 +78,24 @@ const jsonLd = [
 
 <BaseLayout
   title="Dream Team"
-  description="The data engineers, analysts, AI builders, and creative technologists behind DataDreamer."
+  description="A human map of data across industries and functions, connected by the problems people solve and the data they use."
   ogImage={{ url: '/og/og-team.png' }}
   jsonLd={jsonLd}
 >
   <div class="dt container-wide">
     <header class="dt__head">
-      <p class="kicker">The people</p>
+      <p class="kicker">People and data</p>
       <h1>Dream Team</h1>
       <p class="dt__intro">
-        Different fields, one language. Each person below works in their own world — HR, capital
-        markets, engineering — but we’re connected by the same thing: <em>data</em>. The pillars are
-        the disciplines; the lines are how the work flows between them.
+        The Dream Team is a human map of data in the real world: people from different backgrounds,
+        industries, and domains connected by the problems they solve and the data they use. Data moves
+        across HR, finance, sales, operations, engineering, analytics, and leadership.
       </p>
     </header>
 
     {authors.length === 0 ? (
       <EmptyState
-        message="The Dream Team graph is waiting for author profiles. The system is ready; the first nodes come next."
+        message="Dream Team profiles will appear here as the network grows."
         icon="orbit"
         action={{ label: 'Get in touch', href: '/connect' }}
       />

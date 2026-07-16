@@ -14,6 +14,7 @@ import Avatar from '../../components/ui/Avatar.astro';
 import { guidesRepo } from '../../lib/repositories';
 import { deriveGuideProgress, flattenItems } from '../../lib/guides/progress';
 import { creativeWorkJsonLd, breadcrumbListJsonLd } from '../../lib/seo/jsonld';
+import { publicAuthorProfilePath } from '../../lib/authors/publicProfile';
 import '../../styles/prose.css';
 import type { Guide, GuideListItem, DerivedGuideProgress, StoredGuideProgress } from '../../types/content';
 
@@ -72,9 +73,14 @@ const jsonLd = [
     url: `/guides/${guide.slug}`,
     keywords: guide.topics.map((t) => t.name),
     image: guide.coverImage?.src,
+    author: {
+      name: guide.curator.name,
+      url: publicAuthorProfilePath(guide.curator),
+      image: guide.curator.avatar?.src,
+    },
   }),
   breadcrumbListJsonLd([
-    { label: 'Field Guides', href: '/guides' },
+    { label: 'Guides', href: '/guides' },
     { label: guide.title },
   ]),
 ];
@@ -135,12 +141,16 @@ const jsonLd = [
       <section class="guide__curators" aria-label="Curators">
         <p class="kicker">{guide.curators.length > 1 ? 'Curated by' : 'Curator'}</p>
         <div class="guide__curators-grid">
-          {guide.curators.map((curator) => (
-            <a href={`/dream-team/${curator.slug}`} class="guide__curator-card">
-              <Avatar src={curator.avatar?.src} name={curator.name} size={48} />
-              <span class="guide__curator-name">{curator.name}</span>
-            </a>
-          ))}
+          {guide.curators.map((curator) => {
+            const href = publicAuthorProfilePath(curator);
+            const CuratorTag = href ? 'a' : 'div';
+            return (
+              <CuratorTag href={href} class="guide__curator-card">
+                <Avatar src={curator.avatar?.src} name={curator.name} size={48} />
+                <span class="guide__curator-name">{curator.name}</span>
+              </CuratorTag>
+            );
+          })}
         </div>
       </section>
     )}

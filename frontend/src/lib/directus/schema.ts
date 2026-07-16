@@ -33,6 +33,7 @@ export interface TopicRow {
   name: string;
   slug: string;
   description?: string | null;
+  date_updated?: string | null;
 }
 
 export interface AuthorSpecialtyRow {
@@ -57,6 +58,7 @@ export interface AuthorRow {
   /** Admin approval to appear on the public Dream Team page (v4.2 account model). */
   dream_team?: boolean | null;
   specialties?: AuthorSpecialtyRow[];
+  date_updated?: string | null;
 }
 
 export interface PostTopicRow {
@@ -72,6 +74,7 @@ export interface PostRow {
   excerpt?: string | null;
   content?: string | null;
   published_at?: string | null;
+  date_updated?: string | null;
   post_number?: number | null;
   series_label?: string | null;
   featured?: boolean | null;
@@ -101,6 +104,7 @@ export interface ProjectRow {
   links?: ProjectLink[] | null;
   featured?: boolean | null;
   sort?: number | null;
+  date_updated?: string | null;
 }
 
 /* ── Field Guides (v4.1) ─────────────────────────────────────────────────────── */

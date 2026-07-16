@@ -5,7 +5,7 @@ import EmptyState from '../ui/EmptyState.astro';
 import Breadcrumbs from '../ui/Breadcrumbs.astro';
 import PostCard from './PostCard.astro';
 import {
-  blogPath,
+  listingPagePath,
   topicPath,
   withAuthor,
   type BlogListing as BlogListingModel,
@@ -32,11 +32,11 @@ const activeAuthor = listing.activeAuthor;
 const showAuthorFilter = listing.authors.length > 1;
 const hasFilters = Boolean(activeTopic || activeAuthor);
 const hasPosts = listing.featured || listing.posts.length > 0;
-const nextHref = !activeTopic && listing.page.hasMore
-  ? withAuthor(blogPath(listing.page.page + 1), activeAuthor)
+const nextHref = listing.page.hasMore
+  ? withAuthor(listingPagePath(activeTopic, listing.page.page + 1), activeAuthor)
   : undefined;
-const prevHref = !activeTopic && listing.page.page > 1
-  ? withAuthor(blogPath(listing.page.page - 1), activeAuthor)
+const prevHref = listing.page.page > 1
+  ? withAuthor(listingPagePath(activeTopic, listing.page.page - 1), activeAuthor)
   : undefined;
 ---
 
@@ -93,14 +93,14 @@ const prevHref = !activeTopic && listing.page.page > 1
   </div>
 
   {hasPosts ? (
-    <div class="blog-listing__posts" aria-label="Posts">
+    <div class="blog-listing__posts" aria-label="Writing">
       {listing.posts.map((post) => (
         <PostCard post={post} variant="card" />
       ))}
     </div>
   ) : (
     <EmptyState
-      message={hasFilters ? 'No posts match this editorial filter yet.' : 'The writing desk is ready. Published notes will appear here once the CMS is seeded.'}
+      message={hasFilters ? 'No writing matches this filter yet.' : 'Published writing will appear here once it is available.'}
       icon="pen-line"
       action={hasFilters ? { label: 'Clear filter', href: clearHref } : undefined}
     />

@@ -26,7 +26,9 @@ const AVATAR_SUBFIELDS = [
 
 const AUTHOR_SUMMARY_FIELDS = [
   'id',
+  'status',
   'slug',
+  'dream_team',
   'display_name',
   'role_title',
   'sort',
@@ -47,6 +49,29 @@ const PUBLISHED = { status: { _eq: 'published' } } as const;
 // v4.2 account model: only admin-approved profiles appear on the public Dream Team.
 // Blog-author-only profiles (Contributors) stay off the team pages.
 const TEAM = { ...PUBLISHED, dream_team: { _eq: true } } as const;
+
+export interface AuthorSitemapItem {
+  slug: string;
+  updatedAt?: Date;
+}
+
+/** Public Dream Team profiles only; avoids post-count work during sitemap generation. */
+export async function sitemap(): Promise<AuthorSitemapItem[]> {
+  const rows = await guard('authors.sitemap', () =>
+    directus.request<AuthorRow[]>(
+      readItems('authors', {
+        filter: TEAM,
+        sort: ['slug'],
+        limit: 1000,
+        fields: ['slug', 'date_updated'] as Fields,
+      }),
+    ),
+  );
+  return rows.map((row) => ({
+    slug: row.slug,
+    updatedAt: row.date_updated ? new Date(row.date_updated) : undefined,
+  }));
+}
 
 
 /** All team authors with their published-post counts (graph + list). */

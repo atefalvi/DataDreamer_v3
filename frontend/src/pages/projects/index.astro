@@ -37,31 +37,31 @@ const searchOf = (p: ProjectListItem) =>
 
 const jsonLd = [
   collectionPageJsonLd({
-    name: 'Projects — DataDreamer',
+    name: 'Projects — Data Dreamer',
     url: '/projects',
-    description: 'Selected projects from DataDreamer — data platforms, analytics, and applied-AI case studies.',
+    description: 'Proof of work and the thinking behind practical data, AI, and business systems.',
   }),
 ];
 ---
 
 <BaseLayout
   title="Projects"
-  description="Selected projects from DataDreamer — data platforms, analytics, and applied-AI case studies."
+  description="Proof of work and the thinking behind practical data, AI, and business systems."
   ogImage={{ url: '/og/og-projects.png' }}
   jsonLd={jsonLd}
 >
   <div class="projects container-content">
     <header class="projects__head">
-      <p class="kicker">Selected work</p>
-      <h1>Projects</h1>
+      <p class="kicker">Projects</p>
+      <h1>Proof of work, not just proof of tools.</h1>
       <p class="projects__intro">
-        Case studies from the studio — data platforms, analytics craft, and the engineering behind
-        systems that ship.
+        Projects show how ideas move from a business problem to a practical system, including the
+        decisions, trade-offs, models, interfaces, implementation, outcomes, and lessons behind the build.
       </p>
     </header>
 
     {all.length === 0 ? (
-      <EmptyState message="Case studies are being written up. Check back soon." icon="folder-open" />
+      <EmptyState message="Projects will appear here as the work is documented." icon="folder-open" />
     ) : (
       <>
         <div class="projects__controls">
@@ -70,15 +70,15 @@ const jsonLd = [
             <input
               type="search"
               id="project-search"
-              placeholder="Search work…"
+              placeholder="Search projects…"
               autocomplete="off"
-              aria-label="Search work"
+              aria-label="Search projects"
               data-project-search
             />
           </div>
 
           {tags.length > 0 && (
-            <nav class="projects__filter" aria-label="Filter by stack">
+            <nav class="projects__filter" aria-label="Filter by project tag">
               <a href="/projects" class:list={['tagchip', { 'is-active': !activeTag }]}>
                 All <span class="tagchip__count">{all.length}</span>
               </a>
@@ -99,7 +99,7 @@ const jsonLd = [
         ) : (
           <>
             <section class="projects__results" aria-labelledby="project-results-heading">
-              <h2 id="project-results-heading" class="visually-hidden">Project case studies</h2>
+              <h2 id="project-results-heading" class="visually-hidden">Project proof of work</h2>
               <div class="projects__grid" data-project-grid>
                 {visible.map((project, i) => (
                   <div class="projects__item" data-search={searchOf(project)}>
@@ -109,7 +109,7 @@ const jsonLd = [
               </div>
             </section>
             <p class="projects__noresults" data-project-noresults hidden>
-              No work matches your search. <a href="/projects">Reset</a>.
+              No projects match your search. <a href="/projects">Reset</a>.
             </p>
           </>
         )}

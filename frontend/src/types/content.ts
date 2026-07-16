@@ -74,6 +74,8 @@ export interface PostListItem {
   title: string;
   excerpt: string;
   publishedAt: Date;
+  /** Directus-managed edit timestamp, used for article dateModified and sitemap lastmod. */
+  updatedAt?: Date;
   topics: TopicRef[];
   author: AuthorRef;
   coverImage?: ImageRef;
@@ -112,6 +114,8 @@ export interface ProjectListItem {
   tags: string[];
   links: ProjectLinkRef[];
   featured: boolean;
+  /** Directus-managed edit timestamp, used for sitemap lastmod. */
+  updatedAt?: Date;
 }
 
 export interface Project extends ProjectListItem {
@@ -192,6 +196,8 @@ export interface GuideListItem {
   /** Primary curator (card byline). */
   curator: AuthorRef;
   topics: TopicRef[];
+  /** Directus-managed edit timestamp, used for sitemap lastmod. */
+  updatedAt?: Date;
 }
 
 export interface Guide extends GuideListItem {

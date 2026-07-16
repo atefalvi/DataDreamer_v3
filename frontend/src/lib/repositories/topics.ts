@@ -19,6 +19,66 @@ export interface TopicWithCount {
   count: number;
 }
 
+export interface TopicSitemapItem {
+  slug: string;
+  updatedAt?: Date;
+}
+
+/** Published topics that resolve to a non-empty public topic page. */
+export async function sitemap(): Promise<TopicSitemapItem[]> {
+  const [topics, posts] = await Promise.all([
+    guard('topics.sitemap.topics', () =>
+      directus.request<TopicRow[]>(
+        readItems('topics', {
+          filter: PUBLISHED,
+          sort: ['slug'],
+          limit: 1000,
+          fields: ['slug', 'date_updated'] as Fields,
+        }),
+      ),
+    ),
+    guard('topics.sitemap.posts', () =>
+      directus.request<PostRow[]>(
+        readItems('posts', {
+          filter: PUBLISHED,
+          limit: -1,
+          fields: [
+            'published_at',
+            'date_updated',
+            'topics.topics_id.slug',
+          ] as Fields,
+        }),
+      ),
+    ),
+  ]);
+
+  const latestByTopic = new Map<string, Date>();
+  for (const post of posts) {
+    const changed = new Date(post.date_updated ?? post.published_at ?? 0);
+    if (Number.isNaN(changed.getTime())) continue;
+    for (const link of post.topics ?? []) {
+      const topic = link.topics_id;
+      if (!topic || typeof topic === 'string') continue;
+      const current = latestByTopic.get(topic.slug);
+      if (!current || changed > current) latestByTopic.set(topic.slug, changed);
+    }
+  }
+
+  return topics
+    .filter((topic) => latestByTopic.has(topic.slug))
+    .map((topic) => ({
+      slug: topic.slug,
+      updatedAt: latestDate(topic.date_updated, latestByTopic.get(topic.slug)),
+    }));
+}
+
+function latestDate(topicUpdated: string | null | undefined, contentUpdated: Date | undefined): Date | undefined {
+  const topicDate = topicUpdated ? new Date(topicUpdated) : undefined;
+  if (!topicDate || Number.isNaN(topicDate.getTime())) return contentUpdated;
+  if (!contentUpdated) return topicDate;
+  return topicDate > contentUpdated ? topicDate : contentUpdated;
+}
+
 export async function all(): Promise<TopicRef[]> {
   const rows = await guard('topics.all', () =>
     directus.request<TopicRow[]>(

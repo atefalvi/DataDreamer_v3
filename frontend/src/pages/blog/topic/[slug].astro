@@ -2,8 +2,8 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import BlogListing from '../../../components/blog/BlogListing.astro';
 import { absoluteUrl } from '../../../lib/seo/meta';
-import { collectionPageJsonLd } from '../../../lib/seo/jsonld';
-import { loadBlogListing, topicPath } from '../../../lib/blog/listing';
+import { breadcrumbListJsonLd, collectionPageJsonLd } from '../../../lib/seo/jsonld';
+import { loadBlogListing, topicPath, withAuthor } from '../../../lib/blog/listing';
 
 const slug = Astro.params.slug;
 if (!slug) return Astro.rewrite('/404');
@@ -16,19 +16,26 @@ if (!topic) {
   return Astro.rewrite('/404');
 }
 
-const description = topic.description || `Writing from DataDreamer about ${topic.name}.`;
+const description = topic.description || `Practical writing from Data Dreamer about ${topic.name}.`;
 const canonical = absoluteUrl(topicPath(topic.slug));
+const nextHref = listing.page.hasMore
+  ? absoluteUrl(withAuthor(topicPath(topic.slug, 2), author))
+  : undefined;
 const jsonLd = [
   collectionPageJsonLd({
-    name: `${topic.name} — DataDreamer`,
+    name: `${topic.name} — Data Dreamer`,
     url: canonical,
     description,
     isPartOf: {
       '@type': 'Blog',
-      name: 'DataDreamer Writing',
+      name: 'Data Dreamer Writing',
       url: absoluteUrl('/blog'),
     },
   }),
+  breadcrumbListJsonLd([
+    { label: 'Writing', href: '/blog' },
+    { label: topic.name },
+  ]),
 ];
 ---
 
@@ -38,11 +45,12 @@ const jsonLd = [
   canonical={canonical}
   ogType="website"
   ogImage={{ url: '/og/og-blog.png' }}
-  alternateFeeds={[{ href: absoluteUrl('/rss.xml'), title: 'DataDreamer RSS', type: 'application/rss+xml' }]}
+  alternateFeeds={[{ href: absoluteUrl('/rss.xml'), title: 'Data Dreamer RSS', type: 'application/rss+xml' }]}
+  pagination={nextHref ? { next: nextHref } : undefined}
   jsonLd={jsonLd}
 >
   <BlogListing
-    breadcrumbs={[{ label: 'Blog', href: '/blog' }, { label: topic.name }]}
+    breadcrumbs={[{ label: 'Writing', href: '/blog' }, { label: topic.name }]}
     clearHref="/blog"
     kicker="Topic"
     title={topic.name}

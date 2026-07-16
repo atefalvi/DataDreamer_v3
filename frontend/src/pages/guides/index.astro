@@ -65,19 +65,19 @@ const buildHref = (params: Record<string, string | null>) => {
 };
 
 const description =
-  'Curated learning paths through topics worth knowing — assembled by practitioners who learned them first.';
+  'Curated, practical, ordered learning paths with honest prerequisites and practitioner context to help reduce noise.';
 
 const jsonLd = [
-  collectionPageJsonLd({ name: 'Field Guides — DataDreamer', url: '/guides', description }),
+  collectionPageJsonLd({ name: 'Guides — Data Dreamer', url: '/guides', description }),
   itemListJsonLd({
-    name: 'DataDreamer Field Guides',
+    name: 'Data Dreamer Guides',
     items: all.map((g) => ({ '@type': 'CreativeWork', name: g.title, url: absoluteUrl(`/guides/${g.slug}`) })),
   }),
 ];
 ---
 
 <BaseLayout
-  title="Field Guides"
+  title="Guides"
   description={description}
   ogImage={{ url: '/og/og-guides.png' }}
   jsonLd={jsonLd}
@@ -85,7 +85,7 @@ const jsonLd = [
   <div class="guides container-content">
     <header class="guides__head">
       <div class="guides__head-copy">
-        <p class="kicker">Field Guides</p>
+        <p class="kicker">Guides</p>
         <h1>Learn from a path,<br />not a pile of links.</h1>
         <p class="guides__intro">{description}</p>
       </div>
@@ -93,14 +93,14 @@ const jsonLd = [
         <p>{all.length.toString().padStart(2, '0')} published {all.length === 1 ? 'path' : 'paths'}</p>
         {user ? (
           <>
-            <strong>Your library is ready.</strong>
+            <strong>Your learning paths are ready.</strong>
             <span>Open a path, save each step, and return exactly where you stopped.</span>
-            <a href="/account">Open my learning <span aria-hidden="true">→</span></a>
+            <a href="/account">View saved progress <span aria-hidden="true">→</span></a>
           </>
         ) : (
           <>
             <strong>Preview the route. Sign in to begin.</strong>
-            <span>Accounts unlock resources, curator notes, and saved progress.</span>
+            <span>Accounts unlock guide resources, practitioner notes, and saved progress.</span>
             <a href="/login?next=%2Fguides">Sign in <span aria-hidden="true">→</span></a>
           </>
         )}
@@ -108,7 +108,7 @@ const jsonLd = [
     </header>
 
     {all.length === 0 ? (
-      <EmptyState message="The first Field Guides are being assembled. Check back soon." icon="compass" />
+      <EmptyState message="Guides will appear here as practical learning paths are published." icon="compass" />
     ) : (
       <>
         {featured && (

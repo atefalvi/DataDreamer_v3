@@ -87,7 +87,7 @@ const benefits = [
 
 <BaseLayout
   title={user ? 'My account' : 'Sign in'}
-  description="Your DataDreamer Field Guides — save progress and continue learning."
+  description="Access guide resources and saved learning progress in your Data Dreamer account."
   noindex
 >
   {user ? (
@@ -116,7 +116,7 @@ const benefits = [
           <h1>{identity?.displayName}</h1>
           <p class="account__email">{identity?.secondary}</p>
           <div class="account__status" aria-label="Account status">
-            <span><Icon name="badge-check" size={16} /> Field Guides member</span>
+            <span><Icon name="badge-check" size={16} /> Guide reader</span>
             {isContributor && <span class="account__badge--contributor"><Icon name="pen-line" size={16} /> Contributor</span>}
             {user.authorDreamTeam && <span class="account__badge--team"><Icon name="check" size={16} /> Dream Team</span>}
             <span><Icon name="shield-check" size={16} /> {identity?.providerLabel}</span>
@@ -148,7 +148,7 @@ const benefits = [
             </dl>
           )}
           <a href={recommended ? `/guides/${recommended.slug}` : '/guides'} class="account__start-cta">
-            {recommended ? 'Preview this guide' : 'Browse Field Guides'} <Icon name="arrow-right" size={16} />
+            {recommended ? 'Preview this guide' : 'Browse guides'} <Icon name="arrow-right" size={16} />
           </a>
         </section>
       ) : (
@@ -359,7 +359,7 @@ const benefits = [
   ) : (
     <div class="account account--onboard container-content">
       <section class="onboard">
-        <p class="kicker">Field Guides</p>
+        <p class="kicker">Guides</p>
         <h1 class="onboard__title">Your learning, saved.</h1>
         <p class="onboard__lede">
           Create a free account to open every guide, track your progress across the path,

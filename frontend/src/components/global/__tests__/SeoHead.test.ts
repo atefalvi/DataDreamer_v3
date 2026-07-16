@@ -36,7 +36,7 @@ describe('SeoHead', () => {
 
   it('formats the title and strips the canonical query string', async () => {
     const html = await render({ title: 'Writing', description: 'd', ogType: 'website' });
-    expect(html).toContain('<title>Writing — DataDreamer</title>');
+    expect(html).toContain('<title>Writing — Data Dreamer</title>');
     expect(html).toContain('href="https://data-dreamer.net/blog"');
     expect(html).not.toContain('page=2');
   });
@@ -57,10 +57,16 @@ describe('SeoHead', () => {
       title: 'A post',
       description: 'd',
       ogType: 'article',
-      article: { publishedTime: '2026-05-12T09:00:00Z', author: 'Atef Alvi', tags: ['data'] },
+      article: {
+        publishedTime: '2026-05-12T09:00:00Z',
+        modifiedTime: '2026-05-14T10:30:00Z',
+        author: 'Atef Alvi',
+        tags: ['data'],
+      },
       jsonLd: [{ '@context': 'https://schema.org', '@type': 'BlogPosting', headline: 'A post' }],
     });
     expect(html).toContain('property="article:published_time" content="2026-05-12T09:00:00Z"');
+    expect(html).toContain('property="article:modified_time" content="2026-05-14T10:30:00Z"');
     expect(html).toContain('property="article:author" content="Atef Alvi"');
     expect(html).toContain('property="article:tag" content="data"');
     expect(html).toContain('application/ld+json');
@@ -70,7 +76,7 @@ describe('SeoHead', () => {
   it('emits matrix JSON-LD fixtures for page types (snapshot)', async () => {
     const fixtures = [
       await render({
-        title: 'DataDreamer — Dreaming in systems, building in data',
+        title: 'Data Dreamer — From messy problems to working systems',
         description: 'Home',
         jsonLd: [websiteJsonLd(), organizationJsonLd(['https://github.com/atefalvi'])],
       }, 'https://data-dreamer.net/'),
@@ -88,13 +94,13 @@ describe('SeoHead', () => {
             author: { name: 'Atef Alvi', url: '/dream-team/atef-alvi' },
             wordCount: 120,
           }),
-          breadcrumbListJsonLd([{ label: 'Blog', href: '/blog' }, { label: 'A post' }]),
+          breadcrumbListJsonLd([{ label: 'Writing', href: '/blog' }, { label: 'A post' }]),
         ],
       }, 'https://data-dreamer.net/blog/a-post'),
       await render({
         title: 'Projects',
         description: 'Projects',
-        jsonLd: [collectionPageJsonLd({ name: 'Projects — DataDreamer', url: '/projects' })],
+        jsonLd: [collectionPageJsonLd({ name: 'Projects — Data Dreamer', url: '/projects' })],
       }, 'https://data-dreamer.net/projects'),
       await render({
         title: 'Case',

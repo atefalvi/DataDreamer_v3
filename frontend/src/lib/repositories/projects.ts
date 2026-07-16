@@ -19,6 +19,7 @@ export const PROJECT_LIST_FIELDS = [
   'role',
   'featured',
   'sort',
+  'date_updated',
   'tags',
   'links',
   'cover_image.id',
@@ -26,6 +27,7 @@ export const PROJECT_LIST_FIELDS = [
   'cover_image.height',
   'cover_image.description',
   'author.slug',
+  'author.status',
   'author.dream_team',
   'author.display_name',
   'author.avatar.id',
@@ -70,9 +72,27 @@ export async function bySlug(slug: string): Promise<Project | null> {
   return mapProject(rows[0]);
 }
 
-/** Slugs + metadata for the sitemap. */
-export async function sitemap(): Promise<ProjectListItem[]> {
-  return list();
+export interface ProjectSitemapItem {
+  slug: string;
+  updatedAt?: Date;
+}
+
+/** Lightweight published-project records for sitemap generation. */
+export async function sitemap(): Promise<ProjectSitemapItem[]> {
+  const rows = await guard('projects.sitemap', () =>
+    directus.request<ProjectRow[]>(
+      readItems('projects', {
+        filter: PUBLISHED,
+        sort: ['slug'],
+        limit: 1000,
+        fields: ['slug', 'date_updated'] as Fields,
+      }),
+    ),
+  );
+  return rows.map((row) => ({
+    slug: row.slug,
+    updatedAt: row.date_updated ? new Date(row.date_updated) : undefined,
+  }));
 }
 
 /** Lightweight published-project lookup (list fields, no body) — OG cards. */

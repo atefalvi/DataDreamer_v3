@@ -9,7 +9,7 @@ function env(name: string): string | undefined {
 }
 
 export const SITE_URL = (env('SITE_URL') ?? 'https://data-dreamer.net').replace(/\/$/, '');
-export const SITE_NAME = 'DataDreamer';
+export const SITE_NAME = 'Data Dreamer';
 
 export type OgType = 'website' | 'article' | 'profile';
 

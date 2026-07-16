@@ -64,8 +64,20 @@ export function blogPath(page = 1): string {
   return page <= 1 ? '/blog' : `/blog/${page}`;
 }
 
-export function topicPath(slug: string): string {
-  return `/blog/topic/${slug}`;
+export function topicPath(slug: string, page = 1): string {
+  const base = `/blog/topic/${slug}`;
+  return page <= 1 ? base : `${base}/${page}`;
+}
+
+/** Canonical positive integer parsing for route segments (rejects 0, 01, decimals). */
+export function parsePaginationPage(value: string | undefined): number | undefined {
+  if (!value || !/^[1-9]\d*$/.test(value)) return undefined;
+  const page = Number(value);
+  return Number.isSafeInteger(page) ? page : undefined;
+}
+
+export function listingPagePath(topic: string | undefined, page: number): string {
+  return topic ? topicPath(topic, page) : blogPath(page);
 }
 
 export function withAuthor(path: string, author?: string): string {

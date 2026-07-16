@@ -54,7 +54,7 @@ const jsonLd = [
 
 const teamSentence =
   teamCount > 0
-    ? `Writing and guides from ${teamCount} practitioner${teamCount === 1 ? '' : 's'} across ${specialtyCount} specialt${specialtyCount === 1 ? 'y' : 'ies'}.`
+    ? `${teamCount} ${teamCount === 1 ? 'person' : 'people'} across ${specialtyCount} specialt${specialtyCount === 1 ? 'y' : 'ies'}, connected by the data problems they solve.`
     : '';
 ---
 
@@ -68,40 +68,40 @@ const teamSentence =
 >
   <HeroSignalField />
 
-  <section class="home-studio home-band container-content" aria-label="DataDreamer editorial focus">
+  <section class="home-studio home-band container-content" aria-label="What Data Dreamer explores">
     <div class="home-studio__copy">
-      <p class="kicker">What DataDreamer studies</p>
-      <h2>Signal, system, and story — treated as one discipline.</h2>
+      <p class="kicker">What Data Dreamer explores</p>
+      <h2>Data work beyond dashboards.</h2>
     </div>
     <div class="home-studio__cards">
       <article class="home-studio-card">
         <div class="home-studio-card__meta">
           <span>01</span>
-          <span>Research desk</span>
+          <span>Business context</span>
         </div>
         <div class="home-studio-card__body">
-          <h3>Research notes</h3>
-          <p>Applied AI, analytics judgment, and the messy middle between prototype and production.</p>
+          <h3>Define the problem</h3>
+          <p>Understand the business question, source systems, definitions, and assumptions before choosing a solution.</p>
         </div>
       </article>
       <article class="home-studio-card">
         <div class="home-studio-card__meta">
           <span>02</span>
-          <span>Systems lab</span>
+          <span>Technical systems</span>
         </div>
         <div class="home-studio-card__body">
-          <h3>Engineering patterns</h3>
-          <p>Data platforms, automation, observability, and the mechanics behind reliable systems.</p>
+          <h3>Build the workflow</h3>
+          <p>Turn raw inputs into reliable models, pipelines, automations, and understandable interfaces.</p>
         </div>
       </article>
       <article class="home-studio-card">
         <div class="home-studio-card__meta">
           <span>03</span>
-          <span>Interface studio</span>
+          <span>Decisions and people</span>
         </div>
         <div class="home-studio-card__body">
-          <h3>Creative technology</h3>
-          <p>Interfaces, visual systems, and narratives that make complex work legible.</p>
+          <h3>Explain the outcome</h3>
+          <p>Document trade-offs, limitations, and human context so the work supports clearer decisions.</p>
         </div>
       </article>
     </div>
@@ -110,15 +110,15 @@ const teamSentence =
   <section class="home-section home-band home-band--tint home-section--writing container-content">
     <SectionHeader
       kicker="Latest writing"
-      title="Field notes for builders of intelligent systems"
-      intro="Essays and practical notes from the intersection of data infrastructure, AI, analytics, and product judgment."
-      action={{ label: 'All posts', href: '/blog' }}
+      title="Field notes from the messy middle of data work."
+      intro="Structured reflections, practical lessons, useful tools, and lived experience from learning, building, and explaining real-world data systems."
+      action={{ label: 'All writing', href: '/blog' }}
     />
     {posts.length === 0 ? (
       <EmptyState
-        message="The editorial desk is being prepared. New field notes will appear here once the v4 CMS is seeded."
+        message="New writing will appear here once it is published."
         icon="pen-line"
-        action={{ label: 'Visit the blog', href: '/blog' }}
+        action={{ label: 'Explore writing', href: '/blog' }}
       />
     ) : (
       <div class="home-writing">
@@ -143,12 +143,12 @@ const teamSentence =
   {/* Selected work — added with the projects content collection (V4-CMS-005 / V4-PROJ-001). */}
 
   {FLAGS.GUIDES_ENABLED && guides.length > 0 && (
-    <section class="home-section home-band home-band--tint container-content" aria-label="Field Guides">
+    <section class="home-section home-band home-band--tint container-content" aria-label="Guides">
       <SectionHeader
-        kicker="Field Guides"
-        title="Curated paths through topics worth learning"
-        intro="Hand-picked resources, ordered and annotated by practitioners who learned the topic first — follow the route, skip the noise."
-        action={{ label: 'Browse the guides', href: '/guides' }}
+        kicker="Guides"
+        title="Learn from a path, not a pile of links."
+        intro="Curated, ordered learning paths with practitioner context to help you focus on what matters and skip unnecessary noise."
+        action={{ label: 'Explore guides', href: '/guides' }}
       />
       <div class="home-guides">
         {guides.map((guide) => (
@@ -163,8 +163,8 @@ const teamSentence =
   <section class="home-section home-band container-content">
     <SectionHeader
       kicker="Dream Team"
-      title="Practitioners behind the signal"
-      intro="A growing studio graph of data engineers, analysts, AI builders, and creative technologists."
+      title="A human map of data in the real world."
+      intro="The Dream Team connects people from different backgrounds, industries, and domains through the problems they solve and the data they use."
       action={{ label: 'Meet the team', href: '/dream-team' }}
     />
     {team.length > 0 ? (
@@ -178,7 +178,7 @@ const teamSentence =
       </a>
     ) : (
       <EmptyState
-        message="The Dream Team graph is waiting for author profiles. The system is ready; the first nodes come next."
+        message="Dream Team profiles will appear here as the network grows."
         icon="orbit"
         action={{ label: 'Open Dream Team', href: '/dream-team' }}
       />

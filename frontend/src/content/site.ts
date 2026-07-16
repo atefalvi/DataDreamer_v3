@@ -29,7 +29,7 @@ export interface NavItem {
 
 const BASE_NAV: NavItem[] = [
   { label: 'Projects', href: '/projects' },
-  { label: 'Blog', href: '/blog' },
+  { label: 'Writing', href: '/blog' },
   { label: 'Dream Team', href: '/dream-team' },
 ];
 
@@ -52,30 +52,30 @@ export const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 export const SITE = {
-  name: 'DataDreamer',
-  mission: 'An independent publication and learning platform for data, analytics, and AI.',
+  name: 'Data Dreamer',
+  mission: 'A professional learning lab for practical data work, AI exploration, and cross-industry data thinking.',
   email: 'hello@data-dreamer.net',
 } as const;
 
 /** Homepage hero copy (05 §1.1). Single source of truth — owner edits here. */
 export const HOME_HERO = {
-  kicker: 'Data intelligence studio',
+  kicker: 'Professional learning lab',
   /** Rendered as two display lines. */
-  headlineLines: ['Dreaming in systems.', 'Building in data.'],
+  headlineLines: ['From messy problems', 'to working systems.'],
   subhead:
-    'A premium field journal for data systems, applied AI, analytics craft, and the engineering patterns that turn signal into leverage.',
-  primaryCta: { label: 'Read the field notes', href: '/blog' },
+    'Data Dreamer is a professional learning lab for practical data work — exploring how data, AI, business context, and human experience shape better systems, clearer decisions, and real-world learning.',
+  primaryCta: { label: 'Read the Writing', href: '/blog' },
   /** Until guides ship the secondary CTA points at the work (05 §1.1). */
   secondaryCta: FLAGS.GUIDES_ENABLED
-    ? { label: 'Explore guides', href: '/guides' }
-    : { label: 'See the work', href: '/projects' },
+    ? { label: 'Explore Guides', href: '/guides' }
+    : { label: 'Explore Projects', href: '/projects' },
 } as const;
 
 /** SEO defaults for the homepage (05 §1, 10 §3). */
 export const HOME_SEO = {
-  title: 'DataDreamer — Dreaming in systems, building in data',
+  title: 'Data Dreamer — From messy problems to working systems',
   description:
-    'A premium field journal for data systems, applied AI, analytics craft, and engineering patterns from working practitioners.',
+    'A professional learning lab for practical data work, exploring how data, AI, business context, and human experience become better systems and clearer decisions.',
 } as const;
 
 export interface ContactChannel {
@@ -90,10 +90,10 @@ export interface ContactChannel {
 
 /** Contact page content (05 §10). Repo-owned — no form/backend in v4.0; mailto is honest. */
 export const CONNECT = {
-  kicker: 'Contact',
-  title: "Let's talk",
+  kicker: 'Connect',
+  title: "Let's connect",
   intro:
-    'Project inquiries, advisory, or comparing notes on data systems — email is the fastest way to reach me. No forms, no funnels.',
+    'Conversations about practical data work, AI, analytics, systems, projects, and collaboration are welcome. Email is the fastest way to reach me.',
   /** Primary channel, rendered as the big copy-able email card. */
   email: SITE.email,
   channels: [
@@ -110,7 +110,7 @@ export const CONNECT = {
   /** Three short facts shown beneath the channels. */
   facts: [
     { label: 'Response time', value: 'Usually within 24 hours on weekdays.' },
-    { label: 'Engagements', value: 'Data platforms, analytics, and applied-AI builds — advisory or hands-on.' },
-    { label: 'Timezone', value: 'Eastern Time (UTC−5), flexible for overlap.' },
+    { label: 'Areas', value: 'Practical data work, analytics, AI, systems, and collaborative projects.' },
+    { label: 'Timezone', value: 'Eastern Time, flexible for overlap.' },
   ],
 } as const;

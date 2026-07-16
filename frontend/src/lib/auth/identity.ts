@@ -19,7 +19,7 @@ export function userIdentity(user: Pick<SessionUser, 'email' | 'firstName' | 'la
   const fullName = [usefulFirstName, lastName].filter(Boolean).join(' ');
   const emailName = user.email.split('@')[0]?.replace(/[._-]+/g, ' ').trim();
   const identitySource = fullName || emailName;
-  const displayName = identitySource || 'DataDreamer member';
+  const displayName = identitySource || 'Data Dreamer member';
   const initials = identitySource
     ? identitySource
       .split(/\s+/)

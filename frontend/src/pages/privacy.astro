@@ -4,7 +4,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../content/site';
 import '../styles/prose.css';
 
-const updated = 'June 21, 2026';
+const updated = 'July 16, 2026';
 const sections = [
   ['information', 'Information we handle'],
   ['use', 'How we use it'],
@@ -16,18 +16,18 @@ const sections = [
 
 <BaseLayout
   title="Privacy"
-  description="A plain-language explanation of how DataDreamer handles account, learning, and site data."
+  description="A plain-language explanation of how Data Dreamer handles account, learning, and site data."
   ogImage={{ url: '/og/og-default.png' }}
 >
-  <main class="privacy container-content">
+  <div class="privacy container-content">
     <header class="privacy__head">
       <div>
         <p class="kicker">Privacy</p>
         <h1>Clear data practices,<br />without the fine-print maze.</h1>
       </div>
       <p class="privacy__dek">
-        DataDreamer uses the minimum information needed to run learner accounts, remember
-        Field Guide progress, and keep the service secure. We do not sell personal data,
+        Data Dreamer uses the minimum information needed to run learner accounts, remember
+        guide progress, and keep the service secure. We do not sell personal data,
         run advertising profiles, or use cross-site tracking.
       </p>
       <p class="privacy__meta">Effective {updated}</p>
@@ -48,13 +48,13 @@ const sections = [
           <p class="privacy__section-number">01</p>
           <h2>Information we handle</h2>
           <p>
-            You can browse the publication and preview Field Guides without an account. If
+            You can browse the site and preview Guides without an account. If
             you create an account, Directus stores your email address, account identifier,
             optional name, authentication details, and account status. Passwords are handled
-            by Directus and are not visible to DataDreamer staff as readable text.
+            by Directus and are not visible to Data Dreamer staff as readable text.
           </p>
           <p>
-            When you use a Field Guide, we store the guide you started, completed resource
+            When you use a Guide, we store the guide you started, completed resource
             identifiers, your last position, completion percentage, status, and relevant
             timestamps. This is what lets the reader resume across devices.
           </p>
@@ -71,7 +71,7 @@ const sections = [
           <p>We process this information only to:</p>
           <ul>
             <li>create and secure your account;</li>
-            <li>open account-only Field Guide content;</li>
+            <li>open account-only Guide content;</li>
             <li>save, calculate, and display learning progress;</li>
             <li>respond to support, privacy, or security requests; and</li>
             <li>maintain service reliability and prevent abuse.</li>
@@ -103,10 +103,18 @@ const sections = [
           <p class="privacy__section-number">04</p>
           <h2>Services and sharing</h2>
           <p>
-            DataDreamer uses self-managed hosting and Directus to deliver content, accounts,
+            Data Dreamer uses self-managed hosting and Directus to deliver content, accounts,
             and progress. Those systems process information only as needed to provide and
             secure the service. Fonts are self-hosted and we do not send visits to an
             advertising or analytics network.
+          </p>
+          <p>
+            When enabled, the optional Orby chat widget is loaded from the separately hosted
+            <code>chat.data-dreamer.net</code> service. If you choose to send a chat message,
+            the text you submit is sent to that service so it can return a response. Do not
+            include sensitive, confidential, or unnecessary personal information in a chat.
+            For questions about a chat interaction or a data request, contact us using the
+            address below.
           </p>
           <p>
             If you choose “Continue with Google,” Google provides Directus with the basic
@@ -117,7 +125,7 @@ const sections = [
           </p>
           <p>
             Links to third-party resources, GitHub, LinkedIn, and other sites are governed by
-            those services after you leave DataDreamer.
+            those services after you leave Data Dreamer.
           </p>
         </section>
 
@@ -132,7 +140,7 @@ const sections = [
           </p>
           <p>
             You may ask to access, correct, or delete account information and guide progress.
-            Signing out removes active DataDreamer session cookies from your browser; clearing
+            Signing out removes active Data Dreamer session cookies from your browser; clearing
             browser storage removes the saved theme preference. Some limited records may be
             retained where required for security, legal compliance, or resolving disputes.
           </p>
@@ -142,7 +150,7 @@ const sections = [
           <p class="privacy__section-number">06</p>
           <h2>Changes and contact</h2>
           <p>
-            We will revise this page when the way DataDreamer handles information materially
+            We will revise this page when the way Data Dreamer handles information materially
             changes and will update the effective date above.
           </p>
           <p>
@@ -152,7 +160,7 @@ const sections = [
         </section>
       </div>
     </div>
-  </main>
+  </div>
 </BaseLayout>
 
 <style>

@@ -21,7 +21,7 @@ export async function GET(context: APIContext) {
   return rss({
     title: `${SITE_NAME} — Field notes`,
     description:
-      'Practical writing on data systems, applied AI, analytics craft, and the engineering patterns that turn signal into leverage.',
+      'Structured reflections and practical lessons from learning, building, and explaining real-world data systems.',
     site: context.site ?? SITE_URL,
     items: items.map((post) => ({
       title: post.title,

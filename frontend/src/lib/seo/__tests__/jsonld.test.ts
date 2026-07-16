@@ -18,7 +18,7 @@ describe('jsonLd builders', () => {
   it('builds branded site entities with absolute URLs', () => {
     expect(websiteJsonLd()).toMatchObject({
       '@type': 'WebSite',
-      name: 'DataDreamer',
+      name: 'Data Dreamer',
       url: SITE_URL,
     });
     expect(organizationJsonLd(['https://github.com/atefalvi'])).toMatchObject({
@@ -61,15 +61,17 @@ describe('jsonLd builders', () => {
       description: 'A case study',
       url: '/projects/case',
       keywords: ['Data', 'AI'],
+      author: { name: 'Atef Alvi', url: '/dream-team/atef-alvi' },
     })).toMatchObject({
       '@type': 'CreativeWork',
       keywords: 'Data, AI',
+      author: { '@type': 'Person', url: `${SITE_URL}/dream-team/atef-alvi` },
     });
     expect(contactPageJsonLd({})).toMatchObject({ '@type': 'ContactPage' });
-    expect(breadcrumbListJsonLd([{ label: 'Blog', href: '/blog' }, { label: 'Post' }])).toMatchObject({
+    expect(breadcrumbListJsonLd([{ label: 'Writing', href: '/blog' }, { label: 'Post' }])).toMatchObject({
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Blog', item: `${SITE_URL}/blog` },
+        { '@type': 'ListItem', position: 1, name: 'Writing', item: `${SITE_URL}/blog` },
         { '@type': 'ListItem', position: 2, name: 'Post' },
       ],
     });
@@ -81,6 +83,7 @@ describe('jsonLd builders', () => {
       description: 'Four retries.',
       url: '/blog/retry-patterns',
       datePublished: '2026-05-12T09:00:00.000Z',
+      dateModified: '2026-05-14T10:30:00.000Z',
       author: { name: 'Atef Alvi', url: '/dream-team/atef-alvi' },
       image: '/og/og-blog.png',
       keywords: ['Data'],
@@ -91,6 +94,7 @@ describe('jsonLd builders', () => {
       author: { '@type': 'Person', url: `${SITE_URL}/dream-team/atef-alvi` },
       image: [`${SITE_URL}/og/og-blog.png`],
       mainEntityOfPage: `${SITE_URL}/blog/retry-patterns`,
+      dateModified: '2026-05-14T10:30:00.000Z',
       wordCount: 42,
     });
   });

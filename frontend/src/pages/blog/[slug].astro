@@ -9,8 +9,9 @@ import ReadingProgress from '../../components/blog/ReadingProgress.astro';
 import { authorsRepo, postsRepo } from '../../lib/repositories';
 import { absoluteUrl } from '../../lib/seo/meta';
 import { blogPostingJsonLd, breadcrumbListJsonLd, wordCountFromHtml } from '../../lib/seo/jsonld';
-import { blogPath, emptyBlogListing, loadBlogListing, type BlogListing as BlogListingData } from '../../lib/blog/listing';
+import { blogPath, emptyBlogListing, loadBlogListing, parsePaginationPage, withAuthor, type BlogListing as BlogListingData } from '../../lib/blog/listing';
 import { directusSrcset } from '../../lib/images';
+import { publicAuthorProfilePath, writingAuthorPath } from '../../lib/authors/publicProfile';
 import '../../styles/prose.css';
 import type { Author, Post, PostListItem } from '../../types/content';
 import type { OgImage } from '../../lib/seo/meta';
@@ -22,9 +23,10 @@ if (!slug) {
 }
 
 const description =
-  'Field notes from DataDreamer on data systems, applied AI, analytics craft, and engineering judgment.';
-const numericPage = Number(slug);
-const isPagination = Number.isInteger(numericPage) && String(numericPage) === slug && numericPage > 0;
+  'Structured reflections, practical lessons, useful tools, and lived experience from learning, building, and explaining data systems in the real world.';
+const parsedPage = parsePaginationPage(slug);
+const isPagination = parsedPage !== undefined;
+const numericPage = parsedPage ?? 0;
 
 let view: 'pagination' | 'article' = 'article';
 let listing: BlogListingData | null = null;
@@ -45,6 +47,7 @@ let jsonLd: object[] = [];
 let hasImageGrid = false;
 let hasRelated = false;
 let hasNeighbors = false;
+let authorHref: string | undefined;
 
 if (isPagination) {
   if (numericPage === 1) {
@@ -64,8 +67,10 @@ if (isPagination) {
     return Astro.rewrite('/404');
   }
 
-  paginationPrev = absoluteUrl(blogPath(numericPage - 1));
-  paginationNext = listing.page.hasMore ? absoluteUrl(blogPath(numericPage + 1)) : undefined;
+  paginationPrev = absoluteUrl(withAuthor(blogPath(numericPage - 1), activeAuthor));
+  paginationNext = listing.page.hasMore
+    ? absoluteUrl(withAuthor(blogPath(numericPage + 1), activeAuthor))
+    : undefined;
 } else {
   post = await postsRepo.bySlug(slug);
 
@@ -95,6 +100,7 @@ if (isPagination) {
     day: 'numeric',
   });
   topicNames = post.topics.map((topic) => topic.name);
+  authorHref = publicAuthorProfilePath(post.author) ?? writingAuthorPath(post.author);
   cover = post.coverImage;
   // Dynamic branded OG card (title + author avatar + main topic) for every article.
   ogImage = {
@@ -109,10 +115,10 @@ if (isPagination) {
     description: post.excerpt,
     url: canonical,
     datePublished: post.publishedAt.toISOString(),
+    dateModified: post.updatedAt?.toISOString(),
     author: {
       name: post.author.name,
-      // Blog-only Contributors have no public profile page — omit the URL.
-      url: post.author.dreamTeam ? `/dream-team/${post.author.slug}` : undefined,
+      url: publicAuthorProfilePath(post.author),
       image: post.author.avatar?.src,
     },
     image: cover ? ogImage.url : undefined,
@@ -120,7 +126,7 @@ if (isPagination) {
     wordCount: wordCountFromHtml(post.bodyHtml),
   });
   const breadcrumbJsonLd = breadcrumbListJsonLd([
-    { label: 'Blog', href: '/blog' },
+    { label: 'Writing', href: '/blog' },
     { label: post.title },
   ]);
   jsonLd = [articleJsonLd, breadcrumbJsonLd];
@@ -137,15 +143,15 @@ if (isPagination) {
     canonical={absoluteUrl(blogPath(numericPage))}
     ogType="website"
     ogImage={{ url: '/og/og-blog.png' }}
-    alternateFeeds={[{ href: absoluteUrl('/rss.xml'), title: 'DataDreamer RSS', type: 'application/rss+xml' }]}
+    alternateFeeds={[{ href: absoluteUrl('/rss.xml'), title: 'Data Dreamer RSS', type: 'application/rss+xml' }]}
     pagination={{ prev: paginationPrev, next: paginationNext }}
   >
     <BlogListing
-      kicker="The blog"
+      kicker="Writing"
       title="Writing"
       intro={description}
       listing={listing}
-      pageBasePath={blogPath(numericPage)}
+      pageBasePath="/blog"
     />
   </BaseLayout>
 ) : post && (
@@ -155,7 +161,12 @@ if (isPagination) {
     canonical={canonical}
     ogType="article"
     ogImage={ogImage}
-    article={{ publishedTime: post.publishedAt.toISOString(), author: post.author.name, tags: topicNames }}
+    article={{
+      publishedTime: post.publishedAt.toISOString(),
+      modifiedTime: post.updatedAt?.toISOString(),
+      author: post.author.name,
+      tags: topicNames,
+    }}
     jsonLd={jsonLd}
   >
     <ReadingProgress />
@@ -179,7 +190,7 @@ if (isPagination) {
             <dl>
               <div>
                 <dt>Author</dt>
-                <dd><a href={`/dream-team/${post.author.slug}`}>{post.author.name}</a></dd>
+                <dd>{authorHref ? <a href={authorHref}>{post.author.name}</a> : post.author.name}</dd>
               </div>
               <div>
                 <dt>Published</dt>

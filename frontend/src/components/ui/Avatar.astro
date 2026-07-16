@@ -26,7 +26,7 @@ const initials = name
 ---
 
 <span class:list={["ui-avatar", className]} style={`--avatar-size: ${sizeMap[size]};`} aria-label={name}>
-  {src ? <img src={src} alt={name} loading="lazy" decoding="async" /> : <span aria-hidden="true">{initials}</span>}
+  {src ? <img src={src} alt={name} width={size} height={size} loading="lazy" decoding="async" /> : <span aria-hidden="true">{initials}</span>}
 </span>
 
 <style>

@@ -24,8 +24,8 @@ const notice = error === 'exists'
     : null;
 ---
 
-<BaseLayout title="Create account" description="Create a free DataDreamer account to follow Field Guides." noindex>
-  <AuthShell title="Create your account" subtitle="Join DataDreamer and start building.">
+<BaseLayout title="Create account" description="Create a Data Dreamer account to access guide resources and save learning progress." noindex>
+  <AuthShell title="Create your account" subtitle="Create an account to unlock guide resources and save your learning progress.">
     {notice && (
       <p class="auth-notice" data-type={notice.type} role="alert">{notice.text}</p>
     )}

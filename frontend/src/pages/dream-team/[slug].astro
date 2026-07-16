@@ -11,7 +11,7 @@ import Icon from '../../components/ui/Icon.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import AuthorCard from '../../components/dream-team/AuthorCard.astro';
 import { authorsRepo, postsRepo } from '../../lib/repositories';
-import { profilePageJsonLd } from '../../lib/seo/jsonld';
+import { breadcrumbListJsonLd, profilePageJsonLd } from '../../lib/seo/jsonld';
 import type { Author, AuthorSummary, PostListItem } from '../../types/content';
 import '../../styles/prose.css';
 
@@ -55,12 +55,16 @@ const jsonLd = [
       image: author.avatar?.src,
       sameAs: author.links.map((l) => l.url),
   }),
+  breadcrumbListJsonLd([
+    { label: 'Dream Team', href: '/dream-team' },
+    { label: author.name },
+  ]),
 ];
 ---
 
 <BaseLayout
   title={`${author.name} — ${author.roleTitle}`}
-  description={`${author.name}, ${author.roleTitle} at DataDreamer.`}
+  description={`${author.name}, ${author.roleTitle}, in the Data Dreamer Dream Team.`}
   ogType="profile"
   ogImage={{ url: '/og/og-team.png' }}
   jsonLd={jsonLd}

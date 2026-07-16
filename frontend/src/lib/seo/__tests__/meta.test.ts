@@ -4,11 +4,11 @@ import { resolveOgImage } from '../og';
 
 describe('formatTitle', () => {
   it('appends the brand suffix to a page title', () => {
-    expect(formatTitle('Writing')).toBe('Writing — DataDreamer');
+    expect(formatTitle('Writing')).toBe('Writing — Data Dreamer');
   });
 
   it('leaves a title that already carries the brand untouched (home)', () => {
-    expect(formatTitle('DataDreamer — Field notes')).toBe('DataDreamer — Field notes');
+    expect(formatTitle('Data Dreamer — Field notes')).toBe('Data Dreamer — Field notes');
   });
 });
 

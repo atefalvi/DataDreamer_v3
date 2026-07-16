@@ -4,6 +4,7 @@
  */
 import { renderMarkdown } from '../markdown';
 import { toImageRef } from '../images';
+import { hasValidAuthorSlug } from '../authors/publicProfile';
 import {
   authorLinksSchema,
   featuredWorkSchema,
@@ -67,14 +68,17 @@ export function mapSpecialtyRef(row: SpecialtyRow): SpecialtyRef {
 }
 
 function mapAuthorRef(row: AuthorRow | undefined): AuthorRef {
-  if (!row) return { slug: 'unknown', name: 'DataDreamer', dreamTeam: false };
+  if (!row) return { slug: 'unknown', name: 'Data Dreamer', dreamTeam: false };
   return {
     slug: row.slug,
     name: row.display_name,
     avatar: toImageRef(row.avatar, row.display_name),
-    // Only an explicit false (field selected, author not approved) drops the byline
-    // link; queries that don't select dream_team keep today's linking behavior.
-    dreamTeam: row.dream_team !== false,
+    // A profile link is valid only when the related author is published, explicitly
+    // approved for Dream Team visibility, and carries a canonical slug.
+    dreamTeam:
+      row.status === 'published' &&
+      row.dream_team === true &&
+      hasValidAuthorSlug({ slug: row.slug }),
   };
 }
 
@@ -95,6 +99,7 @@ export function mapPostListItem(row: PostRow): PostListItem {
     title: row.title,
     excerpt: row.excerpt ?? '',
     publishedAt: new Date(row.published_at ?? Date.now()),
+    updatedAt: optionalDate(row.date_updated),
     topics: mapPostTopics(row.topics),
     author: mapAuthorRef(asObject<AuthorRow>(row.author)),
     coverImage: toImageRef(row.cover_image, row.title),
@@ -127,6 +132,7 @@ export function mapProjectListItem(row: ProjectRow): ProjectListItem {
     tags: Array.isArray(row.tags) ? row.tags : [],
     links: Array.isArray(row.links) ? row.links : [],
     featured: Boolean(row.featured),
+    updatedAt: optionalDate(row.date_updated),
   };
 }
 
@@ -143,6 +149,12 @@ export function mapAuthorSummary(row: AuthorRow, postCount: number): AuthorSumma
     postCount,
     guideCount: 0,
   };
+}
+
+function optionalDate(value: string | null | undefined): Date | undefined {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
 export async function mapAuthor(row: AuthorRow, postCount: number): Promise<Author> {
@@ -285,6 +297,7 @@ export function mapGuideListItem(
     featured: Boolean(row.featured),
     curator: mapAuthorRef(asObject<AuthorRow>(row.author)),
     topics: mapGuideTopics(row.topics),
+    updatedAt: optionalDate(row.date_updated ?? row.date_created),
   };
 }
 

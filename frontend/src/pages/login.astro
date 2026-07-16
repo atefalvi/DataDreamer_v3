@@ -36,8 +36,8 @@ const notice = registered
           : null;
 ---
 
-<BaseLayout title="Sign in" description="Sign in to your DataDreamer account." noindex>
-  <AuthShell title="Welcome back" subtitle="Sign in to continue to your workspace.">
+<BaseLayout title="Sign in" description="Sign in to access Data Dreamer guide resources and saved learning progress." noindex>
+  <AuthShell title="Welcome back" subtitle="Sign in to continue your learning path and access your saved guide progress.">
     {notice && (
       <p class="auth-notice" data-type={notice.type} role={notice.type === 'error' ? 'alert' : 'status'}>
         {notice.text}

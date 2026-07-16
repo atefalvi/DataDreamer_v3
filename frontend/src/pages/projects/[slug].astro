@@ -9,6 +9,7 @@ import Icon from '../../components/ui/Icon.astro';
 import { projectsRepo } from '../../lib/repositories';
 import { directusSrcset } from '../../lib/images';
 import { breadcrumbListJsonLd, creativeWorkJsonLd } from '../../lib/seo/jsonld';
+import { publicAuthorProfilePath } from '../../lib/authors/publicProfile';
 import '../../styles/prose.css';
 
 const { slug } = Astro.params;
@@ -19,7 +20,7 @@ if (!project) return Astro.rewrite('/404');
 
 const { title, summary, year, role, author, tags, coverImage, links, bodyHtml } = project;
 // Authors without a public team profile render as plain text (no dead link).
-const authorHref = author.dreamTeam ? `/dream-team/${author.slug}` : undefined;
+const authorHref = publicAuthorProfilePath(author);
 
 // Prev/next in display order.
 let all: Awaited<ReturnType<typeof projectsRepo.list>> = [];
@@ -39,6 +40,11 @@ const jsonLd = [
     datePublished: String(year),
     url: `/projects/${project.slug}`,
     keywords: tags,
+    author: {
+      name: author.name,
+      url: authorHref,
+      image: author.avatar?.src,
+    },
   }),
   breadcrumbListJsonLd([
     { label: 'Projects', href: '/projects' },
@@ -56,7 +62,7 @@ const jsonLd = [
 >
   <article class="case container-content">
     <header class="case__head">
-      <p class="kicker">Case study · {year}</p>
+      <p class="kicker">Project · {year}</p>
       <h1>{title}</h1>
       <p class="case__byline">
         By {authorHref ? <a href={authorHref}>{author.name}</a> : <span>{author.name}</span>}

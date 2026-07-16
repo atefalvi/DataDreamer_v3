@@ -25,7 +25,7 @@ interface Props extends Seo {
 }
 
 const { bodyClass, transparentNav = false, ...seo } = Astro.props;
-const rssFeed = { href: absoluteUrl('/rss.xml'), title: 'DataDreamer RSS', type: 'application/rss+xml' };
+const rssFeed = { href: absoluteUrl('/rss.xml'), title: 'Data Dreamer RSS', type: 'application/rss+xml' };
 const feedMap = new Map([rssFeed, ...(seo.alternateFeeds ?? [])].map((feed) => [feed.href, feed]));
 const seoWithDefaults = { ...seo, alternateFeeds: [...feedMap.values()] };
 const orbyWidgetUrl = (() => {

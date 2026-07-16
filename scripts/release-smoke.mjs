@@ -45,6 +45,28 @@ const checks = [
       const body = await response.text();
       assert(body.includes('<sitemapindex'), 'expected sitemap index XML');
       assert(body.includes('/sitemap-0.xml'), 'expected static sitemap reference');
+      assert(body.includes('/sitemap-posts.xml'), 'expected Writing sitemap reference');
+      assert(body.includes('/sitemap-content.xml'), 'expected dynamic content sitemap reference');
+    },
+  },
+  {
+    name: 'static sitemap exclusions',
+    run: async () => {
+      const response = await fetchUrl('/sitemap-0.xml');
+      assert(response.status === 200, `expected 200, received ${response.status}`);
+      const body = await response.text();
+      for (const path of ['/account', '/login', '/signup', '/api/', '/dev/']) {
+        assert(!body.includes(`<loc>${baseUrl}${path}`), `static sitemap must exclude ${path}`);
+      }
+    },
+  },
+  {
+    name: 'dynamic content sitemap',
+    run: async () => {
+      const response = await fetchUrl('/sitemap-content.xml');
+      assert(response.status === 200, `expected 200, received ${response.status}`);
+      assert((response.headers.get('content-type') || '').includes('xml'), 'expected XML content type');
+      assert((await response.text()).includes('<urlset'), 'expected sitemap URL set');
     },
   },
   {

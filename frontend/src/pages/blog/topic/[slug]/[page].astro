@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import BlogListing from '../../../../components/blog/BlogListing.astro';
+import { absoluteUrl } from '../../../../lib/seo/meta';
+import { breadcrumbListJsonLd, collectionPageJsonLd } from '../../../../lib/seo/jsonld';
+import {
+  loadBlogListing,
+  parsePaginationPage,
+  topicPath,
+  withAuthor,
+} from '../../../../lib/blog/listing';
+
+const slug = Astro.params.slug;
+const page = parsePaginationPage(Astro.params.page);
+if (!slug || !page) return Astro.rewrite('/404');
+if (page === 1) return Astro.redirect(topicPath(slug), 301);
+
+const author = Astro.url.searchParams.get('author') || undefined;
+const listing = await loadBlogListing({ author, topic: slug, page });
+const topic = listing.activeTopic;
+
+if (!topic || listing.page.items.length === 0) return Astro.rewrite('/404');
+
+const description = topic.description || `Practical writing from Data Dreamer about ${topic.name}.`;
+const canonical = absoluteUrl(topicPath(topic.slug, page));
+const prev = absoluteUrl(withAuthor(topicPath(topic.slug, page - 1), author));
+const next = listing.page.hasMore
+  ? absoluteUrl(withAuthor(topicPath(topic.slug, page + 1), author))
+  : undefined;
+const jsonLd = [
+  collectionPageJsonLd({
+    name: `${topic.name} — Data Dreamer`,
+    url: canonical,
+    description,
+    isPartOf: {
+      '@type': 'Blog',
+      name: 'Data Dreamer Writing',
+      url: absoluteUrl('/blog'),
+    },
+  }),
+  breadcrumbListJsonLd([
+    { label: 'Writing', href: '/blog' },
+    { label: topic.name, href: topicPath(topic.slug) },
+    { label: `Page ${page}` },
+  ]),
+];
+---
+
+<BaseLayout
+  title={`${topic.name} — page ${page}`}
+  description={description}
+  canonical={canonical}
+  ogType="website"
+  ogImage={{ url: '/og/og-blog.png' }}
+  alternateFeeds={[{ href: absoluteUrl('/rss.xml'), title: 'Data Dreamer RSS', type: 'application/rss+xml' }]}
+  pagination={{ prev, next }}
+  jsonLd={jsonLd}
+>
+  <BlogListing
+    breadcrumbs={[
+      { label: 'Writing', href: '/blog' },
+      { label: topic.name, href: topicPath(topic.slug) },
+      { label: `Page ${page}` },
+    ]}
+    clearHref="/blog"
+    kicker="Topic"
+    title={topic.name}
+    intro={description}
+    listing={listing}
+    pageBasePath={topicPath(topic.slug)}
+  />
+</BaseLayout>

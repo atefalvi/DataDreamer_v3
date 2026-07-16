@@ -178,7 +178,7 @@ async function contentLayer(input: OgCardInput): Promise<string> {
           props: {
             style: { display: 'flex', alignItems: 'center', gap: 14, marginLeft: 62 },
             children: [
-              { type: 'div', props: { style: { color: TEXT1, fontSize: 26, fontWeight: 700, letterSpacing: 2 }, children: 'DATADREAMER' } },
+              { type: 'div', props: { style: { color: TEXT1, fontSize: 26, fontWeight: 700, letterSpacing: 2 }, children: 'DATA DREAMER' } },
               { type: 'div', props: { style: { width: 8, height: 8, background: ACCENT, borderRadius: 2, marginTop: 4 }, children: '' } },
               { type: 'div', props: { style: { color: TEXT3, fontSize: 20, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', marginLeft: 10, marginTop: 2 }, children: input.kicker } },
             ],

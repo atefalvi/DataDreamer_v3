@@ -40,11 +40,14 @@ const GUIDE_CARD_FIELDS = [
   'featured',
   'estimated_duration_minutes',
   'sort',
+  'date_created',
+  'date_updated',
   'cover_image.id',
   'cover_image.width',
   'cover_image.height',
   'cover_image.description',
   'author.slug',
+  'author.status',
   'author.dream_team',
   'author.display_name',
   'author.avatar.id',
@@ -69,6 +72,8 @@ const GUIDE_HEAD_FIELDS = [
   'specialties.specialties_id.color_key',
   'authors.sort',
   'authors.authors_id.slug',
+  'authors.authors_id.status',
+  'authors.authors_id.dream_team',
   'authors.authors_id.display_name',
   'authors.authors_id.avatar.id',
   'authors.authors_id.avatar.width',
@@ -156,6 +161,32 @@ export async function latest(limit = 3): Promise<GuideListItem[]> {
     ),
   );
   return rows.map((row) => mapGuideListItem(row, countParts(row)));
+}
+
+export interface GuideSitemapItem {
+  slug: string;
+  updatedAt?: Date;
+}
+
+/** Lightweight published-guide records for sitemap generation. */
+export async function sitemap(limit = 1000): Promise<GuideSitemapItem[]> {
+  const client = directusForService();
+  const rows = await guard('guides.sitemap', () =>
+    client.request<GuideRow[]>(
+      readItems('guides', {
+        filter: PUBLISHED,
+        sort: ['slug'],
+        limit,
+        fields: ['slug', 'date_updated', 'date_created'] as Fields,
+      }),
+    ),
+  );
+  return rows.map((row) => ({
+    slug: row.slug,
+    updatedAt: row.date_updated || row.date_created
+      ? new Date(row.date_updated ?? row.date_created!)
+      : undefined,
+  }));
 }
 
 /** Public preview of a guide (gated content withheld). Null when no published match. */

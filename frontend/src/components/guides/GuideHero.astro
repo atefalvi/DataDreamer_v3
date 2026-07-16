@@ -8,6 +8,7 @@ import { formatMinutes } from '../../lib/guides/progress';
 import Avatar from '../ui/Avatar.astro';
 import DifficultyTag from './DifficultyTag.astro';
 import type { Guide } from '../../types/content';
+import { publicAuthorProfilePath } from '../../lib/authors/publicProfile';
 
 interface Props {
   guide: Guide;
@@ -17,7 +18,8 @@ const { guide } = Astro.props;
 const { title, summary, difficulty, coverImage, estimatedMinutes, itemCount, curator, topics } =
   guide;
 
-const CuratorTag = curator.dreamTeam ? 'a' : 'div';
+const curatorHref = publicAuthorProfilePath(curator);
+const CuratorTag = curatorHref ? 'a' : 'div';
 
 const facts = [
   itemCount > 0 ? `${itemCount} ${itemCount === 1 ? 'resource' : 'resources'}` : null,
@@ -43,7 +45,7 @@ const facts = [
   <div class="g-hero__meta">
     {/* Curators without a public team profile render as plain text (no dead link). */}
     <CuratorTag
-      href={curator.dreamTeam ? `/dream-team/${curator.slug}` : undefined}
+      href={curatorHref}
       class="g-hero__curator"
     >
       <Avatar src={curator.avatar?.src} name={curator.name} size={32} />

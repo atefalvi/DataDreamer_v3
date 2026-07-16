@@ -28,11 +28,11 @@ function guideRow(): GuideRow {
     why_this_path: 'Because **setup** is painful.',
     expected_outcome: 'Ship a DAG.',
     recommended_audience: 'Python devs.',
-    author: { id: 'a1', status: 'published', slug: 'atef-alvi', display_name: 'Atef Alvi', role_title: 'Engineer' },
+    author: { id: 'a1', status: 'published', dream_team: true, slug: 'atef-alvi', display_name: 'Atef Alvi', role_title: 'Engineer' },
     authors: [
-      { id: 'j1', sort: 1, authors_id: { id: 'a2', status: 'published', slug: 'maria-khan', display_name: 'Maria Khan', role_title: 'PM' } },
+      { id: 'j1', sort: 1, authors_id: { id: 'a2', status: 'published', dream_team: false, slug: 'maria-khan', display_name: 'Maria Khan', role_title: 'PM' } },
       // duplicate of the primary author — must be deduped
-      { id: 'j2', sort: 2, authors_id: { id: 'a1', status: 'published', slug: 'atef-alvi', display_name: 'Atef Alvi', role_title: 'Engineer' } },
+      { id: 'j2', sort: 2, authors_id: { id: 'a1', status: 'published', dream_team: true, slug: 'atef-alvi', display_name: 'Atef Alvi', role_title: 'Engineer' } },
     ],
     topics: [{ id: 't1', topics_id: { id: 'tp1', status: 'published', name: 'Data Engineering', slug: 'data-engineering' } }],
     // intentionally out of order to prove sorting
@@ -83,6 +83,7 @@ describe('guidesRepo.previewBySlug (public preview gating)', () => {
     serviceRequest.mockResolvedValueOnce([guideRow()]);
     const guide = await guidesRepo.previewBySlug('learn-airflow');
     expect(guide!.curators.map((c) => c.slug)).toEqual(['atef-alvi', 'maria-khan']);
+    expect(guide!.curators.map((c) => c.dreamTeam)).toEqual([true, false]);
     expect(guide!.itemCount).toBe(3);
   });
 
@@ -134,6 +135,17 @@ describe('guidesRepo.list', () => {
     const page = await guidesRepo.list({ pageSize: 1 });
     expect(page.items).toHaveLength(1);
     expect(page.hasMore).toBe(true);
+  });
+});
+
+describe('guidesRepo.sitemap', () => {
+  it('returns published guide slugs with reliable CMS timestamps', async () => {
+    serviceRequest.mockResolvedValueOnce([
+      { slug: 'learn-airflow', date_created: '2026-07-01T00:00:00Z', date_updated: '2026-07-14T00:00:00Z' },
+    ]);
+    await expect(guidesRepo.sitemap()).resolves.toEqual([
+      { slug: 'learn-airflow', updatedAt: new Date('2026-07-14T00:00:00Z') },
+    ]);
   });
 });
 
