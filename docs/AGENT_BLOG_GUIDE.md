@@ -43,8 +43,8 @@ Related operational docs:
 | `series_label` | Optional | Short label for a series, for example `Pipeline Notes`. |
 | `post_number` | Optional | Numeric series/index marker when useful. |
 
-Projects are not authored in Directus in v4. They live in the Astro `projects`
-content collection.
+Projects are authored separately in the Directus `projects` collection. This guide
+covers Writing only.
 
 ---
 

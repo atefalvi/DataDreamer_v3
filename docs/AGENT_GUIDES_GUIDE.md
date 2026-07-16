@@ -4,7 +4,7 @@ For agents and curators building **Field Guides** in Directus. A Field Guide is 
 *curated learning path*: an ordered, annotated collection of existing resources
 (videos, docs, repos, PDFs, notes) on one topic. The value is the **sequence**, the
 **why**, and the **curator's notes** — not original lessons. We are not building a
-course/LMS (see `docs/agent-workspace/01-PRODUCT-VISION.md` §1a).
+course/LMS.
 
 Three levels: **Learning Path** (`guides`) → **Sections** (`guide_sections`) →
 **Items** (`guide_items`).
@@ -13,7 +13,7 @@ Access model: the catalogue and a guide's **preview** (pitch, outcomes, syllabus
 titles) are public and indexable. The full item content — links, embeds, downloads,
 curator notes — and per-learner **progress** are behind a free account
 (`guide_reader` role). You don't manage any of that as a curator; it's enforced by
-Directus policies the schema script set up.
+Directus policies and the application service layer.
 
 ---
 
@@ -112,6 +112,5 @@ least `why_included` on most items — that judgement is what people come for.
 - [ ] `summary`, `why_this_path`, and `difficulty` are filled — they're the public pitch.
 - [ ] `status = published` only when you'd happily share the link.
 
-Related: `docs/agent-workspace/08-DIRECTUS-CONTENT-MODEL.md` §4 (schema),
-`docs/agent-workspace/reports/field-guides-auth-plan.html` (auth/setup), and
-`scripts/migrations/v4-guides-schema.mjs` (creates these collections + the seed example).
+Related: `docs/GUIDES_QA.md` for the access and validation runbook, and
+`backend/snapshot.yaml` for the current collection structure.

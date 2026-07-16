@@ -42,7 +42,7 @@ services:
     ports:
       # Host 8056 → container 8055 (feature/v4-guides): keeps local dev off the
       # production Directus port (8055) so the two don't collide.
-      - "${DIRECTUS_PORT:-8055}:8055"
+      - "${DIRECTUS_PORT:-8056}:8055"
     volumes:
       - "${DIRECTUS_UPLOADS_PATH:-/mnt/datadreamer/uploads}:/directus/uploads"
       # No /directus/extensions mount: the extension is baked into the image and a mount

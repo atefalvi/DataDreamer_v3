@@ -22,6 +22,8 @@ backend/data
 backend/uploads
 backend/.env
 backend/.env.*
+!backend/.env.example
+!frontend/.env.example
 
 # Reference / dev scratch
 reference/

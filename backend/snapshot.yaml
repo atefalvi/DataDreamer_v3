@@ -1,5 +1,5 @@
 version: 1
-directus: 11.16.1
+directus: 12.0.2
 vendor: postgres
 collections:
   - collection: authors
@@ -8,6 +8,7 @@ collections:
       archive_app_filter: true
       archive_field: null
       archive_value: null
+      autosave_revision_interval: null
       collapse: open
       collection: authors
       color: null
@@ -16,12 +17,12 @@ collections:
       hidden: false
       icon: groups
       item_duplication_fields: null
-      note: v4 Dream Team author profiles. Avatar uploads should be square and at
-        least 512px.
+      note: v4 Dream Team author profiles. Avatar uploads should be square and at least 512px.
       preview_url: null
       singleton: false
       sort: null
       sort_field: null
+      status: active
       translations: null
       unarchive_value: null
       versioning: false
@@ -33,6 +34,7 @@ collections:
       archive_app_filter: true
       archive_field: null
       archive_value: null
+      autosave_revision_interval: null
       collapse: open
       collection: authors_specialties
       color: null
@@ -46,17 +48,228 @@ collections:
       singleton: false
       sort: null
       sort_field: null
+      status: active
       translations: null
       unarchive_value: null
       versioning: false
     schema:
       name: authors_specialties
+  - collection: guide_items
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      autosave_revision_interval: null
+      collapse: open
+      collection: guide_items
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: list
+      item_duplication_fields: null
+      note: Curated resources inside a section
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: sort
+      status: active
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: guide_items
+  - collection: guide_progress
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      autosave_revision_interval: null
+      collapse: open
+      collection: guide_progress
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: check_circle
+      item_duplication_fields: null
+      note: One row per learner+guide (server-backed progress)
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      status: active
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: guide_progress
+  - collection: guide_sections
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      autosave_revision_interval: null
+      collapse: open
+      collection: guide_sections
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: segment
+      item_duplication_fields: null
+      note: Ordered groups inside a guide
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: sort
+      status: active
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: guide_sections
+  - collection: guides
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: status
+      archive_value: archived
+      autosave_revision_interval: null
+      collapse: open
+      collection: guides
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: explore
+      item_duplication_fields: null
+      note: Field Guides — curated learning paths
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: sort
+      status: active
+      translations: null
+      unarchive_value: draft
+      versioning: false
+    schema:
+      name: guides
+  - collection: guides_authors
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      autosave_revision_interval: null
+      collapse: open
+      collection: guides_authors
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: null
+      item_duplication_fields: null
+      note: "Junction: guides ↔ authors"
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      status: active
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: guides_authors
+  - collection: guides_specialties
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      autosave_revision_interval: null
+      collapse: open
+      collection: guides_specialties
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: null
+      item_duplication_fields: null
+      note: "Junction: guides ↔ specialties"
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      status: active
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: guides_specialties
+  - collection: guides_topics
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      autosave_revision_interval: null
+      collapse: open
+      collection: guides_topics
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: null
+      item_duplication_fields: null
+      note: "Junction: guides ↔ topics"
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      status: active
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: guides_topics
+  - collection: orby
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      autosave_revision_interval: null
+      collapse: open
+      collection: orby
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: smart_toy
+      item_duplication_fields: null
+      note: Orby chat assistant — all runtime settings. Deleting this collection (plus the Orby role)
+        removes Orby.
+      preview_url: null
+      singleton: true
+      sort: null
+      sort_field: null
+      status: active
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: orby
   - collection: posts
     meta:
       accountability: all
       archive_app_filter: true
       archive_field: null
       archive_value: null
+      autosave_revision_interval: null
       collapse: open
       collection: posts
       color: null
@@ -70,6 +283,7 @@ collections:
       singleton: false
       sort: null
       sort_field: null
+      status: active
       translations: null
       unarchive_value: null
       versioning: false
@@ -81,6 +295,7 @@ collections:
       archive_app_filter: true
       archive_field: null
       archive_value: null
+      autosave_revision_interval: null
       collapse: open
       collection: posts_topics
       color: null
@@ -94,17 +309,45 @@ collections:
       singleton: false
       sort: null
       sort_field: null
+      status: active
       translations: null
       unarchive_value: null
       versioning: false
     schema:
       name: posts_topics
+  - collection: projects
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: status
+      archive_value: archived
+      autosave_revision_interval: null
+      collapse: open
+      collection: projects
+      color: null
+      display_template: "{{title}}"
+      group: null
+      hidden: false
+      icon: folder_special
+      item_duplication_fields: null
+      note: Selected work and case studies for Data Dreamer.
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: sort
+      status: active
+      translations: null
+      unarchive_value: draft
+      versioning: false
+    schema:
+      name: projects
   - collection: specialties
     meta:
       accountability: all
       archive_app_filter: true
       archive_field: null
       archive_value: null
+      autosave_revision_interval: null
       collapse: open
       collection: specialties
       color: null
@@ -118,6 +361,7 @@ collections:
       singleton: false
       sort: null
       sort_field: null
+      status: active
       translations: null
       unarchive_value: null
       versioning: false
@@ -129,6 +373,7 @@ collections:
       archive_app_filter: true
       archive_field: null
       archive_value: null
+      autosave_revision_interval: null
       collapse: open
       collection: topics
       color: null
@@ -142,6 +387,7 @@ collections:
       singleton: false
       sort: null
       sort_field: null
+      status: active
       translations: null
       unarchive_value: null
       versioning: false
@@ -474,8 +720,8 @@ fields:
       is_generated: false
       generation_expression: null
       has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
+      foreign_key_table: directus_files
+      foreign_key_column: id
   - collection: authors
     field: links
     type: json
@@ -570,8 +816,7 @@ fields:
       group: null
       hidden: false
       interface: list
-      note: Max two {title, url, description?} entries; validated in the repository
-        layer.
+      note: Max two {title, url, description?} entries; validated in the repository layer.
       options: null
       readonly: false
       required: false
@@ -664,6 +909,128 @@ fields:
       validation: null
       validation_message: null
       width: full
+  - collection: authors
+    field: dream_team
+    type: boolean
+    meta:
+      collection: authors
+      conditions: null
+      display: null
+      display_options: null
+      field: dream_team
+      group: null
+      hidden: false
+      interface: boolean
+      note: Approved to appear on the public Dream Team page.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 14
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: dream_team
+      table: authors
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: authors
+    field: user
+    type: uuid
+    meta:
+      collection: authors
+      conditions: null
+      display: user
+      display_options: null
+      field: user
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: The login account behind this profile (never exposed publicly).
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 15
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user
+      table: authors
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: true
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: authors
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: authors
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: Automatically updated when the record changes.
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 16
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: authors
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
   - collection: authors_specialties
     field: id
     type: uuid
@@ -743,8 +1110,8 @@ fields:
       is_generated: false
       generation_expression: null
       has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
+      foreign_key_table: authors
+      foreign_key_column: id
   - collection: authors_specialties
     field: specialties_id
     type: uuid
@@ -783,8 +1150,8 @@ fields:
       is_generated: false
       generation_expression: null
       has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
+      foreign_key_table: specialties
+      foreign_key_column: id
   - collection: authors_specialties
     field: sort
     type: integer
@@ -816,6 +1183,3881 @@ fields:
       max_length: null
       numeric_precision: 32
       numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: directus_users
+    field: google_picture_url
+    type: string
+    meta:
+      collection: directus_users
+      conditions: null
+      display: null
+      display_options: null
+      field: google_picture_url
+      group: null
+      hidden: false
+      interface: input
+      note: Google OIDC picture URL used only when no Directus avatar file is uploaded.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: google_picture_url
+      table: directus_users
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: id
+    type: uuid
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: guide_items
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: section
+    type: uuid
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: section
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{title}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: section
+      table: guide_items
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: guide_sections
+      foreign_key_column: id
+  - collection: guide_items
+    field: type
+    type: string
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: type
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: youtube
+            value: youtube
+          - text: external_url
+            value: external_url
+          - text: pdf
+            value: pdf
+          - text: uploaded_file
+            value: uploaded_file
+          - text: notebooklm
+            value: notebooklm
+          - text: github_repo
+            value: github_repo
+          - text: code_sample
+            value: code_sample
+          - text: cheat_sheet
+            value: cheat_sheet
+          - text: personal_note
+            value: personal_note
+          - text: exercise
+            value: exercise
+          - text: docs_page
+            value: docs_page
+      readonly: false
+      required: true
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: type
+      table: guide_items
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: title
+    type: string
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: title
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: title
+      table: guide_items
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: url
+    type: string
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: url
+      group: null
+      hidden: false
+      interface: input
+      note: For link-like types
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: url
+      table: guide_items
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: asset
+    type: uuid
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: asset
+      group: null
+      hidden: false
+      interface: file-image
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: asset
+      table: guide_items
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_files
+      foreign_key_column: id
+  - collection: guide_items
+    field: body
+    type: text
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: body
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: Markdown for note/cheat-sheet/code/exercise
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: body
+      table: guide_items
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: description
+    type: text
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: description
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: description
+      table: guide_items
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: why_included
+    type: text
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: why_included
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: "Curator: why this item is on the path"
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 9
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: why_included
+      table: guide_items
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: focus_on
+    type: text
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: focus_on
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: "Curator: what to focus on / skip"
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 10
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: focus_on
+      table: guide_items
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: notes
+    type: text
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: notes
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: "Curator: personal notes / gotchas"
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 11
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: notes
+      table: guide_items
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: estimated_time_minutes
+    type: integer
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: estimated_time_minutes
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 12
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: estimated_time_minutes
+      table: guide_items
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: difficulty
+    type: string
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: difficulty
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: beginner
+            value: beginner
+          - text: intermediate
+            value: intermediate
+          - text: advanced
+            value: advanced
+      readonly: false
+      required: false
+      searchable: true
+      sort: 13
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: difficulty
+      table: guide_items
+      data_type: character varying
+      default_value: beginner
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_items
+    field: sort
+    type: integer
+    meta:
+      collection: guide_items
+      conditions: null
+      display: null
+      display_options: null
+      field: sort
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 14
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: sort
+      table: guide_items
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_progress
+    field: id
+    type: uuid
+    meta:
+      collection: guide_progress
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: guide_progress
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_progress
+    field: user
+    type: uuid
+    meta:
+      collection: guide_progress
+      conditions: null
+      display: null
+      display_options: null
+      field: user
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{email}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user
+      table: guide_progress
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: guide_progress
+    field: guide
+    type: uuid
+    meta:
+      collection: guide_progress
+      conditions: null
+      display: null
+      display_options: null
+      field: guide
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{title}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: guide
+      table: guide_progress
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: guides
+      foreign_key_column: id
+  - collection: guide_progress
+    field: completed_items
+    type: json
+    meta:
+      collection: guide_progress
+      conditions: null
+      display: null
+      display_options: null
+      field: completed_items
+      group: null
+      hidden: false
+      interface: tags
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 4
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: completed_items
+      table: guide_progress
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_progress
+    field: last_item
+    type: uuid
+    meta:
+      collection: guide_progress
+      conditions: null
+      display: null
+      display_options: null
+      field: last_item
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{title}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: last_item
+      table: guide_progress
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: guide_items
+      foreign_key_column: id
+  - collection: guide_progress
+    field: status
+    type: string
+    meta:
+      collection: guide_progress
+      conditions: null
+      display: null
+      display_options: null
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: not-started
+            value: not-started
+          - text: in-progress
+            value: in-progress
+          - text: completed
+            value: completed
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: status
+      table: guide_progress
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_progress
+    field: percent
+    type: integer
+    meta:
+      collection: guide_progress
+      conditions: null
+      display: null
+      display_options: null
+      field: percent
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: percent
+      table: guide_progress
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_progress
+    field: started_at
+    type: timestamp
+    meta:
+      collection: guide_progress
+      conditions: null
+      display: null
+      display_options: null
+      field: started_at
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: started_at
+      table: guide_progress
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_progress
+    field: completed_at
+    type: timestamp
+    meta:
+      collection: guide_progress
+      conditions: null
+      display: null
+      display_options: null
+      field: completed_at
+      group: null
+      hidden: false
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 9
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: completed_at
+      table: guide_progress
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_sections
+    field: id
+    type: uuid
+    meta:
+      collection: guide_sections
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: guide_sections
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_sections
+    field: guide
+    type: uuid
+    meta:
+      collection: guide_sections
+      conditions: null
+      display: null
+      display_options: null
+      field: guide
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{title}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: guide
+      table: guide_sections
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: guides
+      foreign_key_column: id
+  - collection: guide_sections
+    field: title
+    type: string
+    meta:
+      collection: guide_sections
+      conditions: null
+      display: null
+      display_options: null
+      field: title
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: title
+      table: guide_sections
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_sections
+    field: description
+    type: text
+    meta:
+      collection: guide_sections
+      conditions: null
+      display: null
+      display_options: null
+      field: description
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: description
+      table: guide_sections
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_sections
+    field: sort
+    type: integer
+    meta:
+      collection: guide_sections
+      conditions: null
+      display: null
+      display_options: null
+      field: sort
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: sort
+      table: guide_sections
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guide_sections
+    field: items
+    type: alias
+    meta:
+      collection: guide_sections
+      conditions: null
+      display: null
+      display_options: null
+      field: items
+      group: null
+      hidden: false
+      interface: list-o2m
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special:
+        - o2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: guides
+    field: id
+    type: uuid
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: guides
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: status
+    type: string
+    meta:
+      collection: guides
+      conditions: null
+      display: labels
+      display_options: null
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Published
+            value: published
+          - text: Draft
+            value: draft
+          - text: Archived
+            value: archived
+      readonly: false
+      required: false
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: status
+      table: guides
+      data_type: character varying
+      default_value: draft
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: sort
+    type: integer
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: sort
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: sort
+      table: guides
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: slug
+    type: string
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: slug
+      group: null
+      hidden: false
+      interface: input
+      note: lowercase-hyphenated, immutable after publish
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: slug
+      table: guides
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: true
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: title
+    type: string
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: title
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: title
+      table: guides
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: summary
+    type: text
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: summary
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: Card + meta description (≤200)
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: summary
+      table: guides
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: cover_image
+    type: uuid
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: cover_image
+      group: null
+      hidden: false
+      interface: file-image
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: cover_image
+      table: guides
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_files
+      foreign_key_column: id
+  - collection: guides
+    field: difficulty
+    type: string
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: difficulty
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: beginner
+            value: beginner
+          - text: intermediate
+            value: intermediate
+          - text: advanced
+            value: advanced
+      readonly: false
+      required: false
+      searchable: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: difficulty
+      table: guides
+      data_type: character varying
+      default_value: beginner
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: estimated_duration_minutes
+    type: integer
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: estimated_duration_minutes
+      group: null
+      hidden: false
+      interface: input
+      note: Curator-entered total (minutes)
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 9
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: estimated_duration_minutes
+      table: guides
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: featured
+    type: boolean
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: featured
+      group: null
+      hidden: false
+      interface: boolean
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 10
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: featured
+      table: guides
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: why_this_path
+    type: text
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: why_this_path
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: Why this guide exists
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 11
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: why_this_path
+      table: guides
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: expected_outcome
+    type: text
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: expected_outcome
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: What you'll be able to do after
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 12
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: expected_outcome
+      table: guides
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: recommended_audience
+    type: string
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: recommended_audience
+      group: null
+      hidden: false
+      interface: input
+      note: Who this is for
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 13
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: recommended_audience
+      table: guides
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: author
+    type: uuid
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: author
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{display_name}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 14
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: author
+      table: guides
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: authors
+      foreign_key_column: id
+  - collection: guides
+    field: sections
+    type: alias
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: sections
+      group: null
+      hidden: false
+      interface: list-o2m
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 15
+      special:
+        - o2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: guides
+    field: topics
+    type: alias
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: topics
+      group: null
+      hidden: false
+      interface: list-m2m
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 16
+      special:
+        - m2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: guides
+    field: specialties
+    type: alias
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: specialties
+      group: null
+      hidden: false
+      interface: list-m2m
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 17
+      special:
+        - m2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: guides
+    field: authors
+    type: alias
+    meta:
+      collection: guides
+      conditions: null
+      display: null
+      display_options: null
+      field: authors
+      group: null
+      hidden: false
+      interface: list-m2m
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 18
+      special:
+        - m2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: guides
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: guides
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: Automatically updated when the record changes.
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 19
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: guides
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides
+    field: date_created
+    type: timestamp
+    meta:
+      collection: guides
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_created
+      group: null
+      hidden: true
+      interface: datetime
+      note: Automatically set when the guide is created.
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 20
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: guides
+      data_type: timestamp with time zone
+      default_value: CURRENT_TIMESTAMP
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides_authors
+    field: id
+    type: uuid
+    meta:
+      collection: guides_authors
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: guides_authors
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides_authors
+    field: guides_id
+    type: uuid
+    meta:
+      collection: guides_authors
+      conditions: null
+      display: null
+      display_options: null
+      field: guides_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{title}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: guides_id
+      table: guides_authors
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: guides
+      foreign_key_column: id
+  - collection: guides_authors
+    field: authors_id
+    type: uuid
+    meta:
+      collection: guides_authors
+      conditions: null
+      display: null
+      display_options: null
+      field: authors_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{name}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: authors_id
+      table: guides_authors
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: authors
+      foreign_key_column: id
+  - collection: guides_authors
+    field: sort
+    type: integer
+    meta:
+      collection: guides_authors
+      conditions: null
+      display: null
+      display_options: null
+      field: sort
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: sort
+      table: guides_authors
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides_specialties
+    field: id
+    type: uuid
+    meta:
+      collection: guides_specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: guides_specialties
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides_specialties
+    field: guides_id
+    type: uuid
+    meta:
+      collection: guides_specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: guides_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{title}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: guides_id
+      table: guides_specialties
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: guides
+      foreign_key_column: id
+  - collection: guides_specialties
+    field: specialties_id
+    type: uuid
+    meta:
+      collection: guides_specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: specialties_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{name}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: specialties_id
+      table: guides_specialties
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: specialties
+      foreign_key_column: id
+  - collection: guides_specialties
+    field: sort
+    type: integer
+    meta:
+      collection: guides_specialties
+      conditions: null
+      display: null
+      display_options: null
+      field: sort
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: sort
+      table: guides_specialties
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides_topics
+    field: id
+    type: uuid
+    meta:
+      collection: guides_topics
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: guides_topics
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: guides_topics
+    field: guides_id
+    type: uuid
+    meta:
+      collection: guides_topics
+      conditions: null
+      display: null
+      display_options: null
+      field: guides_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{title}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: guides_id
+      table: guides_topics
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: guides
+      foreign_key_column: id
+  - collection: guides_topics
+    field: topics_id
+    type: uuid
+    meta:
+      collection: guides_topics
+      conditions: null
+      display: null
+      display_options: null
+      field: topics_id
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: "{{name}}"
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: topics_id
+      table: guides_topics
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: topics
+      foreign_key_column: id
+  - collection: orby
+    field: id
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: orby
+      data_type: integer
+      default_value: nextval('orby_id_seq'::regclass)
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: enabled
+    type: boolean
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: enabled
+      group: null
+      hidden: false
+      interface: boolean
+      note: "Master switch: off = widget disappears from the site."
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: enabled
+      table: orby
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: maintenance_mode
+    type: boolean
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: maintenance_mode
+      group: null
+      hidden: false
+      interface: boolean
+      note: On = widget shows the maintenance message, no chat.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: maintenance_mode
+      table: orby
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: maintenance_message
+    type: string
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: maintenance_message
+      group: null
+      hidden: false
+      interface: input
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: maintenance_message
+      table: orby
+      data_type: character varying
+      default_value: Orby is taking a short break — please try again soon.
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: allowed_origins
+    type: string
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: allowed_origins
+      group: null
+      hidden: false
+      interface: input
+      note: Comma-separated origins allowed to embed the widget.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: allowed_origins
+      table: orby
+      data_type: character varying
+      default_value: https://data-dreamer.net,https://www.data-dreamer.net
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: chat_model
+    type: string
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: chat_model
+      group: null
+      hidden: false
+      interface: input
+      note: Ollama chat model name
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: chat_model
+      table: orby
+      data_type: character varying
+      default_value: llama3.1:8b
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: embedding_model
+    type: string
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: embedding_model
+      group: null
+      hidden: false
+      interface: input
+      note: Ollama embedding model (dimension is pinned in the service env!)
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: embedding_model
+      table: orby
+      data_type: character varying
+      default_value: nomic-embed-text
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: temperature
+    type: float
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: temperature
+      group: null
+      hidden: false
+      interface: input
+      note: 0–2
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: temperature
+      table: orby
+      data_type: real
+      default_value: 0.3
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: max_generation_tokens
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: max_generation_tokens
+      group: null
+      hidden: false
+      interface: input
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 9
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: max_generation_tokens
+      table: orby
+      data_type: integer
+      default_value: 700
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: request_timeout_seconds
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: request_timeout_seconds
+      group: null
+      hidden: false
+      interface: input
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 10
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: request_timeout_seconds
+      table: orby
+      data_type: integer
+      default_value: 60
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: system_prompt
+    type: text
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: system_prompt
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: Leave blank to use the built-in default.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 11
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: system_prompt
+      table: orby
+      data_type: text
+      default_value: ""
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: welcome_message
+    type: text
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: welcome_message
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 12
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: welcome_message
+      table: orby
+      data_type: text
+      default_value: Hi, I''m Orby! Ask me anything about DataDreamer — articles, projects, guides, or the team.
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: refusal_message
+    type: text
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: refusal_message
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 13
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: refusal_message
+      table: orby
+      data_type: text
+      default_value: I can only help with questions about DataDreamer and its content.
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: no_answer_message
+    type: text
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: no_answer_message
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 14
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: no_answer_message
+      table: orby
+      data_type: text
+      default_value: I couldn''t find that in DataDreamer''s published content. Try asking about our
+        articles, projects, guides, or the team.
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: out_of_scope_message
+    type: text
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: out_of_scope_message
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 15
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: out_of_scope_message
+      table: orby
+      data_type: text
+      default_value: That''s outside what I know — I''m DataDreamer''s assistant. Ask me about the site,
+        its content, or the people behind it!
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: top_k
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: top_k
+      group: null
+      hidden: false
+      interface: input
+      note: Chunks retrieved per question (1–20)
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 16
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: top_k
+      table: orby
+      data_type: integer
+      default_value: 6
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: min_retrieval_score
+    type: float
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: min_retrieval_score
+      group: null
+      hidden: false
+      interface: input
+      note: Below this, Orby says it does not know (0–1).
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 17
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: min_retrieval_score
+      table: orby
+      data_type: real
+      default_value: 0.35
+      max_length: null
+      numeric_precision: 24
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: chunk_size
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: chunk_size
+      group: null
+      hidden: false
+      interface: input
+      note: Ingestion chunk size, characters
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 18
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: chunk_size
+      table: orby
+      data_type: integer
+      default_value: 1200
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: chunk_overlap
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: chunk_overlap
+      group: null
+      hidden: false
+      interface: input
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 19
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: chunk_overlap
+      table: orby
+      data_type: integer
+      default_value: 150
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: max_message_length
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: max_message_length
+      group: null
+      hidden: false
+      interface: input
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 20
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: max_message_length
+      table: orby
+      data_type: integer
+      default_value: 1000
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: max_messages_per_session
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: max_messages_per_session
+      group: null
+      hidden: false
+      interface: input
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 21
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: max_messages_per_session
+      table: orby
+      data_type: integer
+      default_value: 60
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: rate_limit_per_minute
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: rate_limit_per_minute
+      group: null
+      hidden: false
+      interface: input
+      note: Messages per visitor per minute
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 22
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: rate_limit_per_minute
+      table: orby
+      data_type: integer
+      default_value: 12
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: history_turns
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: history_turns
+      group: null
+      hidden: false
+      interface: input
+      note: Prior turns sent to the model
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 23
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: history_turns
+      table: orby
+      data_type: integer
+      default_value: 6
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: retain_chat_days
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: retain_chat_days
+      group: null
+      hidden: false
+      interface: input
+      note: Sessions idle longer than this are deleted.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 24
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: retain_chat_days
+      table: orby
+      data_type: integer
+      default_value: 90
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: handoff_enabled
+    type: boolean
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: handoff_enabled
+      group: null
+      hidden: false
+      interface: boolean
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 25
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: handoff_enabled
+      table: orby
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: cal_com_url
+    type: string
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: cal_com_url
+      group: null
+      hidden: false
+      interface: input
+      note: Cal.com booking link
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 26
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: cal_com_url
+      table: orby
+      data_type: character varying
+      default_value: ""
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: handoff_cta_text
+    type: string
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: handoff_cta_text
+      group: null
+      hidden: false
+      interface: input
+      note: ""
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 27
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: handoff_cta_text
+      table: orby
+      data_type: character varying
+      default_value: Book a conversation
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: discord_enabled
+    type: boolean
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: discord_enabled
+      group: null
+      hidden: false
+      interface: boolean
+      note: Requires ORBY_DISCORD_WEBHOOK_URL in the service env.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 28
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: discord_enabled
+      table: orby
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: max_concurrent_generations
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: max_concurrent_generations
+      group: null
+      hidden: false
+      interface: input
+      note: Parallel Ollama generations (1-16)
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 29
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: max_concurrent_generations
+      table: orby
+      data_type: integer
+      default_value: 2
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: max_generation_queue_size
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: max_generation_queue_size
+      group: null
+      hidden: false
+      interface: input
+      note: Visitors allowed to wait in line (0-100)
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 30
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: max_generation_queue_size
+      table: orby
+      data_type: integer
+      default_value: 8
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: generation_queue_timeout_seconds
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: generation_queue_timeout_seconds
+      group: null
+      hidden: false
+      interface: input
+      note: Max wait in line before a polite retry message (5-600)
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 31
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: generation_queue_timeout_seconds
+      table: orby
+      data_type: integer
+      default_value: 45
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: max_queued_messages_per_session
+    type: integer
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: max_queued_messages_per_session
+      group: null
+      hidden: false
+      interface: input
+      note: Type-ahead messages a visitor may queue (1-10)
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 32
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: max_queued_messages_per_session
+      table: orby
+      data_type: integer
+      default_value: 3
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: hybrid_search
+    type: boolean
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: hybrid_search
+      group: null
+      hidden: false
+      interface: boolean
+      note: Use vector + keyword retrieval.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 33
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: hybrid_search
+      table: orby
+      data_type: boolean
+      default_value: true
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: query_rewrite
+    type: boolean
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: query_rewrite
+      group: null
+      hidden: false
+      interface: boolean
+      note: Rewrite follow-up questions into standalone search queries.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 34
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: query_rewrite
+      table: orby
+      data_type: boolean
+      default_value: true
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: conversational_fallback
+    type: boolean
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: conversational_fallback
+      group: null
+      hidden: false
+      interface: boolean
+      note: Use chat history to answer no-evidence conversational follow-ups.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 35
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: conversational_fallback
+      table: orby
+      data_type: boolean
+      default_value: true
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: orby
+    field: crawl_enabled
+    type: boolean
+    meta:
+      collection: orby
+      conditions: null
+      display: null
+      display_options: null
+      field: crawl_enabled
+      group: null
+      hidden: false
+      interface: boolean
+      note: Allow scheduled crawling of hard-coded approved sites.
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 36
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: crawl_enabled
+      table: orby
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
       is_nullable: true
       is_unique: false
       is_indexed: false
@@ -1044,7 +5286,7 @@ fields:
       field: content
       group: null
       hidden: false
-      interface: input-rich-text-html
+      interface: input-rich-text-md
       note: null
       options: null
       readonly: false
@@ -1269,8 +5511,7 @@ fields:
       group: null
       hidden: false
       interface: file-image
-      note: Optional post cover image; used for cards, article hero, and OG
-        transforms.
+      note: Optional post cover image; used for cards, article hero, and OG transforms.
       options: null
       readonly: false
       required: false
@@ -1330,6 +5571,47 @@ fields:
       numeric_precision: null
       numeric_scale: null
       is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: posts
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: posts
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: Automatically updated when the record changes.
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 13
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: posts
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
       is_unique: false
       is_indexed: false
       is_primary_key: false
@@ -1417,8 +5699,8 @@ fields:
       is_generated: false
       generation_expression: null
       has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
+      foreign_key_table: topics
+      foreign_key_column: id
   - collection: posts_topics
     field: posts_id
     type: uuid
@@ -1451,6 +5733,674 @@ fields:
       numeric_precision: null
       numeric_scale: null
       is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: posts
+      foreign_key_column: id
+  - collection: projects
+    field: id
+    type: uuid
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 1
+      special:
+        - uuid
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: projects
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: status
+    type: string
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: Published
+            value: published
+          - text: Draft
+            value: draft
+          - text: Archived
+            value: archived
+      readonly: false
+      required: false
+      searchable: true
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: status
+      table: projects
+      data_type: character varying
+      default_value: draft
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: sort
+    type: integer
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: sort
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: sort
+      table: projects
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: title
+    type: string
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: title
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: title
+      table: projects
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: slug
+    type: string
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: slug
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      searchable: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: slug
+      table: projects
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: true
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: summary
+    type: text
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: summary
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: summary
+      table: projects
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: body
+    type: text
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: body
+      group: null
+      hidden: false
+      interface: input-rich-text-md
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: body
+      table: projects
+      data_type: text
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: year
+    type: integer
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: year
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: year
+      table: projects
+      data_type: integer
+      default_value: null
+      max_length: null
+      numeric_precision: 32
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: role
+    type: string
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: role
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 9
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: role
+      table: projects
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: author
+    type: uuid
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: author
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 10
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: author
+      table: projects
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: authors
+      foreign_key_column: id
+  - collection: projects
+    field: cover_image
+    type: uuid
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: cover_image
+      group: null
+      hidden: false
+      interface: file-image
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 11
+      special:
+        - m2o
+        - file
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: cover_image
+      table: projects
+      data_type: uuid
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_files
+      foreign_key_column: id
+  - collection: projects
+    field: cover_alt
+    type: string
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: cover_alt
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 12
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: cover_alt
+      table: projects
+      data_type: character varying
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: tags
+    type: json
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: tags
+      group: null
+      hidden: false
+      interface: tags
+      note: null
+      options: null
+      readonly: false
+      required: false
+      searchable: true
+      sort: 13
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: tags
+      table: projects
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: links
+    type: json
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: links
+      group: null
+      hidden: false
+      interface: list
+      note: null
+      options:
+        fields:
+          - field: label
+            meta:
+              interface: input
+              width: half
+            name: Label
+            type: string
+          - field: url
+            meta:
+              interface: input
+              width: half
+            name: URL
+            type: string
+      readonly: false
+      required: false
+      searchable: true
+      sort: 14
+      special:
+        - cast-json
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: links
+      table: projects
+      data_type: json
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: featured
+    type: boolean
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: featured
+      group: null
+      hidden: false
+      interface: boolean
+      note: null
+      options:
+        label: Featured project
+      readonly: false
+      required: false
+      searchable: true
+      sort: 15
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: featured
+      table: projects
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: projects
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: Automatically updated when the record changes.
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 16
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: projects
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
       is_unique: false
       is_indexed: false
       is_primary_key: false
@@ -1968,6 +6918,47 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
+  - collection: topics
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: topics
+      conditions: null
+      display: datetime
+      display_options: null
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: Automatically updated when the record changes.
+      options: null
+      readonly: true
+      required: false
+      searchable: true
+      sort: 6
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: topics
+      data_type: timestamp with time zone
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
 systemFields:
   - collection: directus_activity
     field: timestamp
@@ -1995,6 +6986,35 @@ relations:
       one_deselect_action: nullify
       one_field: null
       sort_field: null
+    schema:
+      table: authors
+      column: avatar
+      foreign_key_table: directus_files
+      foreign_key_column: id
+      constraint_name: authors_avatar_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: authors
+    field: user
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: authors
+      many_field: user
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: authors
+      column: user
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: authors_user_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
   - collection: authors_specialties
     field: authors_id
     related_collection: authors
@@ -2008,6 +7028,14 @@ relations:
       one_deselect_action: delete
       one_field: specialties
       sort_field: sort
+    schema:
+      table: authors_specialties
+      column: authors_id
+      foreign_key_table: authors
+      foreign_key_column: id
+      constraint_name: authors_specialties_authors_id_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
   - collection: authors_specialties
     field: specialties_id
     related_collection: specialties
@@ -2021,6 +7049,308 @@ relations:
       one_deselect_action: delete
       one_field: null
       sort_field: null
+    schema:
+      table: authors_specialties
+      column: specialties_id
+      foreign_key_table: specialties
+      foreign_key_column: id
+      constraint_name: authors_specialties_specialties_id_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: guide_items
+    field: section
+    related_collection: guide_sections
+    meta:
+      junction_field: null
+      many_collection: guide_items
+      many_field: section
+      one_allowed_collections: null
+      one_collection: guide_sections
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: items
+      sort_field: sort
+    schema:
+      table: guide_items
+      column: section
+      foreign_key_table: guide_sections
+      foreign_key_column: id
+      constraint_name: guide_items_section_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: guide_items
+    field: asset
+    related_collection: directus_files
+    meta:
+      junction_field: null
+      many_collection: guide_items
+      many_field: asset
+      one_allowed_collections: null
+      one_collection: directus_files
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: guide_items
+      column: asset
+      foreign_key_table: directus_files
+      foreign_key_column: id
+      constraint_name: guide_items_asset_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: guide_progress
+    field: user
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: guide_progress
+      many_field: user
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: guide_progress
+      column: user
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: guide_progress_user_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: guide_progress
+    field: guide
+    related_collection: guides
+    meta:
+      junction_field: null
+      many_collection: guide_progress
+      many_field: guide
+      one_allowed_collections: null
+      one_collection: guides
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: guide_progress
+      column: guide
+      foreign_key_table: guides
+      foreign_key_column: id
+      constraint_name: guide_progress_guide_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: guide_progress
+    field: last_item
+    related_collection: guide_items
+    meta:
+      junction_field: null
+      many_collection: guide_progress
+      many_field: last_item
+      one_allowed_collections: null
+      one_collection: guide_items
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: guide_progress
+      column: last_item
+      foreign_key_table: guide_items
+      foreign_key_column: id
+      constraint_name: guide_progress_last_item_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: guide_sections
+    field: guide
+    related_collection: guides
+    meta:
+      junction_field: null
+      many_collection: guide_sections
+      many_field: guide
+      one_allowed_collections: null
+      one_collection: guides
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: sections
+      sort_field: sort
+    schema:
+      table: guide_sections
+      column: guide
+      foreign_key_table: guides
+      foreign_key_column: id
+      constraint_name: guide_sections_guide_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: guides
+    field: cover_image
+    related_collection: directus_files
+    meta:
+      junction_field: null
+      many_collection: guides
+      many_field: cover_image
+      one_allowed_collections: null
+      one_collection: directus_files
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: guides
+      column: cover_image
+      foreign_key_table: directus_files
+      foreign_key_column: id
+      constraint_name: guides_cover_image_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: guides
+    field: author
+    related_collection: authors
+    meta:
+      junction_field: null
+      many_collection: guides
+      many_field: author
+      one_allowed_collections: null
+      one_collection: authors
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: guides
+      column: author
+      foreign_key_table: authors
+      foreign_key_column: id
+      constraint_name: guides_author_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: guides_authors
+    field: guides_id
+    related_collection: guides
+    meta:
+      junction_field: authors_id
+      many_collection: guides_authors
+      many_field: guides_id
+      one_allowed_collections: null
+      one_collection: guides
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: authors
+      sort_field: sort
+    schema:
+      table: guides_authors
+      column: guides_id
+      foreign_key_table: guides
+      foreign_key_column: id
+      constraint_name: guides_authors_guides_id_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: guides_authors
+    field: authors_id
+    related_collection: authors
+    meta:
+      junction_field: guides_id
+      many_collection: guides_authors
+      many_field: authors_id
+      one_allowed_collections: null
+      one_collection: authors
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: guides_authors
+      column: authors_id
+      foreign_key_table: authors
+      foreign_key_column: id
+      constraint_name: guides_authors_authors_id_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: guides_specialties
+    field: guides_id
+    related_collection: guides
+    meta:
+      junction_field: specialties_id
+      many_collection: guides_specialties
+      many_field: guides_id
+      one_allowed_collections: null
+      one_collection: guides
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: specialties
+      sort_field: sort
+    schema:
+      table: guides_specialties
+      column: guides_id
+      foreign_key_table: guides
+      foreign_key_column: id
+      constraint_name: guides_specialties_guides_id_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: guides_specialties
+    field: specialties_id
+    related_collection: specialties
+    meta:
+      junction_field: guides_id
+      many_collection: guides_specialties
+      many_field: specialties_id
+      one_allowed_collections: null
+      one_collection: specialties
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: guides_specialties
+      column: specialties_id
+      foreign_key_table: specialties
+      foreign_key_column: id
+      constraint_name: guides_specialties_specialties_id_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: guides_topics
+    field: guides_id
+    related_collection: guides
+    meta:
+      junction_field: topics_id
+      many_collection: guides_topics
+      many_field: guides_id
+      one_allowed_collections: null
+      one_collection: guides
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: topics
+      sort_field: null
+    schema:
+      table: guides_topics
+      column: guides_id
+      foreign_key_table: guides
+      foreign_key_column: id
+      constraint_name: guides_topics_guides_id_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
+  - collection: guides_topics
+    field: topics_id
+    related_collection: topics
+    meta:
+      junction_field: guides_id
+      many_collection: guides_topics
+      many_field: topics_id
+      one_allowed_collections: null
+      one_collection: topics
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: guides_topics
+      column: topics_id
+      foreign_key_table: topics
+      foreign_key_column: id
+      constraint_name: guides_topics_topics_id_foreign
+      on_update: NO ACTION
+      on_delete: CASCADE
   - collection: posts
     field: author
     related_collection: authors
@@ -2076,6 +7406,14 @@ relations:
       one_deselect_action: delete
       one_field: null
       sort_field: null
+    schema:
+      table: posts_topics
+      column: topics_id
+      foreign_key_table: topics
+      foreign_key_column: id
+      constraint_name: posts_topics_topics_id_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
   - collection: posts_topics
     field: posts_id
     related_collection: posts
@@ -2089,3 +7427,53 @@ relations:
       one_deselect_action: delete
       one_field: topics
       sort_field: null
+    schema:
+      table: posts_topics
+      column: posts_id
+      foreign_key_table: posts
+      foreign_key_column: id
+      constraint_name: posts_topics_posts_id_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: projects
+    field: author
+    related_collection: authors
+    meta:
+      junction_field: null
+      many_collection: projects
+      many_field: author
+      one_allowed_collections: null
+      one_collection: authors
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: projects
+      sort_field: null
+    schema:
+      table: projects
+      column: author
+      foreign_key_table: authors
+      foreign_key_column: id
+      constraint_name: projects_author_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: projects
+    field: cover_image
+    related_collection: directus_files
+    meta:
+      junction_field: null
+      many_collection: projects
+      many_field: cover_image
+      one_allowed_collections: null
+      one_collection: directus_files
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: projects
+      column: cover_image
+      foreign_key_table: directus_files
+      foreign_key_column: id
+      constraint_name: projects_cover_image_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL

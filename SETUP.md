@@ -34,11 +34,13 @@ Copy the example files and fill in local values. Never commit `.env`.
 ### Frontend: `frontend/.env`
 
 ```env
-DIRECTUS_URL=http://localhost:8055
-PUBLIC_DIRECTUS_URL=http://localhost:8055
+DIRECTUS_URL=http://localhost:8056
+PUBLIC_DIRECTUS_URL=http://localhost:8056
 SITE_URL=http://localhost:4321
 DEPLOY_ENV=local
 # DIRECTUS_TOKEN=
+# DIRECTUS_SERVICE_TOKEN=
+PUBLIC_GUIDES_ENABLED=true
 ```
 
 | Variable | Required | Description |
@@ -48,6 +50,8 @@ DEPLOY_ENV=local
 | `SITE_URL` | Recommended | Canonical origin for SEO/OG output. |
 | `DEPLOY_ENV` | Recommended | Use `staging` only on the staging frontend resource. |
 | `DIRECTUS_TOKEN` | Optional | Server-only read token for locked-down Directus instances. Do not prefix with `PUBLIC_`. |
+| `DIRECTUS_SERVICE_TOKEN` | Required for Guides | Static token for the least-privilege Guide Server user. |
+| `PUBLIC_GUIDES_ENABLED` | Recommended | Guides are enabled unless explicitly set to `false`. |
 
 The v4 frontend does not log into Directus with admin credentials. Public content should
 be readable through the Directus Public policy unless a server-only read token is
@@ -62,7 +66,7 @@ DB_DATABASE=datadreamer
 DIRECTUS_SECRET=any_random_long_string_for_local
 DIRECTUS_ADMIN_EMAIL=admin@local.dev
 DIRECTUS_ADMIN_PASSWORD=localadmin
-DIRECTUS_PUBLIC_URL=http://localhost:8055
+DIRECTUS_PUBLIC_URL=http://localhost:8056
 CORS_ORIGIN=http://localhost:4321
 ```
 
@@ -88,7 +92,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Directus admin: `http://localhost:8055/admin`
+Directus admin: `http://localhost:8056/admin`
 
 ### Apply Schema or Restore Data
 
@@ -125,10 +129,15 @@ In Directus:
    - `topics`
    - `authors_specialties`
    - `posts_topics`
+   - `projects`
    - `directus_files`
 
 The frontend expects public reads for published editorial content. Drafts should remain
 hidden by policy and repository filters.
+
+Guide content uses the separate least-privilege **Guide Server** policy through
+`DIRECTUS_SERVICE_TOKEN`. Do not grant anonymous access to guide item URLs, bodies,
+notes, assets, or progress rows. See `docs/GUIDES_QA.md` for the guide access checks.
 
 ---
 
@@ -151,7 +160,8 @@ Useful local routes:
 | `/` | Homepage |
 | `/blog` | Writing index |
 | `/blog/topic/[slug]` | Topic filter |
-| `/projects` | Astro content collection project index |
+| `/projects` | Project index |
+| `/guides` | Field Guide catalogue |
 | `/dream-team` | Author/team graph and list |
 | `/connect` | Contact |
 | `/privacy` | Privacy |
@@ -162,7 +172,7 @@ Useful local routes:
 
 ## Current v4 Content Model
 
-### Directus Collections Used by v4.0
+### Directus Collections Used by v4
 
 | Collection | Purpose |
 |---|---|
@@ -170,8 +180,16 @@ Useful local routes:
 | `authors` | Dream Team profiles and post authors. |
 | `specialties` | Author expertise taxonomy. |
 | `topics` | Shared writing taxonomy. |
+| `projects` | Project case studies. |
+| `guides` | Field Guide metadata and curator relationships. |
+| `guide_sections` | Ordered groups within guides. |
+| `guide_items` | Ordered resources within guide sections. |
+| `guide_progress` | Private per-user guide progress. |
 | `authors_specialties` | M2M relation. |
 | `posts_topics` | M2M relation. |
+| `guides_authors` | M2M guide curator relation. |
+| `guides_specialties` | M2M guide specialty relation. |
+| `guides_topics` | M2M guide topic relation. |
 | `directus_files` | Images and file metadata. |
 
 ### `posts` Fields
@@ -191,27 +209,16 @@ Useful local routes:
 | `series_label` | Optional series text. |
 | `post_number` | Optional numeric sequence. |
 
-### Source-Controlled Content
+### Source-Controlled Site Content
 
 | Content | Location |
 |---|---|
-| Projects | `frontend/src/content/projects/*.md` |
-| Project images | `frontend/src/assets/projects/` |
 | Navigation/social/home flags | `frontend/src/content/site.ts` |
 | Brand assets | `frontend/src/assets/brand/` and `frontend/public/favicon.*` |
-| Temporary OG images | `frontend/public/og/` |
+| Section OG images | `frontend/public/og/` |
 
-### Retired v3 Directus Content
-
-These v3-era collections are no longer frontend sources in v4:
-
-- `projects`
-- `site_settings`
-- `home_settings`
-- `about`
-
-Do not add new content there for v4. They are scheduled for post-release cleanup after
-the v4.0 release soak.
+`site_settings`, `home_settings`, and `about` are retired v3 collections and are not
+frontend data sources. The authoritative current schema is `backend/snapshot.yaml`.
 
 ---
 

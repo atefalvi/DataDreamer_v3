@@ -14,7 +14,7 @@ function env(name: string): string | undefined {
   return process.env[name] ?? (import.meta.env as Record<string, string | undefined>)[name];
 }
 
-export const DIRECTUS_URL = env('DIRECTUS_URL') ?? 'http://localhost:8055';
+export const DIRECTUS_URL = env('DIRECTUS_URL') ?? 'http://localhost:8056';
 export const PUBLIC_DIRECTUS_URL =
   env('PUBLIC_DIRECTUS_URL') ?? env('DIRECTUS_URL') ?? DIRECTUS_URL;
 

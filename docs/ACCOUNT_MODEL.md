@@ -1,6 +1,7 @@
-# 16 — Account model (v4.2): one account, opt-in public roles
+# Account model: one account, opt-in public roles
 
-Applied to production 2026-07-06 via `scripts/migrations/v4-account-model.mjs` (idempotent).
+Applied to production on July 6, 2026. The current collection structure is captured in
+`backend/snapshot.yaml`; role and policy changes are administered in Directus.
 
 ## The model
 
@@ -48,9 +49,8 @@ lets a Contributor edit only their **own** profile (`authors.update` is scoped t
 `user = $CURRENT_USER`). Without it, that permission matches nothing.
 
 > Reconciliation note (2026-07-06): the two profiles that predate the `user` field —
-> `maria-khan` and `syed-atef-alvi` — were linked to their accounts by
-> `scripts/migrations/v4-account-model.mjs` (`linkKnownAuthors`). New profiles get `user` set by the
-> admin at approval time.
+> `maria-khan` and `syed-atef-alvi` — were linked to their accounts during the account
+> model migration. New profiles get `user` set by the admin at approval time.
 
 ## Admin runbook (v4.3, 2026-07-07)
 
@@ -100,15 +100,13 @@ image-grid), KaTeX output, and Shiki inline styles.
   the only service account (Guide Server role, holder of DIRECTUS_SERVICE_TOKEN).
 - Learner sessions still have zero collection access (Astro's Guide Server token gates
   everything); Google login/session handling untouched.
-- Removed the empty duplicate "Guide Reader" role/policy (live learners use
-  `guide_reader`, per `GUIDE_READER_ROLE_ID` / `AUTH_GOOGLE_DEFAULT_ROLE_ID`);
-  `v4-guides-schema.mjs` now adopts `guide_reader` instead of recreating the dup.
+- Removed the empty duplicate "Guide Reader" role/policy; live learners use
+  `guide_reader`, per `GUIDE_READER_ROLE_ID` / `AUTH_GOOGLE_DEFAULT_ROLE_ID`.
 
 ## Frontend contract
 
 - Team pages (`/dream-team`, `[slug]`, homepage strip, related) filter
   `dream_team = true` (`lib/repositories/authors.ts` `TEAM`).
 - Bylines everywhere else still use `posts.author` → any published author profile.
-- Known follow-up (only matters once a contributor exists who is *not* on the team):
-  byline links point at `/dream-team/<slug>`, which 404s for non-team authors — make
-  the byline a plain span when `dream_team` is false.
+- Bylines link to `/dream-team/<slug>` only when the author has a public Dream Team
+  profile. Other valid authors render as plain attribution.

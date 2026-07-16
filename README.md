@@ -18,8 +18,8 @@ service (see below).
 frontend/   Astro SSR app (the site) — deploys from main via Coolify
 backend/    Directus docker-compose + custom hook extensions (author-profile,
             google-picture-url), baked into a custom image
-scripts/    Operational Node scripts + applied Directus migrations (see scripts/README.md)
-docs/       Reference documentation — start at docs/agent-workspace/00-START-HERE.md
+scripts/    Operational Node scripts (see scripts/README.md)
+docs/       Current authoring, operations, privacy, cache, and QA runbooks
 ```
 
 ## Architecture in one paragraph
@@ -30,7 +30,7 @@ field lists, `_mappers.ts` converts rows (`lib/directus/schema.ts`) to view-mode
 learner's session cookie proves identity, a least-privilege **Guide Server** service
 token does the scoped reads/writes. Public API reads are row-filtered to published at
 the Directus policy level. One account per person; Dream Team visibility and blog
-authoring are admin-granted add-ons (`docs/agent-workspace/16-ACCOUNT-MODEL.md` is the
+authoring are admin-granted add-ons (`docs/ACCOUNT_MODEL.md` is the
 runbook). Anonymous HTML is edge-cached (`s-maxage` + SWR); session pages are
 `private, no-store`.
 
@@ -64,6 +64,6 @@ prompts, models, limits) lives in the Directus `orby` collection.
 - **Deploys:** push to `main` → Coolify builds the frontend. Backend redeploys are
   manual in Coolify (hook extensions ship in the image).
 - **Smoke:** `node scripts/release-smoke.mjs https://data-dreamer.net`
-- **Guides QA:** `docs/agent-workspace/qa/guides.md`
-- **Directus schema changes:** idempotent scripts in `scripts/` → move to
-  `scripts/migrations/` once applied (convention in `scripts/README.md`).
+- **Guides QA:** `docs/GUIDES_QA.md`
+- **Directus schema:** `backend/snapshot.yaml` is the current production structure;
+  role and policy changes are administered in Directus and documented with the feature.
