@@ -29,7 +29,7 @@ export interface NavItem {
 
 const BASE_NAV: NavItem[] = [
   { label: 'Projects', href: '/projects' },
-  { label: 'Writing', href: '/blog' },
+  { label: 'Posts', href: '/blog' },
   { label: 'Dream Team', href: '/dream-team' },
 ];
 
@@ -64,7 +64,7 @@ export const HOME_HERO = {
   headlineLines: ['From messy problems', 'to working systems.'],
   subhead:
     'Data Dreamer is a professional learning lab for practical data work — exploring how data, AI, business context, and human experience shape better systems, clearer decisions, and real-world learning.',
-  primaryCta: { label: 'Read the Writing', href: '/blog' },
+  primaryCta: { label: 'Read the Posts', href: '/blog' },
   /** Until guides ship the secondary CTA points at the work (05 §1.1). */
   secondaryCta: FLAGS.GUIDES_ENABLED
     ? { label: 'Explore Guides', href: '/guides' }

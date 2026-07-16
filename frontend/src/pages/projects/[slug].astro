@@ -18,7 +18,7 @@ if (!slug) return Astro.rewrite('/404');
 const project = await projectsRepo.bySlug(slug);
 if (!project) return Astro.rewrite('/404');
 
-const { title, summary, year, role, author, tags, coverImage, links, bodyHtml } = project;
+const { title, summary, year, role, author, tags, topics, coverImage, links, bodyHtml } = project;
 // Authors without a public team profile render as plain text (no dead link).
 const authorHref = publicAuthorProfilePath(author);
 
@@ -36,10 +36,10 @@ const next = index >= 0 && index < all.length - 1 ? all[index + 1] : null;
 const jsonLd = [
   creativeWorkJsonLd({
     name: title,
-    description: summary,
-    datePublished: String(year),
+    description: project.seoDescription ?? summary,
+    datePublished: project.publishedAt?.toISOString() ?? String(year),
     url: `/projects/${project.slug}`,
-    keywords: tags,
+    keywords: [...topics.map((topic) => topic.name), ...tags],
     author: {
       name: author.name,
       url: authorHref,
@@ -54,11 +54,12 @@ const jsonLd = [
 ---
 
 <BaseLayout
-  title={title}
-  description={summary}
+  title={project.seoTitle ?? title}
+  description={project.seoDescription ?? summary}
   ogType="article"
   ogImage={{ url: `/og/projects/${project.slug}.png`, alt: title, type: 'image/png', width: 1200, height: 630 }}
   jsonLd={jsonLd}
+  noindex={project.noindex}
 >
   <article class="case container-content">
     <header class="case__head">
@@ -97,6 +98,12 @@ const jsonLd = [
           </div>
           <div><dt>Role</dt><dd>{role}</dd></div>
           <div><dt>Year</dt><dd>{year}</dd></div>
+          {topics.length > 0 && (
+            <div>
+              <dt>Topics</dt>
+              <dd><ul class="case__links">{topics.map((topic) => <li><a href={`/topics/${topic.slug}`}>{topic.name}</a></li>)}</ul></dd>
+            </div>
+          )}
           <div>
             <dt>Stack</dt>
             <dd>

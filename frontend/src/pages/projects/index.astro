@@ -1,9 +1,7 @@
 ---
 /**
- * V4-PROJ-001 — Project index (05 §5). Reads the Directus `projects` collection. Tag
- * chips are SSR `?tag=` links (work with no JS) that show a per-tag count badge and are
- * sorted by count; a client-side search box filters the visible cards by
- * title/summary/role/tags. Search + tag filter compose.
+ * Project index. Shared-topic chips are SSR `?topic=` links and technical stack tags
+ * remain searchable card metadata. The client-side search composes with topic filters.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CaseCard from '../../components/projects/CaseCard.astro';
@@ -21,19 +19,20 @@ try {
 }
 const all = sorted;
 
-const activeTag = Astro.url.searchParams.get('tag');
+const activeTopic = Astro.url.searchParams.get('topic');
 
-// Tag → count, sorted by count desc then alpha (so the busiest tags lead and the list
-// stays scannable as it grows).
-const tagCounts = new Map<string, number>();
-for (const p of all) for (const t of p.tags) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
-const tags = [...tagCounts.entries()]
-  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-  .map(([label, count]) => ({ label, count }));
+// Shared topic facets, busiest first. Technical stack tags remain project metadata.
+const topicCounts = new Map<string, { name: string; slug: string; count: number }>();
+for (const project of all) for (const topic of project.topics) {
+  const entry = topicCounts.get(topic.slug) ?? { ...topic, count: 0 };
+  entry.count += 1;
+  topicCounts.set(topic.slug, entry);
+}
+const topics = [...topicCounts.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
-const visible = activeTag ? sorted.filter((p) => p.tags.includes(activeTag)) : sorted;
+const visible = activeTopic ? sorted.filter((p) => p.topics.some((topic) => topic.slug === activeTopic)) : sorted;
 const searchOf = (p: ProjectListItem) =>
-  [p.title, p.summary, p.role, ...p.tags].join(' ').toLowerCase();
+  [p.title, p.summary, p.role, ...p.tags, ...p.topics.map((topic) => topic.name)].join(' ').toLowerCase();
 
 const jsonLd = [
   collectionPageJsonLd({
@@ -77,17 +76,17 @@ const jsonLd = [
             />
           </div>
 
-          {tags.length > 0 && (
-            <nav class="projects__filter" aria-label="Filter by project tag">
-              <a href="/projects" class:list={['tagchip', { 'is-active': !activeTag }]}>
+          {topics.length > 0 && (
+            <nav class="projects__filter" aria-label="Filter by project topic">
+              <a href="/projects" class:list={['tagchip', { 'is-active': !activeTopic }]}>
                 All <span class="tagchip__count">{all.length}</span>
               </a>
-              {tags.map((tag) => (
+              {topics.map((topic) => (
                 <a
-                  href={`/projects?tag=${encodeURIComponent(tag.label)}`}
-                  class:list={['tagchip', { 'is-active': activeTag === tag.label }]}
+                  href={`/projects?topic=${encodeURIComponent(topic.slug)}`}
+                  class:list={['tagchip', { 'is-active': activeTopic === topic.slug }]}
                 >
-                  {tag.label} <span class="tagchip__count">{tag.count}</span>
+                  {topic.name} <span class="tagchip__count">{topic.count}</span>
                 </a>
               ))}
             </nav>
@@ -95,7 +94,7 @@ const jsonLd = [
         </div>
 
         {visible.length === 0 ? (
-          <EmptyState message={`No projects tagged “${activeTag}”.`} icon="search-x" action={{ label: 'Clear filter', href: '/projects' }} />
+          <EmptyState message={`No projects in “${activeTopic}” yet.`} icon="search-x" action={{ label: 'Clear filter', href: '/projects' }} />
         ) : (
           <>
             <section class="projects__results" aria-labelledby="project-results-heading">

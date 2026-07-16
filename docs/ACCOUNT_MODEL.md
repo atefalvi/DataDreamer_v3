@@ -31,7 +31,7 @@ and an author are three hats on the **same** account, not three accounts.
 | Take guides + track progress | automatic on signup/Google (role `guide_reader`) | `directus_users` + `guide_progress` |
 | Appear on /dream-team | admin sets `authors.dream_team = true` | `authors` |
 | Byline on posts | `posts.author` → the `authors` row | `authors` |
-| Write + publish own posts in Directus | admin assigns the **Contributor** role (profile auto-created) | role/policy on `directus_users` |
+| Write and submit posts for review | admin assigns the **Contributor** role (profile auto-created) | role/policy on `directus_users` |
 | Publish anything | admin only | Administrator |
 
 ### Why two collections and not one
@@ -62,8 +62,8 @@ lets a Contributor edit only their **own** profile (`authors.update` is scoped t
    (prefilled name + slug, `dream_team=false`; an existing linked draft is published,
    an archived one is left archived).
 5. The user can now log into the Directus studio with the same Google/email account
-   and write posts — create drafts, edit, and publish **their own** posts
-   (ownership = `post.author.user`, so admin-created posts with their byline count).
+   and write posts — create drafts, edit their own work, and set `status = in_review`
+   when it is ready. Only an administrator publishes.
 6. The user sees **Author Profile** and **Posts** tabs in `/account` and can edit
    their own safe profile fields (display name, role title, bio, statement, links,
    tools, featured work, specialties) from the website.
@@ -92,8 +92,8 @@ image-grid), KaTeX output, and Shiki inline styles.
   (drafts were anonymously readable before this pass — closed now), and `authors.user`
   is excluded from the public field list.
 - Contributor permissions use row rules: ownership is `post.author.user =
-  $CURRENT_USER` (create presets `status: draft`; update/publish own; delete own
-  drafts). Own-profile edits are field-restricted at BOTH layers: the Directus policy
+  $CURRENT_USER` (create presets `status: draft`; contributors may use only `draft`
+  and `in_review`; delete own drafts). Own-profile edits are field-restricted at BOTH layers: the Directus policy
   and the `/api/account/author` allow-list (`lib/account/authorForm.ts`) — user/
   status/dream_team/slug/sort are unwritable from the website and the studio alike.
 - Seed Bot demoted from Administrator and suspended (2026-07-07); Guide User remains

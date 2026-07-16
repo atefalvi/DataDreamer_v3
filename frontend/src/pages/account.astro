@@ -326,8 +326,8 @@ const benefits = [
           <div class="author-editor__head">
             <h2 class="account__h2">Your posts</h2>
             <p class="author-editor__sub">
-              Writing happens in the Directus studio — sign in there with the same account
-              you use here. Drafts are yours; publishing your own posts is enabled.
+              Posts are written in the Directus studio — sign in there with the same account
+              you use here. Write in draft, then submit with <strong>In review</strong> when it is ready for an administrator to publish.
             </p>
           </div>
 
@@ -341,7 +341,7 @@ const benefits = [
                     <span class="account-row__title">{p.title}</span>
                   )}
                 </div>
-                <span class:list={['post-status', `post-status--${p.status}`]}>{p.status}</span>
+                <span class:list={['post-status', `post-status--${p.status}`]}>{p.status.replace('_', ' ')}</span>
                 <a href={`${directusPostsUrl}/${p.id}`} class="account-row__cta" rel="noopener" target="_blank">Edit →</a>
               </li>
             ))}
@@ -1045,6 +1045,11 @@ const benefits = [
   .post-status--draft {
     color: var(--warning, #eab308);
     border-color: color-mix(in srgb, var(--warning, #eab308) 45%, var(--border-2));
+  }
+
+  .post-status--in_review {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border-1));
   }
   /* ── v4.3 author-form additions ── */
   .account__badge--team { color: var(--success); }

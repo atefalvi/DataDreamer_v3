@@ -45,7 +45,7 @@ const checks = [
       const body = await response.text();
       assert(body.includes('<sitemapindex'), 'expected sitemap index XML');
       assert(body.includes('/sitemap-0.xml'), 'expected static sitemap reference');
-      assert(body.includes('/sitemap-posts.xml'), 'expected Writing sitemap reference');
+      assert(body.includes('/sitemap-posts.xml'), 'expected Posts sitemap reference');
       assert(body.includes('/sitemap-content.xml'), 'expected dynamic content sitemap reference');
     },
   },

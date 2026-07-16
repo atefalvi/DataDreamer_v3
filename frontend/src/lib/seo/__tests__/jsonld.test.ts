@@ -68,10 +68,10 @@ describe('jsonLd builders', () => {
       author: { '@type': 'Person', url: `${SITE_URL}/dream-team/atef-alvi` },
     });
     expect(contactPageJsonLd({})).toMatchObject({ '@type': 'ContactPage' });
-    expect(breadcrumbListJsonLd([{ label: 'Writing', href: '/blog' }, { label: 'Post' }])).toMatchObject({
+    expect(breadcrumbListJsonLd([{ label: 'Posts', href: '/blog' }, { label: 'Post' }])).toMatchObject({
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Writing', item: `${SITE_URL}/blog` },
+        { '@type': 'ListItem', position: 1, name: 'Posts', item: `${SITE_URL}/blog` },
         { '@type': 'ListItem', position: 2, name: 'Post' },
       ],
     });

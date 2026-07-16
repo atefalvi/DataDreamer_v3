@@ -27,16 +27,16 @@ function render(props: Record<string, unknown>, url = 'https://data-dreamer.net/
 describe('SeoHead', () => {
   it('emits the expected head metadata (snapshot)', async () => {
     const html = await render({
-      title: 'Writing',
-      description: 'Practical writing on data systems.',
+      title: 'Posts',
+      description: 'Practical posts on data systems.',
       ogType: 'website',
     });
     expect(html).toMatchSnapshot();
   });
 
   it('formats the title and strips the canonical query string', async () => {
-    const html = await render({ title: 'Writing', description: 'd', ogType: 'website' });
-    expect(html).toContain('<title>Writing — Data Dreamer</title>');
+    const html = await render({ title: 'Posts', description: 'd', ogType: 'website' });
+    expect(html).toContain('<title>Posts — Data Dreamer</title>');
     expect(html).toContain('href="https://data-dreamer.net/blog"');
     expect(html).not.toContain('page=2');
   });
@@ -94,7 +94,7 @@ describe('SeoHead', () => {
             author: { name: 'Atef Alvi', url: '/dream-team/atef-alvi' },
             wordCount: 120,
           }),
-          breadcrumbListJsonLd([{ label: 'Writing', href: '/blog' }, { label: 'A post' }]),
+          breadcrumbListJsonLd([{ label: 'Posts', href: '/blog' }, { label: 'A post' }]),
         ],
       }, 'https://data-dreamer.net/blog/a-post'),
       await render({

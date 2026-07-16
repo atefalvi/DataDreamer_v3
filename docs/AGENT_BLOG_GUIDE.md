@@ -12,9 +12,9 @@ frontend, including the callout syntax covered by the golden fixture at
 1. Create a new item in Directus → `posts`.
 2. Fill the required metadata fields.
 3. Write the article body in `content` using the Markdown syntax below.
-4. Keep `status = draft` until the post is reviewed.
-5. Set `status = published` when the article should appear on `/blog`, topic pages,
-   RSS, and the post sitemap.
+4. Keep `status = draft` while writing.
+5. Contributors set `status = in_review` when the post is ready. An administrator
+   completes review, sets `published_at`, and changes it to `published`.
 
 The site is SSR. Published posts are available on the next request; no rebuild is
 needed for ordinary CMS edits.
@@ -32,7 +32,7 @@ Related operational docs:
 |---|---:|---|
 | `title` | Yes | Human-readable article title. Use sentence/title case, not all caps. Keep it specific and under about 80 characters. |
 | `slug` | Yes | Permanent URL segment in `kebab-case`, for example `airflow-retry-patterns`. Do not change after publishing. |
-| `status` | Yes | `draft` for work in progress, `published` for live content. |
+| `status` | Yes | `draft` while writing, `in_review` for editorial review, `published` for live content, `archived` to retire. |
 | `published_at` | Yes | Public publish date/time. Used for sorting, RSS, article meta, and sitemap `lastmod`. |
 | `excerpt` | Yes | One or two complete sentences, ideally 120-160 characters. Used on cards and as the meta description. |
 | `content` | Yes | Markdown body. Use `#` once at the top only if drafting outside Directus; the route renders the article title from metadata. |
@@ -40,15 +40,18 @@ Related operational docs:
 | `topics` | Recommended | Many-to-many topic taxonomy used for `/blog/topic/[slug]`, article chips, RSS categories, and related posts. |
 | `cover_image` | Recommended | Directus file used for article cover, cards, and per-article OG image. Add useful file description/alt text. |
 | `featured` | Optional | Makes the post eligible for featured positions on the blog/home pages. |
+| `seo_title` | Optional | Search/social title override. Keep it under 60 characters; otherwise leave blank to use `title`. |
+| `seo_description` | Optional | Search/social description override, ideally 120–160 characters; otherwise `excerpt` is used. |
+| `noindex` | Optional | Excludes a published post from search engines and XML sitemaps without hiding it from direct visitors. |
 | `series_label` | Optional | Short label for a series, for example `Pipeline Notes`. |
 | `post_number` | Optional | Numeric series/index marker when useful. |
 
 Projects are authored separately in the Directus `projects` collection. This guide
-covers Writing only.
+covers Posts only.
 
 ---
 
-## Writing Style
+## Post Style
 
 - Be direct, concrete, and technical.
 - Use precise nouns and measured claims.

@@ -83,7 +83,7 @@ export function blogJsonLd(input: { description: string; name?: string; url?: st
   return {
     '@context': 'https://schema.org',
     '@type': 'Blog',
-    name: input.name ?? `${SITE_NAME} Writing`,
+    name: input.name ?? `${SITE_NAME} Posts`,
     url: absoluteUrl(input.url ?? '/blog'),
     description: input.description,
   };

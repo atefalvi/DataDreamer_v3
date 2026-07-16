@@ -15,7 +15,7 @@ const MAX_BYTES = 300 * 1024;
 const images = [
   ['og-default.png', 1, 'Data Dreamer', 'From messy problems to working systems'],
   ['og-home.png', 2, 'Data Dreamer', 'From messy problems to working systems'],
-  ['og-blog.png', 3, 'Writing', 'Structured reflections from practical data work'],
+  ['og-blog.png', 3, 'Posts', 'Structured reflections from practical data work'],
   ['og-projects.png', 4, 'Projects', 'Proof of work and the thinking behind the build'],
   ['og-team.png', 5, 'Dream Team', 'A human map of data in the real world'],
   ['og-guides.png', 7, 'Guides', 'Learn from a path, not a pile of links'],

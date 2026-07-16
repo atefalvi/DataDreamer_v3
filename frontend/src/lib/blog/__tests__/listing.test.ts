@@ -4,11 +4,12 @@ import {
   listingPagePath,
   parsePaginationPage,
   topicPath,
-  withAuthor,
+  withListingFilters,
+  normalizeSearchQuery,
 } from '../listing';
 
-describe('writing pagination paths', () => {
-  it('builds three canonical main Writing pages without renaming /blog', () => {
+describe('post pagination paths', () => {
+  it('builds three canonical main Posts pages without renaming /blog', () => {
     expect([1, 2, 3].map(blogPath)).toEqual(['/blog', '/blog/2', '/blog/3']);
   });
 
@@ -23,9 +24,16 @@ describe('writing pagination paths', () => {
   it('selects main or topic pagination and preserves author filters', () => {
     expect(listingPagePath(undefined, 2)).toBe('/blog/2');
     expect(listingPagePath('analytics', 2)).toBe('/blog/topic/analytics/2');
-    expect(withAuthor('/blog/topic/analytics/2', 'maria-khan')).toBe(
+    expect(withListingFilters('/blog/topic/analytics/2', { author: 'maria-khan' })).toBe(
       '/blog/topic/analytics/2?author=maria-khan',
     );
+  });
+
+  it('preserves author and normalized search filters together', () => {
+    expect(withListingFilters('/blog/2', { author: 'maria-khan', search: '  data   quality  ' })).toBe(
+      '/blog/2?author=maria-khan&q=data+quality',
+    );
+    expect(normalizeSearchQuery('   ')).toBeUndefined();
   });
 
   it.each([

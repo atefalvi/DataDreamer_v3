@@ -69,7 +69,13 @@ export interface Author extends AuthorSummary {
   featuredWork: FeaturedLink[];
 }
 
-export interface PostListItem {
+export interface EditorialSeo {
+  seoTitle?: string;
+  seoDescription?: string;
+  noindex: boolean;
+}
+
+export interface PostListItem extends EditorialSeo {
   slug: string;
   title: string;
   excerpt: string;
@@ -103,7 +109,7 @@ export interface ProjectLinkRef {
   url: string;
 }
 
-export interface ProjectListItem {
+export interface ProjectListItem extends EditorialSeo {
   slug: string;
   title: string;
   summary: string;
@@ -112,8 +118,10 @@ export interface ProjectListItem {
   author: AuthorRef;
   coverImage?: ImageRef;
   tags: string[];
+  topics: TopicRef[];
   links: ProjectLinkRef[];
   featured: boolean;
+  publishedAt?: Date;
   /** Directus-managed edit timestamp, used for sitemap lastmod. */
   updatedAt?: Date;
 }
@@ -181,7 +189,7 @@ export interface GuideSection {
   items: GuideItem[];
 }
 
-export interface GuideListItem {
+export interface GuideListItem extends EditorialSeo {
   id: string;
   slug: string;
   title: string;
@@ -193,6 +201,7 @@ export interface GuideListItem {
   itemCount: number;
   sectionCount: number;
   featured: boolean;
+  publishedAt?: Date;
   /** Primary curator (card byline). */
   curator: AuthorRef;
   topics: TopicRef[];

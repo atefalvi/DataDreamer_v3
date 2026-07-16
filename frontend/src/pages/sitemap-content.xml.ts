@@ -39,7 +39,7 @@ export async function GET(_context: APIContext) {
     lastmod: item.updatedAt,
   }));
   appendSettled(entries, results[3], 'topics', (item) => ({
-    path: `/blog/topic/${item.slug}`,
+    path: `/topics/${item.slug}`,
     lastmod: item.updatedAt,
   }));
 

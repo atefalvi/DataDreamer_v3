@@ -20,6 +20,7 @@ import type {
   GuideTopicRow,
   PostRow,
   PostTopicRow,
+  ProjectTopicRow,
   ProjectRow,
   SpecialtyRow,
   TopicRow,
@@ -56,6 +57,14 @@ export function mapTopicRef(row: TopicRow): TopicRef {
 }
 
 function mapPostTopics(topics: PostTopicRow[] | undefined): TopicRef[] {
+  if (!topics) return [];
+  return topics
+    .map((t) => asObject<TopicRow>(t.topics_id))
+    .filter((t): t is TopicRow => Boolean(t))
+    .map(mapTopicRef);
+}
+
+function mapProjectTopics(topics: ProjectTopicRow[] | undefined): TopicRef[] {
   if (!topics) return [];
   return topics
     .map((t) => asObject<TopicRow>(t.topics_id))
@@ -106,6 +115,9 @@ export function mapPostListItem(row: PostRow): PostListItem {
     featured: Boolean(row.featured),
     seriesLabel: row.series_label ?? undefined,
     postNumber: row.post_number ?? undefined,
+    seoTitle: row.seo_title ?? undefined,
+    seoDescription: row.seo_description ?? undefined,
+    noindex: Boolean(row.noindex),
   };
 }
 
@@ -130,9 +142,14 @@ export function mapProjectListItem(row: ProjectRow): ProjectListItem {
     author: mapAuthorRef(asObject<AuthorRow>(row.author)),
     coverImage: toImageRef(row.cover_image, row.cover_alt ?? row.title),
     tags: Array.isArray(row.tags) ? row.tags : [],
+    topics: mapProjectTopics(row.topics),
     links: Array.isArray(row.links) ? row.links : [],
     featured: Boolean(row.featured),
+    publishedAt: optionalDate(row.published_at),
     updatedAt: optionalDate(row.date_updated),
+    seoTitle: row.seo_title ?? undefined,
+    seoDescription: row.seo_description ?? undefined,
+    noindex: Boolean(row.noindex),
   };
 }
 
@@ -295,9 +312,13 @@ export function mapGuideListItem(
     itemCount: counts.itemCount,
     sectionCount: counts.sectionCount,
     featured: Boolean(row.featured),
+    publishedAt: optionalDate(row.published_at),
     curator: mapAuthorRef(asObject<AuthorRow>(row.author)),
     topics: mapGuideTopics(row.topics),
     updatedAt: optionalDate(row.date_updated ?? row.date_created),
+    seoTitle: row.seo_title ?? undefined,
+    seoDescription: row.seo_description ?? undefined,
+    noindex: Boolean(row.noindex),
   };
 }
 

@@ -33,7 +33,7 @@ const facts = [
       {topics.map((topic, i) => (
         <>
           {i > 0 && <span aria-hidden="true"> · </span>}
-          <a href={`/guides?topic=${topic.slug}`}>{topic.name}</a>
+          <a href={`/topics/${topic.slug}`}>{topic.name}</a>
         </>
       ))}
     </p>

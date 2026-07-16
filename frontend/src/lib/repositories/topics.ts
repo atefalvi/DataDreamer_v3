@@ -1,14 +1,13 @@
 /**
- * Topics repository. Topics are a shared taxonomy for posts (v4.0) and guides
- * (v4.1) — 08 §3.4. Post counts are tallied in JS from a lean posts query, which is
- * cheaper and simpler than aggregating across the M2M junction at this content scale.
+ * Shared taxonomy for posts, projects, and guides. Counts are tallied from lean
+ * relation-only queries so topic navigation stays useful across content types.
  */
 import { readItems } from '@directus/sdk';
-import { directus } from '../directus/client';
+import { directus, directusForService } from '../directus/client';
 import type { SdkFields as Fields } from '../directus/client';
 import { guard } from './errors';
 import { mapTopic, mapTopicRef } from './_mappers';
-import type { PostRow, TopicRow } from '../directus/schema';
+import type { GuideRow, PostRow, ProjectRow, TopicRow } from '../directus/schema';
 import type { Topic, TopicRef } from '../../types/content';
 
 const PUBLISHED = { status: { _eq: 'published' } } as const;
@@ -26,7 +25,8 @@ export interface TopicSitemapItem {
 
 /** Published topics that resolve to a non-empty public topic page. */
 export async function sitemap(): Promise<TopicSitemapItem[]> {
-  const [topics, posts] = await Promise.all([
+  const service = directusForService();
+  const [topics, posts, projects, guides] = await Promise.all([
     guard('topics.sitemap.topics', () =>
       directus.request<TopicRow[]>(
         readItems('topics', {
@@ -50,13 +50,31 @@ export async function sitemap(): Promise<TopicSitemapItem[]> {
         }),
       ),
     ),
+    guard('topics.sitemap.projects', () =>
+      directus.request<ProjectRow[]>(
+        readItems('projects', {
+          filter: { ...PUBLISHED, noindex: { _neq: true } },
+          limit: -1,
+          fields: ['published_at', 'date_updated', 'topics.topics_id.slug'] as Fields,
+        }),
+      ),
+    ),
+    guard('topics.sitemap.guides', () =>
+      service.request<GuideRow[]>(
+        readItems('guides', {
+          filter: { ...PUBLISHED, noindex: { _neq: true } },
+          limit: -1,
+          fields: ['published_at', 'date_created', 'date_updated', 'topics.topics_id.slug'] as Fields,
+        }),
+      ),
+    ),
   ]);
 
   const latestByTopic = new Map<string, Date>();
-  for (const post of posts) {
-    const changed = new Date(post.date_updated ?? post.published_at ?? 0);
+  for (const content of [...posts, ...projects, ...guides]) {
+    const changed = new Date(content.date_updated ?? content.published_at ?? ('date_created' in content ? content.date_created : null) ?? 0);
     if (Number.isNaN(changed.getTime())) continue;
-    for (const link of post.topics ?? []) {
+    for (const link of content.topics ?? []) {
       const topic = link.topics_id;
       if (!topic || typeof topic === 'string') continue;
       const current = latestByTopic.get(topic.slug);
@@ -129,8 +147,36 @@ export async function withPostCounts(): Promise<TopicWithCount[]> {
   );
 }
 
-/** Top `n` topics by post count — used by the footer (03 §2). */
+/** Topics ordered by total published content across posts, projects, and guides. */
+export async function withContentCounts(): Promise<TopicWithCount[]> {
+  const service = directusForService();
+  const [posts, projects, guides] = await Promise.all([
+    guard('topics.contentCounts.posts', () => directus.request<PostRow[]>(
+      readItems('posts', { filter: PUBLISHED, limit: -1, fields: ['topics.topics_id.name', 'topics.topics_id.slug'] as Fields }),
+    )),
+    guard('topics.contentCounts.projects', () => directus.request<ProjectRow[]>(
+      readItems('projects', { filter: PUBLISHED, limit: -1, fields: ['topics.topics_id.name', 'topics.topics_id.slug'] as Fields }),
+    )),
+    guard('topics.contentCounts.guides', () => service.request<GuideRow[]>(
+      readItems('guides', { filter: PUBLISHED, limit: -1, fields: ['topics.topics_id.name', 'topics.topics_id.slug'] as Fields }),
+    )),
+  ]);
+
+  const tally = new Map<string, TopicWithCount>();
+  for (const content of [...posts, ...projects, ...guides]) {
+    for (const link of content.topics ?? []) {
+      const topic = link.topics_id;
+      if (!topic || typeof topic === 'string') continue;
+      const current = tally.get(topic.slug);
+      if (current) current.count += 1;
+      else tally.set(topic.slug, { topic: { name: topic.name, slug: topic.slug }, count: 1 });
+    }
+  }
+  return [...tally.values()].sort((a, b) => b.count - a.count || a.topic.name.localeCompare(b.topic.name));
+}
+
+/** Top `n` topics by total content count — used by the footer. */
 export async function top(n = 5): Promise<TopicRef[]> {
-  const counts = await withPostCounts();
+  const counts = await withContentCounts();
   return counts.slice(0, n).map((c) => c.topic);
 }

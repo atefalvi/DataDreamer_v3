@@ -69,7 +69,8 @@ try {
 const jsonLd = [
   creativeWorkJsonLd({
     name: guide.title,
-    description: guide.summary,
+    description: guide.seoDescription ?? guide.summary,
+    datePublished: guide.publishedAt?.toISOString(),
     url: `/guides/${guide.slug}`,
     keywords: guide.topics.map((t) => t.name),
     image: guide.coverImage?.src,
@@ -87,11 +88,12 @@ const jsonLd = [
 ---
 
 <BaseLayout
-  title={guide.title}
-  description={guide.summary}
+  title={guide.seoTitle ?? guide.title}
+  description={guide.seoDescription ?? guide.summary}
   ogType="article"
   ogImage={guide.coverImage ? { url: guide.coverImage.src, alt: guide.coverImage.alt } : { url: '/og/og-guides.png' }}
   jsonLd={jsonLd}
+  noindex={guide.noindex}
 >
   <article class="guide container-content">
     <GuideHero guide={guide} />

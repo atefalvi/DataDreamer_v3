@@ -5,6 +5,7 @@ export const BLOG_PAGE_SIZE = 12;
 
 export interface BlogListing {
   activeAuthor?: string;
+  activeSearch?: string;
   activeTopic?: Topic;
   authors: AuthorSummary[];
   featured: PostListItem | null;
@@ -16,6 +17,7 @@ export interface BlogListing {
 export interface BlogListingInput {
   author?: string;
   page?: number;
+  search?: string;
   topic?: string;
 }
 
@@ -23,6 +25,7 @@ export function emptyBlogListing(input: BlogListingInput = {}): BlogListing {
   const page = Math.max(1, input.page ?? 1);
   return {
     activeAuthor: input.author,
+    activeSearch: normalizeSearchQuery(input.search),
     authors: [],
     featured: null,
     page: { items: [], page, pageSize: BLOG_PAGE_SIZE, hasMore: false },
@@ -33,16 +36,18 @@ export function emptyBlogListing(input: BlogListingInput = {}): BlogListing {
 
 export async function loadBlogListing(input: BlogListingInput = {}): Promise<BlogListing> {
   const page = Math.max(1, input.page ?? 1);
+  const search = normalizeSearchQuery(input.search);
   const [postPage, topics, authors, featured, activeTopic] = await Promise.all([
     postsRepo.list({
       author: input.author,
       page,
       pageSize: BLOG_PAGE_SIZE,
+      search,
       topic: input.topic,
     }),
     topicsRepo.withPostCounts(),
     authorsRepo.allWithCounts(),
-    input.topic || input.author || page > 1 ? Promise.resolve(null) : postsRepo.featuredOrLatest(),
+    input.topic || input.author || search || page > 1 ? Promise.resolve(null) : postsRepo.featuredOrLatest(),
     input.topic ? topicsRepo.bySlug(input.topic) : Promise.resolve(null),
   ]);
 
@@ -51,6 +56,7 @@ export async function loadBlogListing(input: BlogListingInput = {}): Promise<Blo
 
   return {
     activeAuthor: input.author,
+    activeSearch: search,
     activeTopic: activeTopic ?? undefined,
     authors: authors.filter((author) => author.postCount > 0),
     featured,
@@ -80,8 +86,22 @@ export function listingPagePath(topic: string | undefined, page: number): string
   return topic ? topicPath(topic, page) : blogPath(page);
 }
 
-export function withAuthor(path: string, author?: string): string {
-  if (!author) return path;
-  const params = new URLSearchParams({ author });
-  return `${path}?${params.toString()}`;
+export interface ListingFilters {
+  author?: string;
+  search?: string;
+}
+
+export function withListingFilters(path: string, filters: ListingFilters): string {
+  const params = new URLSearchParams();
+  if (filters.author) params.set('author', filters.author);
+  const search = normalizeSearchQuery(filters.search);
+  if (search) params.set('q', search);
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
+}
+
+/** Trim, collapse whitespace, and cap public search input before sending it to Directus. */
+export function normalizeSearchQuery(value: string | undefined): string | undefined {
+  const normalized = value?.trim().replace(/\s+/g, ' ').slice(0, 100);
+  return normalized || undefined;
 }

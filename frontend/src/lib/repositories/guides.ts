@@ -42,6 +42,10 @@ const GUIDE_CARD_FIELDS = [
   'sort',
   'date_created',
   'date_updated',
+  'published_at',
+  'seo_title',
+  'seo_description',
+  'noindex',
   'cover_image.id',
   'cover_image.width',
   'cover_image.height',
@@ -174,7 +178,7 @@ export async function sitemap(limit = 1000): Promise<GuideSitemapItem[]> {
   const rows = await guard('guides.sitemap', () =>
     client.request<GuideRow[]>(
       readItems('guides', {
-        filter: PUBLISHED,
+        filter: { ...PUBLISHED, noindex: { _neq: true } },
         sort: ['slug'],
         limit,
         fields: ['slug', 'date_updated', 'date_created'] as Fields,

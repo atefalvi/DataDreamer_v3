@@ -20,7 +20,13 @@ export const PROJECT_LIST_FIELDS = [
   'featured',
   'sort',
   'date_updated',
+  'published_at',
+  'seo_title',
+  'seo_description',
+  'noindex',
   'tags',
+  'topics.topics_id.name',
+  'topics.topics_id.slug',
   'links',
   'cover_image.id',
   'cover_image.width',
@@ -42,14 +48,22 @@ const PUBLISHED = { status: { _eq: 'published' } } as const;
 
 // SDK dotted-field arrays aren't generically typeable; cast at the call site only.
 
-/** All published projects in display order (sort asc, then newest year). */
-export async function list(): Promise<ProjectListItem[]> {
+export interface ProjectListQuery {
+  topic?: string;
+  limit?: number;
+}
+
+/** Published projects in display order, optionally restricted to a shared topic. */
+export async function list(query: ProjectListQuery = {}): Promise<ProjectListItem[]> {
+  const filter = query.topic
+    ? { ...PUBLISHED, topics: { topics_id: { slug: { _eq: query.topic } } } }
+    : PUBLISHED;
   const rows = await guard('projects.list', () =>
     directus.request<ProjectRow[]>(
       readItems('projects', {
-        filter: PUBLISHED,
+        filter,
         sort: ['sort', '-year'],
-        limit: -1,
+        limit: query.limit ?? -1,
         fields: PROJECT_LIST_FIELDS as Fields,
       }),
     ),
@@ -82,7 +96,7 @@ export async function sitemap(): Promise<ProjectSitemapItem[]> {
   const rows = await guard('projects.sitemap', () =>
     directus.request<ProjectRow[]>(
       readItems('projects', {
-        filter: PUBLISHED,
+        filter: { ...PUBLISHED, noindex: { _neq: true } },
         sort: ['slug'],
         limit: 1000,
         fields: ['slug', 'date_updated'] as Fields,

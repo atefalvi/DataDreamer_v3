@@ -3,7 +3,7 @@
 An editorial data-intelligence studio site — Astro 5 SSR + Directus 12, deployed on a
 homelab through Coolify behind Cloudflare, live at **[data-dreamer.net](https://data-dreamer.net)**.
 
-The surface: homepage, writing (rich markdown blocks: callouts, checklists, metrics,
+The surface: homepage, posts (rich markdown blocks: callouts, checklists, metrics,
 KaTeX formulas, image grids), project case studies, Dream Team profiles with a
 specialty network graph, login-gated **Field Guides** (email + Google SSO, progress
 tracking), a self-service contributor account area, dynamic per-post/project OG
@@ -65,5 +65,6 @@ prompts, models, limits) lives in the Directus `orby` collection.
   manual in Coolify (hook extensions ship in the image).
 - **Smoke:** `node scripts/release-smoke.mjs https://data-dreamer.net`
 - **Guides QA:** `docs/GUIDES_QA.md`
+- **CMS editorial workflow:** `docs/CMS_EDITORIAL_WORKFLOW.md`
 - **Directus schema:** `backend/snapshot.yaml` is the current production structure;
   role and policy changes are administered in Directus and documented with the feature.

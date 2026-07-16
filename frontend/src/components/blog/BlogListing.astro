@@ -7,7 +7,7 @@ import PostCard from './PostCard.astro';
 import {
   listingPagePath,
   topicPath,
-  withAuthor,
+  withListingFilters,
   type BlogListing as BlogListingModel,
 } from '../../lib/blog/listing';
 
@@ -29,14 +29,15 @@ interface Props {
 const { breadcrumbs, clearHref = '/blog', intro, kicker, listing, pageBasePath, title } = Astro.props;
 const activeTopic = listing.activeTopic?.slug;
 const activeAuthor = listing.activeAuthor;
+const activeSearch = listing.activeSearch;
 const showAuthorFilter = listing.authors.length > 1;
-const hasFilters = Boolean(activeTopic || activeAuthor);
+const hasFilters = Boolean(activeTopic || activeAuthor || activeSearch);
 const hasPosts = listing.featured || listing.posts.length > 0;
 const nextHref = listing.page.hasMore
-  ? withAuthor(listingPagePath(activeTopic, listing.page.page + 1), activeAuthor)
+  ? withListingFilters(listingPagePath(activeTopic, listing.page.page + 1), { author: activeAuthor, search: activeSearch })
   : undefined;
 const prevHref = listing.page.page > 1
-  ? withAuthor(listingPagePath(activeTopic, listing.page.page - 1), activeAuthor)
+  ? withListingFilters(listingPagePath(activeTopic, listing.page.page - 1), { author: activeAuthor, search: activeSearch })
   : undefined;
 ---
 
@@ -63,20 +64,24 @@ const prevHref = listing.page.page > 1
 
   <div class="blog-listing__filters">
     <nav class="blog-listing__topics" aria-label="Topics">
-      <Chip label="All writing" href={withAuthor('/blog', activeAuthor)} selected={!activeTopic} />
+      <Chip label="All posts" href={withListingFilters('/blog', { author: activeAuthor, search: activeSearch })} selected={!activeTopic} />
       {listing.topics.map(({ topic, count }) => (
         <Chip
           label={`${topic.name} ${count}`}
-          href={withAuthor(topicPath(topic.slug), activeAuthor)}
+          href={withListingFilters(topicPath(topic.slug), { author: activeAuthor, search: activeSearch })}
           selected={activeTopic === topic.slug}
         />
       ))}
     </nav>
 
-    {showAuthorFilter && (
-      <form class="blog-listing__author-filter" method="get" action={pageBasePath} data-author-filter>
-        <label for="blog-author-filter">Author</label>
-        <div class="blog-listing__author-control">
+    <form class="blog-listing__query-filter" method="get" action={pageBasePath} data-author-filter>
+      <div class="blog-listing__search-control">
+        <label for="blog-search">Search posts</label>
+        <input id="blog-search" name="q" type="search" value={activeSearch} maxlength="100" placeholder="Search titles, summaries, and topics" />
+      </div>
+      {showAuthorFilter && (
+        <div class="blog-listing__author-filter">
+          <label for="blog-author-filter">Author</label>
           <select id="blog-author-filter" name="author" data-author-select>
             <option value="">All authors</option>
             {listing.authors.map((author) => (
@@ -85,22 +90,21 @@ const prevHref = listing.page.page > 1
               </option>
             ))}
           </select>
-          {/* No-JS fallback; hidden when JS auto-submits on change. */}
-          <Button type="submit" variant="secondary" size="sm" class="blog-listing__apply">Apply</Button>
         </div>
-      </form>
-    )}
+      )}
+      <Button type="submit" variant="secondary" size="sm">Search</Button>
+    </form>
   </div>
 
   {hasPosts ? (
-    <div class="blog-listing__posts" aria-label="Writing">
+    <div class="blog-listing__posts" aria-label="Posts">
       {listing.posts.map((post) => (
         <PostCard post={post} variant="card" />
       ))}
     </div>
   ) : (
     <EmptyState
-      message={hasFilters ? 'No writing matches this filter yet.' : 'Published writing will appear here once it is available.'}
+      message={hasFilters ? 'No posts match this filter yet.' : 'Published posts will appear here once they are available.'}
       icon="pen-line"
       action={hasFilters ? { label: 'Clear filter', href: clearHref } : undefined}
     />
@@ -189,26 +193,29 @@ const prevHref = listing.page.page > 1
     flex: 0 0 auto;
   }
 
-  .blog-listing__author-filter {
+  .blog-listing__query-filter {
+    display: grid;
+    gap: var(--space-3);
+    align-items: end;
+  }
+
+  .blog-listing__author-filter,
+  .blog-listing__search-control {
     display: grid;
     gap: var(--space-2);
     align-content: start;
   }
 
-  .blog-listing__author-filter label {
+  .blog-listing__author-filter label,
+  .blog-listing__search-control label {
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     text-transform: uppercase;
   }
 
-  .blog-listing__author-control {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-
-  .blog-listing__author-filter select {
+  .blog-listing__author-filter select,
+  .blog-listing__search-control input {
     min-height: 2.75rem;
     min-width: min(100%, 15rem);
     padding-inline: var(--space-3);
@@ -217,11 +224,6 @@ const prevHref = listing.page.page > 1
     background: var(--bg-1);
     color: var(--text-1);
     font: inherit;
-  }
-
-  /* JS auto-submits on change, so the Apply button is a no-JS fallback only. */
-  :global(html:not(.no-js)) .blog-listing__author-control :global(.blog-listing__apply) {
-    display: none;
   }
 
   .blog-listing__posts {
@@ -252,6 +254,10 @@ const prevHref = listing.page.page > 1
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: end;
     }
+
+    .blog-listing__query-filter {
+      grid-template-columns: minmax(16rem, 1fr) minmax(10rem, auto) auto;
+    }
   }
 
   @media (max-width: 47.999rem) {
@@ -269,8 +275,7 @@ const prevHref = listing.page.page > 1
       line-height: var(--lh-lg);
     }
 
-    .blog-listing__author-filter div,
-    .blog-listing__author-filter :global(.ui-button) {
+    .blog-listing__query-filter :global(.ui-button) {
       width: 100%;
     }
 
@@ -293,7 +298,7 @@ const prevHref = listing.page.page > 1
 </style>
 
 <script>
-  // Auto-submit the author filter on change (the Apply button is a no-JS fallback).
+  // Auto-submit the author filter; search remains an explicit action.
   const select = document.querySelector<HTMLSelectElement>('[data-author-select]');
   select?.addEventListener('change', () => select.form?.submit());
 </script>

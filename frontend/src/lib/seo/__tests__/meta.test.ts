@@ -4,7 +4,7 @@ import { resolveOgImage } from '../og';
 
 describe('formatTitle', () => {
   it('appends the brand suffix to a page title', () => {
-    expect(formatTitle('Writing')).toBe('Writing — Data Dreamer');
+    expect(formatTitle('Posts')).toBe('Posts — Data Dreamer');
   });
 
   it('leaves a title that already carries the brand untouched (home)', () => {

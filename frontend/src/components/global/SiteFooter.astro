@@ -63,7 +63,7 @@ const iconFor = (name: string) => socialSvg[name] ?? socialSvg.mail;
           <h2 class="site-footer__heading">Topics</h2>
           <ul>
             {topics.map((t) => (
-              <li><a href={`/blog/topic/${t.slug}`}>{t.name}</a></li>
+              <li><a href={`/topics/${t.slug}`}>{t.name}</a></li>
             ))}
           </ul>
         </nav>

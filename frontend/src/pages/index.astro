@@ -109,16 +109,16 @@ const teamSentence =
 
   <section class="home-section home-band home-band--tint home-section--writing container-content">
     <SectionHeader
-      kicker="Latest writing"
+      kicker="Latest posts"
       title="Field notes from the messy middle of data work."
       intro="Structured reflections, practical lessons, useful tools, and lived experience from learning, building, and explaining real-world data systems."
-      action={{ label: 'All writing', href: '/blog' }}
+      action={{ label: 'All posts', href: '/blog' }}
     />
     {posts.length === 0 ? (
       <EmptyState
-        message="New writing will appear here once it is published."
+        message="New posts will appear here once they are published."
         icon="pen-line"
-        action={{ label: 'Explore writing', href: '/blog' }}
+        action={{ label: 'Explore posts', href: '/blog' }}
       />
     ) : (
       <div class="home-writing">

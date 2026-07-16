@@ -3,33 +3,37 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import BlogListing from '../../components/blog/BlogListing.astro';
 import { absoluteUrl } from '../../lib/seo/meta';
 import { blogJsonLd } from '../../lib/seo/jsonld';
-import { blogPath, emptyBlogListing, loadBlogListing, withAuthor } from '../../lib/blog/listing';
+import { blogPath, emptyBlogListing, loadBlogListing, withListingFilters } from '../../lib/blog/listing';
 
 const author = Astro.url.searchParams.get('author') || undefined;
-let listing = emptyBlogListing({ author });
+const search = Astro.url.searchParams.get('q') || undefined;
+let listing = emptyBlogListing({ author, search });
 try {
-  listing = await loadBlogListing({ author });
+  listing = await loadBlogListing({ author, search });
 } catch (error) {
   console.error('[blog] listing unavailable:', error instanceof Error ? error.message : error);
 }
 const description =
   'Structured reflections, practical lessons, useful tools, and lived experience from learning, building, and explaining data systems in the real world.';
-const nextHref = listing.page.hasMore ? absoluteUrl(withAuthor(blogPath(2), author)) : undefined;
+const nextHref = listing.page.hasMore
+  ? absoluteUrl(withListingFilters(blogPath(2), { author, search }))
+  : undefined;
 const jsonLd = [blogJsonLd({ description })];
 ---
 
 <BaseLayout
-  title="Writing"
+  title="Posts"
   description={description}
   ogType="website"
   ogImage={{ url: '/og/og-blog.png' }}
   alternateFeeds={[{ href: absoluteUrl('/rss.xml'), title: 'Data Dreamer RSS', type: 'application/rss+xml' }]}
   pagination={nextHref ? { next: nextHref } : undefined}
   jsonLd={jsonLd}
+  noindex={Boolean(listing.activeSearch)}
 >
   <BlogListing
-    kicker="Writing"
-    title="Writing"
+    kicker="Posts"
+    title="Posts"
     intro={description}
     listing={listing}
     pageBasePath="/blog"

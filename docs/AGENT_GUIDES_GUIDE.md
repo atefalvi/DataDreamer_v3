@@ -25,7 +25,8 @@ Directus policies and the application service layer.
 4. For each item, fill the field that matches its `type` (see the type table) **and**
    write the curator annotations (`why_included`, `focus_on`, `notes`) — those are the
    point of the guide.
-5. Keep `status = draft` while building. Set `status = published` to go live.
+5. Keep `status = draft` while building, move it to `in_review` when ready, and have
+   an administrator set `status = published` to go live.
 
 The site is SSR — a published guide appears on `/guides` and `/guides/<slug>` on the
 next request, no rebuild needed.
@@ -38,8 +39,12 @@ next request, no rebuild needed.
 |---|---:|---|
 | `title` | Yes | Specific, sentence case, ≤ ~80 chars. e.g. "Learn Airflow the real way". |
 | `slug` | Yes | Permanent `kebab-case` URL segment. Don't change after publishing. |
-| `status` | Yes | `draft` while building, `published` to go live, `archived` to retire. |
+| `status` | Yes | `draft` while building, `in_review` for review, `published` to go live, `archived` to retire. |
+| `published_at` | At publish | Original public launch date. Preserve it when updating the guide. |
 | `summary` | Yes | One or two sentences (≤ ~200 chars). Used on cards + as the meta description. |
+| `seo_title` | No | Search/social override. Leave empty to use `title`. |
+| `seo_description` | No | Search/social override. Leave empty to use `summary`. |
+| `noindex` | No | Excludes the page from indexing and XML sitemaps; it does not make it private. |
 | `cover_image` | No | ≥ 1200px wide. Optional — a tasteful generated cover is shown if omitted. |
 | `difficulty` | Yes | `beginner` / `intermediate` / `advanced`. A filter facet on the catalogue. |
 | `estimated_duration_minutes` | No | Your honest total estimate, in minutes. Not auto-summed. |
@@ -112,5 +117,6 @@ least `why_included` on most items — that judgement is what people come for.
 - [ ] `summary`, `why_this_path`, and `difficulty` are filled — they're the public pitch.
 - [ ] `status = published` only when you'd happily share the link.
 
-Related: `docs/GUIDES_QA.md` for the access and validation runbook, and
+Related: `docs/GUIDES_QA.md` for the access and validation runbook,
+`docs/CMS_EDITORIAL_WORKFLOW.md` for the shared publishing model, and
 `backend/snapshot.yaml` for the current collection structure.

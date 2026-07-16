@@ -21,6 +21,9 @@ export const POST_LIST_FIELDS = [
   'excerpt',
   'published_at',
   'date_updated',
+  'seo_title',
+  'seo_description',
+  'noindex',
   'featured',
   'series_label',
   'post_number',
@@ -51,6 +54,7 @@ const PUBLISHED = { status: { _eq: 'published' } } as const;
 export interface PostListQuery {
   topic?: string;
   author?: string;
+  search?: string;
   page?: number;
   pageSize?: number;
 }
@@ -70,6 +74,7 @@ export async function list(query: PostListQuery = {}): Promise<PostListPage> {
         sort: ['-published_at'],
         limit: pageSize + 1, // over-fetch by one to detect another page
         offset: (page - 1) * pageSize,
+        search: query.search,
         fields: POST_LIST_FIELDS as Fields,
       }),
     ),
@@ -98,7 +103,7 @@ export async function sitemap(limit = 1000): Promise<PostListItem[]> {
   const rows = await guard('posts.sitemap', () =>
     directus.request<PostRow[]>(
       readItems('posts', {
-        filter: PUBLISHED,
+        filter: { ...PUBLISHED, noindex: { _neq: true } },
         sort: ['-published_at'],
         limit,
         fields: POST_LIST_FIELDS as Fields,

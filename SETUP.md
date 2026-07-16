@@ -158,7 +158,7 @@ Useful local routes:
 | Route | Purpose |
 |---|---|
 | `/` | Homepage |
-| `/blog` | Writing index |
+| `/blog` | Posts index |
 | `/blog/topic/[slug]` | Topic filter |
 | `/projects` | Project index |
 | `/guides` | Field Guide catalogue |
@@ -176,10 +176,10 @@ Useful local routes:
 
 | Collection | Purpose |
 |---|---|
-| `posts` | Published writing, Markdown body, cover image, featured flag. |
+| `posts` | Published posts, Markdown body, cover image, featured flag. |
 | `authors` | Dream Team profiles and post authors. |
 | `specialties` | Author expertise taxonomy. |
-| `topics` | Shared writing taxonomy. |
+| `topics` | Shared post and guide taxonomy. |
 | `projects` | Project case studies. |
 | `guides` | Field Guide metadata and curator relationships. |
 | `guide_sections` | Ordered groups within guides. |
@@ -219,6 +219,8 @@ Useful local routes:
 
 `site_settings`, `home_settings`, and `about` are retired v3 collections and are not
 frontend data sources. The authoritative current schema is `backend/snapshot.yaml`.
+Editorial statuses, shared topics, SEO fields, and publishing responsibilities are
+documented in `docs/CMS_EDITORIAL_WORKFLOW.md`.
 
 ---
 

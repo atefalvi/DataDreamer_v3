@@ -133,9 +133,9 @@ const jsonLd = [
     </div>
 
     {posts.length > 0 && (
-      <section class="author__writing" aria-label={`Writing by ${author.name}`}>
+      <section class="author__writing" aria-label={`Posts by ${author.name}`}>
         <p class="kicker">{posts.length} post{posts.length === 1 ? '' : 's'}</p>
-        <h2>Writing</h2>
+        <h2>Posts</h2>
         <div class="author__posts">
           {posts.map((post) => <PostCard post={post} variant="card" />)}
         </div>

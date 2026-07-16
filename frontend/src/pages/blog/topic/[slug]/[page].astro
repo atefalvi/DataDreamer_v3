@@ -7,7 +7,7 @@ import {
   loadBlogListing,
   parsePaginationPage,
   topicPath,
-  withAuthor,
+  withListingFilters,
 } from '../../../../lib/blog/listing';
 
 const slug = Astro.params.slug;
@@ -16,16 +16,17 @@ if (!slug || !page) return Astro.rewrite('/404');
 if (page === 1) return Astro.redirect(topicPath(slug), 301);
 
 const author = Astro.url.searchParams.get('author') || undefined;
-const listing = await loadBlogListing({ author, topic: slug, page });
+const search = Astro.url.searchParams.get('q') || undefined;
+const listing = await loadBlogListing({ author, search, topic: slug, page });
 const topic = listing.activeTopic;
 
 if (!topic || listing.page.items.length === 0) return Astro.rewrite('/404');
 
-const description = topic.description || `Practical writing from Data Dreamer about ${topic.name}.`;
+const description = topic.description || `Practical posts from Data Dreamer about ${topic.name}.`;
 const canonical = absoluteUrl(topicPath(topic.slug, page));
-const prev = absoluteUrl(withAuthor(topicPath(topic.slug, page - 1), author));
+const prev = absoluteUrl(withListingFilters(topicPath(topic.slug, page - 1), { author, search }));
 const next = listing.page.hasMore
-  ? absoluteUrl(withAuthor(topicPath(topic.slug, page + 1), author))
+  ? absoluteUrl(withListingFilters(topicPath(topic.slug, page + 1), { author, search }))
   : undefined;
 const jsonLd = [
   collectionPageJsonLd({
@@ -34,12 +35,12 @@ const jsonLd = [
     description,
     isPartOf: {
       '@type': 'Blog',
-      name: 'Data Dreamer Writing',
+      name: 'Data Dreamer Posts',
       url: absoluteUrl('/blog'),
     },
   }),
   breadcrumbListJsonLd([
-    { label: 'Writing', href: '/blog' },
+    { label: 'Posts', href: '/blog' },
     { label: topic.name, href: topicPath(topic.slug) },
     { label: `Page ${page}` },
   ]),
@@ -55,10 +56,11 @@ const jsonLd = [
   alternateFeeds={[{ href: absoluteUrl('/rss.xml'), title: 'Data Dreamer RSS', type: 'application/rss+xml' }]}
   pagination={{ prev, next }}
   jsonLd={jsonLd}
+  noindex={Boolean(listing.activeSearch)}
 >
   <BlogListing
     breadcrumbs={[
-      { label: 'Writing', href: '/blog' },
+      { label: 'Posts', href: '/blog' },
       { label: topic.name, href: topicPath(topic.slug) },
       { label: `Page ${page}` },
     ]}

@@ -4,9 +4,12 @@ import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 // `directus.request`, which we stub per test.
 vi.mock('../../directus/client', () => ({
   directus: { request: vi.fn() },
+  directusForService: () => ({ request: directusServiceRequest }),
   PUBLIC_DIRECTUS_URL: 'https://cms.test',
   DIRECTUS_URL: 'https://cms.test',
 }));
+
+const { directusServiceRequest } = vi.hoisted(() => ({ directusServiceRequest: vi.fn() }));
 
 import { directus } from '../../directus/client';
 import * as postsRepo from '../posts';
@@ -21,6 +24,7 @@ const request = directus.request as unknown as Mock;
 
 beforeEach(() => {
   request.mockReset();
+  directusServiceRequest.mockReset();
 });
 
 function postRow(overrides: Partial<PostRow> = {}): PostRow {
@@ -308,8 +312,24 @@ describe('topicsRepo.withPostCounts', () => {
   });
 });
 
+describe('topicsRepo.withContentCounts', () => {
+  it('combines post, project, and guide usage into one shared taxonomy count', async () => {
+    request
+      .mockResolvedValueOnce([{ topics: [{ topics_id: { name: 'Data', slug: 'data' } }] }])
+      .mockResolvedValueOnce([{ topics: [{ topics_id: { name: 'Data', slug: 'data' } }] }]);
+    directusServiceRequest.mockResolvedValueOnce([
+      { topics: [{ topics_id: { name: 'AI', slug: 'ai' } }] },
+    ]);
+
+    await expect(topicsRepo.withContentCounts()).resolves.toEqual([
+      { topic: { name: 'Data', slug: 'data' }, count: 2 },
+      { topic: { name: 'AI', slug: 'ai' }, count: 1 },
+    ]);
+  });
+});
+
 describe('topicsRepo.sitemap', () => {
-  it('includes only published topics with published posts and uses the latest change', async () => {
+  it('includes only topics with public content and uses the latest change across types', async () => {
     request
       .mockResolvedValueOnce([
         { slug: 'analytics', date_updated: '2026-07-01T00:00:00Z' },
@@ -321,7 +341,9 @@ describe('topicsRepo.sitemap', () => {
           date_updated: '2026-07-12T00:00:00Z',
           topics: [{ topics_id: { slug: 'analytics' } }],
         },
-      ]);
+      ])
+      .mockResolvedValueOnce([]);
+    directusServiceRequest.mockResolvedValueOnce([]);
     const topics = await topicsRepo.sitemap();
     expect(topics).toEqual([
       { slug: 'analytics', updatedAt: new Date('2026-07-12T00:00:00Z') },

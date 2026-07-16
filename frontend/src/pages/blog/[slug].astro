@@ -9,7 +9,7 @@ import ReadingProgress from '../../components/blog/ReadingProgress.astro';
 import { authorsRepo, postsRepo } from '../../lib/repositories';
 import { absoluteUrl } from '../../lib/seo/meta';
 import { blogPostingJsonLd, breadcrumbListJsonLd, wordCountFromHtml } from '../../lib/seo/jsonld';
-import { blogPath, emptyBlogListing, loadBlogListing, parsePaginationPage, withAuthor, type BlogListing as BlogListingData } from '../../lib/blog/listing';
+import { blogPath, emptyBlogListing, loadBlogListing, parsePaginationPage, withListingFilters, type BlogListing as BlogListingData } from '../../lib/blog/listing';
 import { directusSrcset } from '../../lib/images';
 import { publicAuthorProfilePath, writingAuthorPath } from '../../lib/authors/publicProfile';
 import '../../styles/prose.css';
@@ -56,9 +56,10 @@ if (isPagination) {
 
   view = 'pagination';
   const activeAuthor = Astro.url.searchParams.get('author') || undefined;
-  listing = emptyBlogListing({ author: activeAuthor, page: numericPage });
+  const activeSearch = Astro.url.searchParams.get('q') || undefined;
+  listing = emptyBlogListing({ author: activeAuthor, search: activeSearch, page: numericPage });
   try {
-    listing = await loadBlogListing({ author: activeAuthor, page: numericPage });
+    listing = await loadBlogListing({ author: activeAuthor, search: activeSearch, page: numericPage });
   } catch (error) {
     console.error('[blog] paginated listing unavailable:', error instanceof Error ? error.message : error);
   }
@@ -67,9 +68,9 @@ if (isPagination) {
     return Astro.rewrite('/404');
   }
 
-  paginationPrev = absoluteUrl(withAuthor(blogPath(numericPage - 1), activeAuthor));
+  paginationPrev = absoluteUrl(withListingFilters(blogPath(numericPage - 1), { author: activeAuthor, search: activeSearch }));
   paginationNext = listing.page.hasMore
-    ? absoluteUrl(withAuthor(blogPath(numericPage + 1), activeAuthor))
+    ? absoluteUrl(withListingFilters(blogPath(numericPage + 1), { author: activeAuthor, search: activeSearch }))
     : undefined;
 } else {
   post = await postsRepo.bySlug(slug);
@@ -112,7 +113,7 @@ if (isPagination) {
   };
   const articleJsonLd = blogPostingJsonLd({
     headline: post.title,
-    description: post.excerpt,
+    description: post.seoDescription ?? post.excerpt,
     url: canonical,
     datePublished: post.publishedAt.toISOString(),
     dateModified: post.updatedAt?.toISOString(),
@@ -126,7 +127,7 @@ if (isPagination) {
     wordCount: wordCountFromHtml(post.bodyHtml),
   });
   const breadcrumbJsonLd = breadcrumbListJsonLd([
-    { label: 'Writing', href: '/blog' },
+    { label: 'Posts', href: '/blog' },
     { label: post.title },
   ]);
   jsonLd = [articleJsonLd, breadcrumbJsonLd];
@@ -138,17 +139,18 @@ if (isPagination) {
 
 {view === 'pagination' && listing ? (
   <BaseLayout
-    title={`Writing page ${numericPage}`}
+    title={`Posts page ${numericPage}`}
     description={description}
     canonical={absoluteUrl(blogPath(numericPage))}
     ogType="website"
     ogImage={{ url: '/og/og-blog.png' }}
     alternateFeeds={[{ href: absoluteUrl('/rss.xml'), title: 'Data Dreamer RSS', type: 'application/rss+xml' }]}
     pagination={{ prev: paginationPrev, next: paginationNext }}
+    noindex={Boolean(listing.activeSearch)}
   >
     <BlogListing
-      kicker="Writing"
-      title="Writing"
+      kicker="Posts"
+      title="Posts"
       intro={description}
       listing={listing}
       pageBasePath="/blog"
@@ -156,8 +158,8 @@ if (isPagination) {
   </BaseLayout>
 ) : post && (
   <BaseLayout
-    title={post.title}
-    description={post.excerpt}
+    title={post.seoTitle ?? post.title}
+    description={post.seoDescription ?? post.excerpt}
     canonical={canonical}
     ogType="article"
     ogImage={ogImage}
@@ -168,13 +170,14 @@ if (isPagination) {
       tags: topicNames,
     }}
     jsonLd={jsonLd}
+    noindex={post.noindex}
   >
     <ReadingProgress />
 
     <article class="article-page" data-article>
       <header class="article-hero">
         <div class="article-hero__meta">
-          <a href="/blog">Writing</a>
+          <a href="/blog">Posts</a>
           {post.seriesLabel && <span>{post.seriesLabel}</span>}
           <time datetime={post.publishedAt.toISOString()}>{shortDate}</time>
         </div>
@@ -204,7 +207,7 @@ if (isPagination) {
             {post.topics.length > 0 && (
               <ul aria-label="Topics">
                 {post.topics.map((topic) => (
-                  <li><a href={`/blog/topic/${topic.slug}`}>{topic.name}</a></li>
+                  <li><a href={`/topics/${topic.slug}`}>{topic.name}</a></li>
                 ))}
               </ul>
             )}

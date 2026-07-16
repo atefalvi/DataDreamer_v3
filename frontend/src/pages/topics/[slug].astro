@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/blog/PostCard.astro';
+import CaseCard from '../../components/projects/CaseCard.astro';
+import GuideCard from '../../components/guides/GuideCard.astro';
+import Breadcrumbs from '../../components/ui/Breadcrumbs.astro';
+import Button from '../../components/ui/Button.astro';
+import { guidesRepo, postsRepo, projectsRepo, topicsRepo } from '../../lib/repositories';
+import { breadcrumbListJsonLd, collectionPageJsonLd } from '../../lib/seo/jsonld';
+import { absoluteUrl } from '../../lib/seo/meta';
+
+const { slug } = Astro.params;
+if (!slug) return Astro.rewrite('/404');
+
+const topic = await topicsRepo.bySlug(slug);
+if (!topic) return Astro.rewrite('/404');
+
+const [postsResult, projectsResult, guidesResult] = await Promise.allSettled([
+  postsRepo.list({ topic: slug, pageSize: 6 }),
+  projectsRepo.list({ topic: slug, limit: 6 }),
+  guidesRepo.list({ topic: slug, pageSize: 6 }),
+]);
+const posts = postsResult.status === 'fulfilled' ? postsResult.value.items : [];
+const projects = projectsResult.status === 'fulfilled' ? projectsResult.value : [];
+const guides = guidesResult.status === 'fulfilled' ? guidesResult.value.items : [];
+
+if (!posts.length && !projects.length && !guides.length) return Astro.rewrite('/404');
+
+const description = topic.description ||
+  `Explore Data Dreamer posts, projects, and guides about ${topic.name}.`;
+const jsonLd = [
+  collectionPageJsonLd({ name: `${topic.name} — Data Dreamer`, url: `/topics/${topic.slug}`, description }),
+  breadcrumbListJsonLd([{ label: 'Home', href: '/' }, { label: 'Topics' }, { label: topic.name }]),
+];
+---
+
+<BaseLayout
+  title={topic.name}
+  description={description}
+  canonical={absoluteUrl(`/topics/${topic.slug}`)}
+  ogType="website"
+  jsonLd={jsonLd}
+>
+  <div class="topic-hub container-content">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Topics' }, { label: topic.name }]} />
+    <header class="topic-hub__head">
+      <p class="kicker">Topic</p>
+      <h1>{topic.name}</h1>
+      <p>{description}</p>
+    </header>
+
+    {posts.length > 0 && (
+      <section class="topic-hub__section" aria-labelledby="topic-posts">
+        <div class="topic-hub__section-head">
+          <div><p class="kicker">Posts</p><h2 id="topic-posts">Ideas and practical lessons</h2></div>
+          <Button href={`/blog/topic/${topic.slug}`} variant="secondary" size="sm">All posts</Button>
+        </div>
+        <div class="topic-hub__grid">{posts.map((post) => <PostCard post={post} variant="card" />)}</div>
+      </section>
+    )}
+
+    {projects.length > 0 && (
+      <section class="topic-hub__section" aria-labelledby="topic-projects">
+        <div class="topic-hub__section-head">
+          <div><p class="kicker">Projects</p><h2 id="topic-projects">Proof of work</h2></div>
+          <Button href={`/projects?topic=${topic.slug}`} variant="secondary" size="sm">All projects</Button>
+        </div>
+        <div class="topic-hub__grid">{projects.map((project) => <CaseCard project={project} />)}</div>
+      </section>
+    )}
+
+    {guides.length > 0 && (
+      <section class="topic-hub__section" aria-labelledby="topic-guides">
+        <div class="topic-hub__section-head">
+          <div><p class="kicker">Guides</p><h2 id="topic-guides">Curated learning paths</h2></div>
+          <Button href={`/guides?topic=${topic.slug}`} variant="secondary" size="sm">All guides</Button>
+        </div>
+        <div class="topic-hub__grid">{guides.map((guide) => <GuideCard guide={guide} />)}</div>
+      </section>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .topic-hub { padding-block: calc(var(--nav-height) + var(--space-7)) var(--section-y); }
+  .topic-hub__head { max-width: 56rem; margin-top: var(--space-7); }
+  .topic-hub__head h1 { margin-top: var(--space-3); font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-display); }
+  .topic-hub__head > p:last-child { max-width: 58ch; margin-top: var(--space-4); color: var(--text-2); font-size: var(--fs-xl); line-height: var(--lh-xl); }
+  .topic-hub__section { margin-top: var(--section-y); }
+  .topic-hub__section-head { display: flex; align-items: end; justify-content: space-between; gap: var(--space-5); margin-bottom: var(--space-6); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-1); }
+  .topic-hub__section-head h2 { margin-top: var(--space-2); font-family: var(--font-display); font-size: var(--fs-2xl); line-height: var(--lh-2xl); }
+  .topic-hub__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); }
+  @media (max-width: 63.999rem) { .topic-hub__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 41.999rem) { .topic-hub__section-head { align-items: start; flex-direction: column; } .topic-hub__grid { grid-template-columns: 1fr; } }
+</style>

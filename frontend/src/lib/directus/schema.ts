@@ -75,6 +75,10 @@ export interface PostRow {
   content?: string | null;
   published_at?: string | null;
   date_updated?: string | null;
+  date_created?: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  noindex?: boolean | null;
   post_number?: number | null;
   series_label?: string | null;
   featured?: boolean | null;
@@ -105,6 +109,17 @@ export interface ProjectRow {
   featured?: boolean | null;
   sort?: number | null;
   date_updated?: string | null;
+  date_created?: string | null;
+  published_at?: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  noindex?: boolean | null;
+  topics?: ProjectTopicRow[];
+}
+
+export interface ProjectTopicRow {
+  id: string;
+  topics_id: Relation<TopicRow>;
 }
 
 /* ── Field Guides (v4.1) ─────────────────────────────────────────────────────── */
@@ -171,6 +186,10 @@ export interface GuideRow {
   sort?: number | null;
   date_created?: string | null;
   date_updated?: string | null;
+  published_at?: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  noindex?: boolean | null;
 }
 
 /** One row per user+guide (08 §4.5). `completed_items` is a json string[] of item ids. */
@@ -193,6 +212,7 @@ export interface Schema {
   topics: TopicRow[];
   specialties: SpecialtyRow[];
   projects: ProjectRow[];
+  projects_topics: ProjectTopicRow[];
   posts_topics: PostTopicRow[];
   authors_specialties: AuthorSpecialtyRow[];
   directus_files: DirectusFile[];

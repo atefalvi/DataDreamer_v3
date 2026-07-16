@@ -22,9 +22,9 @@ const topics = [
 ];
 
 const cards: GuideListItem[] = [
-  { id: 'g1', slug: 'learn-airflow', title: 'Learn Airflow the real way', summary: 'The exact path I followed to go from zero to running production DAGs — ordered, no fluff.', difficulty: 'beginner', estimatedMinutes: 360, itemCount: 8, sectionCount: 2, featured: true, curator, topics },
-  { id: 'g2', slug: 'dbt-foundations', title: 'dbt, from models to production', summary: 'Build a real analytics project with tests, docs, and CI — the parts tutorials skip.', difficulty: 'intermediate', estimatedMinutes: 300, itemCount: 11, sectionCount: 3, featured: false, curator, topics: [{ name: 'Analytics', slug: 'analytics' }] },
-  { id: 'g3', slug: 'rag-that-works', title: 'RAG that actually works', summary: 'Retrieval, chunking, evals, and the failure modes nobody warns you about.', difficulty: 'advanced', estimatedMinutes: 420, itemCount: 14, sectionCount: 4, featured: false, curator, topics: [{ name: 'AI & Agents', slug: 'ai-agents' }] },
+  { id: 'g1', slug: 'learn-airflow', title: 'Learn Airflow the real way', summary: 'The exact path I followed to go from zero to running production DAGs — ordered, no fluff.', difficulty: 'beginner', estimatedMinutes: 360, itemCount: 8, sectionCount: 2, featured: true, curator, topics, noindex: false },
+  { id: 'g2', slug: 'dbt-foundations', title: 'dbt, from models to production', summary: 'Build a real analytics project with tests, docs, and CI — the parts tutorials skip.', difficulty: 'intermediate', estimatedMinutes: 300, itemCount: 11, sectionCount: 3, featured: false, curator, topics: [{ name: 'Analytics', slug: 'analytics' }], noindex: false },
+  { id: 'g3', slug: 'rag-that-works', title: 'RAG that actually works', summary: 'Retrieval, chunking, evals, and the failure modes nobody warns you about.', difficulty: 'advanced', estimatedMinutes: 420, itemCount: 14, sectionCount: 4, featured: false, curator, topics: [{ name: 'AI & Agents', slug: 'ai-agents' }], noindex: false },
 ];
 
 function item(over: Partial<GuideItem> & Pick<GuideItem, 'id' | 'type' | 'title'>): GuideItem {

@@ -32,6 +32,7 @@ describe('sitemap helpers', () => {
         topics: [],
         author: { slug: 'atef-alvi', name: 'Atef Alvi', dreamTeam: true },
         featured: false,
+        noindex: false,
       },
     ];
     const xml = postsSitemapXml(posts);
@@ -49,6 +50,7 @@ describe('sitemap helpers', () => {
       topics: [],
       author: { slug: 'atef-alvi', name: 'Atef Alvi', dreamTeam: true },
       featured: false,
+      noindex: false,
     }]);
     expect(xml).toContain('<lastmod>2026-07-15T14:30:00.000Z</lastmod>');
   });
@@ -58,13 +60,13 @@ describe('sitemap helpers', () => {
       { path: '/projects/proof-of-work', lastmod: new Date('2026-07-01T00:00:00Z') },
       { path: '/guides/learn-airflow' },
       { path: '/dream-team/atef-alvi' },
-      { path: '/blog/topic/data-engineering' },
+      { path: '/topics/data-engineering' },
       { path: '/guides/learn-airflow' },
     ]);
     expect(xml).toContain(`${SITE_URL}/projects/proof-of-work`);
     expect(xml).toContain(`${SITE_URL}/guides/learn-airflow`);
     expect(xml).toContain(`${SITE_URL}/dream-team/atef-alvi`);
-    expect(xml).toContain(`${SITE_URL}/blog/topic/data-engineering`);
+    expect(xml).toContain(`${SITE_URL}/topics/data-engineering`);
     expect(xml.match(/guides\/learn-airflow/g)).toHaveLength(1);
   });
 
