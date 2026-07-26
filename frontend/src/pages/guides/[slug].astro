@@ -97,7 +97,8 @@ const jsonLd = [
 >
   <article class="guide container-content">
     <GuideHero guide={guide} />
-    <GuideAccessPanel guide={guide} signedIn={signedIn} progress={progress} />
+    <div class="guide__column">
+      <GuideAccessPanel guide={guide} signedIn={signedIn} progress={progress} />
 
     {(guide.whyThisPathHtml || guide.expectedOutcomeHtml || guide.recommendedAudience) && (
       <section class="guide__intro">
@@ -172,6 +173,7 @@ const jsonLd = [
         </ul>
       </section>
     )}
+    </div>
   </article>
 
   {readerData && (
@@ -190,7 +192,11 @@ const jsonLd = [
 <style>
   .guide {
     padding-block: var(--page-top) var(--page-bottom);
-    max-width: 62rem;
+  }
+
+  .guide__column {
+    width: min(100%, 62rem);
+    margin-inline: auto;
   }
 
   .guide__intro {

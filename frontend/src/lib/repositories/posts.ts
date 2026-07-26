@@ -62,6 +62,7 @@ export interface PostListQuery {
 export async function list(query: PostListQuery = {}): Promise<PostListPage> {
   const page = Math.max(1, query.page ?? 1);
   const pageSize = query.pageSize ?? DEFAULT_PAGE_SIZE;
+  const search = query.search?.trim();
 
   const filter: Record<string, unknown> = { ...PUBLISHED };
   if (query.topic) filter.topics = { topics_id: { slug: { _eq: query.topic } } };
@@ -74,7 +75,9 @@ export async function list(query: PostListQuery = {}): Promise<PostListPage> {
         sort: ['-published_at'],
         limit: pageSize + 1, // over-fetch by one to detect another page
         offset: (page - 1) * pageSize,
-        search: query.search,
+        // Directus serializes an explicit `undefined` as `search=undefined`, which
+        // turns an unfiltered listing into a literal search for that word.
+        ...(search ? { search } : {}),
         fields: POST_LIST_FIELDS as Fields,
       }),
     ),

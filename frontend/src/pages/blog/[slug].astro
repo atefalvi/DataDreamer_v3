@@ -175,7 +175,22 @@ if (isPagination) {
     <ReadingProgress />
 
     <article class="article-page" data-article>
-      <header class="article-hero">
+      <header class:list={['article-hero', { 'article-hero--visual': cover }] }>
+        {cover && (
+          <div class="article-hero__cover">
+            <img
+              src={cover.src}
+              srcset={directusSrcset(cover.id, [720, 1100, 1600, 2200])}
+              sizes="(min-width: 80rem) 1184px, calc(100vw - 32px)"
+              width={cover.width}
+              height={cover.height}
+              alt={cover.alt}
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+        )}
+
         <div class="article-hero__meta">
           <a href="/blog">Posts</a>
           {post.seriesLabel && <span>{post.seriesLabel}</span>}
@@ -215,21 +230,6 @@ if (isPagination) {
         </div>
 
       </header>
-
-      {cover && (
-        <figure class="article-cover">
-          <img
-            src={cover.src}
-            srcset={directusSrcset(cover.id, [720, 1100, 1600, 2200])}
-            sizes="(min-width: 80rem) 1240px, calc(100vw - 32px)"
-            width={cover.width}
-            height={cover.height}
-            alt={cover.alt}
-            loading="eager"
-            decoding="async"
-          />
-        </figure>
-      )}
 
       <div class="article-shell">
         <aside class="article-shell__toc">
@@ -286,12 +286,53 @@ if (isPagination) {
   }
 
   .article-hero,
-  .article-cover,
   .article-shell,
   .article-footer,
   .article-related {
     width: min(100%, 74rem);
     margin-inline: auto;
+  }
+
+  .article-hero {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .article-hero--visual {
+    display: flex;
+    min-height: clamp(34rem, 55vw, 42rem);
+    overflow: hidden;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: clamp(var(--space-6), 6vw, var(--space-8));
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-1);
+  }
+
+  .article-hero--visual::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--bg-0) 96%, transparent) 0%, color-mix(in srgb, var(--bg-0) 83%, transparent) 58%, color-mix(in srgb, var(--bg-0) 42%, transparent) 100%),
+      linear-gradient(0deg, color-mix(in srgb, var(--bg-0) 96%, transparent) 0%, transparent 78%);
+    content: '';
+  }
+
+  .article-hero__cover {
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+  }
+
+  .article-hero__cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: saturate(0.55) brightness(0.7) contrast(0.94);
+    object-fit: cover;
+    transform: scale(1.015);
   }
 
   .article-hero__meta {
@@ -323,6 +364,10 @@ if (isPagination) {
     margin-top: var(--space-5);
   }
 
+  .article-hero--visual .article-hero__grid {
+    width: 100%;
+  }
+
   .article-hero__kicker {
     margin: 0 0 var(--space-4);
     color: var(--accent);
@@ -333,7 +378,7 @@ if (isPagination) {
   }
 
   .article-hero h1 {
-    max-width: 16ch;
+    max-width: 19ch;
     font-family: var(--font-display);
     font-size: var(--fs-display);
     font-weight: 650;
@@ -343,7 +388,7 @@ if (isPagination) {
   }
 
   .article-hero__dek {
-    max-width: 42rem;
+    max-width: 50rem;
     margin-top: var(--space-5);
     color: var(--text-2);
     font-size: var(--fs-lg);
@@ -357,6 +402,10 @@ if (isPagination) {
     border: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
     border-radius: var(--radius-md);
     background: color-mix(in srgb, var(--bg-1) 72%, transparent);
+  }
+
+  .article-hero--visual .article-hero__aside {
+    background: color-mix(in srgb, var(--bg-0) 82%, transparent);
   }
 
   .article-hero__aside dl {
@@ -404,25 +453,6 @@ if (isPagination) {
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     text-decoration: none;
-  }
-
-  .article-cover {
-    overflow: hidden;
-    margin-top: var(--space-8);
-    aspect-ratio: 16 / 8.2;
-    max-height: 42rem;
-    border: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
-    border-radius: var(--radius-lg);
-    background:
-      radial-gradient(circle at 85% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 35%),
-      var(--bg-2);
-  }
-
-  .article-cover img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
   }
 
   .article-shell {
@@ -561,6 +591,15 @@ if (isPagination) {
     .article-hero__aside {
       padding: var(--space-4);
     }
+
+    .article-hero--visual {
+      min-height: 36rem;
+      padding: var(--space-5);
+    }
+
+    .article-hero--visual::after {
+      background: linear-gradient(0deg, color-mix(in srgb, var(--bg-0) 98%, transparent) 0%, color-mix(in srgb, var(--bg-0) 86%, transparent) 72%, color-mix(in srgb, var(--bg-0) 56%, transparent) 100%);
+    }
   }
 
   @media (max-width: 63.999rem) {
@@ -577,11 +616,6 @@ if (isPagination) {
     .article-hero h1 {
       font-size: var(--fs-4xl);
       line-height: var(--lh-4xl);
-    }
-
-    .article-cover {
-      aspect-ratio: 4 / 3;
-      margin-top: var(--space-6);
     }
 
     .article-neighbor--next {

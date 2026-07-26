@@ -27,34 +27,7 @@ const facts = [
 ].filter(Boolean);
 ---
 
-<header class="g-hero">
-  {topics.length > 0 && (
-    <p class="g-hero__kicker">
-      {topics.map((topic, i) => (
-        <>
-          {i > 0 && <span aria-hidden="true"> · </span>}
-          <a href={`/topics/${topic.slug}`}>{topic.name}</a>
-        </>
-      ))}
-    </p>
-  )}
-
-  <h1 class="g-hero__title">{title}</h1>
-  <p class="g-hero__summary">{summary}</p>
-
-  <div class="g-hero__meta">
-    {/* Curators without a public team profile render as plain text (no dead link). */}
-    <CuratorTag
-      href={curatorHref}
-      class="g-hero__curator"
-    >
-      <Avatar src={curator.avatar?.src} name={curator.name} size={32} />
-      <span>Curated by <strong>{curator.name}</strong></span>
-    </CuratorTag>
-    <DifficultyTag difficulty={difficulty} />
-    {facts.map((fact) => <span class="g-hero__fact">{fact}</span>)}
-  </div>
-
+<header class:list={['g-hero', { 'g-hero--visual': coverImage }] }>
   {coverImage && (
     <div class="g-hero__cover">
       <img
@@ -69,9 +42,80 @@ const facts = [
       />
     </div>
   )}
+
+  <div class="g-hero__content">
+    {topics.length > 0 && (
+      <p class="g-hero__kicker">
+        {topics.map((topic, i) => (
+          <>
+            {i > 0 && <span aria-hidden="true"> · </span>}
+            <a href={`/topics/${topic.slug}`}>{topic.name}</a>
+          </>
+        ))}
+      </p>
+    )}
+
+    <h1 class="g-hero__title">{title}</h1>
+    <p class="g-hero__summary">{summary}</p>
+
+    <div class="g-hero__meta">
+      {/* Curators without a public team profile render as plain text (no dead link). */}
+      <CuratorTag
+        href={curatorHref}
+        class="g-hero__curator"
+      >
+        <Avatar src={curator.avatar?.src} name={curator.name} size={32} />
+        <span>Curated by <strong>{curator.name}</strong></span>
+      </CuratorTag>
+      <DifficultyTag difficulty={difficulty} />
+      {facts.map((fact) => <span class="g-hero__fact">{fact}</span>)}
+    </div>
+  </div>
 </header>
 
 <style>
+  .g-hero {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .g-hero--visual {
+    display: flex;
+    min-height: clamp(32rem, 55vw, 42rem);
+    overflow: hidden;
+    flex-direction: column;
+    justify-content: flex-end;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-1);
+  }
+
+  .g-hero--visual::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--bg-0) 96%, transparent) 0%, color-mix(in srgb, var(--bg-0) 82%, transparent) 58%, color-mix(in srgb, var(--bg-0) 40%, transparent) 100%),
+      linear-gradient(0deg, color-mix(in srgb, var(--bg-0) 96%, transparent) 0%, transparent 76%);
+    content: '';
+  }
+
+  .g-hero__content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .g-hero:not(.g-hero--visual) .g-hero__content {
+    width: min(100%, 62rem);
+    margin-inline: auto;
+  }
+
+  .g-hero--visual .g-hero__content {
+    width: 100%;
+    max-width: 68rem;
+    padding: clamp(var(--space-6), 6vw, var(--space-8));
+  }
+
   .g-hero__kicker {
     color: var(--text-3);
     font-family: var(--font-mono);
@@ -91,6 +135,7 @@ const facts = [
   }
 
   .g-hero__title {
+    max-width: 22ch;
     margin-top: var(--space-3);
     font-family: var(--font-display);
     font-size: var(--fs-4xl);
@@ -101,7 +146,7 @@ const facts = [
   }
 
   .g-hero__summary {
-    max-width: 60ch;
+    max-width: 64ch;
     margin-top: var(--space-4);
     color: var(--text-2);
     font-size: var(--fs-lg);
@@ -141,17 +186,40 @@ const facts = [
   }
 
   .g-hero__cover {
-    margin-top: var(--space-6);
-    overflow: hidden;
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-lg);
-    aspect-ratio: 16 / 9;
-    background: var(--bg-2);
+    position: absolute;
+    z-index: -2;
+    inset: 0;
   }
 
   .g-hero__cover img {
     width: 100%;
     height: 100%;
+    filter: saturate(0.55) brightness(0.7) contrast(0.94);
     object-fit: cover;
+    transform: scale(1.015);
+  }
+
+  @media (max-width: 47.999rem) {
+    .g-hero--visual {
+      min-height: 34rem;
+    }
+
+    .g-hero--visual::after {
+      background: linear-gradient(0deg, color-mix(in srgb, var(--bg-0) 98%, transparent) 0%, color-mix(in srgb, var(--bg-0) 85%, transparent) 72%, color-mix(in srgb, var(--bg-0) 54%, transparent) 100%);
+    }
+
+    .g-hero--visual .g-hero__content {
+      padding: var(--space-5);
+    }
+
+    .g-hero__title {
+      font-size: var(--fs-4xl);
+      line-height: var(--lh-4xl);
+    }
+
+    .g-hero__summary {
+      font-size: var(--fs-base);
+      line-height: var(--lh-base);
+    }
   }
 </style>

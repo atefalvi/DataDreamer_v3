@@ -62,6 +62,22 @@ describe('field discipline (08 §8.1)', () => {
 });
 
 describe('postsRepo.list', () => {
+  it('omits an empty search parameter instead of serializing search=undefined', async () => {
+    request.mockResolvedValueOnce([]);
+    await postsRepo.list();
+
+    const command = request.mock.calls[0][0] as () => { params?: Record<string, unknown> };
+    expect(command().params).not.toHaveProperty('search');
+  });
+
+  it('trims and forwards a real search term', async () => {
+    request.mockResolvedValueOnce([]);
+    await postsRepo.list({ search: '  governance  ' });
+
+    const command = request.mock.calls[0][0] as () => { params?: Record<string, unknown> };
+    expect(command().params).toMatchObject({ search: 'governance' });
+  });
+
   it('maps rows to view-models and detects another page via over-fetch', async () => {
     // pageSize 2 → over-fetch requests 3; return 3 to signal hasMore.
     request.mockResolvedValueOnce([postRow({ id: 'p1' }), postRow({ id: 'p2' }), postRow({ id: 'p3' })]);

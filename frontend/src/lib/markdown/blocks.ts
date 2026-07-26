@@ -96,6 +96,12 @@ function rawBody(blockChildren: MdNode[], source: string): string {
   return source.slice(start, end);
 }
 
+function followingLinkUrl(node: MdNode | undefined): string | undefined {
+  if (node?.type !== "paragraph" || node.children?.length !== 1) return undefined;
+  const [link] = node.children;
+  return link.type === "link" && link.url?.startsWith("https://") ? link.url : undefined;
+}
+
 function transformBlockChildren(children: MdNode[], source: string, depth = 0): MdNode[] {
   const nextChildren: MdNode[] = [];
   for (let index = 0; index < children.length; index += 1) {
@@ -144,6 +150,7 @@ function transformBlockChildren(children: MdNode[], source: string, depth = 0): 
         blockType: blockOpen.type,
         blockTitle: blockOpen.title,
         blockBody: rawBody(blockChildren, source),
+        blockFallbackUrl: blockOpen.type === "embed" ? followingLinkUrl(children[index + 1]) : undefined,
         children: [],
       });
       continue;

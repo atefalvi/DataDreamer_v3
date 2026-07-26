@@ -192,12 +192,13 @@ const jsonLd = [
   }
 
   .case__hero--visual .case__head {
-    max-width: 53rem;
+    width: 100%;
+    max-width: 68rem;
     padding: clamp(var(--space-6), 6vw, var(--space-8));
   }
 
   .case__head h1 {
-    max-width: 19ch;
+    max-width: 23ch;
     margin-top: var(--space-3);
     font-family: var(--font-display);
     font-size: clamp(3.5rem, 5.4vw, 4.5rem);
@@ -208,6 +209,7 @@ const jsonLd = [
   }
 
   .case__lede {
+    max-width: 64ch;
     margin-top: var(--space-4);
     color: var(--text-2);
     font-size: var(--fs-xl);
@@ -255,6 +257,10 @@ const jsonLd = [
   .case__body,
   .case__rail {
     min-width: 0;
+  }
+
+  .case__rail {
+    order: -1;
   }
 
   @media (min-width: 64rem) {

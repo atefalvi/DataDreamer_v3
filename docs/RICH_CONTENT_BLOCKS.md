@@ -157,7 +157,11 @@ You may also paste a provider's standard `<iframe ...></iframe>` code. The rende
 extracts only its HTTPS `src`, width, and height; arbitrary attributes and scripts are
 discarded. A normal share/watch page is not necessarily embeddable because providers
 can block framing, so use the URL from their **Embed** action rather than the address
-bar. Legacy `<object>…<script>` SDK snippets are intentionally not executed.
+bar. Legacy `<object>…<script>` SDK snippets are intentionally not executed. When one
+contains a normal HTTPS fallback link inside `<noscript>`, the renderer uses that link
+in the same sandboxed iframe; no provider SDK or provider-specific parser is added. If
+that fallback is missing or unusable, a single HTTPS Markdown link placed immediately
+after the block supplies the iframe URL while remaining visible as the full-screen link.
 
 Do not place explanatory prose in the block body; put it immediately before or after
 the embed. Keep a normal source link immediately after an important interactive chart

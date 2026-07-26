@@ -196,7 +196,11 @@ export function extractEmbedUrl(rawText: string): string | undefined {
     fields.url ??
       bareUrl ??
       tagAttribute(decoded, ["iframe", "embed"], "src") ??
-      tagAttribute(decoded, ["object"], "data"),
+      tagAttribute(decoded, ["object"], "data") ??
+      // Legacy provider snippets commonly place a standard, usable fallback
+      // URL inside <noscript><a href="…">. Treat that as the final generic
+      // source without executing the discarded vendor script.
+      tagAttribute(decoded, ["a"], "href"),
   );
 }
 
@@ -219,7 +223,9 @@ export function extractEmbedConfig(rawText: string): EmbedConfig | undefined {
 }
 
 function embedElement(node: MdNode): HastNode {
-  const config = extractEmbedConfig(node.blockBody ?? "");
+  const parsedConfig = extractEmbedConfig(node.blockBody ?? "");
+  const fallbackUrl = safeEmbedUrl(node.blockFallbackUrl);
+  const config = parsedConfig ?? (fallbackUrl ? { src: fallbackUrl, source: fallbackUrl, ratio: "16 / 9" } : undefined);
   const decoded = decodeHtmlEntities(node.blockBody ?? "");
   const { fields } = parseBody(decoded);
   const sourceUrl = safeEmbedUrl(fields.source);

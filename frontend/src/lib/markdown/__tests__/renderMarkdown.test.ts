@@ -157,6 +157,34 @@ describe("renderMarkdown v4 pipeline", () => {
     });
   });
 
+  it("uses a standard HTTPS fallback link from a legacy provider snippet", () => {
+    const snippet = `
+      <div class="provider-placeholder">
+        <noscript><a href="https://charts.example.com/views/report/main?embed=yes">Open chart</a></noscript>
+        <object><param name="provider_config" value="opaque" /></object>
+      </div>
+      <script src="https://charts.example.com/vendor.js"></script>
+    `;
+
+    expect(extractEmbedUrl(snippet)).toBe("https://charts.example.com/views/report/main?embed=yes");
+  });
+
+  it("uses the single source link immediately after a script-based legacy embed", async () => {
+    const markdown = `
+:::embed Interactive report
+<div><noscript><a href="#">Open</a></noscript><object><param name="opaque" value="config" /></object></div>
+<script src="https://charts.example.com/vendor.js"></script>
+:::
+
+[Open the full report](https://charts.example.com/views/report/main?embed=yes)
+`;
+    const result = await renderMarkdown(markdown);
+
+    expect(result.html).toContain('src="https://charts.example.com/views/report/main?embed=yes"');
+    expect(result.html).toContain('href="https://charts.example.com/views/report/main?embed=yes"');
+    expect(result.html).not.toContain("vendor.js");
+  });
+
   it("rejects unsafe or non-embeddable pasted markup", () => {
     expect(extractEmbedUrl("url: http://example.com/embed")).toBeUndefined();
     expect(extractEmbedUrl("<script src='https://example.com/widget.js'></script>")).toBeUndefined();

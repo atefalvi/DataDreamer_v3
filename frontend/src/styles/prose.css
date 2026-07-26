@@ -471,6 +471,15 @@
   background: var(--callout-surface);
 }
 
+/* Pale semantic colors disappear against the warm light canvas. Strengthen only
+   the surface and rule in light mode; typography keeps the same contrast system. */
+[data-theme="light"] .prose .callout,
+[data-theme="light"] .blog-content .callout {
+  --callout-border: color-mix(in srgb, var(--callout-accent) 32%, var(--border-1));
+  --callout-surface: color-mix(in srgb, var(--callout-accent) 8%, var(--bg-1));
+  --callout-copy: color-mix(in srgb, var(--callout-accent) 10%, var(--text-2));
+}
+
 .prose .callout__header,
 .blog-content .callout__header {
   display: flex;

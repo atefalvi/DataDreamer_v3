@@ -19,6 +19,9 @@ export interface MdNode {
   blockTitle?: string;
   /** Raw markdown body for plain-text blocks (checklist/metric/formula/…). */
   blockBody?: string;
+  /** A single HTTPS link immediately following an embed block. The link remains
+   * normal article content and also provides a provider-independent iframe fallback. */
+  blockFallbackUrl?: string;
   position?: {
     start?: { offset?: number };
     end?: { offset?: number };
