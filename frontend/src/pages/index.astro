@@ -205,7 +205,7 @@ const teamSentence =
     position: absolute;
     top: -1px;
     left: 0;
-    width: 72px;
+    width: var(--editorial-rule-accent);
     height: 2px;
     background: var(--accent);
   }
@@ -299,7 +299,8 @@ const teamSentence =
 
   @media (min-width: 56rem) {
     .home-studio {
-      grid-template-columns: minmax(14rem, 0.48fr) minmax(0, 1.52fr);
+      grid-template-columns: minmax(20rem, 0.62fr) minmax(0, 1.38fr);
+      column-gap: clamp(var(--space-8), 6vw, var(--space-9));
       align-items: start;
     }
 

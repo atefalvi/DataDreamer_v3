@@ -525,11 +525,22 @@ const jsonLd = [
   }
 
   .dt-hero {
+    position: relative;
     display: grid;
     gap: var(--space-8);
     align-items: end;
     padding-bottom: var(--space-8);
     border-bottom: 1px solid var(--border-2);
+  }
+
+  .dt-hero::after {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: var(--editorial-rule-accent);
+    height: 2px;
+    background: var(--accent);
+    content: '';
   }
 
   .dt-hero__copy {

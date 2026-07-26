@@ -76,6 +76,7 @@
   --section-y: clamp(64px, 8vw, 120px);
   --page-top: clamp(112px, 10vw, 152px);
   --page-bottom: clamp(72px, 8vw, 120px);
+  --editorial-rule-accent: 4.5rem;
 
   --bp-sm: 480px;
   --bp-md: 768px;
