@@ -521,15 +521,14 @@ const jsonLd = [
 
 <style>
   .dt {
-    padding-block: calc(var(--nav-height) + clamp(4.5rem, 8vw, 8rem)) var(--section-y);
+    padding-block: var(--page-top) var(--page-bottom);
   }
 
   .dt-hero {
     display: grid;
-    gap: clamp(3rem, 8vw, 8rem);
+    gap: var(--space-8);
     align-items: end;
-    min-height: clamp(25rem, 52vw, 39rem);
-    padding-bottom: clamp(3rem, 6vw, 6rem);
+    padding-bottom: var(--space-8);
     border-bottom: 1px solid var(--border-2);
   }
 
@@ -540,10 +539,10 @@ const jsonLd = [
   .dt-hero h1 {
     margin-top: var(--space-4);
     font-family: var(--font-display);
-    font-size: clamp(3.25rem, 7.8vw, 6rem);
+    font-size: var(--fs-page-title);
     font-weight: 610;
     letter-spacing: -0.025em;
-    line-height: 0.96;
+    line-height: var(--lh-page-title);
   }
 
   .dt-hero h1 span {
@@ -555,8 +554,8 @@ const jsonLd = [
     max-width: 43rem;
     margin-top: var(--space-6);
     color: var(--text-2);
-    font-size: clamp(1.15rem, 1.1rem + 0.5vw, 1.5rem);
-    line-height: 1.45;
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
   }
 
   .dt-hero__note {
@@ -1030,17 +1029,13 @@ const jsonLd = [
 
   @media (max-width: 47.999rem) {
     .dt {
-      padding-block-start: calc(var(--nav-height) + var(--space-8));
+      padding-block-start: var(--page-top);
     }
 
     .dt-hero {
       min-height: 0;
       gap: var(--space-7);
       padding-bottom: var(--space-7);
-    }
-
-    .dt-hero h1 {
-      font-size: clamp(3rem, 15vw, 4.6rem);
     }
 
     .dt-hero__intro {

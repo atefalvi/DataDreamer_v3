@@ -147,15 +147,15 @@ const prevHref = listing.page.page > 1
 
   .blog-listing__header h1 {
     margin-top: var(--space-3);
-    font-size: var(--fs-display);
-    line-height: var(--lh-display);
+    font-size: var(--fs-page-title);
+    line-height: var(--lh-page-title);
   }
 
   .blog-listing__header p:not(.kicker) {
     max-width: 50rem;
     color: var(--text-2);
-    font-size: var(--fs-xl);
-    line-height: var(--lh-xl);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
   }
 
   .blog-listing__count {
@@ -259,16 +259,6 @@ const prevHref = listing.page.page > 1
   @media (max-width: 47.999rem) {
     .blog-listing {
       padding-block-start: var(--page-top);
-    }
-
-    .blog-listing__header h1 {
-      font-size: var(--fs-4xl);
-      line-height: var(--lh-4xl);
-    }
-
-    .blog-listing__header p:not(.kicker) {
-      font-size: var(--fs-lg);
-      line-height: var(--lh-lg);
     }
 
     .blog-listing__query-filter :global(.ui-button) {
