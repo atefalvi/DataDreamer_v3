@@ -1,0 +1,125 @@
+---
+/** DEV ONLY — repeated collection states for responsive editorial-list QA. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CaseCard from '../../components/projects/CaseCard.astro';
+import PostCard from '../../components/blog/PostCard.astro';
+import GuideCard from '../../components/guides/GuideCard.astro';
+import GuideCardFeatured from '../../components/guides/GuideCardFeatured.astro';
+import type { GuideListItem, PostListItem, ProjectListItem } from '../../types/content';
+
+if (import.meta.env.PROD) return Astro.rewrite('/404');
+
+const author = { slug: 'syed-atef-alvi', name: 'Syed Atef Alvi', dreamTeam: true };
+const cover = {
+  id: '53578c97-736d-4f46-9cf4-2c01da953ea9',
+  src: 'https://api.data-dreamer.net/assets/53578c97-736d-4f46-9cf4-2c01da953ea9',
+  width: 1586,
+  height: 992,
+  alt: 'Waterfall chart project cover',
+};
+
+const titles = [
+  'Building a reliable Tableau waterfall chart with Gantt bars',
+  'A practical operating model for governed analytics',
+  'From monthly spreadsheets to a trusted finance pipeline',
+  'Designing a people-data model without losing human context',
+  'Making network telemetry useful beyond the engineering team',
+  'A decision log for production machine-learning systems',
+];
+
+const projects: ProjectListItem[] = titles.map((title, index) => ({
+  slug: `project-${index + 1}`,
+  title,
+  summary: 'A concise case study covering the problem, the decisions, the implementation, and what changed after the work shipped.',
+  year: 2026 - Math.floor(index / 3),
+  role: 'Lead practitioner',
+  author,
+  coverImage: cover,
+  tags: index % 2 ? ['Governance', 'Operations'] : ['Analytics', 'Data Visualization'],
+  topics: [{ name: index % 2 ? 'Governance' : 'Analytics', slug: index % 2 ? 'governance' : 'analytics' }],
+  links: [],
+  featured: index === 0,
+  noindex: false,
+}));
+
+const posts: PostListItem[] = titles.map((title, index) => ({
+  slug: `post-${index + 1}`,
+  title,
+  excerpt: 'A field note about the trade-offs, patterns, and lessons that make practical data work hold up in the real world.',
+  publishedAt: new Date(2026, 6, 20 - index),
+  topics: [{ name: index % 2 ? 'Practice' : 'Analytics', slug: index % 2 ? 'practice' : 'analytics' }],
+  author,
+  coverImage: cover,
+  featured: index === 0,
+  noindex: false,
+}));
+
+const guides: GuideListItem[] = titles.map((title, index) => ({
+  id: `guide-${index + 1}`,
+  slug: `guide-${index + 1}`,
+  title,
+  summary: 'An ordered learning path with honest prerequisites, practitioner context, and focused resources.',
+  difficulty: index > 3 ? 'advanced' : index > 1 ? 'intermediate' : 'beginner',
+  coverImage: cover,
+  estimatedMinutes: 180 + index * 35,
+  itemCount: 6 + index,
+  sectionCount: 3,
+  featured: index === 0,
+  curator: author,
+  topics: [{ name: 'Analytics', slug: 'analytics' }],
+  noindex: false,
+}));
+---
+
+<BaseLayout title="Editorial collections preview" description="Development-only collection QA" noindex>
+  <main class="preview container-wide">
+    <section>
+      <p class="kicker">Projects · six-item state</p>
+      <CaseCard project={projects[0]} variant="lead" />
+      <div class="preview__grid">
+        {projects.slice(1).map((project) => <CaseCard project={project} variant="row" />)}
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">Posts · six-item state</p>
+      <PostCard post={posts[0]} variant="hero" />
+      <div class="preview__grid">
+        {posts.slice(1).map((post) => <PostCard post={post} variant="index" />)}
+      </div>
+    </section>
+
+    <section>
+      <p class="kicker">Guides · six-item state</p>
+      <GuideCardFeatured guide={guides[0]} />
+      <div class="preview__grid">
+        {guides.slice(1).map((guide) => <GuideCard guide={guide} variant="index" />)}
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .preview {
+    display: grid;
+    gap: var(--section-y);
+    padding-block: var(--page-top) var(--page-bottom);
+  }
+
+  .preview section > .kicker {
+    margin-bottom: var(--space-5);
+  }
+
+  .preview__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    column-gap: var(--space-7);
+    margin-top: var(--space-8);
+  }
+
+  @media (min-width: 48rem) {
+    .preview__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -7,6 +7,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CaseCard from '../../components/projects/CaseCard.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
 import Icon from '../../components/ui/Icon.astro';
+import Chip from '../../components/ui/Chip.astro';
 import CollectionHeader from '../../components/ui/CollectionHeader.astro';
 import { projectsRepo } from '../../lib/repositories';
 import { collectionPageJsonLd } from '../../lib/seo/jsonld';
@@ -32,6 +33,10 @@ for (const project of all) for (const topic of project.topics) {
 const topics = [...topicCounts.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
 const visible = activeTopic ? sorted.filter((p) => p.topics.some((topic) => topic.slug === activeTopic)) : sorted;
+const leadProject = visible.find((project) => project.featured) ?? visible[0];
+const orderedVisible = leadProject
+  ? [leadProject, ...visible.filter((project) => project.slug !== leadProject.slug)]
+  : [];
 const searchOf = (p: ProjectListItem) =>
   [p.title, p.summary, p.role, ...p.tags, ...p.topics.map((topic) => topic.name)].join(' ').toLowerCase();
 
@@ -55,40 +60,43 @@ const jsonLd = [
       kicker="Projects"
       title="Proof of work, not just proof of tools."
       intro="Projects show how ideas move from a business problem to a practical system, including the decisions, trade-offs, models, interfaces, implementation, outcomes, and lessons behind the build."
-    />
+    >
+      <span slot="aside" class="projects__count">
+        {all.length.toString().padStart(2, '0')} published {all.length === 1 ? 'project' : 'projects'}
+      </span>
+    </CollectionHeader>
 
     {all.length === 0 ? (
       <EmptyState message="Projects will appear here as the work is documented." icon="folder-open" />
     ) : (
       <>
         <div class="projects__controls">
-          <div class="projects__search">
-            <Icon name="search" size={16} />
-            <input
-              type="search"
-              id="project-search"
-              placeholder="Search projects…"
-              autocomplete="off"
-              aria-label="Search projects"
-              data-project-search
-            />
-          </div>
-
           {topics.length > 0 && (
             <nav class="projects__filter" aria-label="Filter by project topic">
-              <a href="/projects" class:list={['tagchip', { 'is-active': !activeTopic }]}>
-                All <span class="tagchip__count">{all.length}</span>
-              </a>
+              <Chip label={`All ${all.length}`} href="/projects" selected={!activeTopic} />
               {topics.map((topic) => (
-                <a
+                <Chip
+                  label={`${topic.name} ${topic.count}`}
                   href={`/projects?topic=${encodeURIComponent(topic.slug)}`}
-                  class:list={['tagchip', { 'is-active': activeTopic === topic.slug }]}
-                >
-                  {topic.name} <span class="tagchip__count">{topic.count}</span>
-                </a>
+                  selected={activeTopic === topic.slug}
+                />
               ))}
             </nav>
           )}
+
+          <div class="projects__query-filter">
+            <label for="project-search">Search projects</label>
+            <div class="projects__search">
+              <Icon name="search" size={16} />
+              <input
+                type="search"
+                id="project-search"
+                placeholder="Search titles, summaries, and topics"
+                autocomplete="off"
+                data-project-search
+              />
+            </div>
+          </div>
         </div>
 
         {visible.length === 0 ? (
@@ -96,11 +104,14 @@ const jsonLd = [
         ) : (
           <>
             <section class="projects__results" aria-labelledby="project-results-heading">
-              <h2 id="project-results-heading" class="visually-hidden">Project proof of work</h2>
+              <div class="projects__results-head">
+                <h2 id="project-results-heading">Selected work</h2>
+                <span>{visible.length.toString().padStart(2, '0')} {visible.length === 1 ? 'case study' : 'case studies'}</span>
+              </div>
               <div class="projects__grid" data-project-grid>
-                {visible.map((project, i) => (
-                  <div class="projects__item" data-search={searchOf(project)}>
-                    <CaseCard project={project} class={i % 3 === 0 ? 'case-card--wide' : ''} />
+                {orderedVisible.map((project, i) => (
+                  <div class:list={['projects__item', { 'projects__item--lead': i === 0 }]} data-search={searchOf(project)}>
+                    <CaseCard project={project} variant={i === 0 ? 'lead' : 'row'} />
                   </div>
                 ))}
               </div>
@@ -120,19 +131,38 @@ const jsonLd = [
     padding-block: var(--page-top) var(--page-bottom);
   }
 
+  .projects__count {
+    display: block;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
   .projects__controls {
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-5);
     margin-top: var(--space-7);
     padding-block: var(--space-5);
     border-block: 1px solid var(--border-1);
+  }
+
+  .projects__query-filter {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .projects__query-filter > label {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
   }
 
   .projects__search {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    max-width: 24rem;
     padding: 0 var(--space-4);
     border: 1px solid var(--border-2);
     border-radius: var(--radius-md);
@@ -162,67 +192,53 @@ const jsonLd = [
     appearance: none;
   }
 
-  /* Tag chips with count pile — wraps as the set grows. */
   .projects__filter {
     display: flex;
-    flex-wrap: wrap;
     gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-1);
+    scrollbar-width: thin;
   }
 
-  .tagchip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-full);
-    background: var(--bg-1);
-    color: var(--text-2);
-    font-size: var(--fs-sm);
-    text-decoration: none;
-    transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out);
+  .projects__filter :global(.ui-chip) {
+    flex: 0 0 auto;
   }
 
-  .tagchip:hover {
-    color: var(--text-1);
-    border-color: var(--border-2);
+  .projects__results-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-5);
+    margin-top: var(--space-8);
   }
 
-  .tagchip.is-active {
-    color: var(--text-1);
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, var(--bg-1));
+  .projects__results-head h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 560;
+    line-height: var(--lh-2xl);
   }
 
-  .tagchip__count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    padding: 0 var(--space-1);
-    border-radius: var(--radius-full);
-    background: var(--bg-3);
+  .projects__results-head span {
     color: var(--text-3);
     font-family: var(--font-mono);
-    font-size: 0.6875rem;
-    font-weight: 600;
-  }
-
-  .tagchip.is-active .tagchip__count {
-    background: var(--accent);
-    color: var(--text-on-accent);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
   }
 
   .projects__grid {
     display: grid;
-    gap: var(--space-7);
-    margin-top: var(--space-7);
     grid-template-columns: 1fr;
+    column-gap: var(--space-7);
+    margin-top: var(--space-5);
   }
 
   .projects__item {
-    display: contents;
+    min-width: 0;
+  }
+
+  .projects__item--lead {
+    margin-bottom: var(--space-8);
   }
 
   /* Search hides items via [hidden]; the explicit display rules above would otherwise
@@ -243,17 +259,17 @@ const jsonLd = [
   @media (min-width: 48rem) {
     .projects__grid {
       grid-template-columns: repeat(2, 1fr);
-      gap: var(--space-8) var(--space-7);
     }
-    .projects__item {
-      display: block;
-    }
-    /* Asymmetric offset: every third card spans full width as a feature row. */
-    .projects__item:has(.case-card--wide) {
+
+    .projects__item--lead {
       grid-column: 1 / -1;
     }
-    .projects__item:has(.case-card--wide) :global(.case-card__media) {
-      aspect-ratio: 21 / 9;
+  }
+
+  @media (min-width: 64rem) {
+    .projects__controls {
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+      align-items: end;
     }
   }
 </style>

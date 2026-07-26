@@ -64,18 +64,21 @@ export const calloutTypes = [
 ] as const;
 
 export type CalloutType = (typeof calloutTypes)[number];
-export type MarkdownBlockType =
-  | CalloutType
-  | "details"
-  | "quote"
-  | "imagegrid"
-  | "checklist"
-  | "embed"
-  | "metric"
-  | "metrics"
-  | "formula"
-  | "divider"
-  | "text";
+export const richBlockTypes = [
+  "details",
+  "quote",
+  "imagegrid",
+  "checklist",
+  "embed",
+  "metric",
+  "metrics",
+  "formula",
+  "divider",
+  "text",
+] as const;
+
+export const markdownBlockTypes = [...calloutTypes, ...richBlockTypes] as const;
+export type MarkdownBlockType = (typeof markdownBlockTypes)[number];
 
 /** Depth-first pre-order walk. Return false from the visitor to skip children. */
 export function walk<T extends { children?: T[] }>(

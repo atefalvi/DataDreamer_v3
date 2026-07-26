@@ -57,25 +57,69 @@
   line-height: var(--lh-xl);
 }
 
-.prose :where(h2, h3, h4) > a[href^="#"],
-.blog-content :where(h2, h3, h4) > a[href^="#"] {
-  color: inherit;
-  text-decoration: none;
-}
-
-.prose :where(h2, h3, h4) > a[href^="#"]::after,
-.blog-content :where(h2, h3, h4) > a[href^="#"]::after {
-  color: var(--accent);
-  content: " #";
+.prose :where(h1, h2, h3, h4) > .heading-anchor,
+.blog-content :where(h1, h2, h3, h4) > .heading-anchor {
+  display: inline-flex;
+  width: 1.35em;
+  height: 1.35em;
+  margin-inline-start: 0.3em;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-3);
   opacity: 0;
-  transition: opacity var(--dur-2) var(--ease-out);
+  text-decoration: none;
+  transform: translateY(0.08em);
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out),
+    opacity var(--dur-2) var(--ease-out);
 }
 
-.prose :where(h2, h3, h4):hover > a[href^="#"]::after,
-.prose :where(h2, h3, h4) > a[href^="#"]:focus-visible::after,
-.blog-content :where(h2, h3, h4):hover > a[href^="#"]::after,
-.blog-content :where(h2, h3, h4) > a[href^="#"]:focus-visible::after {
+.prose :where(h1, h2, h3, h4) > .heading-anchor svg,
+.blog-content :where(h1, h2, h3, h4) > .heading-anchor svg {
+  width: 0.72em;
+  height: 0.72em;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.prose :where(h1, h2, h3, h4):hover > .heading-anchor,
+.prose :where(h1, h2, h3, h4):target > .heading-anchor,
+.prose :where(h1, h2, h3, h4) > .heading-anchor:focus-visible,
+.blog-content :where(h1, h2, h3, h4):hover > .heading-anchor,
+.blog-content :where(h1, h2, h3, h4):target > .heading-anchor,
+.blog-content :where(h1, h2, h3, h4) > .heading-anchor:focus-visible {
   opacity: 1;
+}
+
+.prose :where(h1, h2, h3, h4) > .heading-anchor:hover,
+.blog-content :where(h1, h2, h3, h4) > .heading-anchor:hover {
+  background: var(--bg-2);
+  color: var(--accent);
+}
+
+.prose :where(h1, h2, h3, h4) > .heading-anchor:focus-visible,
+.blog-content :where(h1, h2, h3, h4) > .heading-anchor:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.prose :where(h1, h2, h3, h4) > .heading-anchor[data-copied],
+.blog-content :where(h1, h2, h3, h4) > .heading-anchor[data-copied] {
+  color: var(--accent);
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .prose :where(h1, h2, h3, h4) > .heading-anchor,
+  .blog-content :where(h1, h2, h3, h4) > .heading-anchor {
+    color: var(--text-3);
+    opacity: 0.68;
+  }
 }
 
 .prose p,
@@ -219,6 +263,9 @@
 .blog-content .code-block {
   position: relative;
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   background: var(--bg-2);
   border: 1px solid var(--border-1);
   border-radius: var(--radius-md);
@@ -347,7 +394,11 @@
 
 .prose .table-scroll,
 .blog-content .table-scroll {
+  contain: inline-size;
   overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin-block: var(--space-6);
   border: 1px solid var(--border-1);
   border-radius: var(--radius-md);
@@ -408,21 +459,31 @@
 .prose .callout,
 .blog-content .callout {
   --callout-accent: var(--text-2);
+  --callout-border: color-mix(in srgb, var(--callout-accent) 22%, var(--border-1));
+  --callout-surface: color-mix(in srgb, var(--callout-accent) 3%, var(--bg-1));
+  --callout-copy: color-mix(in srgb, var(--callout-accent) 6%, var(--text-2));
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
   padding: var(--space-5);
-  border: 1px solid var(--border-1);
-  border-left: 3px solid var(--callout-accent);
+  border: 1px solid var(--callout-border);
   border-radius: var(--radius-md);
-  background: var(--bg-1);
+  background: var(--callout-surface);
 }
 
 .prose .callout__header,
 .blog-content .callout__header {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-2);
   align-items: center;
   color: var(--callout-accent);
+}
+
+.prose .callout__header,
+.blog-content .callout__header,
+.prose .callout__body,
+.blog-content .callout__body {
+  min-width: 0;
 }
 
 .prose .callout__icon,
@@ -445,13 +506,14 @@
   color: var(--text-1);
   font-size: var(--fs-sm);
   font-weight: 600;
+  line-height: var(--lh-sm);
 }
 
 .prose .callout__body,
 .blog-content .callout__body,
 .prose .callout p,
 .blog-content .callout p {
-  color: var(--text-2);
+  color: var(--callout-copy);
 }
 
 .prose .callout__body > * + *,
@@ -889,11 +951,20 @@
 
 .prose .embed-block__frame,
 .blog-content .embed-block__frame {
+  contain: inline-size;
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
   border: 1px solid var(--border-1);
   border-radius: var(--radius-lg);
-  aspect-ratio: 16 / 9;
+  aspect-ratio: var(--embed-ratio, 16 / 9);
   background: var(--bg-2);
+}
+
+.prose .embed-block__frame[data-embed-height],
+.blog-content .embed-block__frame[data-embed-height] {
+  height: min(var(--embed-height), 78svh);
+  aspect-ratio: auto;
 }
 
 .prose .embed-block__frame iframe,
@@ -902,6 +973,29 @@
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+.prose .embed-block__source,
+.blog-content .embed-block__source {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-top: var(--space-3);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  text-decoration-color: var(--border-2);
+}
+
+.prose .embed-block__source:hover,
+.blog-content .embed-block__source:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+.prose .embed-block__source span,
+.blog-content .embed-block__source span {
+  color: var(--accent);
 }
 
 .prose .embed-block__fallback,
@@ -913,7 +1007,6 @@
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: var(--fs-sm);
-  word-break: break-all;
 }
 
 /* ── Metric cards ── */
@@ -1038,7 +1131,6 @@
   margin-block: var(--space-4);
   padding: var(--space-4) var(--space-5);
   border: 1px solid var(--border-2);
-  border-left: 3px solid var(--border-2);
   border-radius: var(--radius-md);
   background: var(--bg-2);
 }

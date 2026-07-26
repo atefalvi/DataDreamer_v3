@@ -32,6 +32,9 @@ let authorProfile: EditableAuthorProfile | undefined;
 let specialtyOptions: SpecialtyOption[] = [];
 let toolOptions: string[] = [];
 let posts: OwnPost[] = [];
+let guidesUnavailable = false;
+let authorProfileUnavailable = false;
+let postsUnavailable = false;
 
 if (user) {
   Astro.response.headers.set('Cache-Control', 'private, no-store');
@@ -40,9 +43,10 @@ if (user) {
     try {
       guides = await guidesRepo.myGuides(user.id);
     } catch (error) {
+      guidesUnavailable = true;
       console.error('[account] myGuides failed:', error instanceof Error ? error.message : error);
     }
-    if (guides.length === 0) {
+    if (!guidesUnavailable && guides.length === 0) {
       try {
         recommended = (await guidesRepo.latest(1))[0];
       } catch {
@@ -51,14 +55,24 @@ if (user) {
     }
   }
   if (isContributor && tab === 'author' && user.authorId) {
-    [authorProfile, specialtyOptions, toolOptions] = await Promise.all([
-      authorForEdit(user.authorId).catch(() => undefined),
-      allSpecialties().catch(() => []),
-      toolSuggestions().catch(() => []),
-    ]);
+    try {
+      [authorProfile, specialtyOptions, toolOptions] = await Promise.all([
+        authorForEdit(user.authorId),
+        allSpecialties(),
+        toolSuggestions(),
+      ]);
+    } catch (error) {
+      authorProfileUnavailable = true;
+      console.error('[account] author profile failed:', error instanceof Error ? error.message : error);
+    }
   }
   if (isContributor && tab === 'posts') {
-    posts = await ownPosts(user.id).catch(() => []);
+    try {
+      posts = await ownPosts(user.id);
+    } catch (error) {
+      postsUnavailable = true;
+      console.error('[account] ownPosts failed:', error instanceof Error ? error.message : error);
+    }
   }
 }
 
@@ -71,6 +85,23 @@ const tabLabel: Record<Tab, string> = {
   guides: 'Guides',
   author: 'Author Profile',
   posts: 'Posts',
+};
+const tabIntroduction: Partial<Record<Tab, { kicker: string; title: string; summary: string }>> = {
+  guides: {
+    kicker: 'Learning workspace',
+    title: 'Your guides',
+    summary: 'Resume active paths, revisit completed guides, and choose what to learn next.',
+  },
+  author: {
+    kicker: 'Contributor workspace',
+    title: 'Author profile',
+    summary: 'Maintain the identity and shared expertise readers see across the site.',
+  },
+  posts: {
+    kicker: 'Contributor workspace',
+    title: 'Your posts',
+    summary: 'Draft, review, and manage the practical writing published under your name.',
+  },
 };
 
 const inProgress = guides.filter((g) => g.status !== 'completed');
@@ -106,6 +137,14 @@ const benefits = [
         </nav>
       )}
 
+      {isContributor && tab !== 'account' && tabIntroduction[tab] && (
+        <header class="account__page-head">
+          <p class="kicker">{tabIntroduction[tab]?.kicker}</p>
+          <h1>{tabIntroduction[tab]?.title}</h1>
+          <p>{tabIntroduction[tab]?.summary}</p>
+        </header>
+      )}
+
       {(!isContributor || tab === 'account') && (
       <section class="account__profile">
         <span class:list={['account__avatar', { 'has-image': identity?.avatarUrl }]} aria-hidden="true">
@@ -131,7 +170,15 @@ const benefits = [
       </section>
       )}
 
-      {(!isContributor || tab === 'guides') && (guides.length === 0 ? (
+      {(!isContributor || tab === 'guides') && (guidesUnavailable ? (
+        <section class="account__notice" role="alert">
+          <div>
+            <h2>Guides could not be loaded.</h2>
+            <p>Your saved progress is unchanged. Refresh the page to try again.</p>
+          </div>
+          <a href="/account?tab=guides">Try again</a>
+        </section>
+      ) : guides.length === 0 ? (
         <section class="account__start">
           <div class="account__start-copy">
             <p class="kicker">Begin a path</p>
@@ -204,7 +251,15 @@ const benefits = [
           {savedFlash && <p class="account__flash account__flash--ok" role="status">Profile saved.</p>}
           {errorFlash && <p class="account__flash account__flash--err" role="alert">{errorFlash}</p>}
 
-          {!authorProfile ? (
+          {authorProfileUnavailable ? (
+            <div class="account__notice" role="alert">
+              <div>
+                <h2>Author profile could not be loaded.</h2>
+                <p>Your existing profile is unchanged. Refresh the page before editing.</p>
+              </div>
+              <a href="/account?tab=author">Try again</a>
+            </div>
+          ) : !authorProfile ? (
             <p class="author-editor__pending">
               Author profile setup pending — ask the site admin to complete your approval.
             </p>
@@ -324,14 +379,22 @@ const benefits = [
       {isContributor && tab === 'posts' && (
         <section class="account__section" aria-label="Your posts">
           <div class="author-editor__head">
-            <h2 class="account__h2">Your posts</h2>
+            <h2 class="account__h2">Publishing workflow</h2>
             <p class="author-editor__sub">
               Posts are written in the Directus studio — sign in there with the same account
               you use here. Write in draft, then submit with <strong>In review</strong> when it is ready for an administrator to publish.
             </p>
           </div>
 
-          <ul class="account__list">
+          {postsUnavailable ? (
+            <div class="account__notice" role="alert">
+              <div>
+                <h2>Posts could not be loaded.</h2>
+                <p>Your drafts and published work are unchanged. Refresh the page to try again.</p>
+              </div>
+              <a href="/account?tab=posts">Try again</a>
+            </div>
+          ) : <ul class="account__list">
             {posts.map((p) => (
               <li class="account-row">
                 <div class="account-row__main">
@@ -348,7 +411,7 @@ const benefits = [
             {posts.length === 0 && (
               <li class="author-editor__pending">No posts yet — your first draft is a click away.</li>
             )}
-          </ul>
+          </ul>}
 
           <a class="account__start-cta account__section-cta" href={`${directusPostsUrl}/+`} rel="noopener" target="_blank">
             Write a new post in Directus <Icon name="arrow-right" size={16} />
@@ -445,7 +508,34 @@ const benefits = [
 <style>
   .account {
     padding-block: var(--page-top) var(--page-bottom);
-    max-width: 52rem;
+    max-width: var(--container-content);
+  }
+
+  .account__page-head {
+    max-width: var(--container-prose);
+    margin-top: var(--space-7);
+  }
+
+  .account__page-head h1 {
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-4xl);
+    font-weight: 600;
+    line-height: var(--lh-4xl);
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .account__page-head > p:last-child {
+    max-width: 54ch;
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  .account__tabs + .account__profile {
+    margin-top: var(--space-7);
   }
 
   /* ── Signed-in dashboard ── */
@@ -561,22 +651,63 @@ const benefits = [
 
   .account__section { margin-top: var(--space-8); }
 
+  .account__notice {
+    display: flex;
+    gap: var(--space-5);
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-6);
+    padding-block: var(--space-5);
+    border-block: 1px solid color-mix(in srgb, var(--danger) 45%, var(--border-1));
+  }
+
+  .account__notice h2 {
+    color: var(--text-1);
+    font-size: var(--fs-base);
+    font-weight: 650;
+  }
+
+  .account__notice p {
+    margin-top: var(--space-1);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  .account__notice a {
+    flex: 0 0 auto;
+    color: var(--accent);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    text-underline-offset: 0.2em;
+  }
+
   .account__start {
+    position: relative;
     display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--space-6);
-    margin-top: var(--space-4);
-    padding: var(--space-7);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-lg);
-    background: var(--bg-1);
+    align-items: end;
+    margin-top: var(--space-7);
+    padding-block: var(--space-7);
+    border-block: 1px solid var(--border-1);
+  }
+
+  .account__start::before {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: var(--editorial-rule-accent);
+    height: 2px;
+    background: var(--accent);
+    content: '';
   }
 
   .account__start-copy h2 {
     max-width: 22ch;
     margin-top: var(--space-3);
     font-family: var(--font-display);
-    font-size: var(--fs-2xl);
-    line-height: var(--lh-2xl);
+    font-size: var(--fs-3xl);
+    line-height: var(--lh-3xl);
     font-weight: 560;
     letter-spacing: 0;
     text-wrap: balance;
@@ -592,6 +723,7 @@ const benefits = [
   .account__start-facts {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-column: 1 / -1;
     margin: 0;
     border-block: 1px solid var(--border-1);
   }
@@ -620,27 +752,30 @@ const benefits = [
   .account__start-cta {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: var(--space-2);
     width: fit-content;
-    min-height: 2.875rem;
-    padding-inline: var(--space-5);
-    border-radius: var(--radius-full);
-    background: var(--accent);
-    color: var(--text-on-accent);
+    padding-block-end: var(--space-1);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 68%, transparent);
+    color: var(--accent);
     font-size: var(--fs-sm);
     font-weight: 650;
     text-decoration: none;
-    box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 22%, transparent);
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
   }
 
-  .account__start-cta:hover { background: var(--accent-hover); color: var(--text-on-accent); }
+  .account__start-cta:hover {
+    border-color: var(--accent-hover);
+    color: var(--accent-hover);
+  }
 
   .account__h2 {
-    font-family: var(--font-text);
-    font-size: var(--fs-lg);
-    font-weight: 650;
-    color: var(--text-2);
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 560;
+    line-height: var(--lh-2xl);
+    color: var(--text-1);
   }
 
   .account__list {
@@ -648,21 +783,20 @@ const benefits = [
     margin: var(--space-4) 0 0;
     padding: 0;
     display: grid;
-    gap: var(--space-3);
+    gap: 0;
+    border-bottom: 1px solid var(--border-1);
   }
 
   .account-row {
     display: flex;
     align-items: center;
     gap: var(--space-4);
-    padding: var(--space-4) var(--space-5);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-md);
-    background: var(--bg-1);
-    transition: border-color var(--dur-2) var(--ease-out);
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--border-1);
+    transition: color var(--dur-2) var(--ease-out);
   }
 
-  .account-row:hover { border-color: var(--border-2); }
+  .account-row:hover .account-row__title { color: var(--accent); }
 
   .account-row__main { flex: 1; min-width: 0; display: grid; gap: var(--space-2); }
 
@@ -822,27 +956,31 @@ const benefits = [
     .account__signout { width: 100%; justify-content: center; }
     .account-row { flex-wrap: wrap; }
     .account-row__main { flex-basis: 100%; }
-    .account__start { padding: var(--space-5); }
-    .account__start-cta { width: 100%; }
+    .account__start {
+      grid-template-columns: minmax(0, 1fr);
+      padding-block: var(--space-6);
+    }
+    .account__start-cta { width: fit-content; }
+    .account__notice { align-items: flex-start; }
   }
 
   /* ── Contributor tabs (v4.3) ── */
   .account__tabs {
     display: flex;
-    gap: var(--space-2);
-    margin-bottom: var(--space-6);
-    padding: var(--space-1);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-full);
-    background: var(--bg-1);
-    width: fit-content;
-    max-width: 100%;
+    gap: var(--space-6);
+    width: 100%;
+    border-bottom: 1px solid var(--border-1);
     overflow-x: auto;
+    scrollbar-width: none;
   }
 
+  .account__tabs::-webkit-scrollbar { display: none; }
+
   .account__tab {
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-full);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding-block: var(--space-3);
     color: var(--text-2);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
@@ -850,14 +988,27 @@ const benefits = [
     letter-spacing: 0.04em;
     text-decoration: none;
     white-space: nowrap;
-    transition: color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+    transition: color var(--dur-2) var(--ease-out);
   }
 
   .account__tab:hover { color: var(--text-1); }
 
   .account__tab.is-active {
+    color: var(--text-1);
+  }
+
+  .account__tab.is-active::after {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
     background: var(--accent);
-    color: var(--text-on-accent);
+    content: '';
+  }
+
+  @media (max-width: 63.999rem) {
+    .account__tab { min-height: 2.75rem; }
   }
 
   /* ── Author profile editor ── */
@@ -874,9 +1025,8 @@ const benefits = [
   .author-editor__sub a { color: var(--accent); }
 
   .author-editor__pending {
-    padding: var(--space-5);
-    border: 1px dashed var(--border-2);
-    border-radius: var(--radius-md);
+    padding-block: var(--space-5);
+    border-block: 1px solid var(--border-1);
     color: var(--text-2);
     font-size: var(--fs-sm);
   }

@@ -2,8 +2,8 @@ import { readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 
 import { describe, expect, it } from "vitest";
-
 import { renderMarkdown } from "../renderMarkdown";
+import { extractEmbedConfig, extractEmbedUrl } from "../rehype";
 
 const fixtureDir = join(import.meta.dirname, "../__fixtures__");
 const fixtures = [
@@ -62,10 +62,16 @@ describe("renderMarkdown v4 pipeline", () => {
     }
     expect(html).toContain("Keep this unmarked item neutral.");
 
-    // embed — privacy-friendly YouTube iframe + graceful fallback link
-    expect(html).toContain("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
+    // embed — any HTTPS iframe/URL, shared sizing contract, and source fallback
+    expect(html).toContain("https://media.example.com/embed/product-walkthrough");
     expect(html).toMatch(/<iframe[^>]+loading="lazy"[^>]+allowfullscreen/);
     expect(html).toContain('class="embed-block__fallback" href="https://example.com/talk"');
+    expect(html).toContain('class="embed-block__frame"');
+    expect(html).toContain('data-embed-height="720"');
+    expect(html).toContain("--embed-ratio: 16 / 9; --embed-height: 720px;");
+    expect(html).toContain('class="embed-block__source"');
+    expect(html).toContain("allow-popups-to-escape-sandbox");
+    expect(html).not.toContain("<script");
 
     // metric / metrics — tones, word→symbol translation, explicit symbols pass through
     expect(html).toContain("metric-card--green");
@@ -117,5 +123,43 @@ describe("renderMarkdown v4 pipeline", () => {
     expect(result.html).toContain('class="table-scroll"');
     expect(result.html).toContain('class="code-block__language">json</span>');
     expect(result.html).toContain('class="callout callout--info"');
+  });
+
+  it("gives every heading one unique deep link", async () => {
+    const result = await renderMarkdown("# Project content\n\n## The problem\n\n## The outcome");
+
+    expect(result.html).toContain('aria-label="Copy link to this section" href="#project-content"><svg');
+    expect(result.html).toContain('href="#the-problem"><svg');
+    expect(result.html).toContain('href="#the-outcome"><svg');
+    expect(result.html).not.toContain("# #");
+    expect(result.html.match(/class="heading-anchor"/g)).toHaveLength(3);
+  });
+
+  it("opens external article links in a new tab while retaining internal navigation", async () => {
+    const result = await renderMarkdown(
+      "[External](https://charts.example.com/report) [About](/about) [Home](https://data-dreamer.net/)",
+    );
+
+    expect(result.html).toContain(
+      '<a href="https://charts.example.com/report" target="_blank" rel="noopener noreferrer">External</a>',
+    );
+    expect(result.html).toContain('<a href="/about">About</a>');
+    expect(result.html).toContain('<a href="https://data-dreamer.net/">Home</a>');
+  });
+
+  it("extracts any HTTPS iframe URL without provider-specific handling", () => {
+    const snippet = `<iframe width="800" height="450" src="https://charts.example.com/embed/report-42"></iframe>`;
+
+    expect(extractEmbedUrl(snippet)).toBe("https://charts.example.com/embed/report-42");
+    expect(extractEmbedConfig(snippet)).toMatchObject({
+      src: "https://charts.example.com/embed/report-42",
+      ratio: "800 / 450",
+    });
+  });
+
+  it("rejects unsafe or non-embeddable pasted markup", () => {
+    expect(extractEmbedUrl("url: http://example.com/embed")).toBeUndefined();
+    expect(extractEmbedUrl("<script src='https://example.com/widget.js'></script>")).toBeUndefined();
+    expect(extractEmbedUrl("<object><param name='host_url' value='https://example.com/' /></object>")).toBeUndefined();
   });
 });

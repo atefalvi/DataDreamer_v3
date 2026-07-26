@@ -1,19 +1,9 @@
 import type { CalloutType, MarkdownBlockType, MdNode } from "./types";
-import { calloutTypes } from "./types";
+import { calloutTypes, markdownBlockTypes } from "./types";
 
 const supportedBlocks = new Set<string>([
-  ...calloutTypes,
-  "details",
+  ...markdownBlockTypes,
   "detail", // alias, normalized to "details" in parseBlockOpen
-  "quote",
-  "imagegrid",
-  "checklist",
-  "embed",
-  "metric",
-  "metrics",
-  "formula",
-  "divider",
-  "text",
 ]);
 
 /**
@@ -52,8 +42,10 @@ export function wysiwygNormalize(raw: string): string {
       return `\n\n${rows.join("\n")}\n\n`;
     })
     .replace(/<p>\s*(:::[^<]*)\s*<\/p>/g, "\n\n$1\n\n")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<p[^>]*>/gi, "");
+    .replace(/<\/p\s*>/gi, "\n\n")
+    // Match paragraph tags only. The previous `<p...>` expression also consumed
+    // `<param>` and `<pre>` tags inside vendor snippets before custom blocks saw them.
+    .replace(/<p\b[^>]*>/gi, "");
 
   // Isolate ::: fences on their own blank-line-separated lines — but never inside a
   // code fence, so articles can show ::: authoring syntax in examples verbatim.

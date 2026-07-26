@@ -8,7 +8,7 @@ const resetTimers = new WeakMap<HTMLElement, number>();
 
 /** Copy text, preferring the async Clipboard API, falling back to execCommand so it
  *  still works in non-secure contexts (e.g. http://localhost or older browsers). */
-async function copyText(text: string): Promise<boolean> {
+export async function copyText(text: string): Promise<boolean> {
   try {
     if (navigator.clipboard?.writeText && window.isSecureContext) {
       await navigator.clipboard.writeText(text);

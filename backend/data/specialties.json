@@ -1,0 +1,142 @@
+[
+  {
+    "sort": 1,
+    "name": "Data Engineering",
+    "slug": "data-engineering",
+    "color_key": "viz-1",
+    "description": "Pipelines, integration, transformation, storage, data quality, and reliable production data systems."
+  },
+  {
+    "sort": 2,
+    "name": "Analytics & Insight",
+    "slug": "analytics-strategy",
+    "color_key": "viz-2",
+    "description": "Analysis, measurement, interpretation, and turning evidence into decisions across any function or industry."
+  },
+  {
+    "sort": 3,
+    "name": "Applied AI & Machine Learning",
+    "slug": "applied-ai",
+    "color_key": "viz-3",
+    "description": "Practical AI, machine learning, evaluation, intelligent workflows, and responsible model use."
+  },
+  {
+    "sort": 4,
+    "name": "Operations & Service Delivery",
+    "slug": "operations",
+    "color_key": "viz-4",
+    "description": "Capacity, service performance, operational planning, and the systems that keep work moving."
+  },
+  {
+    "sort": 5,
+    "name": "People & Workforce",
+    "slug": "people-hr",
+    "color_key": "viz-6",
+    "description": "Hiring, workforce planning, organizational health, retention, learning, and employee experience."
+  },
+  {
+    "sort": 6,
+    "name": "Software Engineering",
+    "slug": "software-engineering",
+    "color_key": "viz-5",
+    "description": "Application design, APIs, testing, maintainability, delivery practices, and production software systems."
+  },
+  {
+    "sort": 7,
+    "name": "Infrastructure & Networks",
+    "slug": "infrastructure-networks",
+    "color_key": "viz-2",
+    "description": "Cloud, compute, connectivity, network operations, observability, and platform infrastructure."
+  },
+  {
+    "sort": 8,
+    "name": "Project & Program Management",
+    "slug": "project-program-management",
+    "color_key": "viz-4",
+    "description": "Planning, delivery, dependencies, resources, risks, stakeholder alignment, and portfolio coordination."
+  },
+  {
+    "sort": 9,
+    "name": "Finance & Commercial Analysis",
+    "slug": "finance-commercial-analysis",
+    "color_key": "viz-3",
+    "description": "Financial planning, forecasting, investment, pricing, performance, and commercial decision support."
+  },
+  {
+    "sort": 10,
+    "name": "Data Governance",
+    "slug": "data-governance",
+    "color_key": "viz-1",
+    "description": "Ownership, definitions, lineage, stewardship, access, quality standards, and responsible data use."
+  },
+  {
+    "sort": 11,
+    "name": "Risk, Compliance & Controls",
+    "slug": "risk-compliance-controls",
+    "color_key": "viz-5",
+    "description": "Risk assessment, policy, auditability, regulatory obligations, controls, and evidence-based assurance."
+  },
+  {
+    "sort": 12,
+    "name": "Business Intelligence",
+    "slug": "business-intelligence",
+    "color_key": "viz-2",
+    "description": "Reporting, semantic models, dashboards, self-service analysis, and trusted business metrics."
+  },
+  {
+    "sort": 13,
+    "name": "Data Visualization & Communication",
+    "slug": "data-visualization-communication",
+    "color_key": "viz-6",
+    "description": "Charts, information design, narrative, explanation, and communicating evidence clearly."
+  },
+  {
+    "sort": 14,
+    "name": "Automation & Process Design",
+    "slug": "automation-process-design",
+    "color_key": "viz-5",
+    "description": "Workflow automation, process improvement, orchestration, repeatability, and reducing manual effort."
+  },
+  {
+    "sort": 15,
+    "name": "Product Management",
+    "slug": "product-management",
+    "color_key": "viz-4",
+    "description": "Discovery, prioritization, roadmaps, outcomes, user needs, and evidence-informed product decisions."
+  },
+  {
+    "sort": 16,
+    "name": "Research & Experimentation",
+    "slug": "research-experimentation",
+    "color_key": "viz-3",
+    "description": "Research design, hypotheses, testing, causal thinking, synthesis, and learning from evidence."
+  },
+  {
+    "sort": 17,
+    "name": "Architecture & Systems Design",
+    "slug": "architecture-systems-design",
+    "color_key": "viz-1",
+    "description": "System boundaries, integration patterns, technical trade-offs, scalability, and long-term design."
+  },
+  {
+    "sort": 18,
+    "name": "Security & Resilience",
+    "slug": "security-resilience",
+    "color_key": "viz-5",
+    "description": "Security engineering, privacy, continuity, incident readiness, recovery, and resilient operations."
+  },
+  {
+    "sort": 19,
+    "name": "Quality & Reliability Engineering",
+    "slug": "quality-reliability-engineering",
+    "color_key": "viz-6",
+    "description": "Testing, validation, observability, failure analysis, service quality, and dependable systems."
+  },
+  {
+    "sort": 20,
+    "name": "Strategy & Decision Support",
+    "slug": "strategy-decision-support",
+    "color_key": "viz-2",
+    "description": "Strategic planning, scenarios, prioritization, performance framing, and decision facilitation."
+  }
+]

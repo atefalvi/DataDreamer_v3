@@ -192,6 +192,11 @@ Useful local routes:
 | `guides_topics` | M2M guide topic relation. |
 | `directus_files` | Images and file metadata. |
 
+The canonical Specialty catalogue and selection rules are documented in
+`docs/SPECIALTIES_TAXONOMY.md`. To preview or apply the idempotent Specialty and
+many-to-many relationship reconciliation, run `scripts/cms-model-maintenance.mjs` as
+documented in `scripts/README.md`.
+
 ### `posts` Fields
 
 | Field | Notes |

@@ -5,6 +5,10 @@ collection in Directus. It documents the v4 Markdown contract used by the Astro
 frontend, including the callout syntax covered by the golden fixture at
 `frontend/src/lib/markdown/__fixtures__/agent-blog-guide-syntax.md`.
 
+Before drafting `content`, read `docs/RICH_CONTENT_BLOCKS.md`. It is the authoritative
+contract for all callouts and rich blocks shared by Posts, Projects, and Field Guides.
+Before generating a cover, read `docs/AGENT_COVER_IMAGE_GUIDE.md`.
+
 ---
 
 ## Workflow
@@ -38,7 +42,7 @@ Related operational docs:
 | `content` | Yes | Markdown body. Use `#` once at the top only if drafting outside Directus; the route renders the article title from metadata. |
 | `author` | Yes | Relation to an `authors` profile. Choose the real author, not a Directus user. |
 | `topics` | Recommended | Many-to-many topic taxonomy used for `/blog/topic/[slug]`, article chips, RSS categories, and related posts. |
-| `cover_image` | Recommended | Directus file used for article cover, cards, and per-article OG image. Add useful file description/alt text. |
+| `cover_image` | Recommended | Text-free editorial cover following `docs/AGENT_COVER_IMAGE_GUIDE.md`; used for the article, cards, and OG image. Add useful file description/alt text. |
 | `featured` | Optional | Makes the post eligible for featured positions on the blog/home pages. |
 | `seo_title` | Optional | Search/social title override. Keep it under 60 characters; otherwise leave blank to use `title`. |
 | `seo_description` | Optional | Search/social description override, ideally 120–160 characters; otherwise `excerpt` is used. |
@@ -46,8 +50,8 @@ Related operational docs:
 | `series_label` | Optional | Short label for a series, for example `Pipeline Notes`. |
 | `post_number` | Optional | Numeric series/index marker when useful. |
 
-Projects are authored separately in the Directus `projects` collection. This guide
-covers Posts only.
+Projects are authored separately in the Directus `projects` collection. Use
+`docs/AGENT_PROJECTS_GUIDE.md` for their metadata and case-study structure.
 
 ---
 
@@ -136,8 +140,9 @@ See [training notes](https://example.com/training).
 :::
 ```
 
-Nested `details` blocks inside callouts are supported. Nested callouts inside callouts
-are intentionally not supported and should be avoided.
+One nested custom-block level is supported. Avoid deeper nesting. See
+`docs/RICH_CONTENT_BLOCKS.md` for the complete contract, including checklist, embed,
+metric, metrics, formula, text, and divider blocks that are not repeated here.
 
 ---
 

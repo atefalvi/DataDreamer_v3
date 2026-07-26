@@ -22,6 +22,15 @@ The junction collections (`posts_topics`, `projects_topics`, and `guides_topics`
 implementation details. Editors should manage topics from the relational field on the
 parent item.
 
+Junction foreign keys use `ON DELETE CASCADE`: deleting a Post, Project, Guide, Topic,
+Author, or Specialty removes only its relationship rows. It does not delete the items
+on the other side of a many-to-many relationship. Primary author relations remain
+non-cascading so deleting a profile cannot silently delete authored content.
+
+Dream Team Specialties describe transferable capabilities rather than industries or
+job titles. Use `docs/SPECIALTIES_TAXONOMY.md` for the canonical catalogue, selection
+rules, and synchronization command.
+
 ## Status workflow
 
 Use the same lifecycle everywhere:
@@ -77,5 +86,6 @@ the diff, and commit it with the application change. Directus roles and permissi
 managed in the production instance and must be verified separately because they are not
 fully represented by the schema snapshot.
 
-See `docs/AGENT_BLOG_GUIDE.md`, `docs/AGENT_GUIDES_GUIDE.md`, and
+See `docs/AGENT_BLOG_GUIDE.md`, `docs/AGENT_PROJECTS_GUIDE.md`,
+`docs/AGENT_GUIDES_GUIDE.md`, `docs/RICH_CONTENT_BLOCKS.md`, and
 `docs/ACCOUNT_MODEL.md` for type-specific instructions and access rules.

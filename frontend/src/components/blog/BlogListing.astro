@@ -93,11 +93,19 @@ const prevHref = listing.page.page > 1
   </div>
 
   {hasPosts ? (
-    <div class="blog-listing__posts" aria-label="Posts">
-      {listing.posts.map((post) => (
-        <PostCard post={post} variant="card" />
-      ))}
-    </div>
+    listing.posts.length > 0 && (
+      <section class="blog-listing__results" aria-labelledby="blog-results-title">
+        <div class="blog-listing__results-head">
+          <h2 id="blog-results-title">Latest writing</h2>
+          <span>{listing.posts.length.toString().padStart(2, '0')} {listing.posts.length === 1 ? 'article' : 'articles'}</span>
+        </div>
+        <div class="blog-listing__posts">
+          {listing.posts.map((post) => (
+            <PostCard post={post} variant="index" />
+          ))}
+        </div>
+      </section>
+    )
   ) : (
     <EmptyState
       message={hasFilters ? 'No posts match this filter yet.' : 'Published posts will appear here once they are available.'}
@@ -188,11 +196,33 @@ const prevHref = listing.page.page > 1
     font: inherit;
   }
 
+  .blog-listing__results-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-5);
+    margin-top: var(--space-8);
+  }
+
+  .blog-listing__results-head h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 560;
+    line-height: var(--lh-2xl);
+  }
+
+  .blog-listing__results-head span {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+  }
+
   .blog-listing__posts {
     display: grid;
-    gap: var(--space-5);
-    margin-top: var(--space-7);
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+    column-gap: var(--space-7);
+    margin-top: var(--space-5);
   }
 
   .blog-listing :global(.ui-empty-state) {
@@ -231,15 +261,9 @@ const prevHref = listing.page.page > 1
     }
   }
 
-  @media (max-width: 63.999rem) {
+  @media (min-width: 48rem) {
     .blog-listing__posts {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 41.999rem) {
-    .blog-listing__posts {
-      grid-template-columns: 1fr;
     }
   }
 </style>

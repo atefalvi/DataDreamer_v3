@@ -13,9 +13,10 @@ import type { GuideListItem } from '../../types/content';
 interface Props {
   guide: GuideListItem;
   class?: string;
+  variant?: 'card' | 'index';
 }
 
-const { guide, class: className } = Astro.props;
+const { guide, class: className, variant = 'card' } = Astro.props;
 const { slug, title, summary, difficulty, coverImage, estimatedMinutes, itemCount, curator } =
   guide;
 const href = `/guides/${slug}`;
@@ -29,14 +30,14 @@ const meta = [
 ].filter(Boolean);
 ---
 
-<article class:list={['guide-card', className]} data-guide-card data-slug={slug}>
+<article class:list={['guide-card', `guide-card--${variant}`, className]} data-guide-card data-slug={slug}>
   <a href={href} class="guide-card__link">
     <div class="guide-card__media" data-viz={vizIndex}>
       {coverImage ? (
         <img
           src={coverImage.src}
           srcset={directusSrcset(coverImage.id, [480, 800, 1200])}
-          sizes="(min-width: 64rem) 420px, (min-width: 48rem) 50vw, 100vw"
+          sizes={variant === 'index' ? '(min-width: 64rem) 180px, 30vw' : '(min-width: 64rem) 420px, (min-width: 48rem) 50vw, 100vw'}
           width={coverImage.width}
           height={coverImage.height}
           alt={coverImage.alt}
@@ -53,6 +54,7 @@ const meta = [
       <h3 class="guide-card__title">{title}</h3>
       <p class="guide-card__summary">{summary}</p>
       <div class="guide-card__meta">
+        {guide.featured && <span class="guide-card__feature">Featured</span>}
         {meta.map((part) => <span>{part}</span>)}
         <span class="guide-card__curator">{curator.name}</span>
       </div>
@@ -174,6 +176,10 @@ const meta = [
     color: var(--text-2);
   }
 
+  .guide-card__feature {
+    color: var(--accent);
+  }
+
   .guide-card__progress {
     display: flex;
     align-items: center;
@@ -208,5 +214,56 @@ const meta = [
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
     white-space: nowrap;
+  }
+
+  .guide-card--index {
+    border-top: 1px solid var(--border-1);
+  }
+
+  .guide-card--index .guide-card__link {
+    display: grid;
+    grid-template-columns: clamp(7rem, 30%, 10rem) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: start;
+    padding-block: var(--space-5);
+  }
+
+  .guide-card--index .guide-card__media {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-md);
+  }
+
+  .guide-card--index .guide-card__body {
+    min-width: 0;
+    padding: 0;
+  }
+
+  .guide-card--index .guide-card__title {
+    font-size: var(--fs-xl);
+    line-height: var(--lh-xl);
+  }
+
+  .guide-card--index .guide-card__meta {
+    justify-content: flex-start;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-3);
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .guide-card--index .guide-card__curator {
+    margin-left: 0;
+  }
+
+  @media (max-width: 35rem) {
+    .guide-card--index .guide-card__link {
+      grid-template-columns: 6rem minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+
+    .guide-card--index .guide-card__summary,
+    .guide-card--index .guide-card__curator {
+      display: none;
+    }
   }
 </style>

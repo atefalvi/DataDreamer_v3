@@ -62,28 +62,30 @@ const jsonLd = [
   noindex={project.noindex}
 >
   <article class="case container-content">
-    <header class="case__head">
-      <p class="kicker">Project · {year}</p>
-      <h1>{title}</h1>
-      <p class="case__byline">
-        By {authorHref ? <a href={authorHref}>{author.name}</a> : <span>{author.name}</span>}
-      </p>
-      <p class="case__lede">{summary}</p>
-    </header>
-
-    {coverImage && (
-      <div class="case__cover">
+    <div class:list={['case__hero', { 'case__hero--visual': coverImage }]}>
+      {coverImage && (
+        <div class="case__cover">
         <img
           src={coverImage.src}
           srcset={directusSrcset(coverImage.id, [640, 1024, 1600])}
-          sizes="(min-width: 80rem) 1200px, 100vw"
+          sizes="(min-width: 80rem) 1120px, 100vw"
           width={coverImage.width}
           height={coverImage.height}
           alt={coverImage.alt}
           loading="eager"
         />
-      </div>
-    )}
+        </div>
+      )}
+
+      <header class="case__head">
+        <p class="kicker">Project · {year}</p>
+        <h1>{title}</h1>
+        <p class="case__byline">
+          By {authorHref ? <a href={authorHref}>{author.name}</a> : <span>{author.name}</span>}
+        </p>
+        <p class="case__lede">{summary}</p>
+      </header>
+    </div>
 
     <span class="visually-hidden" role="status" aria-live="polite" data-code-copy-status></span>
 
@@ -160,17 +162,49 @@ const jsonLd = [
     padding-block: var(--page-top) var(--page-bottom);
   }
 
+  .case__hero {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .case__hero--visual {
+    display: grid;
+    min-height: clamp(32rem, 55vw, 42rem);
+    overflow: hidden;
+    align-items: end;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-1);
+  }
+
+  .case__hero--visual::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--bg-0) 96%, transparent) 0%, color-mix(in srgb, var(--bg-0) 84%, transparent) 54%, color-mix(in srgb, var(--bg-0) 34%, transparent) 100%),
+      linear-gradient(0deg, color-mix(in srgb, var(--bg-0) 94%, transparent) 0%, transparent 68%);
+    content: '';
+  }
+
   .case__head {
     max-width: var(--container-prose);
   }
 
+  .case__hero--visual .case__head {
+    max-width: 53rem;
+    padding: clamp(var(--space-6), 6vw, var(--space-8));
+  }
+
   .case__head h1 {
+    max-width: 19ch;
     margin-top: var(--space-3);
     font-family: var(--font-display);
-    font-size: var(--fs-4xl);
-    line-height: var(--lh-4xl);
+    font-size: clamp(3.5rem, 5.4vw, 4.5rem);
+    line-height: 1.03;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 
   .case__lede {
@@ -198,18 +232,17 @@ const jsonLd = [
   }
 
   .case__cover {
-    overflow: hidden;
-    margin-top: var(--space-7);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-lg);
-    aspect-ratio: 21 / 9;
-    background: var(--bg-2);
+    position: absolute;
+    z-index: -2;
+    inset: 0;
   }
 
   .case__cover :global(img) {
     width: 100%;
     height: 100%;
+    filter: saturate(0.58) brightness(0.72) contrast(0.94);
     object-fit: cover;
+    transform: scale(1.015);
   }
 
   .case__layout {
@@ -234,6 +267,31 @@ const jsonLd = [
       position: sticky;
       top: calc(var(--nav-height) + var(--space-5));
       order: 2;
+    }
+  }
+
+  @media (max-width: 47.999rem) {
+    .case__hero--visual {
+      min-height: 34rem;
+    }
+
+    .case__hero--visual::after {
+      background:
+        linear-gradient(0deg, color-mix(in srgb, var(--bg-0) 97%, transparent) 0%, color-mix(in srgb, var(--bg-0) 79%, transparent) 68%, color-mix(in srgb, var(--bg-0) 42%, transparent) 100%);
+    }
+
+    .case__hero--visual .case__head {
+      padding: var(--space-5);
+    }
+
+    .case__head h1 {
+      font-size: var(--fs-4xl);
+      line-height: var(--lh-4xl);
+    }
+
+    .case__lede {
+      font-size: var(--fs-lg);
+      line-height: var(--lh-lg);
     }
   }
 

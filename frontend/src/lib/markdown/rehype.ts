@@ -73,7 +73,7 @@ function calloutElement(state: HandlerState, node: MdNode, type: CalloutType): H
 /* ── Plain-text block bodies (checklist / embed / metric / formula / divider) ──
    These blocks carry `blockBody` (raw markdown slice) instead of mdast children. */
 
-const FIELD_LINE = /^(label|value|caption|symbol|tone|pattern):\s*(.*)$/;
+const FIELD_LINE = /^(label|value|caption|symbol|tone|pattern|url|source|height|ratio):\s*(.*)$/;
 
 function parseBody(rawText: string): { fields: Record<string, string>; lines: string[] } {
   const fields: Record<string, string> = {};
@@ -134,66 +134,179 @@ function checklistElement(node: MdNode): HastNode {
   ]);
 }
 
-const VIDEO_ID = /^[\w-]{5,}$/;
+interface EmbedConfig {
+  src: string;
+  source?: string;
+  height?: number;
+  ratio: string;
+}
 
-function embedSrc(url: URL): string | undefined {
-  const host = url.hostname.replace(/^www\./, "").replace(/^m\./, "");
-  if (host === "youtu.be") {
-    const id = url.pathname.slice(1).split("/")[0];
-    return VIDEO_ID.test(id) ? `https://www.youtube-nocookie.com/embed/${id}` : undefined;
-  }
-  if (host === "youtube.com" || host === "youtube-nocookie.com") {
-    const id = url.searchParams.get("v") ?? url.pathname.match(/^\/(?:embed|shorts)\/([\w-]+)/)?.[1];
-    return id && VIDEO_ID.test(id) ? `https://www.youtube-nocookie.com/embed/${id}` : undefined;
-  }
-  if (host === "vimeo.com" || host === "player.vimeo.com") {
-    const id = url.pathname.match(/(\d{6,})/)?.[1];
-    return id ? `https://player.vimeo.com/video/${id}` : undefined;
+function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCodePoint(Number.parseInt(code, 16)))
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number.parseInt(code, 10)))
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&apos;|&#39;/gi, "'");
+}
+
+function tagAttribute(rawText: string, tagNames: string[], attribute: string): string | undefined {
+  const tags = rawText.match(new RegExp(`<(?:${tagNames.join("|")})\\b[^>]*>`, "gi")) ?? [];
+  for (const tag of tags) {
+    const attributes = new Map(
+      [...tag.matchAll(/([\w-]+)\s*=\s*["']([^"']*)["']/g)].map((match) => [
+        match[1].toLowerCase(),
+        match[2],
+      ]),
+    );
+    const value = attributes.get(attribute.toLowerCase());
+    if (value) return value;
   }
   return undefined;
 }
 
-function embedElement(node: MdNode): HastNode {
-  const { lines } = parseBody(node.blockBody ?? "");
-  const rawUrl = lines.find((line) => line.startsWith("https://"));
-  let src: string | undefined;
+function safeEmbedUrl(value: string | undefined): string | undefined {
+  if (!value) return undefined;
   try {
-    src = rawUrl ? embedSrc(new URL(rawUrl)) : undefined;
+    const url = new URL(value.trim());
+    return url.protocol === "https:" && !url.username && !url.password ? url.toString() : undefined;
   } catch {
-    src = undefined;
+    return undefined;
   }
+}
+
+function positiveDimension(value: string | undefined): number | undefined {
+  const parsed = Number.parseInt(value?.replace(/px$/i, "") ?? "", 10);
+  return Number.isFinite(parsed) && parsed >= 240 && parsed <= 1600 ? parsed : undefined;
+}
+
+function safeRatio(value: string | undefined): string | undefined {
+  const match = value?.match(/^\s*(\d+(?:\.\d+)?)\s*(?:\/|:)\s*(\d+(?:\.\d+)?)\s*$/);
+  if (!match) return undefined;
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  return width > 0 && height > 0 ? `${width} / ${height}` : undefined;
+}
+
+export function extractEmbedUrl(rawText: string): string | undefined {
+  const decoded = decodeHtmlEntities(rawText);
+  const { fields, lines } = parseBody(decoded);
+  const bareUrl = lines.find((line) => /^https:\/\/\S+$/i.test(line));
+  return safeEmbedUrl(
+    fields.url ??
+      bareUrl ??
+      tagAttribute(decoded, ["iframe", "embed"], "src") ??
+      tagAttribute(decoded, ["object"], "data"),
+  );
+}
+
+export function extractEmbedConfig(rawText: string): EmbedConfig | undefined {
+  const decoded = decodeHtmlEntities(rawText);
+  const { fields } = parseBody(decoded);
+  const src = extractEmbedUrl(decoded);
+  if (!src) return undefined;
+
+  const iframeWidth = positiveDimension(tagAttribute(decoded, ["iframe", "embed"], "width"));
+  const iframeHeight = positiveDimension(tagAttribute(decoded, ["iframe", "embed"], "height"));
+  const inferredRatio = iframeWidth && iframeHeight ? `${iframeWidth} / ${iframeHeight}` : undefined;
+
+  return {
+    src,
+    source: safeEmbedUrl(fields.source),
+    height: positiveDimension(fields.height) ?? (inferredRatio ? undefined : iframeHeight),
+    ratio: safeRatio(fields.ratio) ?? inferredRatio ?? "16 / 9",
+  };
+}
+
+function embedElement(node: MdNode): HastNode {
+  const config = extractEmbedConfig(node.blockBody ?? "");
+  const decoded = decodeHtmlEntities(node.blockBody ?? "");
+  const { fields } = parseBody(decoded);
+  const sourceUrl = safeEmbedUrl(fields.source);
 
   const children: HastNode[] = titleDiv("embed-block__title", node.blockTitle);
-  if (src) {
+  if (config) {
+    const style = `--embed-ratio: ${config.ratio};${config.height ? ` --embed-height: ${config.height}px;` : ""}`;
     children.push(
-      element("div", { className: ["embed-block__frame"] }, [
-        element(
-          "iframe",
-          {
-            src,
-            title: node.blockTitle || "Embedded video",
-            loading: "lazy",
-            allowFullScreen: true,
-            allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
-            referrerPolicy: "strict-origin-when-cross-origin",
-          },
-          [],
-        ),
-      ]),
+      element(
+        "div",
+        {
+          className: ["embed-block__frame"],
+          style,
+          ...(config.height ? { dataEmbedHeight: String(config.height) } : {}),
+        },
+        [
+          element(
+            "iframe",
+            {
+              src: config.src,
+              title: node.blockTitle || "Embedded content",
+              loading: "lazy",
+              allowFullScreen: true,
+              allow: "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture; web-share",
+              sandbox:
+                "allow-downloads allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts",
+              referrerPolicy: "strict-origin-when-cross-origin",
+            },
+            [],
+          ),
+        ],
+      ),
     );
-  } else if (rawUrl) {
-    // Graceful fallback: unsupported provider → plain outbound link, article intact.
+    if (config.source && config.source !== config.src) {
+      children.push(
+        element(
+          "a",
+          {
+            className: ["embed-block__source"],
+            href: config.source,
+            target: "_blank",
+            rel: "noopener noreferrer",
+          },
+          [textNode("Open original"), element("span", { ariaHidden: "true" }, [textNode("↗")])],
+        ),
+      );
+    }
+  } else if (sourceUrl) {
     children.push(
       element(
         "a",
-        { className: ["embed-block__fallback"], href: rawUrl, target: "_blank", rel: "noopener noreferrer" },
-        [textNode(`Open: ${rawUrl}`)],
+        { className: ["embed-block__fallback"], href: sourceUrl, target: "_blank", rel: "noopener noreferrer" },
+        [textNode("Open embedded content")],
       ),
     );
   } else {
     children.push(element("p", { className: ["embed-block__fallback"] }, [textNode("Embed unavailable.")]));
   }
   return element("div", { className: ["embed-block"] }, children);
+}
+
+const INTERNAL_LINK_HOSTS = new Set(["data-dreamer.net", "www.data-dreamer.net"]);
+
+/** Keep internal navigation in the current tab while making outbound references an
+ * explicit new-tab handoff. Existing target/rel values are respected and hardened. */
+export function rehypeExternalLinks() {
+  return (tree: HastNode): void => {
+    walk(tree, (node) => {
+      if (node.type !== "element" || node.tagName !== "a") return undefined;
+      const href = typeof node.properties?.href === "string" ? node.properties.href : undefined;
+      if (!href) return undefined;
+
+      try {
+        const url = new URL(href);
+        if ((url.protocol === "http:" || url.protocol === "https:") && !INTERNAL_LINK_HOSTS.has(url.hostname)) {
+          node.properties = {
+            ...node.properties,
+            target: "_blank",
+            rel: "noopener noreferrer",
+          };
+        }
+      } catch {
+        // Relative and fragment links stay in the current tab.
+      }
+      return undefined;
+    });
+  };
 }
 
 const symbolWords: Record<string, string> = {

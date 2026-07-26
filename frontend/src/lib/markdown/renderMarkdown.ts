@@ -14,6 +14,7 @@ import {
   markdownBlockHandlers,
   rehypeCodeBlocks,
   rehypeCollectHeadings,
+  rehypeExternalLinks,
   rehypeImageFigures,
   rehypeMarkCodeLanguages,
   rehypeTableScrollRegions,
@@ -43,6 +44,7 @@ export async function renderMarkdown(content: string): Promise<RenderedMarkdown>
     .use(remarkCustomBlocks)
     .use(remarkRehype, remarkRehypeOptions)
     .use(rehypeRaw)
+    .use(rehypeExternalLinks)
     .use(rehypeKatex) // server-side KaTeX; no client math runtime
     .use(rehypeSlug)
     .use(rehypeCollectHeadings)
@@ -50,9 +52,31 @@ export async function renderMarkdown(content: string): Promise<RenderedMarkdown>
       behavior: "append",
       properties: {
         className: ["heading-anchor"],
-        ariaLabel: "Link to section",
+        ariaLabel: "Copy link to this section",
       },
-      content: { type: "text", value: "#" },
+      content: {
+        type: "element",
+        tagName: "svg",
+        properties: {
+          viewBox: "0 0 24 24",
+          ariaHidden: "true",
+          focusable: "false",
+        },
+        children: [
+          {
+            type: "element",
+            tagName: "path",
+            properties: { d: "M10 13a5 5 0 0 0 7.54.54l2-2a5 5 0 0 0-7.07-7.07l-1.15 1.15" },
+            children: [],
+          },
+          {
+            type: "element",
+            tagName: "path",
+            properties: { d: "M14 11a5 5 0 0 0-7.54-.54l-2 2a5 5 0 0 0 7.07 7.07l1.14-1.14" },
+            children: [],
+          },
+        ],
+      },
     })
     .use(rehypeMarkCodeLanguages)
     .use(rehypeCodeBlocks)

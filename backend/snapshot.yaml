@@ -7731,7 +7731,7 @@ relations:
       foreign_key_column: id
       constraint_name: authors_specialties_authors_id_foreign
       on_update: NO ACTION
-      on_delete: NO ACTION
+      on_delete: CASCADE
   - collection: authors_specialties
     field: specialties_id
     related_collection: specialties
@@ -7752,7 +7752,7 @@ relations:
       foreign_key_column: id
       constraint_name: authors_specialties_specialties_id_foreign
       on_update: NO ACTION
-      on_delete: NO ACTION
+      on_delete: CASCADE
   - collection: guide_items
     field: section
     related_collection: guide_sections
@@ -7931,7 +7931,7 @@ relations:
       one_allowed_collections: null
       one_collection: guides
       one_collection_field: null
-      one_deselect_action: nullify
+      one_deselect_action: delete
       one_field: authors
       sort_field: sort
     schema:
@@ -7952,7 +7952,7 @@ relations:
       one_allowed_collections: null
       one_collection: authors
       one_collection_field: null
-      one_deselect_action: nullify
+      one_deselect_action: delete
       one_field: null
       sort_field: null
     schema:
@@ -7973,7 +7973,7 @@ relations:
       one_allowed_collections: null
       one_collection: guides
       one_collection_field: null
-      one_deselect_action: nullify
+      one_deselect_action: delete
       one_field: specialties
       sort_field: sort
     schema:
@@ -7994,7 +7994,7 @@ relations:
       one_allowed_collections: null
       one_collection: specialties
       one_collection_field: null
-      one_deselect_action: nullify
+      one_deselect_action: delete
       one_field: null
       sort_field: null
     schema:
@@ -8015,7 +8015,7 @@ relations:
       one_allowed_collections: null
       one_collection: guides
       one_collection_field: null
-      one_deselect_action: nullify
+      one_deselect_action: delete
       one_field: topics
       sort_field: null
     schema:
@@ -8036,7 +8036,7 @@ relations:
       one_allowed_collections: null
       one_collection: topics
       one_collection_field: null
-      one_deselect_action: nullify
+      one_deselect_action: delete
       one_field: null
       sort_field: null
     schema:
@@ -8109,7 +8109,7 @@ relations:
       foreign_key_column: id
       constraint_name: posts_topics_topics_id_foreign
       on_update: NO ACTION
-      on_delete: NO ACTION
+      on_delete: CASCADE
   - collection: posts_topics
     field: posts_id
     related_collection: posts
@@ -8130,7 +8130,7 @@ relations:
       foreign_key_column: id
       constraint_name: posts_topics_posts_id_foreign
       on_update: NO ACTION
-      on_delete: NO ACTION
+      on_delete: CASCADE
   - collection: projects
     field: author
     related_collection: authors

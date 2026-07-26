@@ -9,6 +9,11 @@ course/LMS.
 Three levels: **Learning Path** (`guides`) → **Sections** (`guide_sections`) →
 **Items** (`guide_items`).
 
+Before writing any Markdown field, read `docs/RICH_CONTENT_BLOCKS.md`. Field Guides use
+the same renderer as Posts and Projects; the full callout, checklist, metric, embed,
+formula, image-grid, details, text-panel, quote, and divider contract applies.
+Before generating a cover, read `docs/AGENT_COVER_IMAGE_GUIDE.md`.
+
 Access model: the catalogue and a guide's **preview** (pitch, outcomes, syllabus
 titles) are public and indexable. The full item content — links, embeds, downloads,
 curator notes — and per-learner **progress** are behind a free account
@@ -45,12 +50,12 @@ next request, no rebuild needed.
 | `seo_title` | No | Search/social override. Leave empty to use `title`. |
 | `seo_description` | No | Search/social override. Leave empty to use `summary`. |
 | `noindex` | No | Excludes the page from indexing and XML sitemaps; it does not make it private. |
-| `cover_image` | No | ≥ 1200px wide. Optional — a tasteful generated cover is shown if omitted. |
+| `cover_image` | No | Text-free editorial cover following `docs/AGENT_COVER_IMAGE_GUIDE.md`, preferably 1600px or wider. Optional — a generated placeholder is shown if omitted. |
 | `difficulty` | Yes | `beginner` / `intermediate` / `advanced`. A filter facet on the catalogue. |
 | `estimated_duration_minutes` | No | Your honest total estimate, in minutes. Not auto-summed. |
 | `featured` | No | One featured guide leads the catalogue and the home teaser. |
-| `why_this_path` | Yes | Markdown. The pitch: why this guide exists and why this route. |
-| `expected_outcome` | No | Markdown. What the learner can do after finishing. |
+| `why_this_path` | Yes | Markdown. The pitch: why this guide exists and why this route. Rich blocks are supported. |
+| `expected_outcome` | No | Markdown. What the learner can do after finishing. Rich blocks are supported. |
 | `recommended_audience` | No | One line: who this is for ("Python devs who've never run a scheduler"). |
 | `author` | Yes | Relation to the primary curator's `authors` profile (the byline). |
 | `authors` | No | Additional contributing curators (M2M). |
@@ -63,7 +68,7 @@ next request, no rebuild needed.
 |---|---:|---|
 | `guide` | Yes | The parent guide. |
 | `title` | Yes | A phase of the path, e.g. "Get something running", "Going deeper". |
-| `description` | No | Markdown. A short intro shown above the section's items. |
+| `description` | No | Markdown. A short intro shown above the section's items; rich blocks are supported. |
 | `sort` | Yes | Order within the guide (1, 2, 3 …). |
 
 A guide with no sections still renders (items fall back to one "All resources" group),
@@ -79,10 +84,10 @@ but real sections make the path scannable — use them.
 | `description` | No | One line: what it is / what it covers. |
 | `url` | cond. | Required for link-like types (see table). |
 | `asset` | cond. | Upload for `pdf` / `uploaded_file`. |
-| `body` | cond. | Markdown content for `code_sample` / `cheat_sheet` / `personal_note` / `exercise`. Supports the same `:::` callouts and code blocks as blog posts. |
-| `why_included` | No* | **Curator value.** Why this item is on the path. |
-| `focus_on` | No* | **Curator value.** What to focus on / what to skip. |
-| `notes` | No* | **Curator value.** Gotchas, personal notes, setup traps. |
+| `body` | cond. | Markdown for `code_sample` / `cheat_sheet` / `personal_note` / `exercise`. Supports every block in `docs/RICH_CONTENT_BLOCKS.md`. |
+| `why_included` | No* | **Curator value.** Why this item is on the path. Markdown and rich blocks are supported. |
+| `focus_on` | No* | **Curator value.** What to focus on / what to skip. Markdown and rich blocks are supported. |
+| `notes` | No* | **Curator value.** Gotchas, personal notes, setup traps. Markdown and rich blocks are supported. |
 | `estimated_time_minutes` | No | Per-item time estimate (feeds "time remaining"). |
 | `difficulty` | No | Optional per-item override. |
 | `sort` | Yes | Order within the section. |
@@ -115,6 +120,9 @@ least `why_included` on most items — that judgement is what people come for.
 - [ ] You've added **focus_on** wherever a resource is long or partly irrelevant.
 - [ ] Time estimates are honest (they drive "time remaining").
 - [ ] `summary`, `why_this_path`, and `difficulty` are filled — they're the public pitch.
+- [ ] Appropriate rich blocks are used where they clarify a risk, sequence, metric,
+      example, optional detail, or visual; no decorative callouts were added.
+- [ ] Every Markdown field was checked against `docs/RICH_CONTENT_BLOCKS.md` and rendered.
 - [ ] `status = published` only when you'd happily share the link.
 
 Related: `docs/GUIDES_QA.md` for the access and validation runbook,

@@ -10,6 +10,7 @@ import GuideCard from '../../components/guides/GuideCard.astro';
 import GuideCardFeatured from '../../components/guides/GuideCardFeatured.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
 import CollectionHeader from '../../components/ui/CollectionHeader.astro';
+import Chip from '../../components/ui/Chip.astro';
 import { guidesRepo } from '../../lib/repositories';
 import { itemListJsonLd, collectionPageJsonLd } from '../../lib/seo/jsonld';
 import { absoluteUrl } from '../../lib/seo/meta';
@@ -120,45 +121,45 @@ const jsonLd = [
         {topics.length > 0 && (
           <nav class="guides__filters" aria-label="Filter guides">
             <div class="guides__filtergroup" role="group" aria-label="Topic">
-              <a href={buildHref({ topic: null })} class:list={['filterchip', { 'is-active': !activeTopic }]}>
-                All topics
-              </a>
+              <Chip label="All topics" href={buildHref({ topic: null })} selected={!activeTopic} />
               {topics.map((topic) => (
-                <a
+                <Chip
+                  label={`${topic.name} ${topic.count}`}
                   href={buildHref({ topic: topic.slug })}
-                  class:list={['filterchip', { 'is-active': activeTopic === topic.slug }]}
-                >
-                  {topic.name} <span class="filterchip__count">{topic.count}</span>
-                </a>
+                  selected={activeTopic === topic.slug}
+                />
               ))}
             </div>
             <div class="guides__filtergroup guides__filtergroup--levels" role="group" aria-label="Difficulty">
-              <a href={buildHref({ level: null })} class:list={['filterchip', { 'is-active': !activeLevel }]}>
-                All levels
-              </a>
+              <Chip label="All levels" href={buildHref({ level: null })} selected={!activeLevel} />
               {LEVELS.map((level) => (
-                <a
+                <Chip
+                  label={level.label}
                   href={buildHref({ level: level.value })}
-                  class:list={['filterchip', { 'is-active': activeLevel === level.value }]}
-                >
-                  {level.label}
-                </a>
+                  selected={activeLevel === level.value}
+                />
               ))}
             </div>
           </nav>
         )}
 
-        {gridItems.length === 0 && !featured ? (
+        {gridItems.length > 0 ? (
+          <section class="guides__results" aria-labelledby="guide-results-heading">
+            <div class="guides__results-head">
+              <h2 id="guide-results-heading">More learning paths</h2>
+              <span>{gridItems.length.toString().padStart(2, '0')} {gridItems.length === 1 ? 'guide' : 'guides'}</span>
+            </div>
+            <div class="guides__grid">
+              {gridItems.map((guide) => <GuideCard guide={guide} variant="index" />)}
+            </div>
+          </section>
+        ) : !featured ? (
           <EmptyState
             message="No guides match these filters yet."
             icon="search-x"
             action={{ label: 'Clear filters', href: '/guides' }}
           />
-        ) : (
-          <section class="guides__grid" aria-label="All guides">
-            {gridItems.map((guide) => <GuideCard guide={guide} />)}
-          </section>
-        )}
+        ) : null}
       </>
     )}
   </div>
@@ -223,61 +224,38 @@ const jsonLd = [
     gap: var(--space-2);
   }
 
-  .filterchip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-4);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-full);
-    background: var(--bg-1);
-    color: var(--text-2);
-    font-size: var(--fs-sm);
-    text-decoration: none;
-    transition:
-      color var(--dur-2) var(--ease-out),
-      border-color var(--dur-2) var(--ease-out),
-      background var(--dur-2) var(--ease-out);
+  .guides__results-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-5);
+    margin-top: var(--space-8);
   }
 
-  .filterchip:hover {
-    color: var(--text-1);
-    border-color: var(--border-2);
+  .guides__results-head h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 560;
+    line-height: var(--lh-2xl);
   }
 
-  .filterchip.is-active {
-    color: var(--text-1);
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 10%, var(--bg-1));
-  }
-
-  .filterchip__count {
+  .guides__results-head span {
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
-  }
-
-  .filterchip.is-active .filterchip__count {
-    color: var(--accent);
+    white-space: nowrap;
   }
 
   .guides__grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-7);
-    margin-top: var(--space-7);
+    column-gap: var(--space-7);
+    margin-top: var(--space-5);
   }
 
   @media (min-width: 48rem) {
     .guides__grid {
       grid-template-columns: repeat(2, 1fr);
-      gap: var(--space-8) var(--space-6);
-    }
-  }
-
-  @media (min-width: 64rem) {
-    .guides__grid {
-      grid-template-columns: repeat(3, 1fr);
     }
   }
 </style>

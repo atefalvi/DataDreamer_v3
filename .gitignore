@@ -19,6 +19,9 @@ frontend/dist
 
 # Directus
 backend/data
+!backend/data/
+backend/data/*
+!backend/data/specialties.json
 backend/uploads
 backend/.env
 backend/.env.*

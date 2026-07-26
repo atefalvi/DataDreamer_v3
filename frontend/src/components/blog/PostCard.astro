@@ -11,7 +11,7 @@ import type { PostListItem } from '../../types/content';
 
 interface Props {
   post: PostListItem;
-  variant?: 'featured' | 'compact' | 'hero' | 'row' | 'card';
+  variant?: 'featured' | 'compact' | 'hero' | 'row' | 'card' | 'index';
 }
 
 const { post, variant = 'compact' } = Astro.props;
@@ -24,24 +24,29 @@ const dateLabel = post.publishedAt.toLocaleDateString('en-US', {
 const isoDate = post.publishedAt.toISOString();
 const topic = post.topics[0];
 const cover = post.coverImage;
-const showMedia = cover && (variant === 'featured' || variant === 'hero' || variant === 'card');
-const showExcerpt = post.excerpt && (variant === 'featured' || variant === 'hero' || variant === 'row' || variant === 'card');
-const showAuthor = variant === 'featured' || variant === 'hero' || variant === 'card';
+const showMedia = cover && (variant === 'featured' || variant === 'hero' || variant === 'card' || variant === 'index');
+const showExcerpt = post.excerpt && (variant === 'featured' || variant === 'hero' || variant === 'row' || variant === 'card' || variant === 'index');
+const showAuthor = variant === 'featured' || variant === 'hero' || variant === 'card' || variant === 'index';
 const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.seriesLabel;
+const mediaSizes = variant === 'hero'
+  ? '(min-width: 64rem) 620px, 100vw'
+  : variant === 'index'
+    ? '(min-width: 64rem) 180px, 30vw'
+    : '(min-width: 64rem) 600px, 100vw';
 ---
 
-<article class:list={['post-card', `post-card--${variant}`]}>
+<article class:list={['post-card', `post-card--${variant}`, { 'post-card--no-media': !showMedia }]}>
   <a href={href} class="post-card__link">
     {showMedia && (
       <div class="post-card__media">
         <img
           src={cover.src}
           srcset={directusSrcset(cover.id, [480, 800, 1200])}
-          sizes="(min-width: 64rem) 600px, 100vw"
+          sizes={mediaSizes}
           width={cover.width}
           height={cover.height}
           alt={cover.alt}
-          loading="lazy"
+          loading={variant === 'hero' ? 'eager' : 'lazy'}
           decoding="async"
         />
       </div>
@@ -49,6 +54,7 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
 
     <div class="post-card__body">
       <div class="post-card__meta">
+        {post.featured && <span class="post-card__feature">Featured</span>}
         <time datetime={isoDate}>{dateLabel}</time>
         {topic && <span class="post-card__topic">{topic.name}</span>}
       </div>
@@ -117,6 +123,10 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
   }
 
   .post-card__topic {
+    color: var(--accent);
+  }
+
+  .post-card__feature {
     color: var(--accent);
   }
 
@@ -189,11 +199,8 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
   .post-card--hero .post-card__link {
     display: grid;
     gap: var(--space-6);
-    overflow: hidden;
-    padding: clamp(var(--space-5), 4vw, var(--space-8));
-    border: 1px solid color-mix(in srgb, var(--border-2) 78%, transparent);
-    border-radius: var(--radius-lg);
-    background: var(--bg-1);
+    padding-block: var(--space-7);
+    border-block: 1px solid var(--border-1);
   }
 
   .post-card--hero .post-card__media {
@@ -205,9 +212,10 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
   }
 
   .post-card--hero .post-card__title {
-    max-width: 18ch;
+    max-width: 17ch;
     font-size: var(--fs-4xl);
     line-height: var(--lh-4xl);
+    letter-spacing: -0.02em;
   }
 
   .post-card--hero .post-card__excerpt {
@@ -261,6 +269,49 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
     background: color-mix(in srgb, var(--bg-2) 34%, var(--bg-1));
   }
 
+  .post-card--index {
+    border-top: 1px solid var(--border-1);
+  }
+
+  .post-card--index .post-card__link {
+    display: grid;
+    grid-template-columns: clamp(7rem, 30%, 10rem) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: start;
+    padding-block: var(--space-5);
+  }
+
+  .post-card--index .post-card__media {
+    margin: 0;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-md);
+  }
+
+  .post-card--index .post-card__body {
+    min-width: 0;
+  }
+
+  .post-card--index .post-card__title {
+    font-size: var(--fs-xl);
+    line-height: var(--lh-xl);
+  }
+
+  .post-card--index .post-card__excerpt {
+    margin-top: var(--space-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+    -webkit-line-clamp: 2;
+  }
+
+  .post-card--index .post-card__author {
+    margin-top: var(--space-3);
+    font-size: var(--fs-xs);
+  }
+
+  .post-card--index.post-card--no-media .post-card__link {
+    grid-template-columns: 1fr;
+  }
+
   .post-card--row {
     border-top: 1px solid var(--border-1);
   }
@@ -303,9 +354,9 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
 
   @media (min-width: 64rem) {
     .post-card--hero .post-card__link {
-      grid-template-columns: minmax(0, 7fr) minmax(18rem, 5fr);
+      grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 1.1fr);
+      gap: clamp(var(--space-7), 6vw, var(--space-9));
       align-items: stretch;
-      min-height: 28rem;
     }
 
     .post-card--hero .post-card__media {
@@ -325,6 +376,32 @@ const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.
     .post-card--row .post-card__title {
       font-size: var(--fs-xl);
       line-height: var(--lh-xl);
+    }
+  }
+
+  @media (max-width: 35rem) {
+    .post-card--hero .post-card__link {
+      padding-block: var(--space-6);
+    }
+
+    .post-card--hero .post-card__title {
+      font-size: var(--fs-3xl);
+      line-height: var(--lh-3xl);
+    }
+
+    .post-card--hero .post-card__excerpt {
+      font-size: var(--fs-base);
+      line-height: var(--lh-base);
+    }
+
+    .post-card--index .post-card__link {
+      grid-template-columns: 6rem minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+
+    .post-card--index .post-card__excerpt,
+    .post-card--index .post-card__author {
+      display: none;
     }
   }
 </style>

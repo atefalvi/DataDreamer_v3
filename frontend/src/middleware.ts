@@ -48,7 +48,7 @@ function csp(nonce?: string): string {
     `style-src 'self' ${styleNonce ?? ''}`.trim(),
     `style-src-elem 'self' ${styleNonce ?? ''}`.trim(),
     "style-src-attr 'unsafe-inline'",
-    'frame-src https://www.youtube-nocookie.com https://youtube-nocookie.com',
+    'frame-src https:',
     "form-action 'self'",
   ].join('; ');
 }

@@ -9,11 +9,17 @@ Keep this unmarked item neutral.
 :::
 
 :::embed Product walkthrough
-https://www.youtube.com/watch?v=dQw4w9WgXcQ
+<iframe width="560" height="315" src="https://media.example.com/embed/product-walkthrough" title="Product walkthrough"></iframe>
 :::
 
 :::embed Unsupported
-https://example.com/talk
+source: https://example.com/talk
+:::
+
+:::embed Interactive operations dashboard
+url: https://charts.example.com/embed/operations
+height: 720
+source: https://charts.example.com/reports/operations
 :::
 
 :::metric
