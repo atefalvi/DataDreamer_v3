@@ -84,11 +84,9 @@ const isActive = (href: string) =>
     position: fixed;
     inset: var(--nav-height) 0 0;
     z-index: 90;
-    background:
-      radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 30%),
-      color-mix(in srgb, var(--bg-0) 96%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: color-mix(in srgb, var(--bg-0) 98%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     opacity: 0;
     transform: translateY(-8px);
     transition: opacity var(--dur-3) var(--ease-out), transform var(--dur-3) var(--ease-out);
@@ -118,7 +116,7 @@ const isActive = (href: string) =>
 
   .mobile-menu__links {
     display: grid;
-    gap: var(--space-2);
+    gap: 0;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -128,11 +126,9 @@ const isActive = (href: string) =>
     display: grid;
     grid-template-columns: 2.5rem 1fr;
     align-items: center;
-    min-height: 4.25rem;
-    padding-inline: var(--space-4);
-    border: 1px solid color-mix(in srgb, var(--border-1) 78%, transparent);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--bg-1) 48%, transparent);
+    min-height: 4.5rem;
+    padding-inline: 0;
+    border-bottom: 1px solid var(--border-1);
     color: var(--text-1);
     font-size: var(--fs-2xl);
     font-weight: 600;
@@ -140,8 +136,8 @@ const isActive = (href: string) =>
   }
 
   .mobile-menu__links a.is-active {
-    border-color: color-mix(in srgb, var(--accent) 44%, var(--border-1));
-    background: color-mix(in srgb, var(--accent) 12%, var(--bg-1));
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   .mobile-menu__index {
@@ -160,9 +156,7 @@ const isActive = (href: string) =>
     gap: var(--space-3);
     margin-top: var(--space-5);
     padding: var(--space-4);
-    border: 1px solid var(--border-1);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--bg-1) 58%, transparent);
+    border-block: 1px solid var(--border-1);
   }
 
   .mobile-menu__identity {
@@ -257,8 +251,8 @@ const isActive = (href: string) =>
     width: 44px;
     height: 44px;
     border: 1px solid var(--border-1);
-    border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--bg-1) 50%, transparent);
+    border-radius: var(--radius-md);
+    background: transparent;
     color: var(--text-2);
   }
 

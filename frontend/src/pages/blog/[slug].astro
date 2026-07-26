@@ -282,10 +282,7 @@ if (isPagination) {
 
 <style>
   .article-page {
-    padding: calc(var(--nav-height) + var(--space-8)) var(--space-4) var(--space-10);
-    background:
-      radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 34rem),
-      linear-gradient(180deg, color-mix(in srgb, var(--bg-1) 42%, transparent), transparent 28rem);
+    padding: var(--page-top) var(--space-4) var(--page-bottom);
   }
 
   .article-hero,
@@ -419,7 +416,6 @@ if (isPagination) {
     background:
       radial-gradient(circle at 85% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 35%),
       var(--bg-2);
-    box-shadow: var(--shadow-2);
   }
 
   .article-cover img {
@@ -466,19 +462,17 @@ if (isPagination) {
     padding: var(--space-5);
     border: 1px solid color-mix(in srgb, var(--border-2) 70%, transparent);
     border-radius: var(--radius-lg);
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--bg-2) 48%, transparent), transparent),
-      var(--bg-1);
+    background: var(--bg-1);
     color: inherit;
     text-decoration: none;
     transition:
       border-color var(--dur-2) var(--ease-out),
-      transform var(--dur-2) var(--ease-out);
+      background-color var(--dur-2) var(--ease-out);
   }
 
   .article-neighbor:hover {
-    border-color: color-mix(in srgb, var(--accent) 42%, var(--border-2));
-    transform: translateY(calc(var(--space-1) * -0.75));
+    border-color: var(--border-2);
+    background: color-mix(in srgb, var(--bg-2) 34%, var(--bg-1));
   }
 
   .article-neighbor span {

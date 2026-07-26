@@ -38,11 +38,7 @@ const bioText = author.bioHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').tri
     padding: clamp(var(--space-5), 4vw, var(--space-7));
     border: 1px solid color-mix(in srgb, var(--border-2) 76%, transparent);
     border-radius: var(--radius-lg);
-    background:
-      radial-gradient(circle at 94% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 36%),
-      linear-gradient(135deg, color-mix(in srgb, var(--bg-2) 44%, transparent), transparent 58%),
-      var(--bg-1);
-    box-shadow: var(--shadow-2);
+    background: var(--bg-1);
   }
 
   .article-author__body {

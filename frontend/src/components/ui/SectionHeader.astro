@@ -42,7 +42,7 @@ const { kicker, title, intro, action, headingId, class: className } = Astro.prop
   .ui-section-header__copy {
     display: grid;
     gap: var(--space-3);
-    max-width: 56ch;
+    max-width: 62ch;
   }
 
   .ui-section-header h2 {
@@ -53,6 +53,18 @@ const { kicker, title, intro, action, headingId, class: className } = Astro.prop
   .ui-section-header p:not(.kicker) {
     font-size: var(--fs-lg);
     line-height: var(--lh-lg);
+  }
+
+  .ui-section-header :global(.ui-button) {
+    border: 0;
+    border-bottom: 1px solid var(--border-2);
+    border-radius: 0;
+    padding-inline: 0;
+  }
+
+  .ui-section-header :global(.ui-button:hover) {
+    border-color: var(--accent);
+    background: transparent;
   }
 
   @media (min-width: 48rem) {

@@ -166,7 +166,7 @@ const jsonLd = [
 
 <style>
   .guides {
-    padding-block: calc(var(--nav-height) + var(--section-y)) var(--section-y);
+    padding-block: var(--page-top) var(--page-bottom);
   }
 
   .guides__head h1 {
@@ -199,8 +199,8 @@ const jsonLd = [
     align-content: end;
     gap: var(--space-2);
     padding: var(--space-5);
-    border-left: 2px solid var(--accent);
-    background: color-mix(in srgb, var(--bg-1) 64%, transparent);
+    border-top: 2px solid var(--accent);
+    background: transparent;
   }
 
   .guides__status p,
@@ -238,8 +238,8 @@ const jsonLd = [
     justify-content: space-between;
     gap: var(--space-4) var(--space-6);
     margin-top: var(--space-8);
-    padding-bottom: var(--space-5);
-    border-bottom: 1px solid var(--border-1);
+    padding-block: var(--space-5);
+    border-block: 1px solid var(--border-1);
   }
 
   .guides__filtergroup {

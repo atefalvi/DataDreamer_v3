@@ -106,7 +106,7 @@ const { headings } = Astro.props;
 
   .article-toc a[aria-current='location'] {
     padding-inline-start: var(--space-2);
-    border-left: 2px solid var(--accent);
+    border-left: 1px solid var(--accent);
   }
 
   .article-toc a span {
@@ -123,11 +123,7 @@ const { headings } = Astro.props;
     padding: var(--space-5);
     border: 1px solid color-mix(in srgb, var(--border-2) 62%, transparent);
     border-radius: var(--radius-lg);
-    background:
-      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 38%),
-      color-mix(in srgb, var(--bg-1) 74%, transparent);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: var(--bg-1);
   }
 
   @media (min-width: 64rem) {

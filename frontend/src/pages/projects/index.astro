@@ -119,7 +119,7 @@ const jsonLd = [
 
 <style>
   .projects {
-    padding-block: calc(var(--nav-height) + var(--section-y)) var(--section-y);
+    padding-block: var(--page-top) var(--page-bottom);
   }
 
   .projects__head h1 {
@@ -143,6 +143,8 @@ const jsonLd = [
     display: grid;
     gap: var(--space-4);
     margin-top: var(--space-7);
+    padding-block: var(--space-5);
+    border-block: 1px solid var(--border-1);
   }
 
   .projects__search {
@@ -152,7 +154,7 @@ const jsonLd = [
     max-width: 24rem;
     padding: 0 var(--space-4);
     border: 1px solid var(--border-2);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-md);
     background: var(--bg-1);
     color: var(--text-3);
     transition: border-color var(--dur-2) var(--ease-out);

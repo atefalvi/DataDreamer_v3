@@ -40,6 +40,10 @@ const classes = ["ui-chip", selected && "ui-chip--selected", className];
     line-height: 1;
     text-decoration: none;
     cursor: pointer;
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
   }
 
   a.ui-chip:hover {
@@ -48,7 +52,7 @@ const classes = ["ui-chip", selected && "ui-chip--selected", className];
   }
 
   .ui-chip--selected {
-    background: var(--accent-subtle);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
     border-color: var(--accent);
     color: var(--text-1);
   }

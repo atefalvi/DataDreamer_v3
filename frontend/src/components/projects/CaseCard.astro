@@ -64,11 +64,11 @@ const href = `/projects/${project.slug}`;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform var(--dur-3) var(--ease-out);
+    transition: filter var(--dur-3) var(--ease-out);
   }
 
   .case-card__link:hover .case-card__media img {
-    transform: scale(1.02);
+    filter: brightness(1.05);
   }
 
   .case-card__meta {

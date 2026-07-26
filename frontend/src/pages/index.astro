@@ -227,7 +227,7 @@ const teamSentence =
 
   .home-studio {
     display: grid;
-    gap: var(--space-7);
+    gap: var(--space-8);
   }
 
   .home-studio__copy {
@@ -244,60 +244,27 @@ const teamSentence =
 
   .home-studio__cards {
     display: grid;
-    gap: var(--space-3);
-    grid-auto-rows: minmax(156px, auto);
+    border-top: 1px solid var(--border-2);
   }
 
   .home-studio-card {
-    position: relative;
     display: grid;
-    grid-template-columns: minmax(6.5rem, 0.28fr) minmax(0, 1fr);
-    gap: var(--space-5);
-    min-height: 156px;
-    align-items: end;
-    overflow: hidden;
-    padding: var(--space-6);
-    border: 1px solid color-mix(in srgb, var(--border-2) 82%, transparent);
-    border-radius: var(--radius-md);
-    background:
-      radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 38%),
-      linear-gradient(135deg, color-mix(in srgb, var(--bg-2) 74%, transparent), color-mix(in srgb, var(--bg-1) 88%, transparent)),
-      var(--bg-1);
-    box-shadow:
-      inset 0 1px 0 color-mix(in srgb, var(--text-1) 7%, transparent),
-      0 18px 54px color-mix(in srgb, #000 20%, transparent);
-  }
-
-  .home-studio-card::before {
-    content: '';
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 3px;
-    background: linear-gradient(180deg, var(--accent), transparent 74%);
-    opacity: 0.72;
-  }
-
-  .home-studio-card::after {
-    content: '';
-    position: absolute;
-    inset: auto var(--space-6) var(--space-6);
-    height: 1px;
-    background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 52%, transparent), transparent);
-    opacity: 0.5;
+    grid-template-columns: minmax(5rem, 0.18fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+    padding-block: var(--space-6);
+    border-bottom: 1px solid var(--border-1);
   }
 
   .home-studio-card__meta,
   .home-studio-card__body {
-    position: relative;
-    z-index: 1;
     min-width: 0;
   }
 
   .home-studio-card__meta {
-    display: grid;
+    display: flex;
+    align-items: baseline;
     gap: var(--space-3);
-    align-self: stretch;
-    align-content: space-between;
     color: var(--accent);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
@@ -313,8 +280,6 @@ const teamSentence =
   .home-studio-card__body {
     display: grid;
     gap: var(--space-3);
-    padding-inline-start: var(--space-5);
-    border-left: 1px solid color-mix(in srgb, var(--border-2) 64%, transparent);
   }
 
   .home-studio-card h3 {
@@ -334,8 +299,8 @@ const teamSentence =
 
   @media (min-width: 56rem) {
     .home-studio {
-      grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
-      align-items: start;
+      grid-template-columns: minmax(14rem, 0.48fr) minmax(0, 1.52fr);
+      align-items: end;
     }
 
     .home-studio__rule {
@@ -391,24 +356,25 @@ const teamSentence =
     align-items: center;
     gap: var(--space-5);
     margin-top: var(--space-7);
-    padding: var(--space-7);
-    border: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
-    border-radius: var(--radius-md);
-    background:
-      radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34%),
-      var(--bg-1);
+    padding-block: var(--space-6);
+    border-block: 1px solid var(--border-1);
     color: inherit;
     text-decoration: none;
     transition:
       border-color var(--dur-2) var(--ease-out),
-      transform var(--dur-2) var(--ease-out),
-      box-shadow var(--dur-2) var(--ease-out);
+      color var(--dur-2) var(--ease-out);
   }
 
   .team-strip:hover {
-    border-color: color-mix(in srgb, var(--accent) 34%, var(--border-2));
-    box-shadow: var(--shadow-2);
-    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+
+  .team-strip::after {
+    margin-left: auto;
+    color: var(--accent);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    content: 'Explore the map →';
   }
 
   .team-strip__avatars {
@@ -434,22 +400,16 @@ const teamSentence =
   }
 
   @media (max-width: 47.999rem) {
-    .home-studio__cards {
-      grid-auto-rows: minmax(204px, auto);
-    }
-
     .home-studio-card {
       grid-template-columns: minmax(0, 1fr);
-      min-height: 204px;
-      align-items: end;
-      padding: var(--space-5);
+      gap: var(--space-4);
+      padding-block: var(--space-6);
     }
 
     .home-studio-card__meta {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      align-self: start;
       gap: var(--space-4);
     }
 
@@ -462,13 +422,13 @@ const teamSentence =
       line-height: var(--lh-sm);
     }
 
-    .home-studio-card__body {
-      padding-inline-start: 0;
-      border-left: 0;
+    .team-strip {
+      align-items: flex-start;
     }
 
-    .team-strip {
-      padding: var(--space-6);
+    .team-strip::after {
+      flex-basis: 100%;
+      margin-left: 0;
     }
   }
 </style>

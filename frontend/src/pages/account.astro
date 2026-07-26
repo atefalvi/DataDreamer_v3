@@ -444,7 +444,7 @@ const benefits = [
 
 <style>
   .account {
-    padding-block: calc(var(--nav-height) + var(--section-y)) var(--section-y);
+    padding-block: var(--page-top) var(--page-bottom);
     max-width: 52rem;
   }
 
@@ -457,9 +457,7 @@ const benefits = [
     padding: var(--space-5);
     border: 1px solid var(--border-1);
     border-radius: var(--radius-lg);
-    background:
-      radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 55%),
-      var(--bg-1);
+    background: var(--bg-1);
   }
 
   .account__avatar {
@@ -469,7 +467,7 @@ const benefits = [
     width: 5rem;
     height: 5rem;
     border-radius: var(--radius-full);
-    background: linear-gradient(150deg, var(--accent), var(--accent-press));
+    background: var(--accent);
     color: var(--text-on-accent);
     font-family: var(--font-mono);
     font-size: var(--fs-xl);
@@ -515,7 +513,7 @@ const benefits = [
     min-height: 1.75rem;
     padding-inline: var(--space-2);
     border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border-1));
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-md);
     background: color-mix(in srgb, var(--accent) 7%, transparent);
     color: var(--text-2);
     font-family: var(--font-mono);
@@ -570,9 +568,7 @@ const benefits = [
     padding: var(--space-7);
     border: 1px solid var(--border-1);
     border-radius: var(--radius-lg);
-    background:
-      radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 64%),
-      var(--bg-1);
+    background: var(--bg-1);
   }
 
   .account__start-copy h2 {

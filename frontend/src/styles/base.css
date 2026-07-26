@@ -87,7 +87,7 @@ h6 {
   color: var(--text-1);
   font-family: var(--font-display);
   font-weight: 560;
-  letter-spacing: 0;
+  letter-spacing: -0.018em;
   line-height: var(--lh-3xl);
   text-wrap: balance;
 }
@@ -158,7 +158,7 @@ hr {
   font-family: var(--font-mono);
   font-size: var(--fs-mono-label);
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.065em;
   line-height: var(--lh-mono-label);
   text-transform: uppercase;
 }
@@ -173,6 +173,16 @@ hr {
   background: var(--bg-1);
   border: 1px solid var(--border-1);
   border-radius: var(--radius-md);
+}
+
+.page-frame {
+  padding-block: var(--page-top) var(--page-bottom);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-3);
+  opacity: 1;
 }
 
 .visually-hidden {

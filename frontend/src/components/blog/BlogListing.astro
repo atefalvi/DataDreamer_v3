@@ -120,7 +120,7 @@ const prevHref = listing.page.page > 1
 
 <style>
   .blog-listing {
-    padding-block: calc(var(--nav-height) + var(--section-y)) 0;
+    padding-block: var(--page-top) 0;
   }
 
   .blog-listing__breadcrumbs {
@@ -139,9 +139,9 @@ const prevHref = listing.page.page > 1
     position: absolute;
     right: 0;
     bottom: -1px;
-    width: min(18rem, 42vw);
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent));
+    width: 4rem;
+    height: 2px;
+    background: var(--accent);
     content: '';
   }
 
@@ -173,12 +173,8 @@ const prevHref = listing.page.page > 1
     display: grid;
     gap: var(--space-5);
     margin-top: var(--space-7);
-    padding: var(--space-4);
-    border: 1px solid color-mix(in srgb, var(--border-2) 68%, transparent);
-    border-radius: var(--radius-lg);
-    background:
-      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 32%),
-      color-mix(in srgb, var(--bg-1) 74%, transparent);
+    padding-block: var(--space-5);
+    border-block: 1px solid var(--border-1);
   }
 
   .blog-listing__topics {
@@ -262,7 +258,7 @@ const prevHref = listing.page.page > 1
 
   @media (max-width: 47.999rem) {
     .blog-listing {
-      padding-block-start: calc(var(--nav-height) + var(--space-8));
+      padding-block-start: var(--page-top);
     }
 
     .blog-listing__header h1 {
