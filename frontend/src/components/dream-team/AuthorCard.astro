@@ -107,7 +107,13 @@ const counts = [
 
   @media (max-width: 29.999rem) {
     .author-card__link {
-      grid-template-columns: 1fr;
+      gap: var(--space-3);
+      padding: var(--space-4);
+    }
+
+    .author-card__link :global(.ui-avatar) {
+      width: 56px;
+      height: 56px;
     }
   }
 </style>

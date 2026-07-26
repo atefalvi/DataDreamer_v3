@@ -1,17 +1,10 @@
 ---
-/**
- * V4-DT-002 — Dream Team (05 §7, 07 §5.3–5.5). SSR SVG "constellation" with a
- * server-computed deterministic layout (DT-001), a specialty legend that doubles as a
- * filter, and the grouped AuthorCard list that is the graph's accessible equivalent and
- * the sole content on small screens. Graph needs zero JS to be usable (real <a> nodes);
- * the enhancer only adds tooltips, dimming, and roving-tabindex.
- */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorCard from '../../components/dream-team/AuthorCard.astro';
+import Avatar from '../../components/ui/Avatar.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
-import Icon from '../../components/ui/Icon.astro';
 import { authorsRepo } from '../../lib/repositories';
-import { computeGraphLayout, GRAPH } from '../../lib/graph/layout';
+import { computeGraphLayout } from '../../lib/graph/layout';
 import { itemListJsonLd, personJsonLd } from '../../lib/seo/jsonld';
 import type { AuthorSummary } from '../../types/content';
 
@@ -22,9 +15,14 @@ try {
   console.error('[dream-team] authors unavailable:', error instanceof Error ? error.message : error);
 }
 
-// Derive the specialty set + member counts from the authors themselves (no separate
-// repo needed). Sorted by member count desc, as the layout expects.
-const specialtyMap = new Map<string, { slug: string; name: string; colorKey: string; memberCount: number }>();
+type NetworkSpecialty = {
+  slug: string;
+  name: string;
+  colorKey: string;
+  memberCount: number;
+};
+
+const specialtyMap = new Map<string, NetworkSpecialty>();
 for (const author of authors) {
   for (const specialty of author.specialties) {
     const existing = specialtyMap.get(specialty.slug);
@@ -32,20 +30,39 @@ for (const author of authors) {
     else specialtyMap.set(specialty.slug, { ...specialty, memberCount: 1 });
   }
 }
-const specialties = [...specialtyMap.values()].sort((a, b) => b.memberCount - a.memberCount);
-const colorBySlug = new Map(specialties.map((s) => [s.slug, s.colorKey]));
 
-const authorBySlug = new Map(authors.map((a) => [a.slug, a]));
-const showGraph = authors.length >= 2 && specialties.length > 0;
+const specialties = [...specialtyMap.values()].sort(
+  (a, b) => b.memberCount - a.memberCount || a.name.localeCompare(b.name),
+);
+const sharedSpecialties = specialties.filter((specialty) => specialty.memberCount > 1);
+// The visual is intentionally about common ground. Unique specialties remain visible
+// in member profiles and cards without adding one-ended branches to the network.
+const graphSpecialties = sharedSpecialties.length > 0 ? sharedSpecialties : specialties;
+const graphSpecialtyIds = new Set(graphSpecialties.map((specialty) => specialty.slug));
+const authorBySlug = new Map(authors.map((author) => [author.slug, author]));
+const authorsBySpecialty = new Map(
+  graphSpecialties.map((specialty) => [
+    specialty.slug,
+    authors.filter((author) => author.specialties.some((item) => item.slug === specialty.slug)),
+  ]),
+);
 
+const showGraph = authors.length >= 2 && graphSpecialties.length > 0;
 const layout = showGraph
   ? computeGraphLayout(
-      specialties.map((s) => ({ id: s.slug, slug: s.slug, memberCount: s.memberCount })),
-      authors.map((a) => ({
-        id: a.slug,
-        specialtyIds: a.specialties.map((s) => s.slug),
-        posts: a.postCount,
-        guides: a.guideCount,
+      graphSpecialties.map((specialty) => ({
+        id: specialty.slug,
+        slug: specialty.slug,
+        label: specialty.name,
+        memberCount: specialty.memberCount,
+      })),
+      authors.map((author) => ({
+        id: author.slug,
+        specialtyIds: author.specialties
+          .map((specialty) => specialty.slug)
+          .filter((slug) => graphSpecialtyIds.has(slug)),
+        posts: author.postCount,
+        guides: author.guideCount,
       })),
     )
   : null;
@@ -54,12 +71,19 @@ const initialsOf = (name: string) =>
   name
     .split(/\s+/)
     .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? '')
+    .map((part) => part[0]?.toUpperCase() ?? '')
     .join('');
 
-const graphNodeCount = authors.length + specialties.length;
+const graphNameOf = (name: string) => {
+  const parts = name.trim().split(/\s+/);
+  return parts.length > 1 ? `${parts[0]} ${parts.at(-1)?.[0] ?? ''}.` : parts[0];
+};
+
+const colorValue = (colorKey: string) =>
+  /^[a-z0-9-]+$/i.test(colorKey) ? `var(--${colorKey})` : 'var(--accent)';
+
 const graphLinkCount = layout?.edges.length ?? 0;
-const sharedSkillCount = specialties.filter((s) => s.memberCount > 1).length;
+const sharedSkillCount = sharedSpecialties.length;
 
 const jsonLd = [
   itemListJsonLd({
@@ -78,19 +102,50 @@ const jsonLd = [
 
 <BaseLayout
   title="Dream Team"
-  description="A human map of data across industries and functions, connected by the problems people solve and the data they use."
+  description="Meet people across industries and departments through the data skills and problems they share."
   ogImage={{ url: '/og/og-team.png' }}
   jsonLd={jsonLd}
 >
+  <!--
+    THESIS: Different careers share a common data language; this page refuses a control-heavy graph workspace.
+    OWN-WORLD: Data Dreamer's ink-dark editorial field, warm signal orange, Fraunces display type, fine rules, and direct labels.
+    STORY: Meet the people, trace a shared capability, then open a profile to see that skill in context.
+    FIRST VIEWPORT: A split editorial statement leads directly into a people-around-capabilities constellation.
+    FORM: Grounded structure 5, a common-ground field staged as a single readable artifact; concept seed 1aa50aa8.
+  -->
   <div class="dt container-wide">
-    <header class="dt__head">
-      <p class="kicker">People and data</p>
-      <h1>Dream Team</h1>
-      <p class="dt__intro">
-        The Dream Team is a human map of data in the real world: people from different backgrounds,
-        industries, and domains connected by the problems they solve and the data they use. Data moves
-        across HR, finance, sales, operations, engineering, analytics, and leadership.
-      </p>
+    <header class="dt-hero">
+      <div class="dt-hero__copy">
+        <p class="kicker">Dream Team</p>
+        <h1>Different worlds.<span>Shared data.</span></h1>
+        <p class="dt-hero__intro">
+          People work in different industries, functions, and departments. The questions change.
+          The underlying data skills travel with us.
+        </p>
+      </div>
+
+      <aside class="dt-hero__note" aria-label="The Dream Team idea">
+        <p>
+          This is a living map of that common ground—where analytics, automation, modelling,
+          communication, and other data practices connect people who might otherwise look unrelated.
+        </p>
+        {authors.length > 0 && (
+          <dl>
+            <div>
+              <dt>{authors.length}</dt>
+              <dd>{authors.length === 1 ? 'person' : 'people'}</dd>
+            </div>
+            <div>
+              <dt>{sharedSkillCount}</dt>
+              <dd>shared {sharedSkillCount === 1 ? 'capability' : 'capabilities'}</dd>
+            </div>
+            <div>
+              <dt>{graphLinkCount}</dt>
+              <dd>points of connection</dd>
+            </div>
+          </dl>
+        )}
+      </aside>
     </header>
 
     {authors.length === 0 ? (
@@ -102,195 +157,359 @@ const jsonLd = [
     ) : (
       <>
         {showGraph && layout && (
-          <section class="dt-stage" aria-label="Interactive Dream Team network" data-team-network>
-            <span class="dt-stage__bg" aria-hidden="true"></span>
-            <div class="dt-stage__canvas">
-              <div class="dt-stage__topline" aria-hidden="true">
-                <span>{graphNodeCount} nodes</span>
-                <span>{graphLinkCount} links</span>
-                <span>radial graph</span>
+          <section
+            class="dt-network"
+            aria-labelledby="network-title"
+            data-team-network
+            data-default-title="Showing every shared connection"
+          >
+            <header class="dt-network__head">
+              <div class="dt-network__title">
+                <p>The data commons</p>
+                <h2 id="network-title">Trace the common ground.</h2>
+                <p>
+                  Choose a shared capability or a person to see the paths that connect them.
+                </p>
               </div>
-              <svg
-                class="tg"
-                viewBox={`0 0 ${layout.width} ${layout.height}`}
-                role="group"
-                aria-label="Interactive team network; the list below contains the same people"
-                data-team-graph
-              >
-                <defs>
-                  <radialGradient id="tg-core" cx="50%" cy="50%" r="50%">
-                    <stop offset="0" stop-color="var(--accent)" stop-opacity="0.38" />
-                    <stop offset="0.55" stop-color="var(--accent)" stop-opacity="0.08" />
-                    <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
-                  </radialGradient>
-                  {layout.authorNodes.map((node) => {
-                    const author = authorBySlug.get(node.id);
-                    if (!author?.avatar?.src) return null;
-                    return (
-                      <clipPath id={`clip-${node.id}`}>
-                        <circle cx="0" cy="0" r={node.r - 3} />
-                      </clipPath>
-                    );
-                  })}
-                </defs>
+              <output class="dt-network__status" data-network-status aria-live="polite">
+                Showing every shared connection
+              </output>
+            </header>
 
-                <g data-team-camera>
-                <ellipse class="tg-orbit tg-orbit--outer" cx={GRAPH.cx} cy={GRAPH.cy} rx={GRAPH.rx} ry={GRAPH.ry} />
-                <ellipse class="tg-orbit tg-orbit--inner" cx={GRAPH.cx} cy={GRAPH.cy} rx={GRAPH.rx * 0.58} ry={GRAPH.ry * 0.54} />
-                <circle class="tg-core" cx={GRAPH.cx} cy={GRAPH.cy} r="176" fill="url(#tg-core)" />
-
-                <g class="tg-links">
-                  {layout.edges.map((edge) => {
-                    const specialty = specialtyMap.get(edge.specialtyId);
-                    const flowColor = colorBySlug.get(edge.specialtyId) ?? 'accent';
-                    const d = `M ${edge.x1} ${edge.y1} Q ${edge.cx} ${edge.cy} ${edge.x2} ${edge.y2}`;
-                    return (
-                      <g
-                        class="tg-link-group"
-                        data-source={edge.authorId}
-                        data-target={edge.specialtyId}
-                        data-kind={specialty && specialty.memberCount > 1 ? 'shared' : 'has'}
-                        style={`--node-flow: var(--${flowColor});`}
-                      >
-                        <path class="tg-link" d={d} />
-                        <path class="tg-link-flow" d={d} />
-                      </g>
-                    );
-                  })}
-                </g>
-
-                <g class="tg-nodes">
-                  {layout.specialtyAnchors.map((anchor, i) => {
-                    const specialty = specialtyMap.get(anchor.id);
-                    if (!specialty) return null;
-                    const color = colorBySlug.get(anchor.id) ?? 'accent';
-                    const r = specialty.memberCount > 1 ? 21 : 17;
-                    const type = specialty.memberCount > 1 ? 'shared skill' : 'skill';
-                    return (
-                      <g
-                        class:list={['tg-node', 'tg-node--skill', { 'tg-node--shared': specialty.memberCount > 1 }]}
-                        data-id={specialty.slug}
-                        data-type={type}
-                        data-label={specialty.name}
-                        data-search={`${specialty.name} ${type}`}
-                        data-x={anchor.x}
-                        data-y={anchor.y}
-                        data-home-x={anchor.x}
-                        data-home-y={anchor.y}
-                        data-r={r}
-                        tabindex={i === 0 ? 0 : -1}
-                        role="button"
-                        aria-label={`${specialty.name}, ${type}`}
-                        style={`--node-color: var(--${color});`}
-                        transform={`translate(${anchor.x} ${anchor.y})`}
-                      >
-                        <circle class="tg-node-halo" cx="0" cy="0" r={r + 8} />
-                        <circle class="tg-node-core" cx="0" cy="0" r={r} />
-                        <text class="tg-node-label tg-node-label--skill" x="0" y={r + 17} text-anchor="middle">
-                          {specialty.name}
-                        </text>
-                      </g>
-                    );
-                  })}
-
-                  {layout.authorNodes.map((node, i) => {
-                    const author = authorBySlug.get(node.id);
-                    if (!author) return null;
-                    const color = colorBySlug.get(author.specialties[0]?.slug ?? '') ?? 'accent';
-                    const r = node.r + 8;
-                    return (
-                      <g
-                        class="tg-node tg-node--person"
-                        data-id={author.slug}
-                        data-type="person"
-                        data-label={author.name}
-                        data-role={author.roleTitle}
-                        data-href={`/dream-team/${author.slug}`}
-                        data-specialties={author.specialties.map((s) => s.name).join(', ')}
-                        data-posts={author.postCount}
-                        data-guides={author.guideCount}
-                        data-search={`${author.name} ${author.roleTitle} ${author.specialties.map((s) => s.name).join(' ')}`}
-                        data-x={node.x}
-                        data-y={node.y}
-                        data-home-x={node.x}
-                        data-home-y={node.y}
-                        data-r={r}
-                        tabindex={specialties.length === 0 && i === 0 ? 0 : -1}
-                        role="link"
-                        aria-label={`${author.name}, ${author.roleTitle}`}
-                        style={`--node-color: var(--${color});`}
-                        transform={`translate(${node.x} ${node.y})`}
-                      >
-                        <circle class="tg-node-halo" cx="0" cy="0" r={r + 7} />
-                        <circle class="tg-node-core" cx="0" cy="0" r={r} />
-                        {author.avatar?.src ? (
-                          <image
-                            href={author.avatar.src}
-                            x={-(r - 4)}
-                            y={-(r - 4)}
-                            width={(r - 4) * 2}
-                            height={(r - 4) * 2}
-                            clip-path={`url(#clip-${author.slug})`}
-                            preserveAspectRatio="xMidYMid slice"
-                          />
-                        ) : (
-                          <text class="tg-node-initials" x="0" y="0" text-anchor="middle" dominant-baseline="central">
-                            {initialsOf(author.name)}
-                          </text>
-                        )}
-                        <text class="tg-node-label tg-node-label--person" x="0" y={r + 18} text-anchor="middle">
-                          {author.name.split(/\s+/)[0]}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </g>
-                </g>
-              </svg>
-              <div class="dt-camera" aria-label="Map zoom controls">
-                <button type="button" aria-label="Zoom out" title="Zoom out" data-team-zoom-out><Icon name="minus" size={20} /></button>
-                <output data-team-zoom-status aria-live="polite">100%</output>
-                <button type="button" aria-label="Zoom in" title="Zoom in" data-team-zoom-in><Icon name="plus" size={20} /></button>
-                <button type="button" aria-label="Fit network to view" title="Fit network to view" data-team-fit><Icon name="maximize-2" size={20} /></button>
-              </div>
+            <div class="dt-filters" aria-label="Filter the network by shared capability">
+              <button type="button" class="is-active" data-network-filter="" aria-pressed="true">
+                All connections
+              </button>
+              {graphSpecialties.map((specialty) => (
+                <button
+                  type="button"
+                  data-network-filter={specialty.slug}
+                  aria-pressed="false"
+                  style={`--node-color: ${colorValue(specialty.colorKey)};`}
+                >
+                  <span aria-hidden="true"></span>
+                  {specialty.name}
+                  <small>{specialty.memberCount}</small>
+                </button>
+              ))}
             </div>
 
-            <div class="dt-stage__panel dt-inspector" aria-live="polite" data-team-inspector>
-              <div class="dt-panel__head">
-                <div>
-                  <p class="kicker">Network map</p>
-                  <h2 data-team-inspector-title>Select a node</h2>
+            <div class="dt-network__body">
+              <div class="dt-graph-wrap">
+                <svg
+                  class="dt-graph"
+                  viewBox={`0 0 ${layout.width} ${layout.height}`}
+                  role="group"
+                  aria-labelledby="network-title network-description"
+                  data-team-graph
+                >
+                  <desc id="network-description">
+                    Dream Team members appear around shared data capabilities. Curved lines connect
+                    each person to the capabilities they share with others. The member list below
+                    contains the same people and details.
+                  </desc>
+                  <defs>
+                    {layout.authorNodes.map((node) => {
+                      const author = authorBySlug.get(node.id);
+                      if (!author?.avatar?.src) return null;
+                      return (
+                        <clipPath id={`clip-${node.id}`}>
+                          <circle cx="0" cy="0" r={node.r - 3} />
+                        </clipPath>
+                      );
+                    })}
+                  </defs>
+
+                  <g class="dt-graph__links" aria-hidden="true">
+                    {layout.edges.map((edge) => {
+                      const specialty = specialtyMap.get(edge.specialtyId);
+                      const d = `M ${edge.x1} ${edge.y1} C ${edge.c1x} ${edge.c1y} ${edge.c2x} ${edge.c2y} ${edge.x2} ${edge.y2}`;
+                      return (
+                        <path
+                          class="dt-graph__link"
+                          d={d}
+                          data-network-link
+                          data-source={edge.authorId}
+                          data-target={edge.specialtyId}
+                          style={`--node-color: ${colorValue(specialty?.colorKey ?? 'accent')};`}
+                        />
+                      );
+                    })}
+                  </g>
+
+                  <g class="dt-graph__skills">
+                    {layout.specialtyAnchors.map((anchor) => {
+                      const specialty = specialtyMap.get(anchor.id);
+                      if (!specialty) return null;
+                      return (
+                        <g
+                          class="dt-graph__node dt-graph__node--skill"
+                          role="button"
+                          tabindex="0"
+                          aria-label={`${specialty.name}, shared by ${specialty.memberCount} people`}
+                          aria-pressed="false"
+                          data-network-node
+                          data-id={specialty.slug}
+                          data-label={specialty.name}
+                          style={`--node-color: ${colorValue(specialty.colorKey)};`}
+                          transform={`translate(${anchor.x} ${anchor.y})`}
+                        >
+                          <rect
+                            class="dt-graph__skill-hit"
+                            x={-anchor.w / 2 - 8}
+                            y={-anchor.h / 2 - 8}
+                            width={anchor.w + 16}
+                            height={anchor.h + 16}
+                            rx="16"
+                          />
+                          <rect
+                            class="dt-graph__skill-shape"
+                            x={-anchor.w / 2}
+                            y={-anchor.h / 2}
+                            width={anchor.w}
+                            height={anchor.h}
+                            rx="11"
+                          />
+                          <text class="dt-graph__skill-name" x="0" y="-3" text-anchor="middle">
+                            {specialty.name}
+                          </text>
+                          <text class="dt-graph__skill-count" x="0" y="14" text-anchor="middle">
+                            shared by {specialty.memberCount}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </g>
+
+                  <g class="dt-graph__people">
+                    {layout.authorNodes.map((node) => {
+                      const author = authorBySlug.get(node.id);
+                      if (!author) return null;
+                      const primary = graphSpecialties.find((specialty) =>
+                        author.specialties.some((item) => item.slug === specialty.slug),
+                      );
+                      return (
+                        <g
+                          class="dt-graph__node dt-graph__node--person"
+                          role="button"
+                          tabindex="0"
+                          aria-label={`${author.name}, ${author.roleTitle || 'Dream Team member'}`}
+                          aria-pressed="false"
+                          data-network-node
+                          data-id={author.slug}
+                          data-label={author.name}
+                          style={`--node-color: ${colorValue(primary?.colorKey ?? 'accent')};`}
+                          transform={`translate(${node.x} ${node.y})`}
+                        >
+                          <circle class="dt-graph__person-hit" cx="0" cy="0" r={node.r + 13} />
+                          <circle class="dt-graph__person-ring" cx="0" cy="0" r={node.r + 4} />
+                          <circle class="dt-graph__person-shape" cx="0" cy="0" r={node.r} />
+                          {author.avatar?.src ? (
+                            <image
+                              href={author.avatar.src}
+                              x={-(node.r - 3)}
+                              y={-(node.r - 3)}
+                              width={(node.r - 3) * 2}
+                              height={(node.r - 3) * 2}
+                              clip-path={`url(#clip-${author.slug})`}
+                              preserveAspectRatio="xMidYMid slice"
+                            />
+                          ) : (
+                            <text
+                              class="dt-graph__initials"
+                              x="0"
+                              y="1"
+                              text-anchor="middle"
+                              dominant-baseline="central"
+                            >
+                              {initialsOf(author.name)}
+                            </text>
+                          )}
+                          <text
+                            class="dt-graph__person-name"
+                            x="0"
+                            y={node.r + 22}
+                            text-anchor="middle"
+                          >
+                            {graphNameOf(author.name)}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </g>
+                </svg>
+              </div>
+
+              <aside class="dt-story" aria-label="Selected network connection" aria-live="polite">
+                <div data-network-detail="">
+                  <p class="dt-story__label">What you are seeing</p>
+                  <h3>Data skills travel.</h3>
+                  <p>
+                    People sit at the edge of the field. The shared capabilities between them form
+                    the centre. Every line is a real overlap in how they work.
+                  </p>
+                  <div class="dt-story__legend" aria-label="Network key">
+                    <span><i class="dt-story__person-key" aria-hidden="true"></i>People</span>
+                    <span><i class="dt-story__skill-key" aria-hidden="true"></i>Shared capability</span>
+                  </div>
                 </div>
-                <button class="dt-help" type="button" aria-label="Network interaction help">
-                  <Icon name="circle-help" size={16} />
-                  <span>Drag nodes or the map. Pinch, scroll, or use the controls to zoom.</span>
-                </button>
-              </div>
 
-              <p class="dt-panel__summary" data-team-inspector-summary>Select a node for details.</p>
+                {graphSpecialties.map((specialty) => {
+                  const connectedAuthors = authorsBySpecialty.get(specialty.slug) ?? [];
+                  return (
+                    <div data-network-detail={specialty.slug} hidden>
+                      <p class="dt-story__label">Shared data point</p>
+                      <h3>{specialty.name}</h3>
+                      <p>
+                        A working capability shared by {connectedAuthors.length} people—useful in
+                        different roles, industries, and departments.
+                      </p>
+                      <div class="dt-story__people">
+                        {connectedAuthors.map((author) => (
+                          <a href={`/dream-team/${author.slug}`}>
+                            <Avatar src={author.avatar?.src} name={author.name} size={32} />
+                            <span>
+                              <strong>{author.name}</strong>
+                              {author.roleTitle && <small>{author.roleTitle}</small>}
+                            </span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
 
-              <label class="dt-search" for="team-search">
-                <span>Search network</span>
-                <input id="team-search" type="search" placeholder="Search people or skills" data-team-search />
-              </label>
+                {authors.map((author) => (
+                  <div data-network-detail={author.slug} hidden>
+                    <p class="dt-story__label">Dream Team member</p>
+                    <div class="dt-story__identity">
+                      <Avatar src={author.avatar?.src} name={author.name} size={48} />
+                      <div>
+                        <h3>{author.name}</h3>
+                        {author.roleTitle && <p>{author.roleTitle}</p>}
+                      </div>
+                    </div>
+                    {author.specialties.length > 0 && (
+                      <ul class="dt-story__tags" aria-label={`${author.name}'s capabilities`}>
+                        {author.specialties.map((specialty) => <li>{specialty.name}</li>)}
+                      </ul>
+                    )}
+                    <a class="dt-story__profile" href={`/dream-team/${author.slug}`}>
+                      View {author.name.split(/\s+/)[0]}'s profile <span aria-hidden="true">→</span>
+                    </a>
+                  </div>
+                ))}
+              </aside>
 
-              <div class="dt-actions" aria-label="Network actions">
-                <button type="button" data-team-reset-layout>Reset layout</button>
-                <button type="button" data-team-clear-selection>Clear selection</button>
-              </div>
+              <div class="dt-mobile-map" aria-label="Shared capabilities and connected people">
+                <div data-mobile-network-panel="">
+                  <p class="dt-mobile-map__intro">
+                    Start with a shared data point. Each one opens the people and roles it connects.
+                  </p>
+                  <div class="dt-mobile-map__branches">
+                    {graphSpecialties.map((specialty) => {
+                      const connectedAuthors = authorsBySpecialty.get(specialty.slug) ?? [];
+                      return (
+                        <button
+                          type="button"
+                          class="dt-branch"
+                          data-network-node
+                          data-id={specialty.slug}
+                          data-label={specialty.name}
+                          aria-pressed="false"
+                          style={`--node-color: ${colorValue(specialty.colorKey)};`}
+                        >
+                          <span class="dt-branch__mark" aria-hidden="true"></span>
+                          <span class="dt-branch__copy">
+                            <strong>{specialty.name}</strong>
+                            <small>Connects {connectedAuthors.length} people</small>
+                          </span>
+                          <span class="dt-branch__avatars" aria-hidden="true">
+                            {connectedAuthors.slice(0, 4).map((author) => (
+                              <Avatar src={author.avatar?.src} name={author.name} size={32} />
+                            ))}
+                          </span>
+                          <span class="dt-branch__arrow" aria-hidden="true">→</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-              <div class="dt-inspector__meta" data-team-inspector-meta>
-                <span>{authors.length} people</span>
-                <span>{specialties.length} skills</span>
-                <span>{sharedSkillCount} shared</span>
-                <span>{graphLinkCount} links</span>
+                {graphSpecialties.map((specialty) => {
+                  const connectedAuthors = authorsBySpecialty.get(specialty.slug) ?? [];
+                  return (
+                    <section
+                      class="dt-mobile-path"
+                      data-mobile-network-panel={specialty.slug}
+                      aria-label={`${specialty.name} connections`}
+                      hidden
+                    >
+                      <button
+                        type="button"
+                        class="dt-mobile-path__back"
+                        data-network-filter=""
+                        aria-label="Back to all shared capabilities"
+                      >
+                        <span aria-hidden="true">←</span> All shared capabilities
+                      </button>
+                      <header style={`--node-color: ${colorValue(specialty.colorKey)};`}>
+                        <span aria-hidden="true"></span>
+                        <div tabindex="-1" data-mobile-panel-title>
+                          <p>Shared data point</p>
+                          <h3>{specialty.name}</h3>
+                          <small>{connectedAuthors.length} connected people</small>
+                        </div>
+                      </header>
+                      <div class="dt-mobile-path__people">
+                        {connectedAuthors.map((author) => (
+                          <a href={`/dream-team/${author.slug}`}>
+                            <Avatar src={author.avatar?.src} name={author.name} size={48} />
+                            <span>
+                              <strong>{author.name}</strong>
+                              {author.roleTitle && <small>{author.roleTitle}</small>}
+                            </span>
+                            <b aria-hidden="true">→</b>
+                          </a>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+
+                <noscript>
+                  <div class="dt-nojs-network">
+                    <p>Shared capabilities and the people they connect</p>
+                    {graphSpecialties.map((specialty) => {
+                      const connectedAuthors = authorsBySpecialty.get(specialty.slug) ?? [];
+                      return (
+                        <section>
+                          <h3>{specialty.name}</h3>
+                          <ul>
+                            {connectedAuthors.map((author) => (
+                              <li><a href={`/dream-team/${author.slug}`}>{author.name}</a></li>
+                            ))}
+                          </ul>
+                        </section>
+                      );
+                    })}
+                  </div>
+                </noscript>
               </div>
             </div>
           </section>
         )}
 
-        <section class="dt-list" aria-label="Everyone">
-          <p class="kicker">Everyone</p>
+        <section class="dt-list" aria-labelledby="team-list-title">
+          <header class="dt-list__head">
+            <div>
+              <p class="kicker">The people</p>
+              <h2 id="team-list-title">Meet the Dream Team.</h2>
+            </div>
+            <p>
+              Open a profile to see the experience, work, and perspective behind each point in the network.
+            </p>
+          </header>
           <div class="dt-list__grid">
             {authors.map((author) => <AuthorCard author={author} />)}
           </div>
@@ -302,664 +521,811 @@ const jsonLd = [
 
 <style>
   .dt {
-    padding-block: calc(var(--nav-height) + var(--section-y)) var(--section-y);
+    padding-block: calc(var(--nav-height) + clamp(4.5rem, 8vw, 8rem)) var(--section-y);
   }
 
-  .dt__head h1 {
-    margin-top: var(--space-3);
-    font-family: var(--font-display);
-    font-size: var(--fs-4xl);
-    line-height: var(--lh-4xl);
-    font-weight: 600;
-    letter-spacing: -0.01em;
+  .dt-hero {
+    display: grid;
+    gap: clamp(3rem, 8vw, 8rem);
+    align-items: end;
+    min-height: clamp(25rem, 52vw, 39rem);
+    padding-bottom: clamp(3rem, 6vw, 6rem);
+    border-bottom: 1px solid var(--border-2);
   }
 
-  .dt__intro {
-    max-width: 60ch;
+  .dt-hero__copy {
+    max-width: 57rem;
+  }
+
+  .dt-hero h1 {
     margin-top: var(--space-4);
-    color: var(--text-2);
-    font-size: var(--fs-lg);
-    line-height: var(--lh-lg);
-  }
-
-  /* Interactive graph stage. Uses the existing Observatory palette, but follows the
-     prototype's editorial radial interaction model: search, inspect, drag, reset. */
-  .dt-stage {
-    position: relative;
-    display: grid;
-    gap: var(--space-4);
-    margin-top: var(--space-7);
-    padding: clamp(var(--space-4), 2vw, var(--space-6));
-    overflow: hidden;
-    isolation: isolate;
-    border: 1px solid color-mix(in srgb, var(--border-2) 64%, transparent);
-    border-radius: var(--radius-lg);
-    background:
-      radial-gradient(48rem 28rem at 20% 6%, color-mix(in srgb, var(--viz-2) 12%, transparent), transparent 72%),
-      radial-gradient(40rem 26rem at 84% 22%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
-      linear-gradient(150deg, color-mix(in srgb, var(--bg-2) 48%, transparent), color-mix(in srgb, var(--bg-1) 94%, transparent));
-    box-shadow: var(--shadow-2);
-  }
-
-  @media (min-width: 64rem) {
-    .dt-stage {
-      grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem);
-      align-items: stretch;
-    }
-
-    .dt-stage__canvas {
-      grid-column: 1;
-      grid-row: 1;
-    }
-
-    .dt-stage__panel {
-      grid-column: 2;
-      grid-row: 1;
-    }
-  }
-
-  .dt-stage__bg {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background:
-      radial-gradient(58% 58% at 50% 48%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%),
-      linear-gradient(90deg, color-mix(in srgb, var(--border-1) 52%, transparent) 1px, transparent 1px),
-      linear-gradient(180deg, color-mix(in srgb, var(--border-1) 36%, transparent) 1px, transparent 1px);
-    background-size: 100% 100%, 56px 56px, 56px 56px;
-    mask-image: radial-gradient(78% 78% at 50% 48%, #000, transparent 90%);
-    opacity: 0.6;
-  }
-
-  .dt-stage__panel,
-  .dt-inspector {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    align-content: start;
-    gap: var(--space-5);
-    padding: var(--space-5);
-    border: 1px solid color-mix(in srgb, var(--text-1) 9%, transparent);
-    border-radius: var(--radius-md);
-    background:
-      linear-gradient(180deg, color-mix(in srgb, var(--text-1) 5%, transparent), transparent 36%),
-      color-mix(in srgb, var(--bg-1) 62%, transparent);
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
-  }
-
-  .dt-panel__head {
-    display: flex;
-    gap: var(--space-3);
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-
-  .dt-panel__head h2,
-  .dt-inspector h2 {
-    margin-top: var(--space-2);
     font-family: var(--font-display);
-    font-size: clamp(var(--fs-xl), 2.2vw, var(--fs-2xl));
-    line-height: var(--lh-xl);
-    font-weight: 620;
-    letter-spacing: 0;
+    font-size: clamp(3.25rem, 7.8vw, 6rem);
+    font-weight: 610;
+    letter-spacing: -0.025em;
+    line-height: 0.96;
   }
 
-  .dt-panel__summary,
-  .dt-inspector p:not(.kicker) {
-    margin: 0;
+  .dt-hero h1 span {
+    display: block;
+    color: var(--accent);
+  }
+
+  .dt-hero__intro {
+    max-width: 43rem;
+    margin-top: var(--space-6);
+    color: var(--text-2);
+    font-size: clamp(1.15rem, 1.1rem + 0.5vw, 1.5rem);
+    line-height: 1.45;
+  }
+
+  .dt-hero__note {
+    max-width: 31rem;
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-2);
+  }
+
+  .dt-hero__note > p {
     color: var(--text-2);
     font-size: var(--fs-sm);
     line-height: var(--lh-sm);
   }
 
-  .dt-help {
-    position: relative;
-    display: inline-grid;
-    flex: 0 0 auto;
-    place-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border: 1px solid color-mix(in srgb, var(--border-2) 66%, transparent);
-    border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--bg-0) 36%, transparent);
-    color: var(--text-3);
-    cursor: help;
+  .dt-hero__note dl {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-6);
   }
 
-  .dt-help span {
-    position: absolute;
-    top: calc(100% + var(--space-2));
-    right: 0;
-    z-index: 3;
-    width: min(16rem, 70vw);
-    padding: var(--space-3);
-    border: 1px solid color-mix(in srgb, var(--border-2) 76%, transparent);
-    border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--bg-0) 92%, transparent);
-    color: var(--text-2);
+  .dt-hero__note dl div {
+    min-width: 0;
+  }
+
+  .dt-hero__note dt {
+    color: var(--text-1);
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    line-height: 1;
+  }
+
+  .dt-hero__note dd {
+    margin-top: var(--space-2);
+    color: var(--text-3);
     font-size: var(--fs-xs);
     line-height: var(--lh-xs);
-    text-align: left;
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-4px);
-    transition:
-      opacity var(--dur-2) var(--ease-out),
-      transform var(--dur-2) var(--ease-out);
-    box-shadow: var(--shadow-2);
   }
 
-  .dt-help:hover,
-  .dt-help:focus-visible {
-    color: var(--text-1);
-    border-color: color-mix(in srgb, var(--accent) 42%, var(--border-2));
-    outline: none;
-  }
-
-  .dt-help:hover span,
-  .dt-help:focus-visible span {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .dt-search {
-    display: grid;
-    gap: var(--space-2);
-    color: var(--text-1);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    font-weight: 650;
-    text-transform: uppercase;
-  }
-
-  .dt-search input {
-    min-width: 0;
-    min-height: 2.75rem;
-    padding-inline: var(--space-4);
-    border: 1px solid color-mix(in srgb, var(--border-2) 68%, transparent);
-    border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--bg-0) 46%, transparent);
-    color: var(--text-1);
-    font-family: var(--font-text);
-    font-size: var(--fs-sm);
-    text-transform: none;
-    outline: none;
-  }
-
-  .dt-search input:focus-visible {
-    border-color: var(--focus-ring);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 18%, transparent);
-  }
-
-  .dt-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2);
-  }
-
-  .dt-actions button {
-    min-height: 2.5rem;
-    border: 1px solid color-mix(in srgb, var(--border-2) 70%, transparent);
-    border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--bg-2) 48%, transparent);
-    color: var(--text-2);
-    font-size: var(--fs-sm);
-    font-weight: 620;
-    cursor: pointer;
-    transition:
-      color var(--dur-2) var(--ease-out),
-      border-color var(--dur-2) var(--ease-out),
-      background-color var(--dur-2) var(--ease-out),
-      transform var(--dur-2) var(--ease-out);
-  }
-
-  .dt-actions button:hover {
-    color: var(--text-1);
-    border-color: color-mix(in srgb, var(--accent) 42%, var(--border-2));
-    background: color-mix(in srgb, var(--accent) 11%, var(--bg-2));
-    transform: translateY(-1px);
-  }
-
-  .dt-stage__canvas {
+  .dt-network {
     position: relative;
-    z-index: 1;
-    min-width: 0;
+    margin-top: clamp(4rem, 8vw, 7rem);
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--text-1) 9%, transparent);
-    border-radius: var(--radius-md);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-lg);
     background:
-      radial-gradient(38rem 24rem at 50% 50%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 72%),
-      radial-gradient(30rem 22rem at 22% 18%, color-mix(in srgb, var(--viz-2) 8%, transparent), transparent 70%),
-      color-mix(in srgb, var(--bg-0) 74%, transparent);
-    backdrop-filter: blur(12px) saturate(130%);
-    -webkit-backdrop-filter: blur(12px) saturate(130%);
+      radial-gradient(circle at 48% 44%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 33rem),
+      var(--bg-1);
   }
 
-  .dt-stage__topline {
-    position: absolute;
-    inset: var(--space-4) var(--space-4) auto;
-    z-index: 2;
+  .dt-network__head {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    pointer-events: none;
+    gap: var(--space-6);
+    align-items: end;
+    justify-content: space-between;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--border-1);
   }
 
-  .dt-stage__topline span {
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid color-mix(in srgb, var(--border-1) 70%, transparent);
-    border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--bg-0) 48%, transparent);
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    text-transform: uppercase;
-  }
-
-  .dt-camera {
-    position: absolute;
-    right: var(--space-4);
-    bottom: var(--space-4);
-    z-index: 3;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    padding: 3px;
-    border: 1px solid color-mix(in srgb, var(--border-2) 78%, transparent);
-    border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--bg-0) 84%, transparent);
-    backdrop-filter: blur(18px) saturate(130%);
-    -webkit-backdrop-filter: blur(18px) saturate(130%);
-    box-shadow: var(--shadow-2);
-  }
-
-  .dt-camera button {
-    display: inline-grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border: 0;
-    border-radius: var(--radius-full);
-    background: transparent;
-    color: var(--text-2);
-    cursor: pointer;
-  }
-
-  .dt-camera button:hover,
-  .dt-camera button:focus-visible {
-    background: color-mix(in srgb, var(--accent) 12%, var(--bg-2));
-    color: var(--text-1);
-    outline: none;
-  }
-
-  .dt-camera button:focus-visible { box-shadow: inset 0 0 0 2px var(--focus-ring); }
-  .dt-camera button:disabled { cursor: not-allowed; opacity: 0.34; }
-
-  .dt-camera output {
-    min-width: 3.25rem;
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    text-align: center;
-  }
-
-  .tg {
-    width: 100%;
-    height: clamp(30rem, 62vh, 48rem);
-    min-height: 30rem;
-    overflow: visible;
-    touch-action: none;
-    user-select: none;
-    cursor: grab;
-  }
-
-  .tg:active { cursor: grabbing; }
-
-  .tg-orbit {
-    fill: none;
-    stroke: color-mix(in srgb, var(--border-2) 85%, transparent);
-    stroke-width: 1;
-    stroke-dasharray: 3 10;
-    opacity: 0.4;
-    animation: tg-ring-march 50s linear infinite;
-  }
-
-  .tg-orbit--inner {
-    opacity: 0.22;
-    stroke-dasharray: 2 12;
-  }
-
-  .tg-core {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: tg-core-pulse 7s var(--ease-in-out) infinite;
-  }
-
-  .tg-link {
-    fill: none;
-    stroke: var(--border-2);
-    stroke-width: 1;
-    opacity: 0.42;
-    transition: opacity var(--dur-2) var(--ease-out), stroke var(--dur-2) var(--ease-out);
-  }
-
-  .tg-link-flow {
-    fill: none;
-    stroke: var(--node-flow, var(--accent));
-    stroke-width: 1.75;
-    stroke-linecap: round;
-    stroke-dasharray: 1.5 15;
-    opacity: 0.42;
-    animation: tg-flow 2.6s linear infinite;
-  }
-
-  .tg.is-focused .tg-link-group:not(.is-lit),
-  .tg.is-searching .tg-link-group:not(.is-lit) {
-    opacity: 0.1;
-  }
-
-  .tg-link-group.is-lit .tg-link {
-    stroke: var(--accent);
-    opacity: 0.86;
-  }
-
-  .tg-link-group.is-lit .tg-link-flow {
-    opacity: 1;
-    stroke-width: 2.4;
-  }
-
-  .tg-node {
-    cursor: grab;
-    touch-action: none;
-    transition: opacity var(--dur-2) var(--ease-out);
-  }
-
-  .tg-node.is-dragging {
-    cursor: grabbing;
-  }
-
-  .tg-node-halo {
-    fill: none;
-    stroke: color-mix(in srgb, var(--node-color) 34%, transparent);
-    stroke-width: 1;
-    opacity: 0.34;
-    transition:
-      opacity var(--dur-2) var(--ease-out),
-      transform var(--dur-2) var(--ease-out);
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .tg-node-core {
-    fill: color-mix(in srgb, var(--node-color) 15%, var(--bg-1));
-    stroke: color-mix(in srgb, var(--node-color) 72%, var(--border-2));
-    stroke-width: 1.4;
-    transition:
-      stroke var(--dur-2) var(--ease-out),
-      fill var(--dur-2) var(--ease-out),
-      transform var(--dur-2) var(--ease-out);
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .tg-node--person .tg-node-core {
-    fill: color-mix(in srgb, var(--bg-0) 82%, var(--node-color));
-    stroke: color-mix(in srgb, var(--node-color) 76%, var(--text-1));
-    stroke-width: 1.7;
-  }
-
-  .tg-node--shared .tg-node-core {
-    fill: color-mix(in srgb, var(--accent) 13%, var(--bg-1));
-    stroke: color-mix(in srgb, var(--accent) 68%, var(--text-1));
-    stroke-width: 1.7;
-  }
-
-  .tg-node image {
-    pointer-events: none;
-  }
-
-  .tg-node-initials {
-    fill: var(--text-1);
-    font-family: var(--font-mono);
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .tg-node-label {
-    fill: var(--text-2);
-    font-family: var(--font-text);
-    font-size: 12px;
-    font-weight: 560;
-    letter-spacing: 0;
-    paint-order: stroke;
-    pointer-events: none;
-    stroke: color-mix(in srgb, var(--bg-0) 88%, transparent);
-    stroke-width: 5px;
-  }
-
-  .tg-node-label--person {
-    fill: var(--text-1);
-    font-size: 13px;
+  .dt-network__title > p:first-child {
+    color: var(--accent);
+    font-size: var(--fs-sm);
     font-weight: 700;
   }
 
-  .tg-node-label--skill {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    text-transform: uppercase;
+  .dt-network__title h2 {
+    margin-top: var(--space-2);
+    font-size: clamp(2rem, 4vw, 3.75rem);
+    font-weight: 590;
+    letter-spacing: -0.02em;
   }
 
-  .tg-node:hover .tg-node-core,
-  .tg-node:focus-visible .tg-node-core,
-  .tg-node.is-selected .tg-node-core,
-  .tg-node.is-match .tg-node-core {
-    stroke: var(--text-1);
-    fill: color-mix(in srgb, var(--node-color) 24%, var(--bg-1));
+  .dt-network__title > p:last-child {
+    max-width: 42rem;
+    margin-top: var(--space-3);
+    font-size: var(--fs-base);
   }
 
-  .tg-node:hover .tg-node-halo,
-  .tg-node:focus-visible .tg-node-halo,
-  .tg-node.is-selected .tg-node-halo,
-  .tg-node.is-match .tg-node-halo {
-    opacity: 1;
-    transform: scale(1.18);
+  .dt-network__status {
+    flex: 0 0 auto;
+    color: var(--text-3);
+    font-size: var(--fs-xs);
+    text-align: right;
   }
 
-  .tg-node:focus-visible {
-    outline: none;
-  }
-
-  .tg-node.is-dimmed {
-    opacity: 0.16;
-  }
-
-  .tg-node.is-neighbor {
-    opacity: 0.74;
-  }
-
-  .dt-inspector {
-    min-height: 100%;
-  }
-
-  .dt-inspector__meta,
-  .dt-inspector__tags,
-  .dt-inspector :global(.dt-inspector__meta),
-  .dt-inspector :global(.dt-inspector__tags) {
+  .dt-filters {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
+    padding: var(--space-4) clamp(1.5rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--border-1);
   }
 
-  .dt-inspector__meta span,
-  .dt-inspector__tags span,
-  .dt-inspector__link,
-  .dt-inspector :global(.dt-inspector__meta span),
-  .dt-inspector :global(.dt-inspector__tags span),
-  .dt-inspector :global(.dt-inspector__link) {
+  .dt-filters button {
     display: inline-flex;
+    min-height: 2.75rem;
     align-items: center;
-    min-height: 2rem;
-    padding-inline: var(--space-3);
-    border: 1px solid color-mix(in srgb, var(--border-1) 78%, transparent);
+    gap: var(--space-2);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--border-2);
     border-radius: var(--radius-full);
-    background: color-mix(in srgb, var(--bg-0) 32%, transparent);
+    background: transparent;
     color: var(--text-2);
-    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .dt-filters button > span {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--node-color, var(--accent));
+  }
+
+  .dt-filters button small {
+    color: var(--text-3);
     font-size: var(--fs-xs);
+  }
+
+  .dt-filters button:hover,
+  .dt-filters button.is-active {
+    border-color: color-mix(in srgb, var(--node-color, var(--accent)) 70%, var(--border-2));
+    background: color-mix(in srgb, var(--node-color, var(--accent)) 10%, transparent);
+    color: var(--text-1);
+  }
+
+  .dt-network__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 23rem);
+    min-height: 41rem;
+  }
+
+  .dt-graph-wrap {
+    min-width: 0;
+    padding: var(--space-3);
+  }
+
+  .dt-graph {
+    width: 100%;
+    height: 100%;
+    min-height: 39rem;
+    overflow: visible;
+  }
+
+  .dt-graph__link {
+    fill: none;
+    stroke: color-mix(in srgb, var(--node-color) 56%, var(--border-2));
+    stroke-linecap: round;
+    stroke-width: 1.7;
+    opacity: 0.7;
+    transition:
+      opacity var(--dur-2) var(--ease-out),
+      stroke-width var(--dur-2) var(--ease-out);
+  }
+
+  .dt-graph__link.is-active {
+    stroke-width: 2.8;
+    opacity: 0.98;
+  }
+
+  .dt-graph__link.is-dimmed {
+    opacity: 0.07;
+  }
+
+  .dt-graph__node {
+    cursor: pointer;
+    outline: none;
+    transition: opacity var(--dur-2) var(--ease-out);
+  }
+
+  .dt-graph__node.is-dimmed {
+    opacity: 0.16;
+  }
+
+  .dt-graph__node.is-connected {
+    opacity: 0.82;
+  }
+
+  .dt-graph__skill-hit,
+  .dt-graph__person-hit {
+    fill: transparent;
+  }
+
+  .dt-graph__skill-shape {
+    fill: color-mix(in srgb, var(--node-color) 8%, var(--bg-2));
+    stroke: color-mix(in srgb, var(--node-color) 52%, var(--border-2));
+    stroke-width: 1;
+    transition:
+      fill var(--dur-2) var(--ease-out),
+      stroke var(--dur-2) var(--ease-out);
+  }
+
+  .dt-graph__skill-name {
+    fill: var(--text-1);
+    font-family: var(--font-text);
+    font-size: 14px;
+    font-weight: 680;
+    pointer-events: none;
+  }
+
+  .dt-graph__skill-count {
+    fill: var(--text-2);
+    font-family: var(--font-text);
+    font-size: 10px;
+    pointer-events: none;
+  }
+
+  .dt-graph__node--skill:hover .dt-graph__skill-shape,
+  .dt-graph__node--skill:focus-visible .dt-graph__skill-shape,
+  .dt-graph__node--skill.is-selected .dt-graph__skill-shape {
+    fill: color-mix(in srgb, var(--node-color) 19%, var(--bg-2));
+    stroke: var(--node-color);
+    stroke-width: 2;
+  }
+
+  .dt-graph__person-ring {
+    fill: none;
+    stroke: color-mix(in srgb, var(--node-color) 54%, var(--border-2));
+    stroke-width: 1;
+    transition:
+      stroke var(--dur-2) var(--ease-out),
+      stroke-width var(--dur-2) var(--ease-out);
+  }
+
+  .dt-graph__person-shape {
+    fill: var(--bg-2);
+    stroke: var(--bg-0);
+    stroke-width: 4;
+  }
+
+  .dt-graph__node--person:hover .dt-graph__person-ring,
+  .dt-graph__node--person:focus-visible .dt-graph__person-ring,
+  .dt-graph__node--person.is-selected .dt-graph__person-ring {
+    stroke: var(--node-color);
+    stroke-width: 3;
+  }
+
+  .dt-graph__initials {
+    fill: var(--text-1);
+    font-family: var(--font-text);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .dt-graph__person-name {
+    fill: var(--text-1);
+    font-family: var(--font-text);
+    font-size: 13px;
+    font-weight: 680;
+    paint-order: stroke;
+    pointer-events: none;
+    stroke: var(--bg-1);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+
+  .dt-story {
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    border-left: 1px solid var(--border-1);
+    background: color-mix(in srgb, var(--bg-2) 35%, transparent);
+  }
+
+  .dt-story > div {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+  }
+
+  .dt-story__label {
+    color: var(--accent);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+  }
+
+  .dt-story h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 590;
+    letter-spacing: -0.01em;
+  }
+
+  .dt-story p {
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .dt-story__legend {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-2);
+  }
+
+  .dt-story__legend span {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+  }
+
+  .dt-story__legend i {
+    display: block;
+    flex: 0 0 auto;
+  }
+
+  .dt-story__person-key {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+  }
+
+  .dt-story__skill-key {
+    width: 2.75rem;
+    height: 1.5rem;
+    border: 1px solid var(--viz-2);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--viz-2) 9%, var(--bg-2));
+  }
+
+  .dt-story__people {
+    margin-top: var(--space-3);
+  }
+
+  .dt-story__people a {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: center;
+    padding-block: var(--space-3);
+    border-top: 1px solid var(--border-1);
+    color: inherit;
     text-decoration: none;
   }
 
-  .dt-inspector__link {
-    width: fit-content;
+  .dt-story__people a:hover strong {
     color: var(--accent);
   }
 
-  .dt-inspector :global(.dt-inspector__link) {
-    width: fit-content;
-    color: var(--accent);
+  .dt-story__people span {
+    display: grid;
+    min-width: 0;
   }
 
-  .dt-inspector__link:hover,
-  .dt-inspector :global(.dt-inspector__link:hover) {
-    border-color: color-mix(in srgb, var(--accent) 52%, var(--border-2));
+  .dt-story__people strong,
+  .dt-story__identity strong {
     color: var(--text-1);
+    font-size: var(--fs-sm);
   }
 
-  @keyframes tg-flow {
-    to {
-      stroke-dashoffset: -16.5;
-    }
+  .dt-story__people small,
+  .dt-story__identity p {
+    overflow: hidden;
+    color: var(--text-3);
+    font-size: var(--fs-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  @keyframes tg-ring-march {
-    to {
-      stroke-dashoffset: -200;
-    }
+  .dt-story__identity {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: center;
   }
 
-  @keyframes tg-core-pulse {
-    0%, 100% {
-      transform: scale(1);
-      opacity: 0.7;
-    }
-    50% {
-      transform: scale(1.12);
-      opacity: 1;
-    }
+  .dt-story__identity p {
+    margin-top: var(--space-1);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .tg-link,
-    .tg-node,
-    .tg-orbit,
-    .tg-core {
-      animation: none;
-      transition: none;
-    }
-    .tg-link-flow {
-      display: none;
-    }
+  .dt-story__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
   }
 
-  @media (max-width: 63.999rem) {
-    .dt-stage {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .dt-stage__panel,
-    .dt-inspector {
-      padding: var(--space-4);
-    }
-
-    .tg {
-      height: clamp(29rem, 68vw, 38rem);
-      min-height: 29rem;
-    }
+  .dt-story__tags li {
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius-full);
+    color: var(--text-2);
+    font-size: var(--fs-xs);
   }
 
-  @media (max-width: 41.999rem) {
-    .dt-stage {
-      margin-inline: calc(var(--gutter) * -0.5);
-      border-radius: var(--radius-md);
-    }
-
-    .dt-actions {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .tg {
-      height: 29rem;
-      min-height: 29rem;
-    }
-
-    .dt-stage__topline {
-      position: static;
-      padding: var(--space-4) var(--space-4) 0;
-    }
-
-    .dt-stage__panel,
-    .dt-inspector {
-      gap: var(--space-3);
-    }
-
-    .dt-camera {
-      right: var(--space-3);
-      bottom: var(--space-3);
-    }
-
-    .dt-camera output { display: none; }
-
-    .dt-camera button {
-      width: 42px;
-      height: 42px;
-    }
+  .dt-story__profile {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    color: var(--accent);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    text-decoration: none;
   }
 
-  /* Member list. */
+  .dt-mobile-map {
+    display: none;
+  }
+
+  [data-network-detail][hidden],
+  [data-mobile-network-panel][hidden] {
+    display: none !important;
+  }
+
+  :global(html.no-js) .dt-filters,
+  :global(html.no-js) .dt-mobile-map > [data-mobile-network-panel] {
+    display: none !important;
+  }
+
   .dt-list {
     margin-top: var(--section-y);
-    padding-top: var(--space-7);
-    border-top: 1px solid color-mix(in srgb, var(--border-2) 62%, transparent);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-2);
   }
 
-  .dt-list__group {
-    margin-top: var(--space-7);
+  .dt-list__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 31rem);
+    gap: var(--space-7);
+    align-items: end;
   }
 
-  .dt-list__group-title {
-    padding-bottom: var(--space-3);
-    border-bottom: 1px solid var(--border-1);
-    font-family: var(--font-mono);
-    font-size: var(--fs-sm);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-1);
-    box-shadow: inset 0 -2px 0 var(--group-color, var(--accent));
-    width: fit-content;
+  .dt-list__head h2 {
+    margin-top: var(--space-3);
+    font-size: clamp(2.25rem, 4vw, 4rem);
+    font-weight: 590;
+    letter-spacing: -0.02em;
+  }
+
+  .dt-list__head > p {
+    font-size: var(--fs-base);
   }
 
   .dt-list__grid {
     display: grid;
-    gap: var(--space-5);
-    margin-top: var(--space-6);
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-7);
   }
 
-  @media (max-width: 63.999rem) {
+  @media (min-width: 64rem) {
+    .dt-hero {
+      grid-template-columns: minmax(0, 1.65fr) minmax(18rem, 0.7fr);
+    }
+  }
+
+  @media (max-width: 69.999rem) {
+    .dt-network__body {
+      grid-template-columns: 1fr;
+    }
+
+    .dt-story {
+      min-height: 15rem;
+      border-top: 1px solid var(--border-1);
+      border-left: 0;
+    }
+
     .dt-list__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
-  @media (max-width: 41.999rem) {
+  @media (max-width: 47.999rem) {
+    .dt {
+      padding-block-start: calc(var(--nav-height) + var(--space-8));
+    }
+
+    .dt-hero {
+      min-height: 0;
+      gap: var(--space-7);
+      padding-bottom: var(--space-7);
+    }
+
+    .dt-hero h1 {
+      font-size: clamp(3rem, 15vw, 4.6rem);
+    }
+
+    .dt-hero__intro {
+      margin-top: var(--space-5);
+    }
+
+    .dt-hero__note dl {
+      gap: var(--space-3);
+    }
+
+    .dt-network {
+      margin-inline: calc(var(--gutter) * -0.5);
+      border-radius: var(--radius-md);
+    }
+
+    .dt-network__head {
+      display: block;
+      padding: var(--space-6) var(--space-5);
+    }
+
+    .dt-network__title h2 {
+      font-size: clamp(2.2rem, 10vw, 3rem);
+    }
+
+    .dt-network__status {
+      display: block;
+      margin-top: var(--space-4);
+      text-align: left;
+    }
+
+    .dt-filters {
+      flex-wrap: nowrap;
+      padding: var(--space-3) var(--space-5);
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      scrollbar-width: none;
+    }
+
+    .dt-filters::-webkit-scrollbar {
+      display: none;
+    }
+
+    .dt-filters button {
+      flex: 0 0 auto;
+      min-height: 2.875rem;
+    }
+
+    .dt-graph-wrap,
+    .dt-story {
+      display: none;
+    }
+
+    .dt-network__body {
+      display: block;
+      min-height: 0;
+    }
+
+    .dt-mobile-map {
+      display: block;
+      padding: var(--space-5);
+    }
+
+    .dt-mobile-map__intro {
+      max-width: 35rem;
+      font-size: var(--fs-sm);
+    }
+
+    .dt-mobile-map__branches {
+      margin-top: var(--space-4);
+      border-bottom: 1px solid var(--border-1);
+    }
+
+    .dt-branch {
+      display: grid;
+      width: 100%;
+      min-height: 5rem;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      gap: var(--space-3);
+      align-items: center;
+      padding: var(--space-3) 0;
+      border: 0;
+      border-top: 1px solid var(--border-1);
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .dt-branch__mark {
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 50%;
+      background: var(--node-color);
+      box-shadow: 0 0 0 5px color-mix(in srgb, var(--node-color) 12%, transparent);
+    }
+
+    .dt-branch__copy {
+      display: grid;
+      min-width: 0;
+    }
+
+    .dt-branch__copy strong {
+      color: var(--text-1);
+      font-size: var(--fs-sm);
+    }
+
+    .dt-branch__copy small {
+      color: var(--text-3);
+      font-size: var(--fs-xs);
+    }
+
+    .dt-branch__avatars {
+      display: flex;
+      padding-left: 0.6rem;
+    }
+
+    .dt-branch__avatars :global(.ui-avatar) {
+      margin-left: -0.6rem;
+      border: 2px solid var(--bg-1);
+    }
+
+    .dt-branch__arrow {
+      color: var(--text-3);
+      font-size: var(--fs-lg);
+    }
+
+    .dt-mobile-path header {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: var(--space-4);
+      align-items: start;
+      padding: var(--space-3) 0 var(--space-5);
+    }
+
+    .dt-mobile-path__back {
+      display: inline-flex;
+      min-height: 2.75rem;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--text-2);
+      font-size: var(--fs-sm);
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .dt-mobile-path__back:hover,
+    .dt-mobile-path__back:focus-visible {
+      color: var(--accent);
+    }
+
+    .dt-mobile-path [data-mobile-panel-title]:focus {
+      outline: none;
+    }
+
+    .dt-mobile-path header > span {
+      width: 1rem;
+      height: 1rem;
+      margin-top: 0.45rem;
+      border-radius: 50%;
+      background: var(--node-color);
+      box-shadow: 0 0 0 7px color-mix(in srgb, var(--node-color) 12%, transparent);
+    }
+
+    .dt-mobile-path header p {
+      color: var(--text-3);
+      font-size: var(--fs-xs);
+    }
+
+    .dt-mobile-path header h3 {
+      margin-top: var(--space-1);
+      font-family: var(--font-display);
+      font-size: var(--fs-2xl);
+      font-weight: 590;
+    }
+
+    .dt-mobile-path header small {
+      color: var(--text-3);
+      font-size: var(--fs-xs);
+    }
+
+    .dt-mobile-path__people {
+      border-bottom: 1px solid var(--border-1);
+    }
+
+    .dt-mobile-path__people a {
+      display: grid;
+      min-height: 4.75rem;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--space-3);
+      align-items: center;
+      padding-block: var(--space-3);
+      border-top: 1px solid var(--border-1);
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .dt-mobile-path__people span {
+      display: grid;
+      min-width: 0;
+    }
+
+    .dt-mobile-path__people strong {
+      color: var(--text-1);
+      font-size: var(--fs-sm);
+    }
+
+    .dt-mobile-path__people small {
+      overflow: hidden;
+      color: var(--text-3);
+      font-size: var(--fs-xs);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .dt-mobile-path__people b {
+      color: var(--text-3);
+      font-weight: 400;
+    }
+
+    .dt-nojs-network {
+      border-bottom: 1px solid var(--border-1);
+    }
+
+    .dt-nojs-network > p {
+      padding-bottom: var(--space-4);
+      font-size: var(--fs-sm);
+    }
+
+    .dt-nojs-network section {
+      padding-block: var(--space-4);
+      border-top: 1px solid var(--border-1);
+    }
+
+    .dt-nojs-network h3 {
+      font-family: var(--font-display);
+      font-size: var(--fs-xl);
+    }
+
+    .dt-nojs-network ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2) var(--space-4);
+      margin-top: var(--space-2);
+      padding: 0;
+      list-style: none;
+    }
+
+    .dt-nojs-network a {
+      color: var(--text-2);
+      font-size: var(--fs-sm);
+    }
+
+    .dt-list {
+      padding-top: var(--space-7);
+    }
+
+    .dt-list__head {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+
     .dt-list__grid {
       grid-template-columns: 1fr;
+      gap: var(--space-4);
+      margin-top: var(--space-6);
     }
   }
 
+  @media (max-width: 25rem) {
+    .dt-branch__avatars {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dt-graph__link,
+    .dt-graph__node,
+    .dt-filters button {
+      transition: none;
+    }
+  }
 </style>
 
 <script>
