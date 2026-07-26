@@ -3,6 +3,7 @@ import Button from '../ui/Button.astro';
 import Chip from '../ui/Chip.astro';
 import EmptyState from '../ui/EmptyState.astro';
 import Breadcrumbs from '../ui/Breadcrumbs.astro';
+import CollectionHeader from '../ui/CollectionHeader.astro';
 import PostCard from './PostCard.astro';
 import {
   listingPagePath,
@@ -41,20 +42,15 @@ const prevHref = listing.page.page > 1
   : undefined;
 ---
 
-<section class="blog-listing container-content" aria-labelledby="blog-title">
+<section class="blog-listing container-wide" aria-labelledby="blog-title">
   {breadcrumbs && <Breadcrumbs items={breadcrumbs} class="blog-listing__breadcrumbs" />}
 
-  <header class="blog-listing__header">
-    <div>
-      <p class="kicker">{kicker}</p>
-      <h1 id="blog-title">{title}</h1>
-    </div>
-    <p>{intro}</p>
-    <span class="blog-listing__count">
-      {listing.page.items.length} post{listing.page.items.length === 1 ? '' : 's'}
+  <CollectionHeader kicker={kicker} title={title} intro={intro} headingId="blog-title">
+    <span slot="aside" class="blog-listing__count">
+      {listing.page.items.length.toString().padStart(2, '0')} post{listing.page.items.length === 1 ? '' : 's'}
       {listing.page.page > 1 && ` / page ${listing.page.page}`}
     </span>
-  </header>
+  </CollectionHeader>
 
   {listing.featured && (
     <div class="blog-listing__featured" data-reveal>
@@ -127,38 +123,8 @@ const prevHref = listing.page.page > 1
     margin-bottom: var(--space-6);
   }
 
-  .blog-listing__header {
-    position: relative;
-    display: grid;
-    gap: var(--space-5);
-    padding-bottom: var(--space-7);
-    border-bottom: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
-  }
-
-  .blog-listing__header::after {
-    position: absolute;
-    right: 0;
-    bottom: -1px;
-    width: 4rem;
-    height: 2px;
-    background: var(--accent);
-    content: '';
-  }
-
-  .blog-listing__header h1 {
-    margin-top: var(--space-3);
-    font-size: var(--fs-page-title);
-    line-height: var(--lh-page-title);
-  }
-
-  .blog-listing__header p:not(.kicker) {
-    max-width: 50rem;
-    color: var(--text-2);
-    font-size: var(--fs-lg);
-    line-height: var(--lh-lg);
-  }
-
   .blog-listing__count {
+    display: block;
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
@@ -241,11 +207,6 @@ const prevHref = listing.page.page > 1
   }
 
   @media (min-width: 64rem) {
-    .blog-listing__header {
-      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr) auto;
-      align-items: end;
-    }
-
     .blog-listing__filters {
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: end;

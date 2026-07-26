@@ -9,6 +9,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import GuideCard from '../../components/guides/GuideCard.astro';
 import GuideCardFeatured from '../../components/guides/GuideCardFeatured.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
+import CollectionHeader from '../../components/ui/CollectionHeader.astro';
 import { guidesRepo } from '../../lib/repositories';
 import { itemListJsonLd, collectionPageJsonLd } from '../../lib/seo/jsonld';
 import { absoluteUrl } from '../../lib/seo/meta';
@@ -82,14 +83,13 @@ const jsonLd = [
   ogImage={{ url: '/og/og-guides.png' }}
   jsonLd={jsonLd}
 >
-  <div class="guides container-content">
-    <header class="guides__head">
-      <div class="guides__head-copy">
-        <p class="kicker">Guides</p>
-        <h1>Learn from a path,<br />not a pile of links.</h1>
-        <p class="guides__intro">{description}</p>
-      </div>
-      <aside class="guides__status" aria-label="Guide access status">
+  <div class="guides container-wide">
+    <CollectionHeader
+      kicker="Guides"
+      title="Learn from a path, not a pile of links."
+      intro={description}
+    >
+      <aside slot="aside" class="guides__status" aria-label="Guide access status">
         <p>{all.length.toString().padStart(2, '0')} published {all.length === 1 ? 'path' : 'paths'}</p>
         {user ? (
           <>
@@ -105,7 +105,7 @@ const jsonLd = [
           </>
         )}
       </aside>
-    </header>
+    </CollectionHeader>
 
     {all.length === 0 ? (
       <EmptyState message="Guides will appear here as practical learning paths are published." icon="compass" />
@@ -169,36 +169,11 @@ const jsonLd = [
     padding-block: var(--page-top) var(--page-bottom);
   }
 
-  .guides__head h1 {
-    margin-top: var(--space-3);
-    font-family: var(--font-display);
-    font-size: var(--fs-page-title);
-    line-height: var(--lh-page-title);
-    font-weight: 600;
-    letter-spacing: 0;
-    text-wrap: balance;
-  }
-
-  .guides__intro {
-    max-width: 60ch;
-    margin-top: var(--space-4);
-    color: var(--text-2);
-    font-size: var(--fs-lg);
-    line-height: var(--lh-lg);
-  }
-
-  .guides__head {
-    display: grid;
-    gap: var(--space-7);
-    padding-bottom: var(--space-7);
-    border-bottom: 1px solid var(--border-2);
-  }
-
   .guides__status {
     display: grid;
     align-content: end;
     gap: var(--space-2);
-    padding: var(--space-5);
+    padding-block-start: var(--space-5);
     border-top: 2px solid var(--accent);
     background: transparent;
   }
@@ -294,11 +269,6 @@ const jsonLd = [
   }
 
   @media (min-width: 48rem) {
-    .guides__head {
-      grid-template-columns: minmax(0, 1.25fr) minmax(17rem, 0.75fr);
-      align-items: end;
-    }
-
     .guides__grid {
       grid-template-columns: repeat(2, 1fr);
       gap: var(--space-8) var(--space-6);

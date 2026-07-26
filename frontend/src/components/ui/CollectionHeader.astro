@@ -1,0 +1,81 @@
+---
+interface Props {
+  headingId?: string;
+  intro: string;
+  kicker: string;
+  title: string;
+}
+
+const { headingId, intro, kicker, title } = Astro.props;
+const hasAside = Astro.slots.has('aside');
+---
+
+<header class:list={['collection-header', { 'collection-header--with-aside': hasAside }]}>
+  <div class="collection-header__copy">
+    <p class="kicker">{kicker}</p>
+    <h1 id={headingId}>{title}</h1>
+    <p class="collection-header__intro">{intro}</p>
+  </div>
+
+  {hasAside && (
+    <div class="collection-header__aside">
+      <slot name="aside" />
+    </div>
+  )}
+</header>
+
+<style>
+  .collection-header {
+    position: relative;
+    display: grid;
+    gap: var(--space-7);
+    padding-bottom: var(--space-7);
+    border-bottom: 1px solid color-mix(in srgb, var(--border-2) 72%, transparent);
+  }
+
+  .collection-header::after {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 3.5rem;
+    height: 2px;
+    background: var(--accent);
+    content: '';
+  }
+
+  .collection-header__copy {
+    min-width: 0;
+  }
+
+  .collection-header h1 {
+    max-width: 18ch;
+    margin-top: var(--space-3);
+    font-family: var(--font-display);
+    font-size: var(--fs-page-title);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: var(--lh-page-title);
+    text-wrap: balance;
+  }
+
+  .collection-header__intro {
+    max-width: 60ch;
+    margin-top: var(--space-4);
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
+  }
+
+  .collection-header__aside {
+    min-width: 0;
+    align-self: end;
+  }
+
+  @media (min-width: 56rem) {
+    .collection-header--with-aside {
+      grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.75fr);
+      column-gap: clamp(var(--space-8), 7vw, 7rem);
+      align-items: end;
+    }
+  }
+</style>

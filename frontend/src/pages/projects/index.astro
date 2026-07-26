@@ -7,6 +7,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CaseCard from '../../components/projects/CaseCard.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
 import Icon from '../../components/ui/Icon.astro';
+import CollectionHeader from '../../components/ui/CollectionHeader.astro';
 import { projectsRepo } from '../../lib/repositories';
 import { collectionPageJsonLd } from '../../lib/seo/jsonld';
 import type { ProjectListItem } from '../../types/content';
@@ -49,15 +50,12 @@ const jsonLd = [
   ogImage={{ url: '/og/og-projects.png' }}
   jsonLd={jsonLd}
 >
-  <div class="projects container-content">
-    <header class="projects__head">
-      <p class="kicker">Projects</p>
-      <h1>Proof of work, not just proof of tools.</h1>
-      <p class="projects__intro">
-        Projects show how ideas move from a business problem to a practical system, including the
-        decisions, trade-offs, models, interfaces, implementation, outcomes, and lessons behind the build.
-      </p>
-    </header>
+  <div class="projects container-wide">
+    <CollectionHeader
+      kicker="Projects"
+      title="Proof of work, not just proof of tools."
+      intro="Projects show how ideas move from a business problem to a practical system, including the decisions, trade-offs, models, interfaces, implementation, outcomes, and lessons behind the build."
+    />
 
     {all.length === 0 ? (
       <EmptyState message="Projects will appear here as the work is documented." icon="folder-open" />
@@ -120,23 +118,6 @@ const jsonLd = [
 <style>
   .projects {
     padding-block: var(--page-top) var(--page-bottom);
-  }
-
-  .projects__head h1 {
-    margin-top: var(--space-3);
-    font-family: var(--font-display);
-    font-size: var(--fs-page-title);
-    line-height: var(--lh-page-title);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-
-  .projects__intro {
-    max-width: 56ch;
-    margin-top: var(--space-4);
-    color: var(--text-2);
-    font-size: var(--fs-lg);
-    line-height: var(--lh-lg);
   }
 
   .projects__controls {
