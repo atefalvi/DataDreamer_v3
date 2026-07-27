@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const requireFromFrontend = createRequire(new URL('../frontend/package.json', import.meta.url));
 const sharp = requireFromFrontend('sharp');
+const satori = requireFromFrontend('satori').default;
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const OUT_DIR = join(ROOT, 'frontend/public/og');
@@ -13,16 +14,40 @@ const HEIGHT = 630;
 const MAX_BYTES = 300 * 1024;
 
 const images = [
-  ['og-default.png', 1, 'Data Dreamer', 'From messy problems to working systems'],
-  ['og-home.png', 2, 'Data Dreamer', 'From messy problems to working systems'],
-  ['og-blog.png', 3, 'Posts', 'Structured reflections from practical data work'],
-  ['og-projects.png', 4, 'Projects', 'Proof of work and the thinking behind the build'],
-  ['og-team.png', 5, 'Dream Team', 'A human map of data in the real world'],
-  ['og-guides.png', 7, 'Guides', 'Learn from a path, not a pile of links'],
+  ['og-default.png', 1, 'Data Dreamer', 'Data Dreamer', 'From messy problems to working systems.'],
+  ['og-home.png', 2, 'Home', 'Data Dreamer', 'From messy problems to working systems.'],
+  ['og-blog.png', 3, 'Posts', 'Posts', 'Structured reflections from practical data work.'],
+  ['og-projects.png', 4, 'Projects', 'Projects', 'Proof of work and the thinking behind the build.'],
+  ['og-team.png', 5, 'Dream Team', 'Dream Team', 'A human map of data in the real world.'],
+  ['og-guides.png', 7, 'Guides', 'Guides', 'Learn from a path, not a pile of links.'],
 ];
 
-const escapeXml = (value) =>
-  String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+const fonts = [
+  {
+    name: 'Fraunces',
+    data: await readFile(requireFromFrontend.resolve('@fontsource/fraunces/files/fraunces-latin-600-normal.woff')),
+    weight: 600,
+    style: 'normal',
+  },
+  {
+    name: 'Inter',
+    data: await readFile(requireFromFrontend.resolve('@fontsource/inter/files/inter-latin-400-normal.woff')),
+    weight: 400,
+    style: 'normal',
+  },
+  {
+    name: 'Inter',
+    data: await readFile(requireFromFrontend.resolve('@fontsource/inter/files/inter-latin-600-normal.woff')),
+    weight: 600,
+    style: 'normal',
+  },
+  {
+    name: 'JetBrains Mono',
+    data: await readFile(requireFromFrontend.resolve('@fontsource/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff')),
+    weight: 600,
+    style: 'normal',
+  },
+];
 
 function mulberry32(seed) {
   return function random() {
@@ -91,7 +116,7 @@ function dustOverlay(random) {
 function networkOverlay(random) {
   const nodes = [];
   const count = 24;
-  const leftSafe = Math.round(WIDTH * 0.26);
+  const leftSafe = Math.round(WIDTH * 0.5);
   const rightPad = 65;
   const topPad = 62;
   const bottomPad = 70;
@@ -146,21 +171,6 @@ function networkOverlay(random) {
   return svg;
 }
 
-function brandPlateSvg() {
-  return `
-    <svg width="280" height="74" viewBox="0 0 280 74" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="plate" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="rgba(8,13,21,0.82)"/>
-          <stop offset="100%" stop-color="rgba(11,16,26,0.42)"/>
-        </linearGradient>
-      </defs>
-      <rect x="0.75" y="0.75" width="278.5" height="72.5" rx="18" fill="url(#plate)"/>
-      <text x="98" y="31" fill="#eef2f6" font-family="Inter, Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="1.8">DATA</text>
-      <text x="98" y="54" fill="#eef2f6" font-family="Inter, Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="1.8">DREAMER</text>
-    </svg>`;
-}
-
 function logoMarkSvg() {
   return `
     <svg width="56" height="56" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
@@ -169,36 +179,133 @@ function logoMarkSvg() {
     </svg>`;
 }
 
-function textOverlaySvg(title, subtitle) {
-  return `
-    <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="textScrim" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="#070b12" stop-opacity="0.72"/>
-          <stop offset="52%" stop-color="#070b12" stop-opacity="0.26"/>
-          <stop offset="100%" stop-color="#070b12" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
-      <rect x="0" y="0" width="760" height="${HEIGHT}" fill="url(#textScrim)"/>
-      <text x="64" y="352"
-        fill="#f4f6f8"
-        font-family="Inter, Arial, Helvetica, sans-serif"
-        font-size="76"
-        font-weight="720"
-        letter-spacing="0">${escapeXml(title)}</text>
-      <text x="66" y="410"
-        fill="#aeb8c5"
-        font-family="Inter, Arial, Helvetica, sans-serif"
-        font-size="30"
-        font-weight="520"
-        letter-spacing="0">${escapeXml(subtitle)}</text>
-      <line x1="66" y1="462" x2="410" y2="462" stroke="#ff5c38" stroke-width="3"/>
-      <text x="66" y="524"
-        fill="#7e8a99"
-        font-family="JetBrains Mono, ui-monospace, monospace"
-        font-size="17"
-        letter-spacing="2.4">data-dreamer.net</text>
-    </svg>`;
+async function contentLayer(kicker, title, subtitle) {
+  const element = {
+    type: 'div',
+    props: {
+      style: {
+        width: WIDTH,
+        height: HEIGHT,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '46px 64px 50px',
+        fontFamily: 'Inter',
+      },
+      children: [
+        {
+          type: 'div',
+          props: {
+            style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
+            children: [
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    marginLeft: 62,
+                    color: '#EDEFF3',
+                    fontFamily: 'JetBrains Mono',
+                    fontSize: 17,
+                    fontWeight: 600,
+                    lineHeight: 0.98,
+                    letterSpacing: 1.4,
+                    textTransform: 'uppercase',
+                  },
+                  children: [
+                    { type: 'span', props: { children: 'Data' } },
+                    { type: 'span', props: { children: 'Dreamer' } },
+                  ],
+                },
+              },
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    color: '#FF5C38',
+                    fontFamily: 'JetBrains Mono',
+                    fontSize: 17,
+                    fontWeight: 600,
+                    letterSpacing: 1.8,
+                    textTransform: 'uppercase',
+                  },
+                  children: kicker,
+                },
+              },
+            ],
+          },
+        },
+        {
+          type: 'div',
+          props: {
+            style: {
+              display: 'flex',
+              flex: 1,
+              flexDirection: 'column',
+              justifyContent: 'center',
+              maxWidth: 760,
+              paddingTop: 24,
+            },
+            children: [
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    color: '#EDEFF3',
+                    fontFamily: 'Fraunces',
+                    fontSize: 82,
+                    fontWeight: 600,
+                    lineHeight: 1.02,
+                    letterSpacing: -1.4,
+                  },
+                  children: title,
+                },
+              },
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    maxWidth: 650,
+                    marginTop: 18,
+                    color: '#A8B1BD',
+                    fontSize: 29,
+                    fontWeight: 400,
+                    lineHeight: 1.35,
+                  },
+                  children: subtitle,
+                },
+              },
+              {
+                type: 'div',
+                props: {
+                  style: { display: 'flex', alignItems: 'center', width: 560, marginTop: 28 },
+                  children: [
+                    { type: 'div', props: { style: { width: 72, height: 3, background: '#FF5C38' }, children: '' } },
+                    { type: 'div', props: { style: { flex: 1, height: 1, background: '#2E3744' }, children: '' } },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        {
+          type: 'div',
+          props: {
+            style: {
+              color: '#858E99',
+              fontFamily: 'JetBrains Mono',
+              fontSize: 16,
+              fontWeight: 600,
+              letterSpacing: 1.4,
+            },
+            children: 'data-dreamer.net',
+          },
+        },
+      ],
+    },
+  };
+
+  return satori(element, { width: WIDTH, height: HEIGHT, fonts });
 }
 
 function backgroundSvg(seed) {
@@ -245,12 +352,12 @@ async function writeIfChanged(path, buffer) {
   return true;
 }
 
-async function renderImage(fileName, seed, title, subtitle) {
+async function renderImage(fileName, seed, kicker, title, subtitle) {
   const outputPath = join(OUT_DIR, fileName);
+  const content = await contentLayer(kicker, title, subtitle);
   const png = await sharp(Buffer.from(backgroundSvg(seed)))
     .composite([
-      { input: Buffer.from(textOverlaySvg(title, subtitle)), left: 0, top: 0 },
-      { input: Buffer.from(brandPlateSvg()), left: 28, top: 28 },
+      { input: Buffer.from(content), left: 0, top: 0 },
       { input: Buffer.from(logoMarkSvg()), left: 46, top: 37 },
     ])
     .png({ compressionLevel: 9, adaptiveFiltering: true })

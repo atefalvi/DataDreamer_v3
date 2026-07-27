@@ -6,6 +6,8 @@
  * nested interactive elements).
  */
 import Avatar from '../ui/Avatar.astro';
+import CollectionFeature from '../ui/CollectionFeature.astro';
+import EditorialCardFrame from '../ui/EditorialCardFrame.astro';
 import EditorialCover from '../ui/EditorialCover.astro';
 import type { PostListItem } from '../../types/content';
 
@@ -28,53 +30,82 @@ const showMedia = variant === 'featured' || variant === 'hero' || variant === 'c
 const showExcerpt = post.excerpt && (variant === 'featured' || variant === 'hero' || variant === 'row' || variant === 'card' || variant === 'index');
 const showAuthor = variant === 'featured' || variant === 'hero' || variant === 'card' || variant === 'index';
 const metaTail = post.readingMinutes ? `${post.readingMinutes} min read` : post.seriesLabel;
-const mediaSizes = variant === 'hero'
-  ? '(min-width: 64rem) 620px, 100vw'
-  : variant === 'index'
+const mediaSizes = variant === 'index'
     ? '(min-width: 80rem) 400px, (min-width: 48rem) 46vw, 100vw'
     : '(min-width: 64rem) 600px, 100vw';
 ---
 
-<article class:list={['post-card', `post-card--${variant}`]}>
-  <a href={href} class="post-card__link">
-    {showMedia && (
-      <EditorialCover
-        image={cover}
-        kind="post"
-        seed={post.slug}
-        sizes={mediaSizes}
-        loading={variant === 'hero' ? 'eager' : 'lazy'}
-        class="post-card__media"
-      />
-    )}
-
-    <div class="post-card__body">
-      <div class="post-card__meta">
-        {post.featured && <span class="post-card__feature">Featured</span>}
-        <time datetime={isoDate}>{dateLabel}</time>
-        {topic && <span class="post-card__topic">{topic.name}</span>}
-      </div>
-
-      <h3 class="post-card__title">{post.title}</h3>
-
-      {showExcerpt && <p class="post-card__excerpt">{post.excerpt}</p>}
-
-      {showAuthor && (
-        <span class="post-card__author">
-          <Avatar src={post.author.avatar?.src} name={post.author.name} size={24} />
-          <span>{post.author.name}</span>
-        </span>
+{variant === 'hero' ? (
+  <CollectionFeature href={href} image={cover} kind="post" seed={post.slug}>
+    <Fragment slot="meta">
+      {post.featured && <span data-featured>Featured</span>}
+      <time datetime={isoDate}>{dateLabel}</time>
+      {topic && <span>{topic.name}</span>}
+    </Fragment>
+    <Fragment slot="title">{post.title}</Fragment>
+    <p slot="summary">{post.excerpt}</p>
+    <Fragment slot="byline">
+      <Avatar src={post.author.avatar?.src} name={post.author.name} size={24} />
+      <span>By <strong>{post.author.name}</strong></span>
+    </Fragment>
+  </CollectionFeature>
+) : variant === 'index' ? (
+  <EditorialCardFrame href={href} image={cover} kind="post" seed={post.slug} sizes={mediaSizes}>
+    <Fragment slot="meta">
+      {post.featured && <span data-featured>Featured</span>}
+      <time datetime={isoDate}>{dateLabel}</time>
+      {topic && <span data-topic>{topic.name}</span>}
+    </Fragment>
+    <Fragment slot="title">{post.title}</Fragment>
+    <p slot="summary">{post.excerpt}</p>
+    <Fragment slot="footer">
+      <span class="post-card__index-author">
+        <Avatar src={post.author.avatar?.src} name={post.author.name} size={24} />
+        <span>{post.author.name}</span>
+      </span>
+    </Fragment>
+  </EditorialCardFrame>
+) : (
+  <article class:list={['post-card', `post-card--${variant}`]}>
+    <a href={href} class="post-card__link">
+      {showMedia && (
+        <EditorialCover
+          image={cover}
+          kind="post"
+          seed={post.slug}
+          sizes={mediaSizes}
+          class="post-card__media"
+        />
       )}
 
-      {variant === 'row' && (
-        <div class="post-card__row-foot">
-          <span>{post.author.name}</span>
-          {metaTail && <span>{metaTail}</span>}
+      <div class="post-card__body">
+        <div class="post-card__meta">
+          {post.featured && <span class="post-card__feature">Featured</span>}
+          <time datetime={isoDate}>{dateLabel}</time>
+          {topic && <span class="post-card__topic">{topic.name}</span>}
         </div>
-      )}
-    </div>
-  </a>
-</article>
+
+        <h3 class="post-card__title">{post.title}</h3>
+
+        {showExcerpt && <p class="post-card__excerpt">{post.excerpt}</p>}
+
+        {showAuthor && (
+          <span class="post-card__author">
+            <Avatar src={post.author.avatar?.src} name={post.author.name} size={24} />
+            <span>{post.author.name}</span>
+          </span>
+        )}
+
+        {variant === 'row' && (
+          <div class="post-card__row-foot">
+            <span>{post.author.name}</span>
+            {metaTail && <span>{metaTail}</span>}
+          </div>
+        )}
+      </div>
+    </a>
+  </article>
+)}
 
 <style>
   .post-card__link {
@@ -149,6 +180,13 @@ const mediaSizes = variant === 'hero'
     font-size: var(--fs-sm);
   }
 
+  .post-card__index-author {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-2);
+  }
+
   .post-card__row-foot {
     display: flex;
     flex-wrap: wrap;
@@ -179,35 +217,6 @@ const mediaSizes = variant === 'hero'
   .post-card--compact .post-card__title {
     font-size: var(--fs-xl);
     line-height: var(--lh-xl);
-  }
-
-  .post-card--hero .post-card__link {
-    display: grid;
-    gap: var(--space-6);
-    padding-block: var(--space-7);
-  }
-
-  .post-card--hero :global(.post-card__media) {
-    margin: 0;
-  }
-
-  .post-card--hero .post-card__body {
-    align-self: center;
-  }
-
-  .post-card--hero .post-card__title {
-    max-width: 17ch;
-    margin-top: var(--space-3);
-    font-size: var(--fs-4xl);
-    line-height: var(--lh-4xl);
-    letter-spacing: -0.02em;
-  }
-
-  .post-card--hero .post-card__excerpt {
-    max-width: 40rem;
-    font-size: var(--fs-lg);
-    line-height: var(--lh-lg);
-    -webkit-line-clamp: 3;
   }
 
   /* Card: bordered vertical card for the blog grid. */
@@ -254,92 +263,6 @@ const mediaSizes = variant === 'hero'
     background: color-mix(in srgb, var(--bg-2) 34%, var(--bg-1));
   }
 
-  .post-card--index {
-    min-width: 0;
-    height: 100%;
-  }
-
-  .post-card--index .post-card__link {
-    height: 100%;
-  }
-
-  .post-card--index :global(.post-card__media) {
-    margin: 0 0 var(--space-4);
-  }
-
-  .post-card--index .post-card__body {
-    min-width: 0;
-  }
-
-  .post-card--index .post-card__title {
-    font-size: var(--fs-2xl);
-    line-height: var(--lh-2xl);
-  }
-
-  .post-card--index .post-card__excerpt {
-    margin-top: var(--space-2);
-    font-size: var(--fs-base);
-    line-height: var(--lh-base);
-    -webkit-line-clamp: 2;
-  }
-
-  .post-card--index .post-card__author {
-    margin-top: var(--space-3);
-    font-size: var(--fs-xs);
-  }
-
-  :global([data-collection-view='editorial']) .post-card--index .post-card__link {
-    display: grid;
-    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
-    gap: var(--space-6);
-    align-items: center;
-    padding-block: var(--space-6);
-    border-top: 1px solid var(--border-1);
-  }
-
-  :global([data-collection-view='editorial']) .post-card--index :global(.post-card__media) {
-    margin: 0;
-  }
-
-  :global([data-collection-view='grid']) .post-card--index .post-card__title {
-    font-size: var(--fs-xl);
-    line-height: var(--lh-xl);
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
-
-  :global([data-collection-view='grid']) .post-card--index .post-card__excerpt {
-    font-size: var(--fs-sm);
-    line-height: var(--lh-sm);
-  }
-
-  :global([data-collection-view='list']) .post-card--index .post-card__link {
-    display: grid;
-    grid-template-columns: clamp(6rem, 14vw, 9rem) minmax(0, 1fr);
-    gap: var(--space-5);
-    align-items: center;
-    padding-block: var(--space-4);
-    border-top: 1px solid var(--border-1);
-  }
-
-  :global([data-collection-view='list']) .post-card--index :global(.post-card__media) {
-    margin: 0;
-    aspect-ratio: 4 / 3;
-    border-radius: var(--radius-md);
-  }
-
-  :global([data-collection-view='list']) .post-card--index .post-card__title {
-    font-size: var(--fs-xl);
-    line-height: var(--lh-xl);
-  }
-
-  :global([data-collection-view='list']) .post-card--index .post-card__excerpt {
-    font-size: var(--fs-sm);
-    line-height: var(--lh-sm);
-  }
-
   .post-card--row {
     border-top: 1px solid var(--border-1);
   }
@@ -364,7 +287,6 @@ const mediaSizes = variant === 'hero'
     -webkit-line-clamp: 2;
   }
 
-  .post-card--hero .post-card__link:hover,
   .post-card--row .post-card__link:hover {
     border-color: color-mix(in srgb, var(--accent) 34%, var(--border-2));
   }
@@ -380,26 +302,6 @@ const mediaSizes = variant === 'hero'
     }
   }
 
-  @media (min-width: 64rem) {
-    .post-card--hero .post-card__link {
-      grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 1.1fr);
-      gap: clamp(var(--space-7), 6vw, var(--space-9));
-      align-items: stretch;
-    }
-
-    .post-card--hero :global(.post-card__media) {
-      grid-column: 2;
-      grid-row: 1;
-    }
-
-    .post-card--hero .post-card__body {
-      grid-column: 1;
-      grid-row: 1;
-      display: grid;
-      align-content: center;
-    }
-  }
-
   @media (max-width: 47.999rem) {
     .post-card--row .post-card__title {
       font-size: var(--fs-xl);
@@ -407,34 +309,4 @@ const mediaSizes = variant === 'hero'
     }
   }
 
-  @media (max-width: 35rem) {
-    .post-card--hero .post-card__link {
-      padding-block: var(--space-6);
-    }
-
-    .post-card--hero .post-card__title {
-      font-size: var(--fs-3xl);
-      line-height: var(--lh-3xl);
-    }
-
-    .post-card--hero .post-card__excerpt {
-      font-size: var(--fs-base);
-      line-height: var(--lh-base);
-    }
-
-    :global([data-collection-view='editorial']) .post-card--index .post-card__link {
-      grid-template-columns: 1fr;
-      gap: var(--space-4);
-    }
-
-    :global([data-collection-view='list']) .post-card--index .post-card__link {
-      grid-template-columns: 5.5rem minmax(0, 1fr);
-      gap: var(--space-4);
-    }
-
-    :global([data-collection-view='list']) .post-card--index .post-card__excerpt,
-    :global([data-collection-view='list']) .post-card--index .post-card__author {
-      display: none;
-    }
-  }
 </style>

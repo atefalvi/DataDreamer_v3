@@ -1,0 +1,93 @@
+---
+interface Props {
+  nextHref?: string;
+  page: number;
+  prevHref?: string;
+}
+
+const { nextHref, page, prevHref } = Astro.props;
+---
+
+{(prevHref || nextHref) && (
+  <nav class="ui-pagination" aria-label="Pagination">
+    <div class="ui-pagination__slot">
+      {prevHref && <a href={prevHref}><span aria-hidden="true">←</span> Previous</a>}
+    </div>
+    <span class="ui-pagination__page" aria-current="page">Page {page}</span>
+    <div class="ui-pagination__slot ui-pagination__slot--next">
+      {nextHref && <a href={nextHref}>Next <span aria-hidden="true">→</span></a>}
+    </div>
+  </nav>
+)}
+
+<style>
+  .ui-pagination {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-1);
+  }
+
+  .ui-pagination__slot {
+    display: flex;
+  }
+
+  .ui-pagination__slot--next {
+    justify-content: flex-end;
+  }
+
+  .ui-pagination a {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: var(--space-2);
+    padding-inline: var(--space-4);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    text-decoration: none;
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .ui-pagination a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .ui-pagination a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .ui-pagination__page {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 32rem) {
+    .ui-pagination {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .ui-pagination__page {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      justify-self: center;
+    }
+
+    .ui-pagination a {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

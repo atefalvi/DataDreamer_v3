@@ -1,0 +1,111 @@
+---
+/** Shared results frame for collection indexes; cards remain domain-specific. */
+import CollectionViewToggle from './CollectionViewToggle.astro';
+import Pagination from './Pagination.astro';
+
+interface Props {
+  headingId: string;
+  title: string;
+  itemCount: number;
+  singular: string;
+  plural?: string;
+  page: number;
+  prevHref?: string;
+  nextHref?: string;
+  showViewToggle?: boolean;
+}
+
+const {
+  headingId,
+  title,
+  itemCount,
+  singular,
+  plural = `${singular}s`,
+  page,
+  prevHref,
+  nextHref,
+  showViewToggle = itemCount > 1,
+} = Astro.props;
+---
+
+<section
+  class="collection-archive"
+  aria-labelledby={headingId}
+  data-collection-view-root
+  data-collection-view="editorial"
+>
+  <div class="collection-archive__head">
+    <h2 id={headingId}>{title}</h2>
+    <div class="collection-archive__meta">
+      <span>{itemCount.toString().padStart(2, '0')} {itemCount === 1 ? singular : plural}</span>
+      {showViewToggle && <CollectionViewToggle />}
+    </div>
+  </div>
+
+  <div class="collection-archive__grid" data-collection-archive>
+    <slot />
+  </div>
+
+  <Pagination prevHref={prevHref} nextHref={nextHref} page={page} />
+</section>
+
+<style>
+  .collection-archive__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-5);
+    margin-top: var(--space-8);
+  }
+
+  .collection-archive__head h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 560;
+    line-height: var(--lh-2xl);
+  }
+
+  .collection-archive__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .collection-archive__meta > span {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+  }
+
+  .collection-archive__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-7);
+    margin-top: var(--space-5);
+  }
+
+  @media (min-width: 48rem) {
+    [data-collection-view='grid'] .collection-archive__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 75rem) {
+    [data-collection-view='grid'] .collection-archive__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .collection-archive__head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .collection-archive__meta {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+</style>

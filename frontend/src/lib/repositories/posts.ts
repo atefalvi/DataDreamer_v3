@@ -10,8 +10,9 @@ import { cachedPerRequest } from './cache';
 import { mapPost, mapPostListItem } from './_mappers';
 import type { PostRow } from '../directus/schema';
 import type { Post, PostListItem, PostListPage } from '../../types/content';
+import { COLLECTION_PAGE_SIZE } from '../collections/pagination';
 
-export const DEFAULT_PAGE_SIZE = 12;
+export const DEFAULT_PAGE_SIZE = COLLECTION_PAGE_SIZE;
 
 /** List-card fields — note: no `content`. Exported for the field-discipline test. */
 export const POST_LIST_FIELDS = [
@@ -54,6 +55,7 @@ const PUBLISHED = { status: { _eq: 'published' } } as const;
 export interface PostListQuery {
   topic?: string;
   author?: string;
+  excludeSlug?: string;
   search?: string;
   page?: number;
   pageSize?: number;
@@ -67,6 +69,7 @@ export async function list(query: PostListQuery = {}): Promise<PostListPage> {
   const filter: Record<string, unknown> = { ...PUBLISHED };
   if (query.topic) filter.topics = { topics_id: { slug: { _eq: query.topic } } };
   if (query.author) filter.author = { slug: { _eq: query.author } };
+  if (query.excludeSlug) filter.slug = { _neq: query.excludeSlug };
 
   const rows = await guard('posts.list', () =>
     directus.request<PostRow[]>(

@@ -1,17 +1,22 @@
 ---
 /**
  * Project index. Shared-topic chips are SSR `?topic=` links and technical stack tags
- * remain searchable card metadata. The client-side search composes with topic filters.
+ * remain searchable card metadata. Topic/search filters paginate consistently at nine
+ * archive cards per page; the featured project remains a separate editorial module.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CaseCard from '../../components/projects/CaseCard.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
 import Icon from '../../components/ui/Icon.astro';
 import Chip from '../../components/ui/Chip.astro';
+import CollectionArchive from '../../components/ui/CollectionArchive.astro';
 import CollectionHeader from '../../components/ui/CollectionHeader.astro';
-import CollectionViewToggle from '../../components/ui/CollectionViewToggle.astro';
+import Button from '../../components/ui/Button.astro';
 import { projectsRepo } from '../../lib/repositories';
 import { collectionPageJsonLd } from '../../lib/seo/jsonld';
+import { absoluteUrl } from '../../lib/seo/meta';
+import { paginateCollection, parseCollectionPage } from '../../lib/collections/pagination';
+import { collectionPageRedirect, collectionQueryPath, normalizeCollectionSearch } from '../../lib/collections/query';
 import type { ProjectListItem } from '../../types/content';
 
 let sorted: ProjectListItem[] = [];
@@ -23,6 +28,9 @@ try {
 const all = sorted;
 
 const activeTopic = Astro.url.searchParams.get('topic');
+const activeSearch = normalizeCollectionSearch(Astro.url.searchParams.get('q'));
+const rawPage = Astro.url.searchParams.get('page');
+const page = parseCollectionPage(rawPage) ?? 1;
 
 // Shared topic facets, busiest first. Technical stack tags remain project metadata.
 const topicCounts = new Map<string, { name: string; slug: string; count: number }>();
@@ -33,13 +41,36 @@ for (const project of all) for (const topic of project.topics) {
 }
 const topics = [...topicCounts.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
-const visible = activeTopic ? sorted.filter((p) => p.topics.some((topic) => topic.slug === activeTopic)) : sorted;
-const leadProject = !activeTopic ? visible.find((project) => project.featured) : undefined;
-const archiveProjects = leadProject
-  ? visible.filter((project) => project.slug !== leadProject.slug)
-  : visible;
 const searchOf = (p: ProjectListItem) =>
   [p.title, p.summary, p.role, ...p.tags, ...p.topics.map((topic) => topic.name)].join(' ').toLowerCase();
+const topicFiltered = activeTopic ? sorted.filter((p) => p.topics.some((topic) => topic.slug === activeTopic)) : sorted;
+const visible = activeSearch
+  ? topicFiltered.filter((project) => searchOf(project).includes(activeSearch.toLowerCase()))
+  : topicFiltered;
+const featuredProject = !activeTopic && !activeSearch ? visible.find((project) => project.featured) : undefined;
+const leadProject = page === 1 ? featuredProject : undefined;
+const archive = featuredProject
+  ? visible.filter((project) => project.slug !== featuredProject.slug)
+  : visible;
+const archivePage = paginateCollection(archive, page);
+const archiveProjects = archivePage.items;
+const totalPages = archivePage.totalPages;
+
+const projectHref = ({
+  nextPage = 1,
+  topic = activeTopic,
+  search = activeSearch,
+}: { nextPage?: number; topic?: string | null; search?: string | null } = {}) => {
+  return collectionQueryPath('/projects', { topic, q: search }, nextPage);
+};
+
+const pageRedirect = collectionPageRedirect(rawPage, page, totalPages, (nextPage) => projectHref({ nextPage }));
+if (pageRedirect) {
+  return Astro.redirect(pageRedirect.href, pageRedirect.status);
+}
+
+const prevHref = page > 1 ? projectHref({ nextPage: page - 1 }) : undefined;
+const nextHref = page < totalPages ? projectHref({ nextPage: page + 1 }) : undefined;
 
 const jsonLd = [
   collectionPageJsonLd({
@@ -51,10 +82,15 @@ const jsonLd = [
 ---
 
 <BaseLayout
-  title="Projects"
+  title={page > 1 ? `Projects page ${page}` : 'Projects'}
   description="Proof of work and the thinking behind practical data, AI, and business systems."
   ogImage={{ url: '/og/og-projects.png' }}
+  pagination={{
+    prev: prevHref ? absoluteUrl(prevHref) : undefined,
+    next: nextHref ? absoluteUrl(nextHref) : undefined,
+  }}
   jsonLd={jsonLd}
+  noindex={Boolean(activeSearch)}
 >
   <div class="projects container-wide">
     <CollectionHeader
@@ -80,56 +116,58 @@ const jsonLd = [
         <div class:list={['projects__controls', { 'projects__controls--after-feature': leadProject }]}>
           {topics.length > 0 && (
             <nav class="projects__filter" aria-label="Filter by project topic">
-              <Chip label={`All ${all.length}`} href="/projects" selected={!activeTopic} />
+              <Chip label={`All ${all.length}`} href={projectHref({ topic: null, nextPage: 1 })} selected={!activeTopic} />
               {topics.map((topic) => (
                 <Chip
                   label={`${topic.name} ${topic.count}`}
-                  href={`/projects?topic=${encodeURIComponent(topic.slug)}`}
+                  href={projectHref({ topic: topic.slug, nextPage: 1 })}
                   selected={activeTopic === topic.slug}
                 />
               ))}
             </nav>
           )}
 
-          <div class="projects__query-filter">
+          <form class="projects__query-filter" method="get" action="/projects">
             <label for="project-search">Search projects</label>
-            <div class="projects__search">
-              <Icon name="search" size={16} />
-              <input
-                type="search"
-                id="project-search"
-                placeholder="Search titles, summaries, and topics"
-                autocomplete="off"
-                data-project-search
-              />
+            {activeTopic && <input type="hidden" name="topic" value={activeTopic} />}
+            <div class="projects__query-row">
+              <div class="projects__search">
+                <Icon name="search" size={16} />
+                <input
+                  type="search"
+                  id="project-search"
+                  name="q"
+                  value={activeSearch}
+                  maxlength="100"
+                  placeholder="Search titles, summaries, and topics"
+                  autocomplete="off"
+                />
+              </div>
+              <Button type="submit" variant="secondary" size="sm">Search</Button>
             </div>
-          </div>
+          </form>
         </div>
 
         {visible.length === 0 ? (
-          <EmptyState message={`No projects in “${activeTopic}” yet.`} icon="search-x" action={{ label: 'Clear filter', href: '/projects' }} />
+          <EmptyState
+            message={activeSearch ? `No projects match “${activeSearch}”.` : `No projects in “${activeTopic}” yet.`}
+            icon="search-x"
+            action={{ label: 'Clear filters', href: '/projects' }}
+          />
         ) : (
-          <>
-            {archiveProjects.length > 0 && <section class="projects__results" aria-labelledby="project-results-heading" data-collection-view-root data-collection-view="editorial">
-              <div class="projects__results-head">
-                <h2 id="project-results-heading">{leadProject ? 'More selected work' : 'Selected work'}</h2>
-                <div class="projects__results-meta">
-                  <span>{archiveProjects.length.toString().padStart(2, '0')} {archiveProjects.length === 1 ? 'case study' : 'case studies'}</span>
-                  {archiveProjects.length > 1 && <CollectionViewToggle />}
-                </div>
-              </div>
-              <div class="projects__grid" data-collection-archive>
-                {archiveProjects.map((project) => (
-                  <div class="projects__item" data-project-item data-search={searchOf(project)}>
-                    <CaseCard project={project} variant="row" />
-                  </div>
-                ))}
-              </div>
-            </section>}
-            <p class="projects__noresults" data-project-noresults hidden>
-              No projects match your search. <a href="/projects">Reset</a>.
-            </p>
-          </>
+          archiveProjects.length > 0 && (
+            <CollectionArchive
+              headingId="project-results-heading"
+              title={leadProject ? 'More projects' : 'Projects'}
+              itemCount={archiveProjects.length}
+              singular="project"
+              page={page}
+              prevHref={prevHref}
+              nextHref={nextHref}
+            >
+              {archiveProjects.map((project) => <CaseCard project={project} variant="row" />)}
+            </CollectionArchive>
+          )
         )}
       </>
     )}
@@ -168,6 +206,13 @@ const jsonLd = [
   .projects__query-filter {
     display: grid;
     gap: var(--space-2);
+  }
+
+  .projects__query-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    align-items: stretch;
   }
 
   .projects__query-filter > label {
@@ -222,76 +267,6 @@ const jsonLd = [
     flex: 0 0 auto;
   }
 
-  .projects__results-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-5);
-    margin-top: var(--space-8);
-  }
-
-  .projects__results-head h2 {
-    font-family: var(--font-display);
-    font-size: var(--fs-2xl);
-    font-weight: 560;
-    line-height: var(--lh-2xl);
-  }
-
-  .projects__results-meta {
-    display: flex;
-    align-items: center;
-    gap: var(--space-5);
-  }
-
-  .projects__results-meta > span {
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    white-space: nowrap;
-  }
-
-  .projects__grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-7);
-    margin-top: var(--space-5);
-  }
-
-  .projects__item {
-    min-width: 0;
-  }
-
-  /* Search hides items via [hidden]; the explicit display rules above would otherwise
-     override the UA [hidden] { display: none }, so re-assert it with higher specificity. */
-  .projects__item[hidden] {
-    display: none;
-  }
-
-  .projects__noresults {
-    margin-top: var(--space-7);
-    color: var(--text-2);
-  }
-
-  .projects__noresults a {
-    color: var(--accent);
-  }
-
-  @media (min-width: 48rem) {
-    [data-collection-view='grid'] .projects__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    [data-collection-view='editorial'] .projects__grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (min-width: 75rem) {
-    [data-collection-view='grid'] .projects__grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
   @media (min-width: 64rem) {
     .projects__controls {
       grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
@@ -299,36 +274,4 @@ const jsonLd = [
     }
   }
 
-  @media (max-width: 40rem) {
-    .projects__results-head {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .projects__results-meta {
-      width: 100%;
-      justify-content: space-between;
-    }
-  }
 </style>
-
-<script>
-  const input = document.querySelector<HTMLInputElement>('[data-project-search]');
-  const root = document.querySelector<HTMLElement>('.projects');
-  const noResults = document.querySelector<HTMLElement>('[data-project-noresults]');
-
-  if (input && root) {
-    const items = Array.from(root.querySelectorAll<HTMLElement>('[data-project-item]'));
-    const run = () => {
-      const q = input.value.trim().toLowerCase();
-      let shown = 0;
-      for (const item of items) {
-        const match = !q || (item.dataset.search ?? '').includes(q);
-        item.hidden = !match;
-        if (match) shown += 1;
-      }
-      if (noResults) noResults.hidden = shown !== 0;
-    };
-    input.addEventListener('input', run);
-  }
-</script>

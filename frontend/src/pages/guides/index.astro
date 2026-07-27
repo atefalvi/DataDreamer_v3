@@ -9,17 +9,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import GuideCard from '../../components/guides/GuideCard.astro';
 import GuideCardFeatured from '../../components/guides/GuideCardFeatured.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
+import CollectionArchive from '../../components/ui/CollectionArchive.astro';
 import CollectionHeader from '../../components/ui/CollectionHeader.astro';
-import CollectionViewToggle from '../../components/ui/CollectionViewToggle.astro';
 import Chip from '../../components/ui/Chip.astro';
 import { guidesRepo } from '../../lib/repositories';
 import { itemListJsonLd, collectionPageJsonLd } from '../../lib/seo/jsonld';
 import { absoluteUrl } from '../../lib/seo/meta';
+import { paginateCollection, parseCollectionPage } from '../../lib/collections/pagination';
+import { collectionPageRedirect, collectionQueryPath } from '../../lib/collections/query';
 import type { GuideListItem, GuideDifficulty } from '../../types/content';
 
 let all: GuideListItem[] = [];
 try {
-  const { items } = await guidesRepo.list({ pageSize: 60 });
+  const { items } = await guidesRepo.list({ pageSize: 1000 });
   all = items;
 } catch (error) {
   console.error('[guides] list unavailable:', error instanceof Error ? error.message : error);
@@ -27,6 +29,8 @@ try {
 
 const activeTopic = Astro.url.searchParams.get('topic');
 const activeLevel = Astro.url.searchParams.get('level');
+const rawPage = Astro.url.searchParams.get('page');
+const page = parseCollectionPage(rawPage) ?? 1;
 const user = Astro.locals.user;
 
 // Topic facets that actually have guides, busiest first (parity with /projects).
@@ -53,19 +57,30 @@ const visible = all.filter(
     (!activeLevel || g.difficulty === activeLevel),
 );
 
-// Featured lead shows only on the unfiltered view; the grid lists the remainder.
-const featured = !isFiltered ? all.find((g) => g.featured) : undefined;
-const gridItems = featured ? visible.filter((g) => g.slug !== featured.slug) : visible;
+// The featured guide is an editorial module outside the archive grid. Every
+// archive page therefore keeps a complete nine-card (3 × 3 desktop) rhythm.
+const featuredGuide = !isFiltered ? all.find((g) => g.featured) : undefined;
+const featured = page === 1 ? featuredGuide : undefined;
+const archive = featuredGuide ? visible.filter((g) => g.slug !== featuredGuide.slug) : visible;
+const archivePage = paginateCollection(archive, page);
+const gridItems = archivePage.items;
+const totalPages = archivePage.totalPages;
 
-const buildHref = (params: Record<string, string | null>) => {
-  const next = new URLSearchParams();
-  const topic = 'topic' in params ? params.topic : activeTopic;
-  const level = 'level' in params ? params.level : activeLevel;
-  if (topic) next.set('topic', topic);
-  if (level) next.set('level', level);
-  const qs = next.toString();
-  return qs ? `/guides?${qs}` : '/guides';
+const buildHref = ({
+  nextPage = 1,
+  topic = activeTopic,
+  level = activeLevel,
+}: { nextPage?: number; topic?: string | null; level?: string | null } = {}) => {
+  return collectionQueryPath('/guides', { topic, level }, nextPage);
 };
+
+const pageRedirect = collectionPageRedirect(rawPage, page, totalPages, (nextPage) => buildHref({ nextPage }));
+if (pageRedirect) {
+  return Astro.redirect(pageRedirect.href, pageRedirect.status);
+}
+
+const prevHref = page > 1 ? buildHref({ nextPage: page - 1 }) : undefined;
+const nextHref = page < totalPages ? buildHref({ nextPage: page + 1 }) : undefined;
 
 const description =
   'Curated, practical, ordered learning paths with honest prerequisites and practitioner context to help reduce noise.';
@@ -80,18 +95,22 @@ const jsonLd = [
 ---
 
 <BaseLayout
-  title="Guides"
+  title={page > 1 ? `Guides page ${page}` : 'Guides'}
   description={description}
   ogImage={{ url: '/og/og-guides.png' }}
+  pagination={{
+    prev: prevHref ? absoluteUrl(prevHref) : undefined,
+    next: nextHref ? absoluteUrl(nextHref) : undefined,
+  }}
   jsonLd={jsonLd}
 >
-  <div class="guides container-wide" data-collection-view-root data-collection-view="editorial">
+  <div class="guides container-wide">
     <CollectionHeader
       kicker="Guides"
       title="Learn from a path, not a pile of links."
       intro={description}
     >
-      <span slot="aside" class="guides__count">{all.length.toString().padStart(2, '0')} published {all.length === 1 ? 'path' : 'paths'}</span>
+      <span slot="aside" class="guides__count">{all.length.toString().padStart(2, '0')} published {all.length === 1 ? 'guide' : 'guides'}</span>
     </CollectionHeader>
 
     {all.length === 0 ? (
@@ -107,22 +126,22 @@ const jsonLd = [
         <nav class:list={['guides__filters', { 'guides__filters--after-feature': featured }]} aria-label="Filter guides">
           {topics.length > 0 && (
             <div class="guides__filtergroup" role="group" aria-label="Topic">
-              <Chip label="All topics" href={buildHref({ topic: null })} selected={!activeTopic} />
+              <Chip label="All topics" href={buildHref({ topic: null, nextPage: 1 })} selected={!activeTopic} />
               {topics.map((topic) => (
                 <Chip
                   label={`${topic.name} ${topic.count}`}
-                  href={buildHref({ topic: topic.slug })}
+                  href={buildHref({ topic: topic.slug, nextPage: 1 })}
                   selected={activeTopic === topic.slug}
                 />
               ))}
             </div>
           )}
           <div class="guides__filtergroup guides__filtergroup--levels" role="group" aria-label="Difficulty">
-            <Chip label="All levels" href={buildHref({ level: null })} selected={!activeLevel} />
+            <Chip label="All levels" href={buildHref({ level: null, nextPage: 1 })} selected={!activeLevel} />
             {LEVELS.map((level) => (
               <Chip
                 label={level.label}
-                href={buildHref({ level: level.value })}
+                href={buildHref({ level: level.value, nextPage: 1 })}
                 selected={activeLevel === level.value}
               />
             ))}
@@ -140,18 +159,17 @@ const jsonLd = [
         </aside>
 
         {gridItems.length > 0 ? (
-          <section class="guides__results" aria-labelledby="guide-results-heading">
-            <div class="guides__results-head">
-              <h2 id="guide-results-heading">{featured ? 'More learning paths' : 'Learning paths'}</h2>
-              <div class="guides__results-meta">
-                <span>{gridItems.length.toString().padStart(2, '0')} {gridItems.length === 1 ? 'guide' : 'guides'}</span>
-                {gridItems.length > 1 && <CollectionViewToggle />}
-              </div>
-            </div>
-            <div class="guides__grid" data-collection-archive>
-              {gridItems.map((guide) => <GuideCard guide={guide} variant="index" />)}
-            </div>
-          </section>
+          <CollectionArchive
+            headingId="guide-results-heading"
+            title={featured ? 'More guides' : 'Guides'}
+            itemCount={gridItems.length}
+            singular="guide"
+            page={page}
+            prevHref={prevHref}
+            nextHref={nextHref}
+          >
+            {gridItems.map((guide) => <GuideCard guide={guide} variant="index" />)}
+          </CollectionArchive>
         ) : !featured ? (
           <EmptyState
             message="No guides match these filters yet."
@@ -238,67 +256,11 @@ const jsonLd = [
     gap: var(--space-2);
   }
 
-  .guides__results-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-5);
-    margin-top: var(--space-8);
-  }
-
-  .guides__results-head h2 {
-    font-family: var(--font-display);
-    font-size: var(--fs-2xl);
-    font-weight: 560;
-    line-height: var(--lh-2xl);
-  }
-
-  .guides__results-meta {
-    display: flex;
-    align-items: center;
-    gap: var(--space-5);
-  }
-
-  .guides__results-meta > span {
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    white-space: nowrap;
-  }
-
-  .guides__grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-7);
-    margin-top: var(--space-5);
-  }
-
-  @media (min-width: 48rem) {
-    [data-collection-view='grid'] .guides__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 75rem) {
-    [data-collection-view='grid'] .guides__grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
   @media (max-width: 40rem) {
     .guides__access {
       align-items: flex-start;
       flex-direction: column;
     }
 
-    .guides__results-head {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .guides__results-meta {
-      width: 100%;
-      justify-content: space-between;
-    }
   }
 </style>

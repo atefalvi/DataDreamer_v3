@@ -167,6 +167,8 @@ Useful local routes:
 | `/privacy` | Privacy |
 | `/dev/styleguide` | Design-system review page, dev only |
 | `/dev/styleguide-prose` | Prose/callout review page, dev only |
+| `/dev/editorial-collections-preview` | Shared Posts, Projects, and Guides card QA, dev only |
+| `/dev/guides-preview` | Guide catalogue and reader-state QA, dev only |
 
 ---
 

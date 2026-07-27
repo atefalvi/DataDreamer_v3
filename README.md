@@ -70,5 +70,7 @@ prompts, models, limits) lives in the Directus `orby` collection.
   `docs/AGENT_GUIDES_GUIDE.md`, the shared `docs/RICH_CONTENT_BLOCKS.md`, and
   `docs/AGENT_COVER_IMAGE_GUIDE.md` for consistent text-free cover art
 - **Dream Team taxonomy:** `docs/SPECIALTIES_TAXONOMY.md`
+- **Cloudflare cache:** `docs/CLOUDFLARE_CACHE.md`
+- **Frontend consolidation:** `docs/CODEBASE_CONSOLIDATION_PLAN.md`
 - **Directus schema:** `backend/snapshot.yaml` is the current production structure;
   role and policy changes are administered in Directus and documented with the feature.

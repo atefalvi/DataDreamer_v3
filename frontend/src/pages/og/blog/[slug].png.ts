@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ params }) => {
     : undefined;
 
   const png = await renderOgCard({
-    kicker: 'Field note',
+    kicker: 'Post',
     title: post.title,
     authorName: post.author.name,
     avatarDataUri: avatar,

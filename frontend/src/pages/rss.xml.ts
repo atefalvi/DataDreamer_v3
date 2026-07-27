@@ -19,7 +19,7 @@ export async function GET(context: APIContext) {
   }
 
   return rss({
-    title: `${SITE_NAME} — Field notes`,
+    title: `${SITE_NAME} — Posts`,
     description:
       'Structured reflections and practical lessons from learning, building, and explaining real-world data systems.',
     site: context.site ?? SITE_URL,

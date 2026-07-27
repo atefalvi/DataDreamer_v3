@@ -1,5 +1,5 @@
 /**
- * Dynamic OG images (v4.3) — one renderer for posts and projects.
+ * Dynamic OG images — one editorial renderer for posts, projects, and guides.
  *
  * Pipeline: deterministic brand background (generative network/grid/dust, ported from
  * the OG-backgrounds script, recolored to tokens) built as raw SVG + the content layer
@@ -40,6 +40,7 @@ const fonts = [
   { name: 'Inter', data: font('@fontsource/inter/files/inter-latin-400-normal.woff'), weight: 400 as const, style: 'normal' as const },
   { name: 'Inter', data: font('@fontsource/inter/files/inter-latin-600-normal.woff'), weight: 600 as const, style: 'normal' as const },
   { name: 'Inter', data: font('@fontsource/inter/files/inter-latin-700-normal.woff'), weight: 700 as const, style: 'normal' as const },
+  { name: 'JetBrains Mono', data: font('@fontsource/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff'), weight: 600 as const, style: 'normal' as const },
 ];
 
 /* Deterministic PRNG so each slug gets its own stable constellation. */
@@ -124,7 +125,7 @@ function logoLayer(x: number, y: number, size: number): string {
 }
 
 export interface OgCardInput {
-  /** e.g. "Field note", "Case study · 2026" */
+  /** e.g. "Post", "Project · 2026", "Guide · Beginner" */
   kicker: string;
   title: string;
   authorName?: string;
@@ -143,7 +144,7 @@ function truncate(text: string, max: number): string {
 /** Content layer via satori — output SVG has text as paths, no font deps at raster. */
 async function contentLayer(input: OgCardInput): Promise<string> {
   const title = truncate(input.title, 110);
-  const titleSize = title.length > 70 ? 52 : title.length > 40 ? 62 : 72;
+  const titleSize = title.length > 78 ? 50 : title.length > 48 ? 58 : 68;
   const initials = (input.authorName ?? 'DD')
     .split(/\s+/)
     .slice(0, 2)
@@ -169,31 +170,71 @@ async function contentLayer(input: OgCardInput): Promise<string> {
     props: {
       style: {
         width: WIDTH, height: HEIGHT, display: 'flex', flexDirection: 'column',
-        justifyContent: 'space-between', padding: '56px 64px', fontFamily: 'Inter',
+        padding: '42px 64px 46px', fontFamily: 'Inter',
       },
       children: [
-        // header: wordmark right of the logo (logo itself is drawn in the SVG layer)
+        // Header: stacked wordmark beside the mark, editorial type at the far edge.
         {
           type: 'div',
           props: {
-            style: { display: 'flex', alignItems: 'center', gap: 14, marginLeft: 62 },
+            style: { display: 'flex', alignItems: 'flex-start', minHeight: 52, marginLeft: 62 },
             children: [
-              { type: 'div', props: { style: { color: TEXT1, fontSize: 26, fontWeight: 700, letterSpacing: 2 }, children: 'DATA DREAMER' } },
-              { type: 'div', props: { style: { width: 8, height: 8, background: ACCENT, borderRadius: 2, marginTop: 4 }, children: '' } },
-              { type: 'div', props: { style: { color: TEXT3, fontSize: 20, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', marginLeft: 10, marginTop: 2 }, children: input.kicker } },
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    display: 'flex', flexDirection: 'column', color: TEXT1,
+                    fontFamily: 'JetBrains Mono', fontSize: 17, fontWeight: 600,
+                    lineHeight: 0.95, letterSpacing: 1.5, textTransform: 'uppercase',
+                  },
+                  children: [
+                    { type: 'div', props: { children: 'Data' } },
+                    { type: 'div', props: { children: 'Dreamer' } },
+                  ],
+                },
+              },
+              { type: 'div', props: { style: { flexGrow: 1 }, children: '' } },
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    color: ACCENT, fontFamily: 'JetBrains Mono', fontSize: 17,
+                    fontWeight: 600, letterSpacing: 2.8, textTransform: 'uppercase',
+                  },
+                  children: input.kicker,
+                },
+              },
             ],
           },
         },
-        // title
+        // Main editorial statement. The rule mirrors collection and page headers.
         {
           type: 'div',
           props: {
-            style: {
-              display: 'block', maxWidth: 920, color: TEXT1, fontFamily: 'Fraunces',
-              fontSize: titleSize, fontWeight: 600, lineHeight: 1.12, letterSpacing: -1,
-              lineClamp: 3,
-            },
-            children: title,
+            style: { display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'center', maxWidth: 920, paddingTop: 20 },
+            children: [
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    display: 'block', maxWidth: 900, color: TEXT1, fontFamily: 'Fraunces',
+                    fontSize: titleSize, fontWeight: 600, lineHeight: 1.08, letterSpacing: -1,
+                    lineClamp: 3,
+                  },
+                  children: title,
+                },
+              },
+              {
+                type: 'div',
+                props: {
+                  style: { display: 'flex', alignItems: 'center', width: 560, marginTop: 28 },
+                  children: [
+                    { type: 'div', props: { style: { width: 72, height: 3, background: ACCENT }, children: '' } },
+                    { type: 'div', props: { style: { flexGrow: 1, height: 1, background: BORDER }, children: '' } },
+                  ],
+                },
+              },
+            ],
           },
         },
         // footer: avatar + author + tag chip
@@ -212,15 +253,22 @@ async function contentLayer(input: OgCardInput): Promise<string> {
                     props: {
                       style: {
                         display: 'flex', alignItems: 'center', marginLeft: 8, padding: '10px 22px',
-                        border: `1.5px solid ${ACCENT}`, borderRadius: 999, color: ACCENT,
-                        fontSize: 20, fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase',
+                        border: `1px solid ${BORDER}`, borderRadius: 999, color: TEXT2,
+                        fontFamily: 'JetBrains Mono', fontSize: 17, fontWeight: 600,
+                        letterSpacing: 0.5,
                       },
                       children: truncate(input.tag, 28),
                     },
                   }
                 : { type: 'div', props: { style: { display: 'none' }, children: '' } },
               { type: 'div', props: { style: { flexGrow: 1 }, children: '' } },
-              { type: 'div', props: { style: { color: TEXT3, fontSize: 20, fontWeight: 400 }, children: 'data-dreamer.net' } },
+              {
+                type: 'div',
+                props: {
+                  style: { color: TEXT3, fontFamily: 'JetBrains Mono', fontSize: 17, fontWeight: 600, letterSpacing: 1.2 },
+                  children: 'data-dreamer.net',
+                },
+              },
             ],
           },
         },
@@ -250,7 +298,7 @@ export async function renderOgCard(input: OgCardInput): Promise<Buffer> {
     <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#ogbg)"/>
     ${backgroundLayer(seedFrom(input.seed))}
     <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#ogglow)"/>
-    ${logoLayer(64, 46, 44)}
+    ${logoLayer(64, 42, 44)}
     ${foreground.replace(/^<svg[^>]*>/, `<svg x="0" y="0" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">`)}
     <rect x="1" y="1" width="${WIDTH - 2}" height="${HEIGHT - 2}" fill="none" stroke="#172230" stroke-width="2" opacity="0.55"/>
   </svg>`;

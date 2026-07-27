@@ -1,7 +1,9 @@
 import { authorsRepo, postsRepo, topicsRepo } from '../repositories';
 import type { AuthorSummary, PostListItem, PostListPage, Topic, TopicRef } from '../../types/content';
+import { COLLECTION_PAGE_SIZE, parseCollectionPage } from '../collections/pagination';
+import { normalizeCollectionSearch } from '../collections/query';
 
-export const BLOG_PAGE_SIZE = 12;
+export const BLOG_PAGE_SIZE = COLLECTION_PAGE_SIZE;
 
 export interface BlogListing {
   activeAuthor?: string;
@@ -37,22 +39,23 @@ export function emptyBlogListing(input: BlogListingInput = {}): BlogListing {
 export async function loadBlogListing(input: BlogListingInput = {}): Promise<BlogListing> {
   const page = Math.max(1, input.page ?? 1);
   const search = normalizeSearchQuery(input.search);
-  const [postPage, topics, authors, featured, activeTopic] = await Promise.all([
-    postsRepo.list({
-      author: input.author,
-      page,
-      pageSize: BLOG_PAGE_SIZE,
-      search,
-      topic: input.topic,
-    }),
+  const isUnfiltered = !input.topic && !input.author && !search;
+  const [topics, authors, featuredItem, activeTopic] = await Promise.all([
     topicsRepo.withPostCounts(),
     authorsRepo.allWithCounts(),
-    input.topic || input.author || search || page > 1 ? Promise.resolve(null) : postsRepo.featured(),
+    isUnfiltered ? postsRepo.featured() : Promise.resolve(null),
     input.topic ? topicsRepo.bySlug(input.topic) : Promise.resolve(null),
   ]);
 
-  const featuredSlug = featured?.slug;
-  const posts = postPage.items.filter((post) => post.slug !== featuredSlug);
+  const postPage = await postsRepo.list({
+    author: input.author,
+    excludeSlug: featuredItem?.slug,
+    page,
+    pageSize: BLOG_PAGE_SIZE,
+    search,
+    topic: input.topic,
+  });
+  const featured = page === 1 ? featuredItem : null;
 
   return {
     activeAuthor: input.author,
@@ -60,8 +63,8 @@ export async function loadBlogListing(input: BlogListingInput = {}): Promise<Blo
     activeTopic: activeTopic ?? undefined,
     authors: authors.filter((author) => author.postCount > 0),
     featured,
-    page: postPage,
-    posts,
+    page: { ...postPage, pageSize: BLOG_PAGE_SIZE },
+    posts: postPage.items,
     topics,
   };
 }
@@ -77,9 +80,7 @@ export function topicPath(slug: string, page = 1): string {
 
 /** Canonical positive integer parsing for route segments (rejects 0, 01, decimals). */
 export function parsePaginationPage(value: string | undefined): number | undefined {
-  if (!value || !/^[1-9]\d*$/.test(value)) return undefined;
-  const page = Number(value);
-  return Number.isSafeInteger(page) ? page : undefined;
+  return parseCollectionPage(value);
 }
 
 export function listingPagePath(topic: string | undefined, page: number): string {
@@ -102,6 +103,5 @@ export function withListingFilters(path: string, filters: ListingFilters): strin
 
 /** Trim, collapse whitespace, and cap public search input before sending it to Directus. */
 export function normalizeSearchQuery(value: string | undefined): string | undefined {
-  const normalized = value?.trim().replace(/\s+/g, ' ').slice(0, 100);
-  return normalized || undefined;
+  return normalizeCollectionSearch(value);
 }

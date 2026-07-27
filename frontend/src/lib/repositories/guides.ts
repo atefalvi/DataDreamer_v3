@@ -22,8 +22,9 @@ import type {
   GuideProgressStatus,
   StoredGuideProgress,
 } from '../../types/content';
+import { COLLECTION_PAGE_SIZE } from '../collections/pagination';
 
-export const DEFAULT_PAGE_SIZE = 9;
+export const DEFAULT_PAGE_SIZE = COLLECTION_PAGE_SIZE;
 
 // SDK dotted-field arrays aren't generically typeable; cast at the call site only
 // (the documented `any` exception — 09 §4.2, mirrors posts.ts).

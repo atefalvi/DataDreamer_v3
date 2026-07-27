@@ -26,6 +26,10 @@ const titles = [
   'Designing a people-data model without losing human context',
   'Making network telemetry useful beyond the engineering team',
   'A decision log for production machine-learning systems',
+  'Turning operational metrics into decisions people can trust',
+  'Designing a durable semantic layer for self-service reporting',
+  'What reliable data handoffs look like across departments',
+  'A practical framework for responsible automation',
 ];
 
 const projects: ProjectListItem[] = titles.map((title, index) => ({
@@ -46,7 +50,7 @@ const projects: ProjectListItem[] = titles.map((title, index) => ({
 const posts: PostListItem[] = titles.map((title, index) => ({
   slug: `post-${index + 1}`,
   title,
-  excerpt: 'A field note about the trade-offs, patterns, and lessons that make practical data work hold up in the real world.',
+  excerpt: 'A focused post about the trade-offs, patterns, and lessons that make practical data work hold up in the real world.',
   publishedAt: new Date(2026, 6, 20 - index),
   topics: [{ name: index % 2 ? 'Practice' : 'Analytics', slug: index % 2 ? 'practice' : 'analytics' }],
   author,
@@ -74,26 +78,26 @@ const guides: GuideListItem[] = titles.map((title, index) => ({
 
 <BaseLayout title="Editorial collections preview" description="Development-only collection QA" noindex>
   <main class="preview container-wide">
-    <section data-collection-view-root data-collection-view="editorial">
-      <div class="preview__head"><p class="kicker">Projects · six-item state</p><CollectionViewToggle /></div>
+    <section id="preview-projects" data-collection-view-root data-collection-view="editorial">
+      <div class="preview__head"><p class="kicker">Projects · featured + nine-card archive</p><CollectionViewToggle /></div>
       <CaseCard project={projects[0]} variant="lead" />
-      <div class="preview__grid" data-collection-archive>
+      <div id="preview-projects-archive" class="preview__grid" data-collection-archive>
         {projects.slice(1).map((project) => <CaseCard project={project} variant="row" />)}
       </div>
     </section>
 
-    <section data-collection-view-root data-collection-view="editorial">
-      <div class="preview__head"><p class="kicker">Posts · six-item state</p><CollectionViewToggle /></div>
+    <section id="preview-posts" data-collection-view-root data-collection-view="editorial">
+      <div class="preview__head"><p class="kicker">Posts · featured + nine-card archive</p><CollectionViewToggle /></div>
       <PostCard post={posts[0]} variant="hero" />
-      <div class="preview__grid" data-collection-archive>
+      <div id="preview-posts-archive" class="preview__grid" data-collection-archive>
         {posts.slice(1).map((post) => <PostCard post={post} variant="index" />)}
       </div>
     </section>
 
-    <section data-collection-view-root data-collection-view="editorial">
-      <div class="preview__head"><p class="kicker">Guides · six-item state</p><CollectionViewToggle /></div>
+    <section id="preview-guides" data-collection-view-root data-collection-view="editorial">
+      <div class="preview__head"><p class="kicker">Guides · featured + nine-card archive</p><CollectionViewToggle /></div>
       <GuideCardFeatured guide={guides[0]} />
-      <div class="preview__grid" data-collection-archive>
+      <div id="preview-guides-archive" class="preview__grid" data-collection-archive>
         {guides.slice(1).map((guide) => <GuideCard guide={guide} variant="index" />)}
       </div>
     </section>

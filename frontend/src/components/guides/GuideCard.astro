@@ -7,6 +7,7 @@
  */
 import { formatMinutes } from '../../lib/guides/progress';
 import EditorialCover from '../ui/EditorialCover.astro';
+import EditorialCardFrame from '../ui/EditorialCardFrame.astro';
 import DifficultyTag from './DifficultyTag.astro';
 import type { GuideListItem } from '../../types/content';
 
@@ -20,6 +21,7 @@ const { guide, class: className, variant = 'card' } = Astro.props;
 const { slug, title, summary, difficulty, coverImage, estimatedMinutes, itemCount, curator } =
   guide;
 const href = `/guides/${slug}`;
+const difficultyLabel = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
 const meta = [
   itemCount > 0 ? `${itemCount} ${itemCount === 1 ? 'resource' : 'resources'}` : null,
@@ -27,13 +29,38 @@ const meta = [
 ].filter(Boolean);
 ---
 
+{variant === 'index' ? (
+  <EditorialCardFrame
+    href={href}
+    image={coverImage}
+    kind="guide"
+    seed={slug}
+    sizes="(min-width: 80rem) 400px, (min-width: 48rem) 46vw, 100vw"
+    dataGuideSlug={slug}
+    class={className}
+  >
+    <DifficultyTag slot="badge" difficulty={difficulty} />
+    <Fragment slot="meta">
+      {guide.featured && <span data-featured>Featured</span>}
+      <span class="guide-card__difficulty-meta">{difficultyLabel}</span>
+      {meta.map((part) => <span>{part}</span>)}
+      <span>{curator.name}</span>
+    </Fragment>
+    <Fragment slot="title">{title}</Fragment>
+    <p slot="summary">{summary}</p>
+    <div slot="progress" class="guide-card__progress" data-guide-progress hidden>
+      <div class="guide-card__bar"><span data-progress-fill></span></div>
+      <span class="guide-card__resume" data-progress-label>Resume</span>
+    </div>
+  </EditorialCardFrame>
+) : (
 <article class:list={['guide-card', `guide-card--${variant}`, className]} data-guide-card data-slug={slug}>
   <a href={href} class="guide-card__link">
     <EditorialCover
       image={coverImage}
       kind="guide"
       seed={slug}
-      sizes={variant === 'index' ? '(min-width: 80rem) 400px, (min-width: 48rem) 46vw, 100vw' : '(min-width: 64rem) 420px, (min-width: 48rem) 50vw, 100vw'}
+      sizes="(min-width: 64rem) 420px, (min-width: 48rem) 50vw, 100vw"
       class="guide-card__media"
     >
       <DifficultyTag difficulty={difficulty} class="guide-card__difficulty" />
@@ -54,6 +81,7 @@ const meta = [
     </div>
   </a>
 </article>
+)}
 
 <style>
   .guide-card {
@@ -144,6 +172,15 @@ const meta = [
     margin-top: var(--space-3);
   }
 
+  .guide-card__difficulty-meta {
+    display: none;
+    color: var(--text-2);
+  }
+
+  :global([data-collection-view='list']) .guide-card__difficulty-meta {
+    display: inline;
+  }
+
   /* `display: flex` above would otherwise override the UA `[hidden] { display: none }`,
      so re-assert it — the resume row only appears once the enhancer reveals it. */
   .guide-card__progress[hidden] {
@@ -173,101 +210,4 @@ const meta = [
     white-space: nowrap;
   }
 
-  .guide-card--index {
-    min-width: 0;
-  }
-
-  .guide-card--index .guide-card__link {
-    height: 100%;
-  }
-
-  .guide-card--index :global(.guide-card__media) {
-    margin-bottom: var(--space-4);
-  }
-
-  .guide-card--index .guide-card__body {
-    min-width: 0;
-  }
-
-  .guide-card--index .guide-card__title {
-    font-size: var(--fs-xl);
-    line-height: var(--lh-xl);
-  }
-
-  .guide-card--index .guide-card__meta {
-    justify-content: flex-start;
-    gap: var(--space-2) var(--space-3);
-    margin-top: var(--space-3);
-    padding-top: 0;
-    border-top: 0;
-  }
-
-  .guide-card--index .guide-card__curator {
-    margin-left: 0;
-  }
-
-  :global([data-collection-view='editorial']) .guide-card--index .guide-card__link {
-    display: grid;
-    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
-    gap: var(--space-6);
-    align-items: center;
-    padding-block: var(--space-6);
-    border-top: 1px solid var(--border-1);
-  }
-
-  :global([data-collection-view='editorial']) .guide-card--index :global(.guide-card__media) {
-    margin: 0;
-  }
-
-  :global([data-collection-view='editorial']) .guide-card--index .guide-card__body {
-    padding: 0;
-  }
-
-  :global([data-collection-view='editorial']) .guide-card--index .guide-card__title {
-    font-size: var(--fs-2xl);
-    line-height: var(--lh-2xl);
-  }
-
-  :global([data-collection-view='grid']) .guide-card--index .guide-card__title {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
-
-  :global([data-collection-view='list']) .guide-card--index .guide-card__link {
-    display: grid;
-    grid-template-columns: clamp(6rem, 14vw, 9rem) minmax(0, 1fr);
-    gap: var(--space-5);
-    align-items: center;
-    padding-block: var(--space-4);
-    border-top: 1px solid var(--border-1);
-  }
-
-  :global([data-collection-view='list']) .guide-card--index :global(.guide-card__media) {
-    margin: 0;
-    aspect-ratio: 4 / 3;
-    border-radius: var(--radius-md);
-  }
-
-  :global([data-collection-view='list']) .guide-card--index .guide-card__body {
-    padding: 0;
-  }
-
-  @media (max-width: 35rem) {
-    :global([data-collection-view='editorial']) .guide-card--index .guide-card__link {
-      grid-template-columns: 1fr;
-      gap: var(--space-4);
-    }
-
-    :global([data-collection-view='list']) .guide-card--index .guide-card__link {
-      grid-template-columns: 5.5rem minmax(0, 1fr);
-      gap: var(--space-4);
-    }
-
-    :global([data-collection-view='list']) .guide-card--index .guide-card__summary,
-    :global([data-collection-view='list']) .guide-card--index .guide-card__curator {
-      display: none;
-    }
-  }
 </style>

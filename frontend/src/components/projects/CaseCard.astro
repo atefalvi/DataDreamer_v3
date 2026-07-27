@@ -4,6 +4,8 @@
  * Directus asset; year + stack render as mono meta; author shown as a byline.
  */
 import EditorialCover from '../ui/EditorialCover.astro';
+import CollectionFeature from '../ui/CollectionFeature.astro';
+import EditorialCardFrame from '../ui/EditorialCardFrame.astro';
 import type { ProjectListItem } from '../../types/content';
 
 interface Props {
@@ -15,35 +17,63 @@ interface Props {
 const { project, class: className, variant = 'card' } = Astro.props;
 const { title, summary, year, tags, coverImage, author } = project;
 const href = `/projects/${project.slug}`;
-const mediaSizes = variant === 'lead'
-  ? '(min-width: 64rem) 620px, 100vw'
-  : variant === 'row'
+const mediaSizes = variant === 'row'
     ? '(min-width: 80rem) 400px, (min-width: 48rem) 46vw, 100vw'
     : '(min-width: 64rem) 600px, 100vw';
 ---
 
-<article class:list={['case-card', `case-card--${variant}`, className]}>
-  <a href={href} class="case-card__link">
-    <EditorialCover
-      image={coverImage}
-      kind="project"
-      seed={project.slug}
-      sizes={mediaSizes}
-      loading={variant === 'lead' ? 'eager' : 'lazy'}
-      class="case-card__media"
-    />
-    <div class="case-card__body">
-      <div class="case-card__meta">
-        {project.featured && <span class="case-card__feature">Featured</span>}
-        <span>{year}</span>
-        <span>{tags.slice(0, 3).join(' · ')}</span>
+{variant === 'lead' ? (
+  <CollectionFeature href={href} image={coverImage} kind="project" seed={project.slug} class={className}>
+    <Fragment slot="meta">
+      {project.featured && <span data-featured>Featured</span>}
+      <span>{year}</span>
+      <span>{tags.slice(0, 3).join(' · ')}</span>
+    </Fragment>
+    <Fragment slot="title">{title}</Fragment>
+    <p slot="summary">{summary}</p>
+    <span slot="byline">By <strong>{author.name}</strong></span>
+  </CollectionFeature>
+) : variant === 'row' ? (
+  <EditorialCardFrame
+    href={href}
+    image={coverImage}
+    kind="project"
+    seed={project.slug}
+    sizes={mediaSizes}
+    class={className}
+  >
+    <Fragment slot="meta">
+      {project.featured && <span data-featured>Featured</span>}
+      <span>{year}</span>
+      <span>{tags.slice(0, 3).join(' · ')}</span>
+    </Fragment>
+    <Fragment slot="title">{title}</Fragment>
+    <p slot="summary">{summary}</p>
+    <span slot="footer">By {author.name}</span>
+  </EditorialCardFrame>
+) : (
+  <article class:list={['case-card', `case-card--${variant}`, className]}>
+    <a href={href} class="case-card__link">
+      <EditorialCover
+        image={coverImage}
+        kind="project"
+        seed={project.slug}
+        sizes={mediaSizes}
+        class="case-card__media"
+      />
+      <div class="case-card__body">
+        <div class="case-card__meta">
+          {project.featured && <span class="case-card__feature">Featured</span>}
+          <span>{year}</span>
+          <span>{tags.slice(0, 3).join(' · ')}</span>
+        </div>
+        <h3 class="case-card__title">{title}</h3>
+        <p class="case-card__byline">By {author.name}</p>
+        <p class="case-card__summary">{summary}</p>
       </div>
-      <h3 class="case-card__title">{title}</h3>
-      <p class="case-card__byline">By {author.name}</p>
-      <p class="case-card__summary">{summary}</p>
-    </div>
-  </a>
-</article>
+    </a>
+  </article>
+)}
 
 <style>
   .case-card__link {
@@ -103,175 +133,4 @@ const mediaSizes = variant === 'lead'
     line-height: var(--lh-base);
   }
 
-  .case-card--lead .case-card__link {
-    display: grid;
-    gap: var(--space-6);
-    padding-block: var(--space-7);
-  }
-
-  .case-card--lead :global(.case-card__media) {
-    margin: 0;
-    aspect-ratio: 16 / 10;
-  }
-
-  .case-card--lead .case-card__body {
-    display: flex;
-    min-width: 0;
-    align-self: center;
-    flex-direction: column;
-  }
-
-  .case-card--lead .case-card__meta {
-    margin-top: 0;
-  }
-
-  .case-card--lead .case-card__title {
-    max-width: 17ch;
-    margin-top: var(--space-3);
-    font-size: var(--fs-4xl);
-    line-height: var(--lh-4xl);
-    letter-spacing: -0.02em;
-  }
-
-  .case-card--lead .case-card__summary {
-    order: 3;
-    max-width: 48ch;
-    margin-top: var(--space-4);
-    font-size: var(--fs-lg);
-    line-height: var(--lh-lg);
-  }
-
-  .case-card--lead .case-card__byline {
-    order: 4;
-    margin-top: var(--space-4);
-  }
-
-  .case-card--row {
-    min-width: 0;
-    height: 100%;
-  }
-
-  .case-card--row .case-card__link {
-    height: 100%;
-  }
-
-  .case-card--row :global(.case-card__media) {
-    margin: 0 0 var(--space-4);
-  }
-
-  .case-card--row .case-card__body {
-    min-width: 0;
-  }
-
-  .case-card--row .case-card__meta {
-    margin-top: 0;
-  }
-
-  .case-card--row .case-card__title {
-    font-size: var(--fs-xl);
-    line-height: var(--lh-xl);
-  }
-
-  .case-card--row .case-card__byline {
-    margin-top: var(--space-1);
-  }
-
-  .case-card--row .case-card__summary {
-    margin-top: var(--space-2);
-    font-size: var(--fs-sm);
-    line-height: var(--lh-sm);
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  :global([data-collection-view='editorial']) .case-card--row .case-card__link {
-    display: grid;
-    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
-    gap: var(--space-6);
-    align-items: center;
-    padding-block: var(--space-6);
-    border-top: 1px solid var(--border-1);
-  }
-
-  :global([data-collection-view='editorial']) .case-card--row :global(.case-card__media) {
-    margin: 0;
-  }
-
-  :global([data-collection-view='editorial']) .case-card--row .case-card__title {
-    font-size: var(--fs-2xl);
-    line-height: var(--lh-2xl);
-  }
-
-  :global([data-collection-view='grid']) .case-card--row .case-card__title {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
-
-  :global([data-collection-view='list']) .case-card--row .case-card__link {
-    display: grid;
-    grid-template-columns: clamp(6rem, 14vw, 9rem) minmax(0, 1fr);
-    gap: var(--space-5);
-    align-items: center;
-    padding-block: var(--space-4);
-    border-top: 1px solid var(--border-1);
-  }
-
-  :global([data-collection-view='list']) .case-card--row :global(.case-card__media) {
-    margin: 0;
-    aspect-ratio: 4 / 3;
-    border-radius: var(--radius-md);
-  }
-
-  @media (min-width: 64rem) {
-    .case-card--lead .case-card__link {
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-      gap: clamp(var(--space-7), 6vw, var(--space-9));
-      align-items: center;
-    }
-
-    .case-card--lead :global(.case-card__media) {
-      grid-column: 2;
-      grid-row: 1;
-    }
-
-    .case-card--lead .case-card__body {
-      grid-column: 1;
-      grid-row: 1;
-    }
-  }
-
-  @media (max-width: 35rem) {
-    .case-card--lead {
-      padding-block: var(--space-6);
-    }
-
-    .case-card--lead .case-card__title {
-      font-size: var(--fs-3xl);
-      line-height: var(--lh-3xl);
-    }
-
-    .case-card--lead .case-card__summary {
-      font-size: var(--fs-base);
-      line-height: var(--lh-base);
-    }
-
-    :global([data-collection-view='editorial']) .case-card--row .case-card__link {
-      grid-template-columns: 1fr;
-      gap: var(--space-4);
-    }
-
-    :global([data-collection-view='list']) .case-card--row .case-card__link {
-      grid-template-columns: 5.5rem minmax(0, 1fr);
-      gap: var(--space-4);
-    }
-
-    :global([data-collection-view='list']) .case-card--row .case-card__meta span:last-child,
-    :global([data-collection-view='list']) .case-card--row .case-card__summary {
-      display: none;
-    }
-  }
 </style>

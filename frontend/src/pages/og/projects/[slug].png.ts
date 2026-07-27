@@ -1,5 +1,5 @@
 /**
- * /og/projects/<slug>.png — dynamic OG card for a published case study: brand
+ * /og/projects/<slug>.png — dynamic OG card for a published project: brand
  * background, title, author avatar + name, main tag chip. Replaces the pre-generated
  * per-project PNG templates. Edge-cached; 404 for unknown slugs.
  */
@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ params }) => {
     : undefined;
 
   const png = await renderOgCard({
-    kicker: `Case study · ${project.year}`,
+    kicker: `Project · ${project.year}`,
     title: project.title,
     authorName: project.author.name,
     avatarDataUri: avatar,

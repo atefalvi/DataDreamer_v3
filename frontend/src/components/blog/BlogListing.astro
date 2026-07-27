@@ -3,8 +3,8 @@ import Button from '../ui/Button.astro';
 import Chip from '../ui/Chip.astro';
 import EmptyState from '../ui/EmptyState.astro';
 import Breadcrumbs from '../ui/Breadcrumbs.astro';
+import CollectionArchive from '../ui/CollectionArchive.astro';
 import CollectionHeader from '../ui/CollectionHeader.astro';
-import CollectionViewToggle from '../ui/CollectionViewToggle.astro';
 import PostCard from './PostCard.astro';
 import {
   listingPagePath,
@@ -35,6 +35,7 @@ const activeSearch = listing.activeSearch;
 const showAuthorFilter = listing.authors.length > 1;
 const hasFilters = Boolean(activeTopic || activeAuthor || activeSearch);
 const hasPosts = listing.featured || listing.posts.length > 0;
+const displayedCount = listing.posts.length + (listing.featured ? 1 : 0);
 const nextHref = listing.page.hasMore
   ? withListingFilters(listingPagePath(activeTopic, listing.page.page + 1), { author: activeAuthor, search: activeSearch })
   : undefined;
@@ -43,12 +44,12 @@ const prevHref = listing.page.page > 1
   : undefined;
 ---
 
-<section class="blog-listing container-wide" aria-labelledby="blog-title" data-collection-view-root data-collection-view="editorial">
+<section class="blog-listing container-wide" aria-labelledby="blog-title">
   {breadcrumbs && <Breadcrumbs items={breadcrumbs} class="blog-listing__breadcrumbs" />}
 
   <CollectionHeader kicker={kicker} title={title} intro={intro} headingId="blog-title">
     <span slot="aside" class="blog-listing__count">
-      {listing.page.items.length.toString().padStart(2, '0')} post{listing.page.items.length === 1 ? '' : 's'}
+      {displayedCount.toString().padStart(2, '0')} post{displayedCount === 1 ? '' : 's'}
       {listing.page.page > 1 && ` / page ${listing.page.page}`}
     </span>
   </CollectionHeader>
@@ -74,7 +75,7 @@ const prevHref = listing.page.page > 1
     <form class="blog-listing__query-filter" method="get" action={pageBasePath} data-author-filter>
       <div class="blog-listing__search-control">
         <label for="blog-search">Search posts</label>
-        <input id="blog-search" name="q" type="search" value={activeSearch} maxlength="100" placeholder="Search titles, summaries, and topics" />
+        <input id="blog-search" name="q" type="search" value={activeSearch} maxlength="100" placeholder="Search titles, excerpts, and topics" />
       </div>
       {showAuthorFilter && (
         <div class="blog-listing__author-filter">
@@ -95,20 +96,17 @@ const prevHref = listing.page.page > 1
 
   {hasPosts ? (
     listing.posts.length > 0 && (
-      <section class="blog-listing__results" aria-labelledby="blog-results-title">
-        <div class="blog-listing__results-head">
-          <h2 id="blog-results-title">Latest writing</h2>
-          <div class="blog-listing__results-meta">
-            <span>{listing.posts.length.toString().padStart(2, '0')} {listing.posts.length === 1 ? 'article' : 'articles'}</span>
-            {listing.posts.length > 1 && <CollectionViewToggle />}
-          </div>
-        </div>
-        <div class="blog-listing__posts" data-collection-archive>
-          {listing.posts.map((post) => (
-            <PostCard post={post} variant="index" />
-          ))}
-        </div>
-      </section>
+      <CollectionArchive
+        headingId="blog-results-title"
+        title="Latest posts"
+        itemCount={listing.posts.length}
+        singular="post"
+        page={listing.page.page}
+        prevHref={prevHref}
+        nextHref={nextHref}
+      >
+        {listing.posts.map((post) => <PostCard post={post} variant="index" />)}
+      </CollectionArchive>
     )
   ) : (
     <EmptyState
@@ -116,13 +114,6 @@ const prevHref = listing.page.page > 1
       icon="pen-line"
       action={hasFilters ? { label: 'Clear filter', href: clearHref } : undefined}
     />
-  )}
-
-  {(prevHref || nextHref) && (
-    <nav class="blog-listing__pagination" aria-label="Pagination">
-      {prevHref ? <Button href={prevHref} variant="secondary">Previous</Button> : <span></span>}
-      {nextHref && <Button href={nextHref} variant="secondary" icon="arrow-right">Next</Button>}
-    </nav>
   )}
 </section>
 
@@ -204,49 +195,7 @@ const prevHref = listing.page.page > 1
     font: inherit;
   }
 
-  .blog-listing__results-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-5);
-    margin-top: var(--space-8);
-  }
-
-  .blog-listing__results-head h2 {
-    font-family: var(--font-display);
-    font-size: var(--fs-2xl);
-    font-weight: 560;
-    line-height: var(--lh-2xl);
-  }
-
-  .blog-listing__results-meta {
-    display: flex;
-    align-items: center;
-    gap: var(--space-5);
-  }
-
-  .blog-listing__results-meta > span {
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    white-space: nowrap;
-  }
-
-  .blog-listing__posts {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-7);
-    margin-top: var(--space-5);
-  }
-
   .blog-listing :global(.ui-empty-state) {
-    margin-top: var(--space-7);
-  }
-
-  .blog-listing__pagination {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-3);
     margin-top: var(--space-7);
   }
 
@@ -274,27 +223,6 @@ const prevHref = listing.page.page > 1
       flex: 1 1 auto;
     }
 
-    .blog-listing__results-head {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .blog-listing__results-meta {
-      width: 100%;
-      justify-content: space-between;
-    }
-  }
-
-  @media (min-width: 48rem) {
-    [data-collection-view='grid'] .blog-listing__posts {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 75rem) {
-    [data-collection-view='grid'] .blog-listing__posts {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
   }
 </style>
 

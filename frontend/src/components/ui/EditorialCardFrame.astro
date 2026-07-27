@@ -1,0 +1,239 @@
+---
+/** Shared index-card structure. Domain components own the metadata and copy. */
+import EditorialCover from './EditorialCover.astro';
+import type { ImageRef } from '../../types/content';
+
+interface Props {
+  href: string;
+  image?: ImageRef;
+  kind: 'post' | 'project' | 'guide';
+  seed: string;
+  sizes?: string;
+  dataGuideSlug?: string;
+  class?: string;
+}
+
+const {
+  href,
+  image,
+  kind,
+  seed,
+  sizes = '(min-width: 80rem) 400px, (min-width: 48rem) 46vw, 100vw',
+  dataGuideSlug,
+  class: className,
+} = Astro.props;
+---
+
+<article class:list={['editorial-card', className]} data-guide-card={dataGuideSlug ? true : undefined} data-slug={dataGuideSlug}>
+  <a href={href} class="editorial-card__link">
+    <div class="editorial-card__visual">
+      <EditorialCover
+        image={image}
+        kind={kind}
+        seed={seed}
+        sizes={sizes}
+        class="editorial-card__media"
+      />
+      <div class="editorial-card__badge"><slot name="badge" /></div>
+    </div>
+
+    <div class="editorial-card__body">
+      <div class="editorial-card__meta"><slot name="meta" /></div>
+      <h3 class="editorial-card__title"><slot name="title" /></h3>
+      <div class="editorial-card__summary"><slot name="summary" /></div>
+      <div class="editorial-card__footer"><slot name="footer" /></div>
+      <slot name="progress" />
+    </div>
+  </a>
+</article>
+
+<style>
+  .editorial-card {
+    min-width: 0;
+    height: 100%;
+  }
+
+  .editorial-card__link {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .editorial-card__visual {
+    position: relative;
+    margin-bottom: var(--space-4);
+  }
+
+  .editorial-card__badge {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    z-index: 1;
+  }
+
+  .editorial-card__badge:empty {
+    display: none;
+  }
+
+  .editorial-card__body {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .editorial-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .editorial-card__meta :global([data-featured]),
+  .editorial-card__meta :global([data-topic]) {
+    color: var(--accent);
+  }
+
+  .editorial-card__title {
+    margin-top: var(--space-2);
+    color: var(--text-1);
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 560;
+    letter-spacing: -0.01em;
+    line-height: var(--lh-xl);
+    text-wrap: balance;
+  }
+
+  .editorial-card__link:hover .editorial-card__title {
+    color: var(--accent);
+  }
+
+  .editorial-card__summary {
+    margin-top: var(--space-2);
+    color: var(--text-2);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-sm);
+  }
+
+  .editorial-card__summary :global(*) {
+    margin: 0;
+  }
+
+  .editorial-card__summary,
+  .editorial-card__summary :global(*) {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .editorial-card__footer {
+    margin-top: var(--space-3);
+    color: var(--text-3);
+    font-size: var(--fs-xs);
+  }
+
+  .editorial-card__footer:empty,
+  .editorial-card__summary:empty {
+    display: none;
+  }
+
+  .editorial-card__link:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 4px;
+  }
+
+  :global([data-collection-view='editorial']) .editorial-card__link {
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: center;
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--border-1);
+  }
+
+  :global([data-collection-view='editorial']) .editorial-card__visual {
+    margin: 0;
+  }
+
+  :global([data-collection-view='editorial']) .editorial-card__title {
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+  }
+
+  :global([data-collection-view='grid']) .editorial-card__link {
+    overflow: hidden;
+    padding: var(--space-4);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-1);
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      box-shadow var(--dur-3) var(--ease-out),
+      transform var(--dur-3) var(--ease-out);
+  }
+
+  :global([data-collection-view='grid']) .editorial-card__visual {
+    margin-bottom: var(--space-5);
+  }
+
+  :global([data-collection-view='grid']) .editorial-card__title {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  :global([data-collection-view='list']) .editorial-card__link {
+    display: grid;
+    grid-template-columns: clamp(6rem, 14vw, 9rem) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: center;
+    padding-block: var(--space-4);
+    border-top: 1px solid var(--border-1);
+  }
+
+  :global([data-collection-view='list']) .editorial-card__visual {
+    margin: 0;
+  }
+
+  :global([data-collection-view='list']) .editorial-card__badge {
+    display: none;
+  }
+
+  :global([data-collection-view='list']) :global(.editorial-card__media) {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-md);
+  }
+
+  @media (hover: hover) {
+    :global([data-collection-view='grid']) .editorial-card__link:hover {
+      border-color: color-mix(in srgb, var(--accent) 34%, var(--border-2));
+      box-shadow: var(--shadow-2);
+      transform: translateY(-3px);
+    }
+  }
+
+  @media (max-width: 35rem) {
+    :global([data-collection-view='editorial']) .editorial-card__link {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+
+    :global([data-collection-view='list']) .editorial-card__link {
+      grid-template-columns: 5.5rem minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+
+    :global([data-collection-view='list']) .editorial-card__summary,
+    :global([data-collection-view='list']) .editorial-card__footer {
+      display: none;
+    }
+  }
+</style>

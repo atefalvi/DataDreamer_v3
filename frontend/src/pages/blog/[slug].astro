@@ -36,7 +36,6 @@ let paginationNext: string | undefined;
 let post: Post | null = null;
 let author: Author | null = null;
 let related: PostListItem[] = [];
-let neighbors: Awaited<ReturnType<typeof postsRepo.neighbors>> = {};
 let canonical = '';
 let dateLabel = '';
 let shortDate = '';
@@ -46,7 +45,6 @@ let ogImage: OgImage = { url: '/og/og-blog.png' };
 let jsonLd: object[] = [];
 let hasImageGrid = false;
 let hasRelated = false;
-let hasNeighbors = false;
 let authorHref: string | undefined;
 
 if (isPagination) {
@@ -80,10 +78,9 @@ if (isPagination) {
   }
 
   try {
-    [author, related, neighbors] = await Promise.all([
+    [author, related] = await Promise.all([
       authorsRepo.bySlug(post.author.slug, Astro.locals),
       postsRepo.related(post, 3),
-      postsRepo.neighbors(post),
     ]);
   } catch (error) {
     console.error('[blog] article secondary content unavailable:', error instanceof Error ? error.message : error);
@@ -133,7 +130,6 @@ if (isPagination) {
   jsonLd = [articleJsonLd, breadcrumbJsonLd];
   hasImageGrid = post.hasImageGrid;
   hasRelated = related.length > 0;
-  hasNeighbors = Boolean(neighbors.previous || neighbors.next);
 }
 ---
 
@@ -199,7 +195,7 @@ if (isPagination) {
 
         <div class="article-hero__grid">
           <div>
-            <p class="article-hero__kicker">Field note</p>
+            <p class="article-hero__kicker">Post</p>
             <h1>{post.title}</h1>
             <p class="article-hero__dek">{post.excerpt}</p>
           </div>
@@ -241,26 +237,9 @@ if (isPagination) {
           <ArticleEnhancements hasImageGrid={hasImageGrid} />
         </div>
 
-        {(author || hasNeighbors) && (
+        {author && (
           <footer class="article-footer">
-            {author && <AuthorBlock author={author} />}
-
-            {hasNeighbors && (
-              <nav class="article-neighbors" aria-label="Adjacent posts">
-                {neighbors.previous ? (
-                  <a href={`/blog/${neighbors.previous.slug}`} class="article-neighbor article-neighbor--previous">
-                    <span>Previous</span>
-                    <strong>{neighbors.previous.title}</strong>
-                  </a>
-                ) : <span />}
-                {neighbors.next && (
-                  <a href={`/blog/${neighbors.next.slug}`} class="article-neighbor article-neighbor--next">
-                    <span>Next</span>
-                    <strong>{neighbors.next.title}</strong>
-                  </a>
-                )}
-              </nav>
-            )}
+            <AuthorBlock author={author} />
           </footer>
         )}
 
@@ -268,7 +247,7 @@ if (isPagination) {
           <section class="article-related" aria-labelledby="related-heading">
             <div class="article-related__header">
               <p>Continue reading</p>
-              <h2 id="related-heading">Related field notes</h2>
+              <h2 id="related-heading">Related posts</h2>
             </div>
             <div class="article-related__grid">
               {related.map((item) => <PostCard post={item} variant="card" />)}
@@ -478,50 +457,6 @@ if (isPagination) {
     margin-top: var(--space-9);
   }
 
-  .article-neighbors {
-    display: grid;
-    gap: var(--space-3);
-    margin-top: var(--space-6);
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--border-1);
-  }
-
-  .article-neighbor {
-    display: grid;
-    gap: var(--space-2);
-    padding: var(--space-5);
-    border: 1px solid color-mix(in srgb, var(--border-2) 70%, transparent);
-    border-radius: var(--radius-lg);
-    background: var(--bg-1);
-    color: inherit;
-    text-decoration: none;
-    transition:
-      border-color var(--dur-2) var(--ease-out),
-      background-color var(--dur-2) var(--ease-out);
-  }
-
-  .article-neighbor:hover {
-    border-color: var(--border-2);
-    background: color-mix(in srgb, var(--bg-2) 34%, var(--bg-1));
-  }
-
-  .article-neighbor span {
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    text-transform: uppercase;
-  }
-
-  .article-neighbor strong {
-    font-family: var(--font-display);
-    font-size: var(--fs-2xl);
-    line-height: var(--lh-2xl);
-  }
-
-  .article-neighbor--next {
-    text-align: right;
-  }
-
   .article-related {
     grid-column: 1 / -1;
     margin-top: var(--space-10);
@@ -548,12 +483,6 @@ if (isPagination) {
     gap: var(--space-4);
     margin-top: var(--space-6);
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  @media (min-width: 48rem) {
-    .article-neighbors {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
   }
 
   @media (min-width: 64rem) {
@@ -618,8 +547,5 @@ if (isPagination) {
       line-height: var(--lh-4xl);
     }
 
-    .article-neighbor--next {
-      text-align: left;
-    }
   }
 </style>
