@@ -1,6 +1,6 @@
 /**
  * /og/projects/<slug>.png — dynamic OG card for a published project: brand
- * background, title, author avatar + name, main tag chip. Replaces the pre-generated
+ * background, title, author avatar + name, and primary tag. Replaces the pre-generated
  * per-project PNG templates. Edge-cached; 404 for unknown slugs.
  */
 import type { APIRoute } from 'astro';

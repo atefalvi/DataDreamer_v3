@@ -1,6 +1,6 @@
 /**
  * /og/blog/<slug>.png — dynamic OG card for a published post: brand background,
- * title, author avatar + name, main topic chip. Edge-cached; 404 for unknown slugs.
+ * title, author avatar + name, and primary topic. Edge-cached; 404 for unknown slugs.
  */
 import type { APIRoute } from 'astro';
 import { postsRepo } from '../../../lib/repositories';

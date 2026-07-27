@@ -3,7 +3,7 @@
  *
  * Pipeline: deterministic brand background (generative network/grid/dust, ported from
  * the OG-backgrounds script, recolored to tokens) built as raw SVG + the content layer
- * (title, author avatar + name, tag chip, wordmark) rendered by satori into glyph
+ * (title, author avatar + name, topic, wordmark) rendered by satori into glyph
  * PATHS (no runtime fonts needed at raster time) → nested into one SVG → sharp → PNG.
  * The avatar is fetched server-side and embedded as a data URI; nothing here touches
  * tokens or private data — only published content goes in.
@@ -131,7 +131,7 @@ export interface OgCardInput {
   authorName?: string;
   /** data: URI (already fetched server-side) or undefined for a monogram. */
   avatarDataUri?: string;
-  /** Main tag/topic chip. */
+  /** Main tag or topic. */
   tag?: string;
   /** Stable string (slug) so each card gets its own constellation. */
   seed: string;
@@ -152,14 +152,14 @@ async function contentLayer(input: OgCardInput): Promise<string> {
     .join('');
 
   const avatar = input.avatarDataUri
-    ? { type: 'img', props: { src: input.avatarDataUri, width: 56, height: 56, style: { width: 56, height: 56, borderRadius: 28, border: `2px solid ${BORDER}` } } }
+    ? { type: 'img', props: { src: input.avatarDataUri, width: 72, height: 72, style: { width: 72, height: 72, borderRadius: 36, border: `2px solid ${BORDER}` } } }
     : {
         type: 'div',
         props: {
           style: {
-            width: 56, height: 56, borderRadius: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 72, height: 72, borderRadius: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'linear-gradient(135deg, #FF5C38 0%, #B5401F 100%)',
-            color: '#FFF6F3', fontFamily: 'Inter', fontSize: 22, fontWeight: 700,
+            color: '#FFF6F3', fontFamily: 'Inter', fontSize: 27, fontWeight: 700,
           },
           children: initials,
         },
@@ -237,7 +237,7 @@ async function contentLayer(input: OgCardInput): Promise<string> {
             ],
           },
         },
-        // footer: avatar + author + tag chip
+        // Footer: a deliberately enlarged author signature for small share previews.
         {
           type: 'div',
           props: {
@@ -245,14 +245,14 @@ async function contentLayer(input: OgCardInput): Promise<string> {
             children: [
               avatar,
               input.authorName
-                ? { type: 'div', props: { style: { color: TEXT2, fontSize: 26, fontWeight: 600 }, children: input.authorName } }
+                ? { type: 'div', props: { style: { color: TEXT1, fontSize: 30, fontWeight: 600 }, children: input.authorName } }
                 : { type: 'div', props: { style: { display: 'none' }, children: '' } },
               input.tag
                 ? {
                     type: 'div',
                     props: {
                       style: {
-                        display: 'flex', alignItems: 'center', marginLeft: 8, padding: '10px 22px',
+                        display: 'flex', alignItems: 'center', marginLeft: 8, padding: '10px 20px',
                         border: `1px solid ${BORDER}`, borderRadius: 999, color: TEXT2,
                         fontFamily: 'JetBrains Mono', fontSize: 17, fontWeight: 600,
                         letterSpacing: 0.5,
@@ -309,7 +309,7 @@ export async function renderOgCard(input: OgCardInput): Promise<Buffer> {
 /** Fetch a Directus avatar as an embeddable data URI (server-side only). */
 export async function avatarDataUri(assetBaseUrl: string, fileId: string): Promise<string | undefined> {
   try {
-    const res = await fetch(`${assetBaseUrl}/assets/${encodeURIComponent(fileId)}?width=112&height=112&fit=cover&format=png`, {
+    const res = await fetch(`${assetBaseUrl}/assets/${encodeURIComponent(fileId)}?width=144&height=144&fit=cover&format=png`, {
       signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) return undefined;

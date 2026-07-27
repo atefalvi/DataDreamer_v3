@@ -65,7 +65,7 @@ const jsonLd = [
   title={project.seoTitle ?? title}
   description={project.seoDescription ?? summary}
   ogType="article"
-  ogImage={{ url: `/og/projects/${project.slug}.png`, alt: title, type: 'image/png', width: 1200, height: 630 }}
+  ogImage={{ url: `/og/projects/${project.slug}.png?v=2`, alt: title, type: 'image/png', width: 1200, height: 630 }}
   jsonLd={jsonLd}
   noindex={project.noindex}
 >
