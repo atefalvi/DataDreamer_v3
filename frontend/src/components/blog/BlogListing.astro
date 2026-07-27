@@ -59,7 +59,7 @@ const prevHref = listing.page.page > 1
     </div>
   )}
 
-  <div class="blog-listing__filters">
+  <div class:list={['blog-listing__filters', { 'blog-listing__filters--after-feature': listing.featured }]}>
     <nav class="blog-listing__topics" aria-label="Topics">
       <Chip label="All posts" href={withListingFilters('/blog', { author: activeAuthor, search: activeSearch })} selected={!activeTopic} />
       {listing.topics.map(({ topic, count }) => (
@@ -152,7 +152,11 @@ const prevHref = listing.page.page > 1
     gap: var(--space-5);
     margin-top: var(--space-7);
     padding-block: var(--space-5);
-    border-block: 1px solid var(--border-1);
+    border-bottom: 1px solid var(--border-1);
+  }
+
+  .blog-listing__filters--after-feature {
+    border-top: 1px solid var(--border-1);
   }
 
   .blog-listing__topics {

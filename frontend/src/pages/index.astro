@@ -44,9 +44,6 @@ if (FLAGS.GUIDES_ENABLED) {
   }
 }
 
-const featured = posts[0];
-const compact = posts.slice(1, 3);
-
 const jsonLd = [
   websiteJsonLd(),
   organizationJsonLd(SOCIAL_LINKS.map((link) => link.href).filter((href) => href.startsWith('http'))),
@@ -107,13 +104,11 @@ const teamSentence =
     </div>
   </section>
 
-  <section class="home-section home-band home-band--tint home-section--writing container-content">
-    <SectionHeader
-      kicker="Latest posts"
-      title="Field notes from the messy middle of data work."
-      intro="Structured reflections, practical lessons, useful tools, and lived experience from learning, building, and explaining real-world data systems."
-      action={{ label: 'All posts', href: '/blog' }}
-    />
+  <section class="home-section home-band home-band--tint home-section--writing container-content" aria-labelledby="home-posts-title">
+    <header class="home-writing__head">
+      <h2 id="home-posts-title">Latest posts</h2>
+      <a href="/blog">All posts <span aria-hidden="true">→</span></a>
+    </header>
     {posts.length === 0 ? (
       <EmptyState
         message="New posts will appear here once they are published."
@@ -121,21 +116,12 @@ const teamSentence =
         action={{ label: 'Explore posts', href: '/blog' }}
       />
     ) : (
-      <div class="home-writing">
-        {featured && (
-          <div class="home-writing__featured" data-reveal>
-            <PostCard post={featured} variant="featured" />
+      <div class="home-writing" data-collection-view="grid">
+        {posts.map((post) => (
+          <div data-reveal data-reveal-group="home-posts">
+            <PostCard post={post} variant="index" />
           </div>
-        )}
-        {compact.length > 0 && (
-          <div class="home-writing__rest">
-            {compact.map((post) => (
-              <div data-reveal data-reveal-group="home-posts">
-                <PostCard post={post} variant="compact" />
-              </div>
-            ))}
-          </div>
-        )}
+        ))}
       </div>
     )}
   </section>
@@ -311,8 +297,44 @@ const teamSentence =
 
   .home-writing {
     display: grid;
-    gap: var(--space-7);
-    margin-top: var(--space-7);
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+  }
+
+  .home-writing__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-5);
+  }
+
+  .home-writing__head h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    font-weight: 560;
+    line-height: var(--lh-3xl);
+  }
+
+  .home-writing__head a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--border-2);
+    color: var(--text-1);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+    text-decoration: none;
+  }
+
+  .home-writing__head a span {
+    color: var(--accent);
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  .home-writing__head a:hover span {
+    transform: translateX(3px);
   }
 
   .home-guides {
@@ -338,17 +360,17 @@ const teamSentence =
     margin-top: var(--space-7);
   }
 
-  @media (min-width: 64rem) {
+  @media (min-width: 48rem) {
     .home-writing {
-      grid-template-columns: 1.4fr 1fr;
-      gap: var(--space-8);
-      align-items: start;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
-  .home-writing__rest {
-    display: grid;
-    align-content: start;
+  @media (min-width: 64rem) {
+    .home-writing {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-7);
+    }
   }
 
   .team-strip {

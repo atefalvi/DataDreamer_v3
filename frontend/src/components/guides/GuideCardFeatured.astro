@@ -6,7 +6,6 @@
 import { formatMinutes } from '../../lib/guides/progress';
 import Avatar from '../ui/Avatar.astro';
 import EditorialCover from '../ui/EditorialCover.astro';
-import DifficultyTag from './DifficultyTag.astro';
 import type { GuideListItem } from '../../types/content';
 
 interface Props {
@@ -19,6 +18,7 @@ const { slug, title, summary, difficulty, coverImage, estimatedMinutes, itemCoun
 const href = `/guides/${slug}`;
 
 const meta = [
+  difficulty[0].toUpperCase() + difficulty.slice(1),
   itemCount > 0 ? `${itemCount} ${itemCount === 1 ? 'resource' : 'resources'}` : null,
   estimatedMinutes ? `~${formatMinutes(estimatedMinutes)}` : null,
 ].filter(Boolean);
@@ -27,13 +27,12 @@ const meta = [
 <article class="guide-feature">
   <a href={href} class="guide-feature__link">
     <div class="guide-feature__text">
-      {guide.featured && <p class="kicker">Featured guide</p>}
-      <h2 class="guide-feature__title">{title}</h2>
-      <p class="guide-feature__summary">{summary}</p>
       <div class="guide-feature__meta">
-        <DifficultyTag difficulty={difficulty} />
+        {guide.featured && <span class="guide-feature__feature">Featured</span>}
         {meta.map((part) => <span class="guide-feature__metaitem">{part}</span>)}
       </div>
+      <h2 class="guide-feature__title">{title}</h2>
+      <p class="guide-feature__summary">{summary}</p>
       <div class="guide-feature__byline">
         <Avatar src={curator.avatar?.src} name={curator.name} size={32} />
         <span>Curated by <strong>{curator.name}</strong></span>
@@ -59,10 +58,6 @@ const meta = [
 </article>
 
 <style>
-  .guide-feature {
-    border-block: 1px solid var(--border-1);
-  }
-
   .guide-feature__link {
     display: grid;
     grid-template-columns: 1fr;
@@ -76,15 +71,16 @@ const meta = [
     display: flex;
     min-width: 0;
     flex-direction: column;
-    gap: var(--space-3);
   }
 
   .guide-feature__title {
+    max-width: 17ch;
+    margin-top: var(--space-3);
     font-family: var(--font-display);
-    font-size: var(--fs-3xl);
-    line-height: var(--lh-3xl);
+    font-size: var(--fs-4xl);
+    line-height: var(--lh-4xl);
     font-weight: 560;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.02em;
     text-wrap: balance;
   }
 
@@ -93,10 +89,11 @@ const meta = [
   }
 
   .guide-feature__summary {
-    max-width: 52ch;
+    max-width: 48ch;
+    margin-top: var(--space-4);
     color: var(--text-2);
-    font-size: var(--fs-base);
-    line-height: var(--lh-base);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-lg);
   }
 
   .guide-feature__meta {
@@ -104,16 +101,20 @@ const meta = [
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-3);
-    margin-top: var(--space-1);
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
+  }
+
+  .guide-feature__feature {
+    color: var(--accent);
   }
 
   .guide-feature__byline {
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    margin-top: var(--space-4);
     color: var(--text-3);
     font-size: var(--fs-sm);
   }
@@ -127,7 +128,7 @@ const meta = [
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    margin-top: var(--space-2);
+    margin-top: var(--space-3);
     color: var(--accent);
     font-weight: 650;
     font-size: var(--fs-sm);
@@ -144,7 +145,6 @@ const meta = [
   :global(.guide-feature__media) {
     position: relative;
     order: -1;
-    min-height: 220px;
     overflow: hidden;
     border: 1px solid var(--border-1);
     border-radius: var(--radius-lg);
@@ -179,7 +179,7 @@ const meta = [
     .guide-feature__link {
       grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 1.1fr);
       gap: clamp(var(--space-7), 6vw, var(--space-9));
-      align-items: stretch;
+      align-items: center;
     }
 
     .guide-feature__text {
@@ -188,8 +188,23 @@ const meta = [
 
     :global(.guide-feature__media) {
       order: initial;
-      min-height: 24rem;
-      aspect-ratio: auto;
+      aspect-ratio: 16 / 10;
+    }
+  }
+
+  @media (max-width: 35rem) {
+    .guide-feature__link {
+      padding-block: var(--space-6);
+    }
+
+    .guide-feature__title {
+      font-size: var(--fs-3xl);
+      line-height: var(--lh-3xl);
+    }
+
+    .guide-feature__summary {
+      font-size: var(--fs-base);
+      line-height: var(--lh-base);
     }
   }
 </style>

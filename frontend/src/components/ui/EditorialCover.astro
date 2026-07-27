@@ -20,11 +20,13 @@ const {
   class: className,
 } = Astro.props;
 
-const vizIndex = (seed.split('').reduce((total, character) => total + character.charCodeAt(0), 0) % 6) + 1;
-const label = kind === 'project' ? 'Project study' : kind === 'guide' ? 'Field guide' : 'Field note';
+const composition = seed.split('').reduce((total, character) => total + character.charCodeAt(0), 0) % 3;
 ---
 
-<div class:list={['editorial-cover', { 'editorial-cover--placeholder': !image }, className]} data-viz={vizIndex}>
+<div
+  class:list={['editorial-cover', { 'editorial-cover--placeholder': !image }, className]}
+  data-composition={composition}
+>
   {image ? (
     <img
       class="editorial-cover__image"
@@ -65,7 +67,6 @@ const label = kind === 'project' ? 'Project study' : kind === 'guide' ? 'Field g
           </>
         )}
       </svg>
-      <span class="editorial-cover__label" aria-hidden="true">{label}</span>
       <span class="editorial-cover__mark" aria-hidden="true"></span>
     </>
   )}
@@ -84,13 +85,6 @@ const label = kind === 'project' ? 'Project study' : kind === 'guide' ? 'Field g
     background: var(--bg-2);
   }
 
-  .editorial-cover[data-viz='1'] { --cover-accent: var(--viz-1); }
-  .editorial-cover[data-viz='2'] { --cover-accent: var(--viz-2); }
-  .editorial-cover[data-viz='3'] { --cover-accent: var(--viz-3); }
-  .editorial-cover[data-viz='4'] { --cover-accent: var(--viz-4); }
-  .editorial-cover[data-viz='5'] { --cover-accent: var(--viz-5); }
-  .editorial-cover[data-viz='6'] { --cover-accent: var(--viz-6); }
-
   .editorial-cover__image {
     width: 100%;
     height: 100%;
@@ -106,15 +100,32 @@ const label = kind === 'project' ? 'Project study' : kind === 'guide' ? 'Field g
   }
 
   .editorial-cover--placeholder {
+    --cover-accent: #ff5c38;
+    --cover-focus-x: 78%;
+    --cover-focus-y: 24%;
+
     isolation: isolate;
     color: var(--cover-accent);
+    background: #0a0c10;
+  }
+
+  .editorial-cover--placeholder[data-composition='1'] {
+    --cover-focus-x: 24%;
+    --cover-focus-y: 70%;
+  }
+
+  .editorial-cover--placeholder[data-composition='2'] {
+    --cover-focus-x: 72%;
+    --cover-focus-y: 74%;
   }
 
   .editorial-cover--placeholder::before {
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: color-mix(in srgb, var(--cover-accent) 5%, var(--bg-2));
+    background:
+      radial-gradient(circle at var(--cover-focus-x) var(--cover-focus-y), color-mix(in srgb, var(--cover-accent) 18%, transparent), transparent 34%),
+      linear-gradient(145deg, #0a0c10 0%, #101722 58%, #0a0c10 100%);
     content: '';
   }
 
@@ -125,39 +136,28 @@ const label = kind === 'project' ? 'Project study' : kind === 'guide' ? 'Field g
 
   .editorial-cover__rule {
     fill: none;
-    stroke: var(--border-1);
+    stroke: #2e3744;
+    stroke-opacity: 0.54;
     stroke-width: 1;
   }
 
   .editorial-cover__trace {
     fill: none;
-    stroke: color-mix(in srgb, var(--cover-accent) 70%, var(--text-3));
+    stroke: color-mix(in srgb, var(--cover-accent) 78%, #a8b1bd);
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 2;
   }
 
   .editorial-cover__node {
-    fill: var(--bg-2);
-    stroke: var(--text-3);
+    fill: #0f1318;
+    stroke: #a8b1bd;
     stroke-width: 2;
   }
 
   .editorial-cover__node--accent {
     fill: var(--cover-accent);
-    stroke: color-mix(in srgb, var(--cover-accent) 34%, var(--bg-2));
-  }
-
-  .editorial-cover__label {
-    position: absolute;
-    bottom: var(--space-4);
-    left: var(--space-4);
-    color: color-mix(in srgb, var(--cover-accent) 62%, var(--text-2));
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    font-weight: 400;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    stroke: color-mix(in srgb, var(--cover-accent) 34%, #0f1318);
   }
 
   .editorial-cover__mark {
@@ -171,10 +171,6 @@ const label = kind === 'project' ? 'Project study' : kind === 'guide' ? 'Field g
   }
 
   @container (max-width: 11rem) {
-    .editorial-cover__label {
-      display: none;
-    }
-
     .editorial-cover__mark {
       right: var(--space-2);
       bottom: var(--space-2);

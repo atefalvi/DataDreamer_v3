@@ -34,5 +34,10 @@ describe('rich-content authoring documentation', () => {
     expect(guide).toContain('`#FF5C38`');
     expect(guide).toContain('No text of any kind');
     expect(guide).toContain('central 70%');
+    expect(guide).toContain('three separate 2400 × 1500 px');
+    expect(guide).toContain('Candidate A — Signal Path');
+    expect(guide).toContain('Candidate B — Measured Structure');
+    expect(guide).toContain('Candidate C — Shared Field');
+    expect(guide).toContain('both dark and light');
   });
 });

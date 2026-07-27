@@ -103,14 +103,10 @@ const mediaSizes = variant === 'lead'
     line-height: var(--lh-base);
   }
 
-  .case-card--lead {
-    padding-block: var(--space-7);
-    border-block: 1px solid var(--border-1);
-  }
-
   .case-card--lead .case-card__link {
     display: grid;
     gap: var(--space-6);
+    padding-block: var(--space-7);
   }
 
   .case-card--lead :global(.case-card__media) {
@@ -119,8 +115,10 @@ const mediaSizes = variant === 'lead'
   }
 
   .case-card--lead .case-card__body {
+    display: flex;
     min-width: 0;
     align-self: center;
+    flex-direction: column;
   }
 
   .case-card--lead .case-card__meta {
@@ -136,10 +134,16 @@ const mediaSizes = variant === 'lead'
   }
 
   .case-card--lead .case-card__summary {
+    order: 3;
     max-width: 48ch;
     margin-top: var(--space-4);
     font-size: var(--fs-lg);
     line-height: var(--lh-lg);
+  }
+
+  .case-card--lead .case-card__byline {
+    order: 4;
+    margin-top: var(--space-4);
   }
 
   .case-card--row {

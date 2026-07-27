@@ -185,7 +185,6 @@ const mediaSizes = variant === 'hero'
     display: grid;
     gap: var(--space-6);
     padding-block: var(--space-7);
-    border-block: 1px solid var(--border-1);
   }
 
   .post-card--hero :global(.post-card__media) {
@@ -193,11 +192,12 @@ const mediaSizes = variant === 'hero'
   }
 
   .post-card--hero .post-card__body {
-    align-self: end;
+    align-self: center;
   }
 
   .post-card--hero .post-card__title {
     max-width: 17ch;
+    margin-top: var(--space-3);
     font-size: var(--fs-4xl);
     line-height: var(--lh-4xl);
     letter-spacing: -0.02em;
@@ -396,7 +396,7 @@ const mediaSizes = variant === 'hero'
       grid-column: 1;
       grid-row: 1;
       display: grid;
-      align-content: end;
+      align-content: center;
     }
   }
 

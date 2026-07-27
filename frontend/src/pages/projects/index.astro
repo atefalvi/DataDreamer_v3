@@ -77,7 +77,7 @@ const jsonLd = [
           </section>
         )}
 
-        <div class="projects__controls">
+        <div class:list={['projects__controls', { 'projects__controls--after-feature': leadProject }]}>
           {topics.length > 0 && (
             <nav class="projects__filter" aria-label="Filter by project topic">
               <Chip label={`All ${all.length}`} href="/projects" selected={!activeTopic} />
@@ -154,7 +154,11 @@ const jsonLd = [
     gap: var(--space-5);
     margin-top: var(--space-7);
     padding-block: var(--space-5);
-    border-block: 1px solid var(--border-1);
+    border-bottom: 1px solid var(--border-1);
+  }
+
+  .projects__controls--after-feature {
+    border-top: 1px solid var(--border-1);
   }
 
   .projects__featured {
