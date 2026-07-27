@@ -86,4 +86,20 @@ const doneCount = completedIds
     gap: var(--space-4);
     margin-top: var(--space-5);
   }
+
+  @media (max-width: 47.999rem) {
+    .g-section + .g-section {
+      margin-top: var(--space-7);
+    }
+
+    .g-section__head {
+      align-items: flex-start;
+      gap: var(--space-2);
+    }
+
+    .g-section__title {
+      font-size: var(--fs-xl);
+      line-height: var(--lh-xl);
+    }
+  }
 </style>

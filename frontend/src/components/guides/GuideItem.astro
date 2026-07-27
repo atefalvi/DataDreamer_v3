@@ -311,12 +311,34 @@ const metaBits = [
   }
 
   @media (max-width: 47.999rem) {
-    .g-item__head {
-      grid-template-columns: 1fr auto;
+    .g-item {
+      padding: var(--space-4);
+      padding-left: var(--space-5);
     }
+
+    .g-item__head {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: var(--space-3);
+    }
+
     .g-item__type {
-      grid-column: 1 / -1;
+      grid-column: 1;
+      grid-row: 1;
       justify-self: start;
+    }
+
+    .g-item__title {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      font-size: var(--fs-base);
+      line-height: var(--lh-base);
+    }
+
+    .g-item__toggle,
+    .g-item__locked-badge {
+      grid-column: 2;
+      grid-row: 1;
     }
   }
 </style>

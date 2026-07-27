@@ -43,6 +43,7 @@
   --fs-4xl: clamp(2.375rem, 2rem + 5vw, 3.5rem);
   --fs-display: clamp(2.75rem, 1.917rem + 11.111vw, 5.25rem);
   --fs-page-title: var(--fs-4xl);
+  --fs-detail-title-mobile: clamp(2.375rem, 2.25rem + 0.5vw, 2.5rem);
   --fs-mono-label: clamp(0.75rem, 0.729rem + 0.278vw, 0.8125rem);
 
   --lh-xs: 1.5;
@@ -55,6 +56,7 @@
   --lh-4xl: 1.08;
   --lh-display: 1.02;
   --lh-page-title: 1.04;
+  --lh-detail-title-mobile: 1.08;
   --lh-mono-label: 1.4;
 
   --container-prose: 720px;

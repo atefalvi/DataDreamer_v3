@@ -768,6 +768,76 @@
 }
 
 @media (max-width: 47.999rem) {
+  .prose h1,
+  .blog-content h1 {
+    font-size: 2.125rem;
+    line-height: 1.12;
+  }
+
+  .prose h2,
+  .blog-content h2 {
+    margin-block-start: var(--space-7);
+    padding-block-start: var(--space-6);
+    font-size: 1.75rem;
+    line-height: 1.18;
+  }
+
+  .prose h3,
+  .blog-content h3 {
+    margin-block-start: calc(var(--space-6) + var(--space-2));
+    font-size: 1.375rem;
+    line-height: 1.3;
+  }
+
+  .prose h4,
+  .blog-content h4 {
+    margin-block-start: var(--space-6);
+    font-size: 1.125rem;
+    line-height: 1.4;
+  }
+
+  .prose table,
+  .blog-content table {
+    min-width: 0;
+    table-layout: fixed;
+    font-family: var(--font-text);
+  }
+
+  .prose table:has(tr > :nth-child(3)),
+  .blog-content table:has(tr > :nth-child(3)) {
+    min-width: 36rem;
+    table-layout: auto;
+  }
+
+  .prose table:not(:has(tr > :nth-child(3))) :is(th, td):first-child,
+  .blog-content table:not(:has(tr > :nth-child(3))) :is(th, td):first-child {
+    width: 34%;
+  }
+
+  .prose :is(th, td),
+  .blog-content :is(th, td) {
+    padding: var(--space-3);
+    overflow-wrap: anywhere;
+  }
+
+  .prose th,
+  .blog-content th,
+  .prose td:first-child,
+  .blog-content td:first-child {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    line-height: var(--lh-xs);
+  }
+
+  .prose td:not(:first-child),
+  .blog-content td:not(:first-child) {
+    color: var(--text-2);
+    font-family: var(--font-text);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+    line-height: var(--lh-sm);
+  }
+
   .prose pre,
   .blog-content pre {
     font-size: var(--fs-xs);
