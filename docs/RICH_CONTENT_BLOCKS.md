@@ -153,15 +153,45 @@ source: https://charts.example.com/reports/operations
 :::
 ```
 
+### Tableau Public
+
+Tableau exposes both navigation URLs and view URLs, but only the view URL is suitable
+for the iframe. Supplying that view URL directly is the clearest authoring method.
+
+```markdown
+:::embed Interactive Tableau waterfall chart
+url: https://public.tableau.com/views/WaterfallChartDemo_17751010605170/Main?:showVizHome=no&:toolbar=yes
+height: 720
+source: https://public.tableau.com/app/profile/syed.atef.alvi/viz/WaterfallChartDemo_17751010605170/Main
+:::
+```
+
+The two URLs have different jobs:
+
+- `url` must use the public `/views/WORKBOOK/VIEW` endpoint. Include
+  `:showVizHome=no` so Tableau returns the embedded view rather than its navigation
+  shell.
+- `source` may use the normal `/app/profile/.../viz/...` page. It opens in a new tab
+  and gives the visitor the full Tableau Public experience.
+
+Do not use a URL containing `:redirect=auth` as `url`. Tableau redirects that request
+to its application page, which browsers refuse to display in a third-party frame.
+
+The legacy `<object>…<script>` code copied from Tableau Public is also accepted. The
+renderer extracts its encoded host, workbook/view name, tabs, toolbar, and safe numeric
+height, then creates the same iframe URL. The vendor script is never executed. This
+keeps sizing responsive and preserves the renderer's security boundary.
+
 You may also paste a provider's standard `<iframe ...></iframe>` code. The renderer
 extracts only its HTTPS `src`, width, and height; arbitrary attributes and scripts are
 discarded. A normal share/watch page is not necessarily embeddable because providers
 can block framing, so use the URL from their **Embed** action rather than the address
 bar. Legacy `<object>…<script>` SDK snippets are intentionally not executed. When one
-contains a normal HTTPS fallback link inside `<noscript>`, the renderer uses that link
-in the same sandboxed iframe; no provider SDK or provider-specific parser is added. If
-that fallback is missing or unusable, a single HTTPS Markdown link placed immediately
-after the block supplies the iframe URL while remaining visible as the full-screen link.
+contains standard host/view metadata or a normal HTTPS fallback link inside
+`<noscript>`, the renderer converts it into the same sandboxed iframe without loading a
+provider SDK. If that metadata and fallback are missing or unusable, a single HTTPS
+Markdown link placed immediately after the block supplies the iframe URL while remaining
+visible as the full-screen link.
 
 Do not place explanatory prose in the block body; put it immediately before or after
 the embed. Keep a normal source link immediately after an important interactive chart

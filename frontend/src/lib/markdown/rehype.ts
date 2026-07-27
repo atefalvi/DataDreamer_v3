@@ -165,6 +165,22 @@ function tagAttribute(rawText: string, tagNames: string[], attribute: string): s
   return undefined;
 }
 
+function objectParam(rawText: string, name: string): string | undefined {
+  const params = rawText.match(/<param\b[^>]*>/gi) ?? [];
+  for (const param of params) {
+    const attributes = new Map(
+      [...param.matchAll(/([\w-]+)\s*=\s*["']([^"']*)["']/g)].map((match) => [
+        match[1].toLowerCase(),
+        match[2],
+      ]),
+    );
+    if (attributes.get("name")?.toLowerCase() === name.toLowerCase()) {
+      return attributes.get("value");
+    }
+  }
+  return undefined;
+}
+
 function safeEmbedUrl(value: string | undefined): string | undefined {
   if (!value) return undefined;
   try {
@@ -173,6 +189,50 @@ function safeEmbedUrl(value: string | undefined): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+/** Convert legacy object metadata into a normal iframe URL without executing the
+ * provider script. The strict host/name/version signature keeps arbitrary object
+ * parameters from becoming navigable URLs. */
+function legacyObjectEmbedUrl(rawText: string): string | undefined {
+  const encodedHost = objectParam(rawText, "host_url");
+  const name = objectParam(rawText, "name");
+  const version = objectParam(rawText, "embed_code_version");
+  if (!encodedHost || !name || !version) return undefined;
+
+  let decodedHost: string;
+  try {
+    decodedHost = decodeURIComponent(encodedHost);
+  } catch {
+    return undefined;
+  }
+  const safeHost = safeEmbedUrl(decodedHost);
+  if (!safeHost) return undefined;
+
+  const viewSegments = name
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment));
+  if (viewSegments.length < 2) return undefined;
+
+  const siteSegments = (objectParam(rawText, "site_root") ?? "")
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment));
+
+  const url = new URL(safeHost);
+  const basePath = url.pathname.replace(/\/$/, "");
+  url.pathname = [basePath, ...siteSegments, "views", ...viewSegments].filter(Boolean).join("/");
+
+  const query = [":showVizHome=no"];
+  const tabs = objectParam(rawText, "tabs")?.toLowerCase();
+  const toolbar = objectParam(rawText, "toolbar")?.toLowerCase();
+  if (tabs === "yes" || tabs === "no") query.push(`:tabs=${tabs}`);
+  if (toolbar === "yes" || toolbar === "no" || toolbar === "top") query.push(`:toolbar=${toolbar}`);
+  url.search = query.join("&");
+  return safeEmbedUrl(url.toString());
 }
 
 function positiveDimension(value: string | undefined): number | undefined {
@@ -197,11 +257,20 @@ export function extractEmbedUrl(rawText: string): string | undefined {
       bareUrl ??
       tagAttribute(decoded, ["iframe", "embed"], "src") ??
       tagAttribute(decoded, ["object"], "data") ??
+      legacyObjectEmbedUrl(decoded) ??
       // Legacy provider snippets commonly place a standard, usable fallback
       // URL inside <noscript><a href="…">. Treat that as the final generic
       // source without executing the discarded vendor script.
       tagAttribute(decoded, ["a"], "href"),
   );
+}
+
+function scriptedEmbedHeight(rawText: string): number | undefined {
+  for (const match of rawText.matchAll(/\.style\.height\s*=\s*["'](\d+(?:px)?)["']/gi)) {
+    const height = positiveDimension(match[1]);
+    if (height) return height;
+  }
+  return undefined;
 }
 
 export function extractEmbedConfig(rawText: string): EmbedConfig | undefined {
@@ -212,12 +281,13 @@ export function extractEmbedConfig(rawText: string): EmbedConfig | undefined {
 
   const iframeWidth = positiveDimension(tagAttribute(decoded, ["iframe", "embed"], "width"));
   const iframeHeight = positiveDimension(tagAttribute(decoded, ["iframe", "embed"], "height"));
+  const legacyHeight = scriptedEmbedHeight(decoded);
   const inferredRatio = iframeWidth && iframeHeight ? `${iframeWidth} / ${iframeHeight}` : undefined;
 
   return {
     src,
     source: safeEmbedUrl(fields.source),
-    height: positiveDimension(fields.height) ?? (inferredRatio ? undefined : iframeHeight),
+    height: positiveDimension(fields.height) ?? (inferredRatio ? undefined : iframeHeight ?? legacyHeight),
     ratio: safeRatio(fields.ratio) ?? inferredRatio ?? "16 / 9",
   };
 }

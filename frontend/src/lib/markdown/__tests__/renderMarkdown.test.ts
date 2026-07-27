@@ -169,6 +169,67 @@ describe("renderMarkdown v4 pipeline", () => {
     expect(extractEmbedUrl(snippet)).toBe("https://charts.example.com/views/report/main?embed=yes");
   });
 
+  it("renders an iframe-ready Tableau Public view URL without a provider SDK", async () => {
+    const markdown = `
+:::embed Interactive Tableau waterfall chart
+url: https://public.tableau.com/views/WaterfallChartDemo_17751010605170/Main?:showVizHome=no&:toolbar=yes
+height: 720
+source: https://public.tableau.com/app/profile/syed.atef.alvi/viz/WaterfallChartDemo_17751010605170/Main
+:::
+`;
+    const config = extractEmbedConfig(markdown);
+    const result = await renderMarkdown(markdown);
+
+    expect(config).toEqual({
+      src: "https://public.tableau.com/views/WaterfallChartDemo_17751010605170/Main?:showVizHome=no&:toolbar=yes",
+      source: "https://public.tableau.com/app/profile/syed.atef.alvi/viz/WaterfallChartDemo_17751010605170/Main",
+      height: 720,
+      ratio: "16 / 9",
+    });
+    expect(result.html).toContain(
+      'src="https://public.tableau.com/views/WaterfallChartDemo_17751010605170/Main?:showVizHome=no&#x26;:toolbar=yes"',
+    );
+    expect(result.html).toContain('data-embed-height="720"');
+    expect(result.html).toContain('target="_blank" rel="noopener noreferrer">Open original');
+    expect(result.html).not.toContain("tableau.embedding");
+    expect(result.html).not.toContain("viz_v1.js");
+  });
+
+  it("converts Tableau's legacy object snippet without executing its script", async () => {
+    const snippet = `
+<div class='tableauPlaceholder' id='viz1785174202851' style='position: relative'>
+  <noscript><a href='#'><img alt='Main' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Wa&#47;WaterfallChartDemo_17751010605170&#47;Main&#47;1_rss.png' /></a></noscript>
+  <object class='tableauViz' style='display:none;'>
+    <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+    <param name='embed_code_version' value='3' />
+    <param name='site_root' value='' />
+    <param name='name' value='WaterfallChartDemo_17751010605170&#47;Main' />
+    <param name='tabs' value='no' />
+    <param name='toolbar' value='yes' />
+  </object>
+</div>
+<script>
+  if (window.innerWidth > 800) { vizElement.style.width='1300px'; vizElement.style.height='777px'; }
+  else { vizElement.style.width='100%'; vizElement.style.height='1977px'; }
+  scriptElement.src='https://public.tableau.com/javascripts/api/viz_v1.js';
+</script>`;
+    const markdown = `:::embed Interactive Tableau waterfall chart\n${snippet}\n:::`;
+    const result = await renderMarkdown(markdown);
+
+    expect(extractEmbedConfig(snippet)).toEqual({
+      src: "https://public.tableau.com/views/WaterfallChartDemo_17751010605170/Main?:showVizHome=no&:tabs=no&:toolbar=yes",
+      source: undefined,
+      height: 777,
+      ratio: "16 / 9",
+    });
+    expect(result.html).toContain(
+      'src="https://public.tableau.com/views/WaterfallChartDemo_17751010605170/Main?:showVizHome=no&#x26;:tabs=no&#x26;:toolbar=yes"',
+    );
+    expect(result.html).toContain('data-embed-height="777"');
+    expect(result.html).not.toContain("viz_v1.js");
+    expect(result.html).not.toContain("tableauPlaceholder");
+  });
+
   it("uses the single source link immediately after a script-based legacy embed", async () => {
     const markdown = `
 :::embed Interactive report
