@@ -5,8 +5,8 @@
  * reader has local resume state, the client enhancer upgrades the footer in place
  * (progressive enhancement — see guides/index.astro).
  */
-import { directusSrcset } from '../../lib/images';
 import { formatMinutes } from '../../lib/guides/progress';
+import EditorialCover from '../ui/EditorialCover.astro';
 import DifficultyTag from './DifficultyTag.astro';
 import type { GuideListItem } from '../../types/content';
 
@@ -21,9 +21,6 @@ const { slug, title, summary, difficulty, coverImage, estimatedMinutes, itemCoun
   guide;
 const href = `/guides/${slug}`;
 
-// Deterministic accent for the generated placeholder when a guide has no cover.
-const vizIndex = (slug.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 6) + 1;
-
 const meta = [
   itemCount > 0 ? `${itemCount} ${itemCount === 1 ? 'resource' : 'resources'}` : null,
   estimatedMinutes ? `~${formatMinutes(estimatedMinutes)}` : null,
@@ -32,23 +29,15 @@ const meta = [
 
 <article class:list={['guide-card', `guide-card--${variant}`, className]} data-guide-card data-slug={slug}>
   <a href={href} class="guide-card__link">
-    <div class="guide-card__media" data-viz={vizIndex}>
-      {coverImage ? (
-        <img
-          src={coverImage.src}
-          srcset={directusSrcset(coverImage.id, [480, 800, 1200])}
-          sizes={variant === 'index' ? '(min-width: 64rem) 180px, 30vw' : '(min-width: 64rem) 420px, (min-width: 48rem) 50vw, 100vw'}
-          width={coverImage.width}
-          height={coverImage.height}
-          alt={coverImage.alt}
-          loading="lazy"
-          decoding="async"
-        />
-      ) : (
-        <span class="guide-card__glyph" aria-hidden="true">◆</span>
-      )}
+    <EditorialCover
+      image={coverImage}
+      kind="guide"
+      seed={slug}
+      sizes={variant === 'index' ? '(min-width: 80rem) 400px, (min-width: 48rem) 46vw, 100vw' : '(min-width: 64rem) 420px, (min-width: 48rem) 50vw, 100vw'}
+      class="guide-card__media"
+    >
       <DifficultyTag difficulty={difficulty} class="guide-card__difficulty" />
-    </div>
+    </EditorialCover>
 
     <div class="guide-card__body">
       <h3 class="guide-card__title">{title}</h3>
@@ -79,52 +68,20 @@ const meta = [
     text-decoration: none;
   }
 
-  .guide-card__media {
+  :global(.guide-card__media) {
     position: relative;
     overflow: hidden;
     aspect-ratio: 16 / 10;
     border: 1px solid var(--border-1);
     border-radius: var(--radius-lg);
     background: var(--bg-2);
-    display: grid;
-    place-items: center;
   }
 
-  /* Generated placeholder: a calm tinted field keyed off the guide slug. */
-  .guide-card__media[data-viz='1'] { --viz: var(--viz-1); }
-  .guide-card__media[data-viz='2'] { --viz: var(--viz-2); }
-  .guide-card__media[data-viz='3'] { --viz: var(--viz-3); }
-  .guide-card__media[data-viz='4'] { --viz: var(--viz-4); }
-  .guide-card__media[data-viz='5'] { --viz: var(--viz-5); }
-  .guide-card__media[data-viz='6'] { --viz: var(--viz-6); }
-
-  .guide-card__media:not(:has(img)) {
-    background:
-      radial-gradient(120% 120% at 85% 0%, color-mix(in srgb, var(--viz) 22%, transparent), transparent 60%),
-      linear-gradient(160deg, var(--bg-2), var(--bg-1));
-  }
-
-  .guide-card__glyph {
-    color: color-mix(in srgb, var(--viz) 55%, var(--text-3));
-    font-size: 2.5rem;
-    opacity: 0.7;
-  }
-
-  .guide-card__media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: filter var(--dur-3) var(--ease-out);
-  }
-
-  .guide-card__link:hover .guide-card__media img {
-    filter: brightness(1.05);
-  }
-
-  .guide-card__difficulty {
+  :global(.guide-card__media) :global(.guide-card__difficulty) {
     position: absolute;
     top: var(--space-3);
     left: var(--space-3);
+    z-index: 1;
   }
 
   .guide-card__body {
@@ -217,25 +174,19 @@ const meta = [
   }
 
   .guide-card--index {
-    border-top: 1px solid var(--border-1);
+    min-width: 0;
   }
 
   .guide-card--index .guide-card__link {
-    display: grid;
-    grid-template-columns: clamp(7rem, 30%, 10rem) minmax(0, 1fr);
-    gap: var(--space-5);
-    align-items: start;
-    padding-block: var(--space-5);
+    height: 100%;
   }
 
-  .guide-card--index .guide-card__media {
-    aspect-ratio: 4 / 3;
-    border-radius: var(--radius-md);
+  .guide-card--index :global(.guide-card__media) {
+    margin-bottom: var(--space-4);
   }
 
   .guide-card--index .guide-card__body {
     min-width: 0;
-    padding: 0;
   }
 
   .guide-card--index .guide-card__title {
@@ -255,14 +206,67 @@ const meta = [
     margin-left: 0;
   }
 
+  :global([data-collection-view='editorial']) .guide-card--index .guide-card__link {
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: center;
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--border-1);
+  }
+
+  :global([data-collection-view='editorial']) .guide-card--index :global(.guide-card__media) {
+    margin: 0;
+  }
+
+  :global([data-collection-view='editorial']) .guide-card--index .guide-card__body {
+    padding: 0;
+  }
+
+  :global([data-collection-view='editorial']) .guide-card--index .guide-card__title {
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+  }
+
+  :global([data-collection-view='grid']) .guide-card--index .guide-card__title {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  :global([data-collection-view='list']) .guide-card--index .guide-card__link {
+    display: grid;
+    grid-template-columns: clamp(6rem, 14vw, 9rem) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: center;
+    padding-block: var(--space-4);
+    border-top: 1px solid var(--border-1);
+  }
+
+  :global([data-collection-view='list']) .guide-card--index :global(.guide-card__media) {
+    margin: 0;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-md);
+  }
+
+  :global([data-collection-view='list']) .guide-card--index .guide-card__body {
+    padding: 0;
+  }
+
   @media (max-width: 35rem) {
-    .guide-card--index .guide-card__link {
-      grid-template-columns: 6rem minmax(0, 1fr);
+    :global([data-collection-view='editorial']) .guide-card--index .guide-card__link {
+      grid-template-columns: 1fr;
       gap: var(--space-4);
     }
 
-    .guide-card--index .guide-card__summary,
-    .guide-card--index .guide-card__curator {
+    :global([data-collection-view='list']) .guide-card--index .guide-card__link {
+      grid-template-columns: 5.5rem minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+
+    :global([data-collection-view='list']) .guide-card--index .guide-card__summary,
+    :global([data-collection-view='list']) .guide-card--index .guide-card__curator {
       display: none;
     }
   }

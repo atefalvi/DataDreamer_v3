@@ -4,6 +4,7 @@ import Chip from '../ui/Chip.astro';
 import EmptyState from '../ui/EmptyState.astro';
 import Breadcrumbs from '../ui/Breadcrumbs.astro';
 import CollectionHeader from '../ui/CollectionHeader.astro';
+import CollectionViewToggle from '../ui/CollectionViewToggle.astro';
 import PostCard from './PostCard.astro';
 import {
   listingPagePath,
@@ -42,7 +43,7 @@ const prevHref = listing.page.page > 1
   : undefined;
 ---
 
-<section class="blog-listing container-wide" aria-labelledby="blog-title">
+<section class="blog-listing container-wide" aria-labelledby="blog-title" data-collection-view-root data-collection-view="editorial">
   {breadcrumbs && <Breadcrumbs items={breadcrumbs} class="blog-listing__breadcrumbs" />}
 
   <CollectionHeader kicker={kicker} title={title} intro={intro} headingId="blog-title">
@@ -97,9 +98,12 @@ const prevHref = listing.page.page > 1
       <section class="blog-listing__results" aria-labelledby="blog-results-title">
         <div class="blog-listing__results-head">
           <h2 id="blog-results-title">Latest writing</h2>
-          <span>{listing.posts.length.toString().padStart(2, '0')} {listing.posts.length === 1 ? 'article' : 'articles'}</span>
+          <div class="blog-listing__results-meta">
+            <span>{listing.posts.length.toString().padStart(2, '0')} {listing.posts.length === 1 ? 'article' : 'articles'}</span>
+            {listing.posts.length > 1 && <CollectionViewToggle />}
+          </div>
         </div>
-        <div class="blog-listing__posts">
+        <div class="blog-listing__posts" data-collection-archive>
           {listing.posts.map((post) => (
             <PostCard post={post} variant="index" />
           ))}
@@ -211,7 +215,13 @@ const prevHref = listing.page.page > 1
     line-height: var(--lh-2xl);
   }
 
-  .blog-listing__results-head span {
+  .blog-listing__results-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .blog-listing__results-meta > span {
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
@@ -221,7 +231,7 @@ const prevHref = listing.page.page > 1
   .blog-listing__posts {
     display: grid;
     grid-template-columns: 1fr;
-    column-gap: var(--space-7);
+    gap: var(--space-7);
     margin-top: var(--space-5);
   }
 
@@ -259,11 +269,27 @@ const prevHref = listing.page.page > 1
     .blog-listing__author-filter select {
       flex: 1 1 auto;
     }
+
+    .blog-listing__results-head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .blog-listing__results-meta {
+      width: 100%;
+      justify-content: space-between;
+    }
   }
 
   @media (min-width: 48rem) {
-    .blog-listing__posts {
+    [data-collection-view='grid'] .blog-listing__posts {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 75rem) {
+    [data-collection-view='grid'] .blog-listing__posts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 </style>

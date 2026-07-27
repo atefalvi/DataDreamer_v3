@@ -1,0 +1,183 @@
+---
+import { directusSrcset } from '../../lib/images';
+import type { ImageRef } from '../../types/content';
+
+interface Props {
+  image?: ImageRef;
+  kind: 'post' | 'project' | 'guide';
+  seed: string;
+  sizes: string;
+  loading?: 'eager' | 'lazy';
+  class?: string;
+}
+
+const {
+  image,
+  kind,
+  seed,
+  sizes,
+  loading = 'lazy',
+  class: className,
+} = Astro.props;
+
+const vizIndex = (seed.split('').reduce((total, character) => total + character.charCodeAt(0), 0) % 6) + 1;
+const label = kind === 'project' ? 'Project study' : kind === 'guide' ? 'Field guide' : 'Field note';
+---
+
+<div class:list={['editorial-cover', { 'editorial-cover--placeholder': !image }, className]} data-viz={vizIndex}>
+  {image ? (
+    <img
+      class="editorial-cover__image"
+      src={image.src}
+      srcset={image.src.startsWith('/') ? undefined : directusSrcset(image.id, [480, 800, 1200, 1600])}
+      sizes={sizes}
+      width={image.width}
+      height={image.height}
+      alt={image.alt}
+      loading={loading}
+      decoding="async"
+    />
+  ) : (
+    <>
+      <svg class="editorial-cover__signal" viewBox="0 0 640 400" aria-hidden="true" focusable="false">
+        <path class="editorial-cover__rule" d="M56 92H584M56 200H584M56 308H584" />
+        {kind === 'project' ? (
+          <>
+            <path class="editorial-cover__trace" d="M68 298H166V250H262V270H360V174H456V126H572" />
+            <circle class="editorial-cover__node" cx="166" cy="250" r="7" />
+            <circle class="editorial-cover__node" cx="360" cy="174" r="7" />
+            <circle class="editorial-cover__node editorial-cover__node--accent" cx="456" cy="126" r="9" />
+          </>
+        ) : kind === 'guide' ? (
+          <>
+            <path class="editorial-cover__trace" d="M72 294C148 294 154 230 230 230S310 148 390 148S474 102 566 102" />
+            <circle class="editorial-cover__node" cx="72" cy="294" r="7" />
+            <circle class="editorial-cover__node" cx="230" cy="230" r="7" />
+            <circle class="editorial-cover__node" cx="390" cy="148" r="7" />
+            <circle class="editorial-cover__node editorial-cover__node--accent" cx="566" cy="102" r="9" />
+          </>
+        ) : (
+          <>
+            <path class="editorial-cover__trace" d="M66 276C138 232 194 294 262 230S388 122 456 166S526 208 576 112" />
+            <circle class="editorial-cover__node" cx="66" cy="276" r="7" />
+            <circle class="editorial-cover__node" cx="262" cy="230" r="7" />
+            <circle class="editorial-cover__node editorial-cover__node--accent" cx="456" cy="166" r="9" />
+          </>
+        )}
+      </svg>
+      <span class="editorial-cover__label" aria-hidden="true">{label}</span>
+      <span class="editorial-cover__mark" aria-hidden="true"></span>
+    </>
+  )}
+  <slot />
+</div>
+
+<style>
+  .editorial-cover {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    container-type: inline-size;
+    aspect-ratio: 16 / 10;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-lg);
+    background: var(--bg-2);
+  }
+
+  .editorial-cover[data-viz='1'] { --cover-accent: var(--viz-1); }
+  .editorial-cover[data-viz='2'] { --cover-accent: var(--viz-2); }
+  .editorial-cover[data-viz='3'] { --cover-accent: var(--viz-3); }
+  .editorial-cover[data-viz='4'] { --cover-accent: var(--viz-4); }
+  .editorial-cover[data-viz='5'] { --cover-accent: var(--viz-5); }
+  .editorial-cover[data-viz='6'] { --cover-accent: var(--viz-6); }
+
+  .editorial-cover__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition:
+      filter var(--dur-3) var(--ease-out),
+      transform var(--dur-3) var(--ease-out);
+  }
+
+  .editorial-cover:hover .editorial-cover__image {
+    filter: saturate(1.04) brightness(1.04);
+    transform: scale(1.018);
+  }
+
+  .editorial-cover--placeholder {
+    isolation: isolate;
+    color: var(--cover-accent);
+  }
+
+  .editorial-cover--placeholder::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in srgb, var(--cover-accent) 5%, var(--bg-2));
+    content: '';
+  }
+
+  .editorial-cover__signal {
+    width: 100%;
+    height: 100%;
+  }
+
+  .editorial-cover__rule {
+    fill: none;
+    stroke: var(--border-1);
+    stroke-width: 1;
+  }
+
+  .editorial-cover__trace {
+    fill: none;
+    stroke: color-mix(in srgb, var(--cover-accent) 70%, var(--text-3));
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .editorial-cover__node {
+    fill: var(--bg-2);
+    stroke: var(--text-3);
+    stroke-width: 2;
+  }
+
+  .editorial-cover__node--accent {
+    fill: var(--cover-accent);
+    stroke: color-mix(in srgb, var(--cover-accent) 34%, var(--bg-2));
+  }
+
+  .editorial-cover__label {
+    position: absolute;
+    bottom: var(--space-4);
+    left: var(--space-4);
+    color: color-mix(in srgb, var(--cover-accent) 62%, var(--text-2));
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .editorial-cover__mark {
+    position: absolute;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--cover-accent);
+    border-radius: 50%;
+  }
+
+  @container (max-width: 11rem) {
+    .editorial-cover__label {
+      display: none;
+    }
+
+    .editorial-cover__mark {
+      right: var(--space-2);
+      bottom: var(--space-2);
+    }
+  }
+</style>

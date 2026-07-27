@@ -3,9 +3,9 @@
  * GuideCardFeatured (05 §14) — the lead guide on the catalogue: a wide split with the
  * cover on the right and the pitch on the left. Public; whole card links to the guide.
  */
-import { directusSrcset } from '../../lib/images';
 import { formatMinutes } from '../../lib/guides/progress';
 import Avatar from '../ui/Avatar.astro';
+import EditorialCover from '../ui/EditorialCover.astro';
 import DifficultyTag from './DifficultyTag.astro';
 import type { GuideListItem } from '../../types/content';
 
@@ -17,7 +17,6 @@ const { guide } = Astro.props;
 const { slug, title, summary, difficulty, coverImage, estimatedMinutes, itemCount, curator, topics } =
   guide;
 const href = `/guides/${slug}`;
-const vizIndex = (slug.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % 6) + 1;
 
 const meta = [
   itemCount > 0 ? `${itemCount} ${itemCount === 1 ? 'resource' : 'resources'}` : null,
@@ -42,27 +41,20 @@ const meta = [
       <span class="guide-feature__cta">Open the guide<span aria-hidden="true">→</span></span>
     </div>
 
-    <div class="guide-feature__media" data-viz={vizIndex}>
-      {coverImage ? (
-        <img
-          src={coverImage.src}
-          srcset={directusSrcset(coverImage.id, [640, 960, 1280])}
-          sizes="(min-width: 64rem) 560px, 100vw"
-          width={coverImage.width}
-          height={coverImage.height}
-          alt={coverImage.alt}
-          loading="eager"
-          decoding="async"
-        />
-      ) : (
-        <span class="guide-feature__glyph" aria-hidden="true">◆</span>
-      )}
+    <EditorialCover
+      image={coverImage}
+      kind="guide"
+      seed={slug}
+      sizes="(min-width: 64rem) 560px, 100vw"
+      loading="eager"
+      class="guide-feature__media"
+    >
       {topics.length > 0 && (
         <ul class="guide-feature__topics">
           {topics.slice(0, 3).map((topic) => <li>{topic.name}</li>)}
         </ul>
       )}
-    </div>
+    </EditorialCover>
   </a>
 </article>
 
@@ -82,6 +74,7 @@ const meta = [
 
   .guide-feature__text {
     display: flex;
+    min-width: 0;
     flex-direction: column;
     gap: var(--space-3);
   }
@@ -148,42 +141,15 @@ const meta = [
     transform: translateX(4px);
   }
 
-  .guide-feature__media {
+  :global(.guide-feature__media) {
     position: relative;
-    display: grid;
     order: -1;
     min-height: 220px;
     overflow: hidden;
-    place-items: center;
     border: 1px solid var(--border-1);
     border-radius: var(--radius-lg);
     aspect-ratio: 16 / 10;
     background: var(--bg-2);
-  }
-
-  .guide-feature__media[data-viz='1'] { --viz: var(--viz-1); }
-  .guide-feature__media[data-viz='2'] { --viz: var(--viz-2); }
-  .guide-feature__media[data-viz='3'] { --viz: var(--viz-3); }
-  .guide-feature__media[data-viz='4'] { --viz: var(--viz-4); }
-  .guide-feature__media[data-viz='5'] { --viz: var(--viz-5); }
-  .guide-feature__media[data-viz='6'] { --viz: var(--viz-6); }
-
-  .guide-feature__media:not(:has(img)) {
-    background:
-      radial-gradient(120% 120% at 80% 10%, color-mix(in srgb, var(--viz) 26%, transparent), transparent 60%),
-      linear-gradient(160deg, var(--bg-2), var(--bg-1));
-  }
-
-  .guide-feature__glyph {
-    color: color-mix(in srgb, var(--viz) 55%, var(--text-3));
-    font-size: 3.5rem;
-    opacity: 0.7;
-  }
-
-  .guide-feature__media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
   }
 
   .guide-feature__topics {
@@ -220,7 +186,7 @@ const meta = [
       justify-content: center;
     }
 
-    .guide-feature__media {
+    :global(.guide-feature__media) {
       order: initial;
       min-height: 24rem;
       aspect-ratio: auto;

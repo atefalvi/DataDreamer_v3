@@ -3,7 +3,7 @@
  * CaseCard (05 §5) — project index card. Whole card links to the case study; cover is a
  * Directus asset; year + stack render as mono meta; author shown as a byline.
  */
-import { directusSrcset } from '../../lib/images';
+import EditorialCover from '../ui/EditorialCover.astro';
 import type { ProjectListItem } from '../../types/content';
 
 interface Props {
@@ -18,26 +18,20 @@ const href = `/projects/${project.slug}`;
 const mediaSizes = variant === 'lead'
   ? '(min-width: 64rem) 620px, 100vw'
   : variant === 'row'
-    ? '(min-width: 64rem) 180px, 30vw'
+    ? '(min-width: 80rem) 400px, (min-width: 48rem) 46vw, 100vw'
     : '(min-width: 64rem) 600px, 100vw';
 ---
 
-<article class:list={['case-card', `case-card--${variant}`, { 'case-card--no-media': !coverImage }, className]}>
+<article class:list={['case-card', `case-card--${variant}`, className]}>
   <a href={href} class="case-card__link">
-    {coverImage && (
-      <div class="case-card__media">
-        <img
-          src={coverImage.src}
-          srcset={directusSrcset(coverImage.id, [480, 800, 1200])}
-          sizes={mediaSizes}
-          width={coverImage.width}
-          height={coverImage.height}
-          alt={coverImage.alt}
-          loading={variant === 'lead' ? 'eager' : 'lazy'}
-          decoding="async"
-        />
-      </div>
-    )}
+    <EditorialCover
+      image={coverImage}
+      kind="project"
+      seed={project.slug}
+      sizes={mediaSizes}
+      loading={variant === 'lead' ? 'eager' : 'lazy'}
+      class="case-card__media"
+    />
     <div class="case-card__body">
       <div class="case-card__meta">
         {project.featured && <span class="case-card__feature">Featured</span>}
@@ -58,24 +52,13 @@ const mediaSizes = variant === 'lead'
     text-decoration: none;
   }
 
-  .case-card__media {
+  :global(.case-card__media) {
     overflow: hidden;
     border: 1px solid var(--border-1);
     border-radius: var(--radius-lg);
     aspect-ratio: 16 / 10;
     margin-bottom: var(--space-4);
     background: var(--bg-2);
-  }
-
-  .case-card__media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: filter var(--dur-3) var(--ease-out);
-  }
-
-  .case-card__link:hover .case-card__media img {
-    filter: brightness(1.05);
   }
 
   .case-card__meta {
@@ -130,7 +113,7 @@ const mediaSizes = variant === 'lead'
     gap: var(--space-6);
   }
 
-  .case-card--lead .case-card__media {
+  .case-card--lead :global(.case-card__media) {
     margin: 0;
     aspect-ratio: 16 / 10;
   }
@@ -160,21 +143,16 @@ const mediaSizes = variant === 'lead'
   }
 
   .case-card--row {
-    border-top: 1px solid var(--border-1);
+    min-width: 0;
+    height: 100%;
   }
 
   .case-card--row .case-card__link {
-    display: grid;
-    grid-template-columns: clamp(7rem, 30%, 10rem) minmax(0, 1fr);
-    gap: var(--space-5);
-    align-items: start;
-    padding-block: var(--space-5);
+    height: 100%;
   }
 
-  .case-card--row .case-card__media {
-    margin: 0;
-    aspect-ratio: 4 / 3;
-    border-radius: var(--radius-md);
+  .case-card--row :global(.case-card__media) {
+    margin: 0 0 var(--space-4);
   }
 
   .case-card--row .case-card__body {
@@ -204,8 +182,44 @@ const mediaSizes = variant === 'lead'
     -webkit-line-clamp: 2;
   }
 
-  .case-card--row.case-card--no-media .case-card__link {
-    grid-template-columns: 1fr;
+  :global([data-collection-view='editorial']) .case-card--row .case-card__link {
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: center;
+    padding-block: var(--space-6);
+    border-top: 1px solid var(--border-1);
+  }
+
+  :global([data-collection-view='editorial']) .case-card--row :global(.case-card__media) {
+    margin: 0;
+  }
+
+  :global([data-collection-view='editorial']) .case-card--row .case-card__title {
+    font-size: var(--fs-2xl);
+    line-height: var(--lh-2xl);
+  }
+
+  :global([data-collection-view='grid']) .case-card--row .case-card__title {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  :global([data-collection-view='list']) .case-card--row .case-card__link {
+    display: grid;
+    grid-template-columns: clamp(6rem, 14vw, 9rem) minmax(0, 1fr);
+    gap: var(--space-5);
+    align-items: center;
+    padding-block: var(--space-4);
+    border-top: 1px solid var(--border-1);
+  }
+
+  :global([data-collection-view='list']) .case-card--row :global(.case-card__media) {
+    margin: 0;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-md);
   }
 
   @media (min-width: 64rem) {
@@ -215,7 +229,7 @@ const mediaSizes = variant === 'lead'
       align-items: center;
     }
 
-    .case-card--lead .case-card__media {
+    .case-card--lead :global(.case-card__media) {
       grid-column: 2;
       grid-row: 1;
     }
@@ -241,13 +255,18 @@ const mediaSizes = variant === 'lead'
       line-height: var(--lh-base);
     }
 
-    .case-card--row .case-card__link {
-      grid-template-columns: 6rem minmax(0, 1fr);
+    :global([data-collection-view='editorial']) .case-card--row .case-card__link {
+      grid-template-columns: 1fr;
       gap: var(--space-4);
     }
 
-    .case-card--row .case-card__meta span:last-child,
-    .case-card--row .case-card__summary {
+    :global([data-collection-view='list']) .case-card--row .case-card__link {
+      grid-template-columns: 5.5rem minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+
+    :global([data-collection-view='list']) .case-card--row .case-card__meta span:last-child,
+    :global([data-collection-view='list']) .case-card--row .case-card__summary {
       display: none;
     }
   }

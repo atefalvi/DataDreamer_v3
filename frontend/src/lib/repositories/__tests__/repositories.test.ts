@@ -161,19 +161,18 @@ describe('postsRepo.bySlug', () => {
   });
 });
 
-describe('postsRepo.featuredOrLatest', () => {
+describe('postsRepo.featured', () => {
   it('returns the newest featured post when one exists', async () => {
     request.mockResolvedValueOnce([postRow({ slug: 'featured' })]);
-    const post = await postsRepo.featuredOrLatest();
+    const post = await postsRepo.featured();
     expect(post?.slug).toBe('featured');
   });
 
-  it('falls back to latest when no featured post exists', async () => {
-    request
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([postRow({ slug: 'latest', featured: false })]);
-    const post = await postsRepo.featuredOrLatest();
-    expect(post?.slug).toBe('latest');
+  it('does not promote an ordinary post when no featured post exists', async () => {
+    request.mockResolvedValueOnce([]);
+    const post = await postsRepo.featured();
+    expect(post).toBeNull();
+    expect(request).toHaveBeenCalledTimes(1);
   });
 });
 

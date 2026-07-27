@@ -5,6 +5,7 @@ import CaseCard from '../../components/projects/CaseCard.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import GuideCard from '../../components/guides/GuideCard.astro';
 import GuideCardFeatured from '../../components/guides/GuideCardFeatured.astro';
+import CollectionViewToggle from '../../components/ui/CollectionViewToggle.astro';
 import type { GuideListItem, PostListItem, ProjectListItem } from '../../types/content';
 
 if (import.meta.env.PROD) return Astro.rewrite('/404');
@@ -12,7 +13,7 @@ if (import.meta.env.PROD) return Astro.rewrite('/404');
 const author = { slug: 'syed-atef-alvi', name: 'Syed Atef Alvi', dreamTeam: true };
 const cover = {
   id: '53578c97-736d-4f46-9cf4-2c01da953ea9',
-  src: 'https://api.data-dreamer.net/assets/53578c97-736d-4f46-9cf4-2c01da953ea9',
+  src: '/og/og-projects.png',
   width: 1586,
   height: 992,
   alt: 'Waterfall chart project cover',
@@ -34,7 +35,7 @@ const projects: ProjectListItem[] = titles.map((title, index) => ({
   year: 2026 - Math.floor(index / 3),
   role: 'Lead practitioner',
   author,
-  coverImage: cover,
+  coverImage: index % 3 === 1 ? undefined : cover,
   tags: index % 2 ? ['Governance', 'Operations'] : ['Analytics', 'Data Visualization'],
   topics: [{ name: index % 2 ? 'Governance' : 'Analytics', slug: index % 2 ? 'governance' : 'analytics' }],
   links: [],
@@ -49,7 +50,7 @@ const posts: PostListItem[] = titles.map((title, index) => ({
   publishedAt: new Date(2026, 6, 20 - index),
   topics: [{ name: index % 2 ? 'Practice' : 'Analytics', slug: index % 2 ? 'practice' : 'analytics' }],
   author,
-  coverImage: cover,
+  coverImage: index % 3 === 1 ? undefined : cover,
   featured: index === 0,
   noindex: false,
 }));
@@ -60,7 +61,7 @@ const guides: GuideListItem[] = titles.map((title, index) => ({
   title,
   summary: 'An ordered learning path with honest prerequisites, practitioner context, and focused resources.',
   difficulty: index > 3 ? 'advanced' : index > 1 ? 'intermediate' : 'beginner',
-  coverImage: cover,
+  coverImage: index % 3 === 1 ? undefined : cover,
   estimatedMinutes: 180 + index * 35,
   itemCount: 6 + index,
   sectionCount: 3,
@@ -73,26 +74,26 @@ const guides: GuideListItem[] = titles.map((title, index) => ({
 
 <BaseLayout title="Editorial collections preview" description="Development-only collection QA" noindex>
   <main class="preview container-wide">
-    <section>
-      <p class="kicker">Projects · six-item state</p>
+    <section data-collection-view-root data-collection-view="editorial">
+      <div class="preview__head"><p class="kicker">Projects · six-item state</p><CollectionViewToggle /></div>
       <CaseCard project={projects[0]} variant="lead" />
-      <div class="preview__grid">
+      <div class="preview__grid" data-collection-archive>
         {projects.slice(1).map((project) => <CaseCard project={project} variant="row" />)}
       </div>
     </section>
 
-    <section>
-      <p class="kicker">Posts · six-item state</p>
+    <section data-collection-view-root data-collection-view="editorial">
+      <div class="preview__head"><p class="kicker">Posts · six-item state</p><CollectionViewToggle /></div>
       <PostCard post={posts[0]} variant="hero" />
-      <div class="preview__grid">
+      <div class="preview__grid" data-collection-archive>
         {posts.slice(1).map((post) => <PostCard post={post} variant="index" />)}
       </div>
     </section>
 
-    <section>
-      <p class="kicker">Guides · six-item state</p>
+    <section data-collection-view-root data-collection-view="editorial">
+      <div class="preview__head"><p class="kicker">Guides · six-item state</p><CollectionViewToggle /></div>
       <GuideCardFeatured guide={guides[0]} />
-      <div class="preview__grid">
+      <div class="preview__grid" data-collection-archive>
         {guides.slice(1).map((guide) => <GuideCard guide={guide} variant="index" />)}
       </div>
     </section>
@@ -106,20 +107,31 @@ const guides: GuideListItem[] = titles.map((title, index) => ({
     padding-block: var(--page-top) var(--page-bottom);
   }
 
-  .preview section > .kicker {
+  .preview__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-5);
     margin-bottom: var(--space-5);
+    flex-wrap: wrap;
   }
 
   .preview__grid {
     display: grid;
     grid-template-columns: 1fr;
-    column-gap: var(--space-7);
+    gap: var(--space-7);
     margin-top: var(--space-8);
   }
 
   @media (min-width: 48rem) {
-    .preview__grid {
+    [data-collection-view='grid'] .preview__grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 75rem) {
+    [data-collection-view='grid'] .preview__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 </style>

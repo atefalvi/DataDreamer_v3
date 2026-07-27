@@ -47,7 +47,7 @@ export async function loadBlogListing(input: BlogListingInput = {}): Promise<Blo
     }),
     topicsRepo.withPostCounts(),
     authorsRepo.allWithCounts(),
-    input.topic || input.author || search || page > 1 ? Promise.resolve(null) : postsRepo.featuredOrLatest(),
+    input.topic || input.author || search || page > 1 ? Promise.resolve(null) : postsRepo.featured(),
     input.topic ? topicsRepo.bySlug(input.topic) : Promise.resolve(null),
   ]);
 

@@ -9,6 +9,7 @@ import EmptyState from '../../components/ui/EmptyState.astro';
 import Icon from '../../components/ui/Icon.astro';
 import Chip from '../../components/ui/Chip.astro';
 import CollectionHeader from '../../components/ui/CollectionHeader.astro';
+import CollectionViewToggle from '../../components/ui/CollectionViewToggle.astro';
 import { projectsRepo } from '../../lib/repositories';
 import { collectionPageJsonLd } from '../../lib/seo/jsonld';
 import type { ProjectListItem } from '../../types/content';
@@ -33,10 +34,10 @@ for (const project of all) for (const topic of project.topics) {
 const topics = [...topicCounts.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
 const visible = activeTopic ? sorted.filter((p) => p.topics.some((topic) => topic.slug === activeTopic)) : sorted;
-const leadProject = visible.find((project) => project.featured) ?? visible[0];
-const orderedVisible = leadProject
-  ? [leadProject, ...visible.filter((project) => project.slug !== leadProject.slug)]
-  : [];
+const leadProject = !activeTopic ? visible.find((project) => project.featured) : undefined;
+const archiveProjects = leadProject
+  ? visible.filter((project) => project.slug !== leadProject.slug)
+  : visible;
 const searchOf = (p: ProjectListItem) =>
   [p.title, p.summary, p.role, ...p.tags, ...p.topics.map((topic) => topic.name)].join(' ').toLowerCase();
 
@@ -70,6 +71,12 @@ const jsonLd = [
       <EmptyState message="Projects will appear here as the work is documented." icon="folder-open" />
     ) : (
       <>
+        {leadProject && (
+          <section class="projects__featured" aria-label="Featured project" data-project-item data-search={searchOf(leadProject)}>
+            <CaseCard project={leadProject} variant="lead" />
+          </section>
+        )}
+
         <div class="projects__controls">
           {topics.length > 0 && (
             <nav class="projects__filter" aria-label="Filter by project topic">
@@ -103,19 +110,22 @@ const jsonLd = [
           <EmptyState message={`No projects in “${activeTopic}” yet.`} icon="search-x" action={{ label: 'Clear filter', href: '/projects' }} />
         ) : (
           <>
-            <section class="projects__results" aria-labelledby="project-results-heading">
+            {archiveProjects.length > 0 && <section class="projects__results" aria-labelledby="project-results-heading" data-collection-view-root data-collection-view="editorial">
               <div class="projects__results-head">
-                <h2 id="project-results-heading">Selected work</h2>
-                <span>{visible.length.toString().padStart(2, '0')} {visible.length === 1 ? 'case study' : 'case studies'}</span>
+                <h2 id="project-results-heading">{leadProject ? 'More selected work' : 'Selected work'}</h2>
+                <div class="projects__results-meta">
+                  <span>{archiveProjects.length.toString().padStart(2, '0')} {archiveProjects.length === 1 ? 'case study' : 'case studies'}</span>
+                  {archiveProjects.length > 1 && <CollectionViewToggle />}
+                </div>
               </div>
-              <div class="projects__grid" data-project-grid>
-                {orderedVisible.map((project, i) => (
-                  <div class:list={['projects__item', { 'projects__item--lead': i === 0 }]} data-search={searchOf(project)}>
-                    <CaseCard project={project} variant={i === 0 ? 'lead' : 'row'} />
+              <div class="projects__grid" data-collection-archive>
+                {archiveProjects.map((project) => (
+                  <div class="projects__item" data-project-item data-search={searchOf(project)}>
+                    <CaseCard project={project} variant="row" />
                   </div>
                 ))}
               </div>
-            </section>
+            </section>}
             <p class="projects__noresults" data-project-noresults hidden>
               No projects match your search. <a href="/projects">Reset</a>.
             </p>
@@ -145,6 +155,10 @@ const jsonLd = [
     margin-top: var(--space-7);
     padding-block: var(--space-5);
     border-block: 1px solid var(--border-1);
+  }
+
+  .projects__featured {
+    margin-top: var(--space-7);
   }
 
   .projects__query-filter {
@@ -219,7 +233,13 @@ const jsonLd = [
     line-height: var(--lh-2xl);
   }
 
-  .projects__results-head span {
+  .projects__results-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .projects__results-meta > span {
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
@@ -229,16 +249,12 @@ const jsonLd = [
   .projects__grid {
     display: grid;
     grid-template-columns: 1fr;
-    column-gap: var(--space-7);
+    gap: var(--space-7);
     margin-top: var(--space-5);
   }
 
   .projects__item {
     min-width: 0;
-  }
-
-  .projects__item--lead {
-    margin-bottom: var(--space-8);
   }
 
   /* Search hides items via [hidden]; the explicit display rules above would otherwise
@@ -257,12 +273,18 @@ const jsonLd = [
   }
 
   @media (min-width: 48rem) {
-    .projects__grid {
-      grid-template-columns: repeat(2, 1fr);
+    [data-collection-view='grid'] .projects__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .projects__item--lead {
-      grid-column: 1 / -1;
+    [data-collection-view='editorial'] .projects__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (min-width: 75rem) {
+    [data-collection-view='grid'] .projects__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
@@ -272,15 +294,27 @@ const jsonLd = [
       align-items: end;
     }
   }
+
+  @media (max-width: 40rem) {
+    .projects__results-head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .projects__results-meta {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
 </style>
 
 <script>
   const input = document.querySelector<HTMLInputElement>('[data-project-search]');
-  const grid = document.querySelector<HTMLElement>('[data-project-grid]');
+  const root = document.querySelector<HTMLElement>('.projects');
   const noResults = document.querySelector<HTMLElement>('[data-project-noresults]');
 
-  if (input && grid) {
-    const items = Array.from(grid.querySelectorAll<HTMLElement>('.projects__item'));
+  if (input && root) {
+    const items = Array.from(root.querySelectorAll<HTMLElement>('[data-project-item]'));
     const run = () => {
       const q = input.value.trim().toLowerCase();
       let shown = 0;

@@ -1,0 +1,159 @@
+---
+import Icon from './Icon.astro';
+
+const options = [
+  { value: 'editorial', label: 'Editorial', icon: 'panels-top-left' },
+  { value: 'grid', label: 'Grid', icon: 'layout-grid' },
+  { value: 'list', label: 'List', icon: 'list' },
+] as const;
+---
+
+<div class="collection-view-toggle" data-collection-view-toggle>
+  <span class="collection-view-toggle__label">View</span>
+  <div class="collection-view-toggle__options" role="group" aria-label="Choose collection view">
+    {options.map((option) => (
+      <button
+        type="button"
+        class="collection-view-toggle__option"
+        data-view-option={option.value}
+        aria-pressed={option.value === 'editorial' ? 'true' : 'false'}
+        aria-label={`${option.label} view`}
+        title={`${option.label} view`}
+      >
+        <Icon name={option.icon} size={16} />
+        <span>{option.label}</span>
+      </button>
+    ))}
+  </div>
+  <span class="visually-hidden" aria-live="polite" data-view-status></span>
+</div>
+
+<style>
+  .collection-view-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .collection-view-toggle__label {
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+  }
+
+  .collection-view-toggle__options {
+    display: inline-flex;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    background: var(--bg-1);
+  }
+
+  .collection-view-toggle__option {
+    display: inline-flex;
+    min-width: 2.5rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding-inline: var(--space-3);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .collection-view-toggle__option:hover {
+    color: var(--text-1);
+  }
+
+  .collection-view-toggle__option[aria-pressed='true'] {
+    background: var(--bg-2);
+    color: var(--accent);
+  }
+
+  :global(.no-js) .collection-view-toggle {
+    display: none;
+  }
+
+  @media (max-width: 40rem) {
+    .collection-view-toggle__label {
+      display: none;
+    }
+
+    .collection-view-toggle__option > span {
+      display: none;
+    }
+
+    .collection-view-toggle__option[aria-pressed='true'] > span {
+      display: inline;
+    }
+
+    .collection-view-toggle__option {
+      padding-inline: var(--space-2);
+    }
+  }
+</style>
+
+<script>
+  const STORAGE_KEY = 'data-dreamer:collection-view';
+  const validViews = new Set(['editorial', 'grid', 'list']);
+
+  for (const toggle of document.querySelectorAll<HTMLElement>('[data-collection-view-toggle]')) {
+    const root = toggle.closest<HTMLElement>('[data-collection-view-root]');
+    if (!root || toggle.dataset.initialized === 'true') continue;
+    toggle.dataset.initialized = 'true';
+
+    const buttons = Array.from(toggle.querySelectorAll<HTMLButtonElement>('[data-view-option]'));
+    const status = toggle.querySelector<HTMLElement>('[data-view-status]');
+
+    const applyView = (view: string, announce = false) => {
+      if (!validViews.has(view)) return;
+      root.dataset.collectionView = view;
+      for (const button of buttons) {
+        button.setAttribute('aria-pressed', String(button.dataset.viewOption === view));
+      }
+      if (announce && status) {
+        const label = buttons.find((button) => button.dataset.viewOption === view)?.textContent?.trim() ?? view;
+        status.textContent = `${label} view selected.`;
+      }
+    };
+
+    let saved = 'editorial';
+    try {
+      const requested = new URL(window.location.href).searchParams.get('view');
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      if (requested && validViews.has(requested)) saved = requested;
+      else if (stored && validViews.has(stored)) saved = stored;
+    } catch {
+      // Storage can be unavailable in strict privacy contexts; the default remains usable.
+    }
+    applyView(saved);
+
+    for (const button of buttons) {
+      button.addEventListener('click', () => {
+        const view = button.dataset.viewOption;
+        if (!view || view === root.dataset.collectionView) return;
+
+        applyView(view, true);
+
+        try {
+          window.localStorage.setItem(STORAGE_KEY, view);
+          const url = new URL(window.location.href);
+          url.searchParams.set('view', view);
+          window.history.replaceState({}, '', url);
+        } catch {
+          // The selected view still applies for this page when persistence is unavailable.
+        }
+      });
+    }
+  }
+</script>

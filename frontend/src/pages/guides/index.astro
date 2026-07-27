@@ -10,6 +10,7 @@ import GuideCard from '../../components/guides/GuideCard.astro';
 import GuideCardFeatured from '../../components/guides/GuideCardFeatured.astro';
 import EmptyState from '../../components/ui/EmptyState.astro';
 import CollectionHeader from '../../components/ui/CollectionHeader.astro';
+import CollectionViewToggle from '../../components/ui/CollectionViewToggle.astro';
 import Chip from '../../components/ui/Chip.astro';
 import { guidesRepo } from '../../lib/repositories';
 import { itemListJsonLd, collectionPageJsonLd } from '../../lib/seo/jsonld';
@@ -53,7 +54,7 @@ const visible = all.filter(
 );
 
 // Featured lead shows only on the unfiltered view; the grid lists the remainder.
-const featured = !isFiltered ? (all.find((g) => g.featured) ?? all[0]) : undefined;
+const featured = !isFiltered ? all.find((g) => g.featured) : undefined;
 const gridItems = featured ? visible.filter((g) => g.slug !== featured.slug) : visible;
 
 const buildHref = (params: Record<string, string | null>) => {
@@ -84,28 +85,13 @@ const jsonLd = [
   ogImage={{ url: '/og/og-guides.png' }}
   jsonLd={jsonLd}
 >
-  <div class="guides container-wide">
+  <div class="guides container-wide" data-collection-view-root data-collection-view="editorial">
     <CollectionHeader
       kicker="Guides"
       title="Learn from a path, not a pile of links."
       intro={description}
     >
-      <aside slot="aside" class="guides__status" aria-label="Guide access status">
-        <p>{all.length.toString().padStart(2, '0')} published {all.length === 1 ? 'path' : 'paths'}</p>
-        {user ? (
-          <>
-            <strong>Your learning paths are ready.</strong>
-            <span>Open a path, save each step, and return exactly where you stopped.</span>
-            <a href="/account">View saved progress <span aria-hidden="true">→</span></a>
-          </>
-        ) : (
-          <>
-            <strong>Preview the route. Sign in to begin.</strong>
-            <span>Accounts unlock guide resources, practitioner notes, and saved progress.</span>
-            <a href="/login?next=%2Fguides">Sign in <span aria-hidden="true">→</span></a>
-          </>
-        )}
-      </aside>
+      <span slot="aside" class="guides__count">{all.length.toString().padStart(2, '0')} published {all.length === 1 ? 'path' : 'paths'}</span>
     </CollectionHeader>
 
     {all.length === 0 ? (
@@ -118,8 +104,8 @@ const jsonLd = [
           </section>
         )}
 
-        {topics.length > 0 && (
-          <nav class="guides__filters" aria-label="Filter guides">
+        <nav class="guides__filters" aria-label="Filter guides">
+          {topics.length > 0 && (
             <div class="guides__filtergroup" role="group" aria-label="Topic">
               <Chip label="All topics" href={buildHref({ topic: null })} selected={!activeTopic} />
               {topics.map((topic) => (
@@ -130,26 +116,39 @@ const jsonLd = [
                 />
               ))}
             </div>
-            <div class="guides__filtergroup guides__filtergroup--levels" role="group" aria-label="Difficulty">
-              <Chip label="All levels" href={buildHref({ level: null })} selected={!activeLevel} />
-              {LEVELS.map((level) => (
-                <Chip
-                  label={level.label}
-                  href={buildHref({ level: level.value })}
-                  selected={activeLevel === level.value}
-                />
-              ))}
-            </div>
-          </nav>
-        )}
+          )}
+          <div class="guides__filtergroup guides__filtergroup--levels" role="group" aria-label="Difficulty">
+            <Chip label="All levels" href={buildHref({ level: null })} selected={!activeLevel} />
+            {LEVELS.map((level) => (
+              <Chip
+                label={level.label}
+                href={buildHref({ level: level.value })}
+                selected={activeLevel === level.value}
+              />
+            ))}
+          </div>
+        </nav>
+
+        <aside class="guides__access" aria-label="Guide access status">
+          <div>
+            <strong>{user ? 'Your learning paths are ready.' : 'Preview any route. Sign in to save progress.'}</strong>
+            <span>{user ? 'Continue exactly where you stopped.' : 'Accounts unlock notes, saved steps, and resume points.'}</span>
+          </div>
+          <a href={user ? '/account?tab=guides' : '/login?next=%2Fguides'}>
+            {user ? 'View saved progress' : 'Sign in'} <span aria-hidden="true">→</span>
+          </a>
+        </aside>
 
         {gridItems.length > 0 ? (
           <section class="guides__results" aria-labelledby="guide-results-heading">
             <div class="guides__results-head">
-              <h2 id="guide-results-heading">More learning paths</h2>
-              <span>{gridItems.length.toString().padStart(2, '0')} {gridItems.length === 1 ? 'guide' : 'guides'}</span>
+              <h2 id="guide-results-heading">{featured ? 'More learning paths' : 'Learning paths'}</h2>
+              <div class="guides__results-meta">
+                <span>{gridItems.length.toString().padStart(2, '0')} {gridItems.length === 1 ? 'guide' : 'guides'}</span>
+                {gridItems.length > 1 && <CollectionViewToggle />}
+              </div>
             </div>
-            <div class="guides__grid">
+            <div class="guides__grid" data-collection-archive>
               {gridItems.map((guide) => <GuideCard guide={guide} variant="index" />)}
             </div>
           </section>
@@ -170,38 +169,49 @@ const jsonLd = [
     padding-block: var(--page-top) var(--page-bottom);
   }
 
-  .guides__status {
-    display: grid;
-    align-content: end;
-    gap: var(--space-2);
-    padding-block-start: var(--space-5);
-    border-top: 1px solid var(--border-2);
-    background: transparent;
-  }
-
-  .guides__status p,
-  .guides__status span {
+  .guides__count {
+    display: block;
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
+    text-transform: uppercase;
   }
 
-  .guides__status strong {
+  .guides__access {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-md);
+    background: var(--bg-1);
+  }
+
+  .guides__access > div {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .guides__access strong {
     color: var(--text-1);
-    font-family: var(--font-display);
-    font-size: var(--fs-lg);
-    font-weight: 560;
+    font-size: var(--fs-sm);
   }
 
-  .guides__status a {
+  .guides__access > div > span {
+    color: var(--text-3);
+    font-size: var(--fs-sm);
+  }
+
+  .guides__access a {
     display: inline-flex;
     gap: var(--space-2);
-    width: fit-content;
-    margin-top: var(--space-2);
     color: var(--accent);
     font-size: var(--fs-sm);
     font-weight: 650;
     text-decoration: none;
+    white-space: nowrap;
   }
 
   .guides__featured {
@@ -239,7 +249,13 @@ const jsonLd = [
     line-height: var(--lh-2xl);
   }
 
-  .guides__results-head span {
+  .guides__results-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .guides__results-meta > span {
     color: var(--text-3);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
@@ -249,13 +265,36 @@ const jsonLd = [
   .guides__grid {
     display: grid;
     grid-template-columns: 1fr;
-    column-gap: var(--space-7);
+    gap: var(--space-7);
     margin-top: var(--space-5);
   }
 
   @media (min-width: 48rem) {
-    .guides__grid {
-      grid-template-columns: repeat(2, 1fr);
+    [data-collection-view='grid'] .guides__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 75rem) {
+    [data-collection-view='grid'] .guides__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .guides__access {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .guides__results-head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .guides__results-meta {
+      width: 100%;
+      justify-content: space-between;
     }
   }
 </style>

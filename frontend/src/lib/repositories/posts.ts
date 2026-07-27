@@ -116,9 +116,9 @@ export async function sitemap(limit = 1000): Promise<PostListItem[]> {
   return rows.map(mapPostListItem);
 }
 
-/** Most recent featured post, falling back to the latest published post. */
-export async function featuredOrLatest(): Promise<PostListItem | null> {
-  const featured = await guard('posts.featuredOrLatest', () =>
+/** Most recent explicitly featured post. Ordinary posts are never promoted implicitly. */
+export async function featured(): Promise<PostListItem | null> {
+  const featuredRows = await guard('posts.featured', () =>
     directus.request<PostRow[]>(
       readItems('posts', {
         filter: { ...PUBLISHED, featured: { _eq: true } },
@@ -128,10 +128,7 @@ export async function featuredOrLatest(): Promise<PostListItem | null> {
       }),
     ),
   );
-  if (featured.length) return mapPostListItem(featured[0]);
-
-  const [fallback] = await latest(1);
-  return fallback ?? null;
+  return featuredRows.length ? mapPostListItem(featuredRows[0]) : null;
 }
 
 export async function byAuthor(authorSlug: string, limit = 10): Promise<PostListItem[]> {
