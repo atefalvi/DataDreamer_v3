@@ -39,6 +39,8 @@ if (!guide) {
   return Astro.rewrite('/404');
 }
 
+const ogVersion = `3-${guide.updatedAt?.getTime() ?? guide.publishedAt?.getTime() ?? 'base'}`;
+
 // Authenticated responses must not be edge-cached (09 §8).
 if (signedIn) {
   Astro.response.headers.set('Cache-Control', 'private, no-store');
@@ -91,7 +93,7 @@ const jsonLd = [
   title={guide.seoTitle ?? guide.title}
   description={guide.seoDescription ?? guide.summary}
   ogType="article"
-  ogImage={{ url: `/og/guides/${guide.slug}.png?v=2`, alt: guide.title, type: 'image/png', width: 1200, height: 630 }}
+  ogImage={{ url: `/og/guides/${guide.slug}.png?v=${ogVersion}`, alt: guide.title, type: 'image/png', width: 1200, height: 630 }}
   jsonLd={jsonLd}
   noindex={guide.noindex}
 >

@@ -100,9 +100,10 @@ if (isPagination) {
   topicNames = post.topics.map((topic) => topic.name);
   authorHref = publicAuthorProfilePath(post.author) ?? writingAuthorPath(post.author);
   cover = post.coverImage;
-  // Versioned so social crawlers refresh the redesigned author treatment.
+  // Content-derived versioning refreshes social caches when the cover or metadata changes.
+  const ogVersion = `3-${post.updatedAt?.getTime() ?? post.publishedAt.getTime()}`;
   ogImage = {
-    url: `/og/blog/${post.slug}.png?v=2`,
+    url: `/og/blog/${post.slug}.png?v=${ogVersion}`,
     alt: post.title,
     type: 'image/png',
     width: 1200,

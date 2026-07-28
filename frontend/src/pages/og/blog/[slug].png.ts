@@ -4,7 +4,7 @@
  */
 import type { APIRoute } from 'astro';
 import { postsRepo } from '../../../lib/repositories';
-import { avatarDataUri, renderOgCard } from '../../../lib/og/render';
+import { avatarDataUri, coverDataUri, renderOgCard } from '../../../lib/og/render';
 import { PUBLIC_DIRECTUS_URL } from '../../../lib/directus/client';
 
 export const GET: APIRoute = async ({ params }) => {
@@ -12,15 +12,21 @@ export const GET: APIRoute = async ({ params }) => {
   const post = await postsRepo.cardBySlug(slug).catch(() => null);
   if (!post) return new Response(null, { status: 404 });
 
-  const avatar = post.author.avatar?.id
-    ? await avatarDataUri(PUBLIC_DIRECTUS_URL, post.author.avatar.id)
-    : undefined;
+  const [avatar, cover] = await Promise.all([
+    post.author.avatar?.id
+      ? avatarDataUri(PUBLIC_DIRECTUS_URL, post.author.avatar.id)
+      : undefined,
+    post.coverImage?.id
+      ? coverDataUri(PUBLIC_DIRECTUS_URL, post.coverImage.id)
+      : undefined,
+  ]);
 
   const png = await renderOgCard({
     kicker: 'Post',
     title: post.title,
     authorName: post.author.name,
     avatarDataUri: avatar,
+    coverDataUri: cover,
     tag: post.topics[0]?.name,
     seed: slug,
   });

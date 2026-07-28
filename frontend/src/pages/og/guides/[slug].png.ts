@@ -5,7 +5,7 @@
  */
 import type { APIRoute } from 'astro';
 import { guidesRepo } from '../../../lib/repositories';
-import { avatarDataUri, renderOgCard } from '../../../lib/og/render';
+import { avatarDataUri, coverDataUri, renderOgCard } from '../../../lib/og/render';
 import { PUBLIC_DIRECTUS_URL } from '../../../lib/directus/client';
 
 function titleCase(value: string): string {
@@ -17,15 +17,21 @@ export const GET: APIRoute = async ({ params }) => {
   const guide = await guidesRepo.previewBySlug(slug).catch(() => null);
   if (!guide) return new Response(null, { status: 404 });
 
-  const avatar = guide.curator.avatar?.id
-    ? await avatarDataUri(PUBLIC_DIRECTUS_URL, guide.curator.avatar.id)
-    : undefined;
+  const [avatar, cover] = await Promise.all([
+    guide.curator.avatar?.id
+      ? avatarDataUri(PUBLIC_DIRECTUS_URL, guide.curator.avatar.id)
+      : undefined,
+    guide.coverImage?.id
+      ? coverDataUri(PUBLIC_DIRECTUS_URL, guide.coverImage.id)
+      : undefined,
+  ]);
 
   const png = await renderOgCard({
     kicker: `Guide · ${titleCase(guide.difficulty)}`,
     title: guide.title,
     authorName: guide.curator.name,
     avatarDataUri: avatar,
+    coverDataUri: cover,
     tag: guide.topics[0]?.name,
     seed: slug,
   });

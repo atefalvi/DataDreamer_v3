@@ -1,12 +1,11 @@
 /**
  * Dynamic OG images — one editorial renderer for posts, projects, and guides.
  *
- * Pipeline: deterministic brand background (generative network/grid/dust, ported from
- * the OG-backgrounds script, recolored to tokens) built as raw SVG + the content layer
- * (title, author avatar + name, topic, wordmark) rendered by satori into glyph
- * PATHS (no runtime fonts needed at raster time) → nested into one SVG → sharp → PNG.
- * The avatar is fetched server-side and embedded as a data URI; nothing here touches
- * tokens or private data — only published content goes in.
+ * Pipeline: a CMS cover image when supplied, otherwise the deterministic brand
+ * background (generative network/grid/dust), plus the content layer (title, author
+ * avatar + name, topic, wordmark) rendered by satori into glyph PATHS (no runtime
+ * fonts needed at raster time) → nested into one SVG → sharp → PNG. Remote images are
+ * fetched server-side and embedded as data URIs; only published content is rendered.
  */
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -131,6 +130,8 @@ export interface OgCardInput {
   authorName?: string;
   /** data: URI (already fetched server-side) or undefined for a monogram. */
   avatarDataUri?: string;
+  /** 1200 × 630 cover image data URI. Falls back to the brand background when absent. */
+  coverDataUri?: string;
   /** Main tag or topic. */
   tag?: string;
   /** Stable string (slug) so each card gets its own constellation. */
@@ -282,6 +283,17 @@ async function contentLayer(input: OgCardInput): Promise<string> {
 
 export async function renderOgCard(input: OgCardInput): Promise<Buffer> {
   const foreground = await contentLayer(input);
+  const background = input.coverDataUri
+    ? `
+      <image href="${input.coverDataUri}" x="0" y="0" width="${WIDTH}" height="${HEIGHT}" preserveAspectRatio="xMidYMid slice"/>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="#070A0F" opacity="0.48"/>
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#ogcoverveil)"/>
+    `
+    : `
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#ogbg)"/>
+      ${backgroundLayer(seedFrom(input.seed))}
+      <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#ogglow)"/>
+    `;
   const svg = `
   <svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -293,11 +305,14 @@ export async function renderOgCard(input: OgCardInput): Promise<Buffer> {
         <stop offset="42%" stop-color="${ACCENT}" stop-opacity="0.10"/>
         <stop offset="100%" stop-color="${ACCENT}" stop-opacity="0"/>
       </radialGradient>
+      <linearGradient id="ogcoverveil" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="${BG0}" stop-opacity="0.94"/>
+        <stop offset="56%" stop-color="${BG0}" stop-opacity="0.72"/>
+        <stop offset="100%" stop-color="${BG0}" stop-opacity="0.38"/>
+      </linearGradient>
       <filter id="ogblur"><feGaussianBlur stdDeviation="8"/></filter>
     </defs>
-    <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#ogbg)"/>
-    ${backgroundLayer(seedFrom(input.seed))}
-    <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#ogglow)"/>
+    ${background}
     ${logoLayer(64, 42, 44)}
     ${foreground.replace(/^<svg[^>]*>/, `<svg x="0" y="0" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">`)}
     <rect x="1" y="1" width="${WIDTH - 2}" height="${HEIGHT - 2}" fill="none" stroke="#172230" stroke-width="2" opacity="0.55"/>
@@ -315,6 +330,33 @@ export async function avatarDataUri(assetBaseUrl: string, fileId: string): Promi
     if (!res.ok) return undefined;
     const buffer = Buffer.from(await res.arrayBuffer());
     return `data:image/png;base64,${buffer.toString('base64')}`;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Fetch and normalize a Directus cover for the OG canvas. Directus performs the
+ * bandwidth-saving transform first; Sharp then guarantees the exact social-card
+ * dimensions even if the upstream image service ignores a transform parameter.
+ */
+export async function coverDataUri(assetBaseUrl: string, fileId: string): Promise<string | undefined> {
+  try {
+    const url = new URL(`${assetBaseUrl}/assets/${encodeURIComponent(fileId)}`);
+    url.searchParams.set('width', String(WIDTH));
+    url.searchParams.set('height', String(HEIGHT));
+    url.searchParams.set('fit', 'cover');
+    url.searchParams.set('format', 'jpeg');
+    url.searchParams.set('quality', '84');
+
+    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return undefined;
+
+    const normalized = await sharp(Buffer.from(await res.arrayBuffer()))
+      .resize(WIDTH, HEIGHT, { fit: 'cover', position: 'centre' })
+      .jpeg({ quality: 84, progressive: true })
+      .toBuffer();
+    return `data:image/jpeg;base64,${normalized.toString('base64')}`;
   } catch {
     return undefined;
   }

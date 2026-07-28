@@ -5,7 +5,7 @@
  */
 import type { APIRoute } from 'astro';
 import { projectsRepo } from '../../../lib/repositories';
-import { avatarDataUri, renderOgCard } from '../../../lib/og/render';
+import { avatarDataUri, coverDataUri, renderOgCard } from '../../../lib/og/render';
 import { PUBLIC_DIRECTUS_URL } from '../../../lib/directus/client';
 
 export const GET: APIRoute = async ({ params }) => {
@@ -13,15 +13,21 @@ export const GET: APIRoute = async ({ params }) => {
   const project = await projectsRepo.cardBySlug(slug).catch(() => null);
   if (!project) return new Response(null, { status: 404 });
 
-  const avatar = project.author.avatar?.id
-    ? await avatarDataUri(PUBLIC_DIRECTUS_URL, project.author.avatar.id)
-    : undefined;
+  const [avatar, cover] = await Promise.all([
+    project.author.avatar?.id
+      ? avatarDataUri(PUBLIC_DIRECTUS_URL, project.author.avatar.id)
+      : undefined,
+    project.coverImage?.id
+      ? coverDataUri(PUBLIC_DIRECTUS_URL, project.coverImage.id)
+      : undefined,
+  ]);
 
   const png = await renderOgCard({
     kicker: `Project · ${project.year}`,
     title: project.title,
     authorName: project.author.name,
     avatarDataUri: avatar,
+    coverDataUri: cover,
     tag: project.tags[0],
     seed: slug,
   });

@@ -20,6 +20,7 @@ const project = await projectsRepo.bySlug(slug);
 if (!project) return Astro.rewrite('/404');
 
 const { title, summary, year, role, author, tags, topics, coverImage, links, bodyHtml } = project;
+const ogVersion = `3-${project.updatedAt?.getTime() ?? project.publishedAt?.getTime() ?? year}`;
 // Authors without a public team profile render as plain text (no dead link).
 const authorHref = publicAuthorProfilePath(author);
 
@@ -65,7 +66,7 @@ const jsonLd = [
   title={project.seoTitle ?? title}
   description={project.seoDescription ?? summary}
   ogType="article"
-  ogImage={{ url: `/og/projects/${project.slug}.png?v=2`, alt: title, type: 'image/png', width: 1200, height: 630 }}
+  ogImage={{ url: `/og/projects/${project.slug}.png?v=${ogVersion}`, alt: title, type: 'image/png', width: 1200, height: 630 }}
   jsonLd={jsonLd}
   noindex={project.noindex}
 >
