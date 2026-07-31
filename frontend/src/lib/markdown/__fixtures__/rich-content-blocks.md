@@ -97,12 +97,20 @@ Check permissions first.
 :::
 
 :::divider
+---
+:::
+
+:::divider
+***
+:::
+
+:::divider
 -x-
 :::
 
 :::divider
 label: Phase two
-pattern: ***
+pattern: -x-
 tone: accent
 :::
 

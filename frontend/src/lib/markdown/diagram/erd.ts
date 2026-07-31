@@ -12,16 +12,17 @@ import {
   type Rect,
 } from "./types";
 
-const HEADER_HEIGHT = 46;
-const FIELD_HEIGHT = 30;
-const MIN_ENTITY_WIDTH = 240;
-const MAX_ENTITY_WIDTH = 360;
-const MIN_ENTITY_HEIGHT = 82;
-const COLUMN_GAP = 62;
-const ROW_GAP = 72;
-const PAD_X = 48;
-const PAD_Y = 28;
-const OUTER_CHANNEL_GAP = 24;
+const HEADER_HEIGHT = 44;
+const FIELD_HEIGHT = 29;
+const MIN_ENTITY_WIDTH = 190;
+const MAX_ENTITY_WIDTH = 300;
+const MIN_ENTITY_HEIGHT = 80;
+const COLUMN_GAP = 64;
+const ROW_GAP = 64;
+const PAD_X = 28;
+const PAD_Y = 24;
+const OUTER_CHANNEL_GAP = 18;
+const TRACK_SPACING = 10;
 const MAX_ENTITIES = 24;
 const MAX_FIELDS = 30;
 
@@ -39,7 +40,7 @@ function entityWidth(entity: ErdEntity): number {
     const prefix = field.key ? 5 : 5;
     return Math.max(max, prefix + [...field.name].length);
   }, 0);
-  return Math.max(MIN_ENTITY_WIDTH, Math.min(MAX_ENTITY_WIDTH, 36 + Math.max(titleChars, fieldChars) * 8.2));
+  return Math.max(MIN_ENTITY_WIDTH, Math.min(MAX_ENTITY_WIDTH, 30 + Math.max(titleChars, fieldChars) * 7.4));
 }
 
 /** Parse author-ordered entities, fields, keys, and FK targets from the ERD DSL. */
@@ -150,12 +151,104 @@ function routeLength(points: Point[]): number {
   );
 }
 
+function simplifyRoute(points: Point[]): Point[] {
+  const deduplicated = points.filter(
+    (point, index) => index === 0 || point.x !== points[index - 1].x || point.y !== points[index - 1].y,
+  );
+  const simplified: Point[] = [];
+  for (const point of deduplicated) {
+    const previous = simplified.at(-1);
+    const beforePrevious = simplified.at(-2);
+    if (
+      previous
+      && beforePrevious
+      && ((beforePrevious.x === previous.x && previous.x === point.x)
+        || (beforePrevious.y === previous.y && previous.y === point.y))
+    ) {
+      simplified[simplified.length - 1] = point;
+    } else {
+      simplified.push(point);
+    }
+  }
+  return simplified;
+}
+
+function intervalOverlap(a1: number, a2: number, b1: number, b2: number): number {
+  return Math.max(0, Math.min(Math.max(a1, a2), Math.max(b1, b2)) - Math.max(Math.min(a1, a2), Math.min(b1, b2)));
+}
+
+function isEndpoint(point: Point, a: Point, b: Point): boolean {
+  return (point.x === a.x && point.y === a.y) || (point.x === b.x && point.y === b.y);
+}
+
+function routeConflictScore(points: Point[], routed: Point[][]): number {
+  let score = 0;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const a = points[index];
+    const b = points[index + 1];
+    for (const prior of routed) {
+      for (let priorIndex = 0; priorIndex < prior.length - 1; priorIndex += 1) {
+        const c = prior[priorIndex];
+        const d = prior[priorIndex + 1];
+        const vertical = a.x === b.x;
+        const priorVertical = c.x === d.x;
+
+        if (vertical === priorVertical) {
+          const collinear = vertical ? a.x === c.x : a.y === c.y;
+          if (!collinear) continue;
+          const overlap = vertical
+            ? intervalOverlap(a.y, b.y, c.y, d.y)
+            : intervalOverlap(a.x, b.x, c.x, d.x);
+          if (overlap > 0) score += 10_000 + overlap * 100;
+          continue;
+        }
+
+        const verticalStart = vertical ? a : c;
+        const verticalEnd = vertical ? b : d;
+        const horizontalStart = vertical ? c : a;
+        const horizontalEnd = vertical ? d : b;
+        const crossing = { x: verticalStart.x, y: horizontalStart.y };
+        const crosses = crossing.y >= Math.min(verticalStart.y, verticalEnd.y)
+          && crossing.y <= Math.max(verticalStart.y, verticalEnd.y)
+          && crossing.x >= Math.min(horizontalStart.x, horizontalEnd.x)
+          && crossing.x <= Math.max(horizontalStart.x, horizontalEnd.x);
+        if (!crosses) continue;
+        const sharedEndpoint = isEndpoint(crossing, a, b) && isEndpoint(crossing, c, d);
+        if (!sharedEndpoint) score += 1_000;
+      }
+    }
+  }
+  return score;
+}
+
+function corridorTracks(center: number): number[] {
+  return [center, center - TRACK_SPACING, center + TRACK_SPACING];
+}
+
 function pathFrom(points: Point[]): string {
   return points
     .map((point, index) => `${index === 0 ? "M" : point.x === points[index - 1].x ? "V" : "H"}${
       index === 0 ? `${point.x} ${point.y}` : point.x === points[index - 1].x ? point.y : point.x
     }`)
     .join("");
+}
+
+function endpointLabelPoint(endpoint: Point, neighbour: Point): Point {
+  const direction = Math.sign(neighbour.x - endpoint.x) || 1;
+  return { x: endpoint.x + direction * 13, y: endpoint.y - 7 };
+}
+
+function roundedTopRectPath(x: number, y: number, width: number, height: number, radius = 8): string {
+  return [
+    `M${x + radius} ${y}`,
+    `H${x + width - radius}`,
+    `Q${x + width} ${y} ${x + width} ${y + radius}`,
+    `V${y + height}`,
+    `H${x}`,
+    `V${y + radius}`,
+    `Q${x} ${y} ${x + radius} ${y}`,
+    "Z",
+  ].join("");
 }
 
 /** Row-major, content-measured ERD layout with field-row-aware orthogonal routing. */
@@ -195,7 +288,9 @@ export function layoutErd(model: ErdModel): ErdLayout {
       x,
       y,
       width,
-      height: rowHeights[row],
+      // Keep row tracks aligned, but let each entity end after its own final field.
+      // Forcing every entity to the row maximum created large blank card interiors.
+      height: naturalHeights[index],
       row,
       column,
       fields: entity.fields.map((field, fieldIndex) => ({
@@ -207,13 +302,33 @@ export function layoutErd(model: ErdModel): ErdLayout {
 
   const byName = new Map(entities.map((entity) => [entityKey(entity.name), entity]));
   const rightEdge = Math.max(...entities.map((entity) => entity.x + entity.width));
-  const leftChannel = 12;
+  const leftChannel = 10;
   const rightChannel = rightEdge + OUTER_CHANNEL_GAP;
-  const gapChannels = columnX.slice(1).map((x, index) => {
+  const gapTracks = columnX.slice(1).map((x, index) => {
     const previousRight = columnX[index] + columnWidths[index];
-    return (previousRight + x) / 2;
+    return corridorTracks((previousRight + x) / 2);
   });
+  const gridBottom = Math.max(...entities.map((entity) => entity.y + entity.height));
+  const topChannel = Math.max(6, PAD_Y - OUTER_CHANNEL_GAP);
+  const bottomChannel = gridBottom + OUTER_CHANNEL_GAP;
+  const rowGapTracks = rowY.slice(1).flatMap((y, index) => {
+    const previousBottom = rowY[index] + rowHeights[index];
+    return corridorTracks((previousBottom + y) / 2);
+  });
+  const horizontalTracks = [topChannel, ...rowGapTracks, bottomChannel];
   const relations: LayoutErdRelation[] = [];
+  const routedPoints: Point[][] = [];
+
+  const sideTracks = (entity: LayoutErdEntity) => [
+    {
+      anchorX: entity.x,
+      tracks: entity.column === 0 ? [leftChannel] : gapTracks[entity.column - 1],
+    },
+    {
+      anchorX: entity.x + entity.width,
+      tracks: entity.column === model.columns - 1 ? [rightChannel] : gapTracks[entity.column],
+    },
+  ];
 
   for (const sourceEntity of entities) {
     for (const sourceField of sourceEntity.fields) {
@@ -224,6 +339,14 @@ export function layoutErd(model: ErdModel): ErdLayout {
       )!;
       const excluded = new Set([sourceEntity.id, targetEntity.id]);
       const candidates: Array<{ points: Point[]; channel: LayoutErdRelation["channel"] }> = [];
+      const signatures = new Set<string>();
+      const addCandidate = (points: Point[], channel: LayoutErdRelation["channel"]) => {
+        const simplified = simplifyRoute(points);
+        const signature = simplified.map((point) => `${point.x},${point.y}`).join("|");
+        if (simplified.length < 2 || signatures.has(signature)) return;
+        signatures.add(signature);
+        candidates.push({ points: simplified, channel });
+      };
 
       const targetIsRight = targetEntity.x + targetEntity.width / 2 >= sourceEntity.x + sourceEntity.width / 2;
       const directStart = {
@@ -235,16 +358,16 @@ export function layoutErd(model: ErdModel): ErdLayout {
         y: targetField.y,
       };
       if (directStart.y === directEnd.y) {
-        candidates.push({ points: [directStart, directEnd], channel: "direct" });
-      } else {
+        addCandidate([directStart, directEnd], "direct");
+      } else if (sourceEntity.column !== targetEntity.column) {
         const middleX = (directStart.x + directEnd.x) / 2;
-        candidates.push({
-          points: [directStart, { x: middleX, y: directStart.y }, { x: middleX, y: directEnd.y }, directEnd],
-          channel: "row-gutter",
-        });
+        addCandidate(
+          [directStart, { x: middleX, y: directStart.y }, { x: middleX, y: directEnd.y }, directEnd],
+          "row-gutter",
+        );
       }
 
-      for (const channelX of [...gapChannels, leftChannel, rightChannel]) {
+      for (const channelX of [...gapTracks.flat(), leftChannel, rightChannel]) {
         const start = {
           x: channelX < sourceEntity.x ? sourceEntity.x : sourceEntity.x + sourceEntity.width,
           y: sourceField.y,
@@ -253,24 +376,68 @@ export function layoutErd(model: ErdModel): ErdLayout {
           x: channelX < targetEntity.x ? targetEntity.x : targetEntity.x + targetEntity.width,
           y: targetField.y,
         };
-        candidates.push({
-          points: [start, { x: channelX, y: start.y }, { x: channelX, y: end.y }, end],
-          channel: channelX === leftChannel || channelX === rightChannel ? "outer" : "row-gutter",
-        });
+        addCandidate(
+          [start, { x: channelX, y: start.y }, { x: channelX, y: end.y }, end],
+          channelX === leftChannel || channelX === rightChannel ? "outer" : "row-gutter",
+        );
+      }
+
+      for (const sourceSide of sideTracks(sourceEntity)) {
+        for (const targetSide of sideTracks(targetEntity)) {
+          for (const sourceTrack of sourceSide.tracks) {
+            for (const targetTrack of targetSide.tracks) {
+              for (const horizontalY of horizontalTracks) {
+                const channel = horizontalY === topChannel || horizontalY === bottomChannel
+                  ? "outer"
+                  : "row-gutter";
+                addCandidate(
+                  [
+                    { x: sourceSide.anchorX, y: sourceField.y },
+                    { x: sourceTrack, y: sourceField.y },
+                    { x: sourceTrack, y: horizontalY },
+                    { x: targetTrack, y: horizontalY },
+                    { x: targetTrack, y: targetField.y },
+                    { x: targetSide.anchorX, y: targetField.y },
+                  ],
+                  channel,
+                );
+              }
+            }
+          }
+        }
       }
 
       const viable = candidates
         .filter((candidate) => routeClear(candidate.points, entities, excluded))
-        .sort((a, b) => routeLength(a.points) - routeLength(b.points));
-      const chosen = viable[0] ?? candidates[candidates.length - 1];
+        .sort((a, b) => {
+          const aScore = routeConflictScore(a.points, routedPoints) + routeLength(a.points) + a.points.length * 12;
+          const bScore = routeConflictScore(b.points, routedPoints) + routeLength(b.points) + b.points.length * 12;
+          return aScore - bScore;
+        });
+      const chosen = viable[0];
+      if (!chosen) {
+        throw new DiagramSyntaxError(
+          `Unable to route ERD relationship: ${sourceEntity.name}.${sourceField.name} -> ${targetEntity.name}.${targetField.name}`,
+        );
+      }
+      routedPoints.push(chosen.points);
       relations.push({
         id: `erd-relation-${relations.length + 1}`,
+        sourceColor: sourceEntity.color,
         sourceEntity: sourceEntity.name,
         sourceField: sourceField.name,
         targetEntity: targetEntity.name,
         targetField: targetField.name,
         sourceAnchor: chosen.points[0],
         targetAnchor: chosen.points[chosen.points.length - 1],
+        sourceCardinality: "M",
+        targetCardinality: "1",
+        sourceLabelPoint: endpointLabelPoint(chosen.points[0], chosen.points[1]),
+        targetLabelPoint: endpointLabelPoint(
+          chosen.points[chosen.points.length - 1],
+          chosen.points[chosen.points.length - 2],
+        ),
+        points: chosen.points,
         path: pathFrom(chosen.points),
         channel: chosen.channel,
       });
@@ -279,7 +446,12 @@ export function layoutErd(model: ErdModel): ErdLayout {
 
   return {
     width: Math.ceil(rightChannel + PAD_X),
-    height: Math.ceil(Math.max(...entities.map((entity) => entity.y + entity.height)) + PAD_Y),
+    height: Math.ceil(
+      Math.max(
+        gridBottom,
+        ...routedPoints.flat().map((point) => point.y),
+      ) + PAD_Y,
+    ),
     entities,
     relations,
   };
@@ -294,8 +466,7 @@ function element(tagName: string, properties: Record<string, unknown>, children:
 }
 
 /** Render a completed ERD layout as inline, server-generated SVG HAST. */
-export function renderErd(layout: ErdLayout, title: string, markerPrefix: string): HastNode {
-  const markerId = `${markerPrefix}-relation`;
+export function renderErd(layout: ErdLayout, title: string, _markerPrefix: string): HastNode {
   return element(
     "svg",
     {
@@ -309,24 +480,50 @@ export function renderErd(layout: ErdLayout, title: string, markerPrefix: string
     },
     [
       element("title", {}, [text(title)]),
-      element("defs", {}, [
-        element(
-          "marker",
-          { id: markerId, markerWidth: "12", markerHeight: "12", refX: "11", refY: "6", orient: "auto" },
-          [element("path", { className: ["diagram-crow"], d: "M12 6H1M12 1L1 6M12 11L1 6" })],
-        ),
-      ]),
       element(
         "g",
         { className: ["diagram-relations"] },
         layout.relations.map((relation) =>
-          element("path", {
-            className: ["diagram-relation", `diagram-relation--${relation.channel}`],
-            d: relation.path,
-            markerEnd: `url(#${markerId})`,
-            dataSourceField: `${relation.sourceEntity}.${relation.sourceField}`,
-            dataTargetField: `${relation.targetEntity}.${relation.targetField}`,
-          }),
+          element(
+            "g",
+            {
+              className: ["diagram-relation-group", `diagram-relation-group--${relation.sourceColor}`],
+              dataRelation: `${relation.sourceEntity}.${relation.sourceField} -> ${relation.targetEntity}.${relation.targetField}`,
+            },
+            [
+              element("title", {}, [
+                text(
+                  `${relation.sourceEntity}.${relation.sourceField} (many) references ${relation.targetEntity}.${relation.targetField} (one)`,
+                ),
+              ]),
+              element("path", {
+                className: ["diagram-relation", `diagram-relation--${relation.channel}`],
+                d: relation.path,
+                dataSourceField: `${relation.sourceEntity}.${relation.sourceField}`,
+                dataTargetField: `${relation.targetEntity}.${relation.targetField}`,
+              }),
+              element(
+                "text",
+                {
+                  className: ["diagram-relation__cardinality", "diagram-relation__cardinality--many"],
+                  x: String(relation.sourceLabelPoint.x),
+                  y: String(relation.sourceLabelPoint.y),
+                  textAnchor: "middle",
+                },
+                [text(relation.sourceCardinality)],
+              ),
+              element(
+                "text",
+                {
+                  className: ["diagram-relation__cardinality", "diagram-relation__cardinality--one"],
+                  x: String(relation.targetLabelPoint.x),
+                  y: String(relation.targetLabelPoint.y),
+                  textAnchor: "middle",
+                },
+                [text(relation.targetCardinality)],
+              ),
+            ],
+          ),
         ),
       ),
       element(
@@ -342,13 +539,9 @@ export function renderErd(layout: ErdLayout, title: string, markerPrefix: string
               height: String(entity.height),
               rx: "8",
             }),
-            element("rect", {
+            element("path", {
               className: ["diagram-entity__head", `diagram-entity__head--${entity.color}`],
-              x: String(entity.x),
-              y: String(entity.y),
-              width: String(entity.width),
-              height: String(HEADER_HEIGHT),
-              rx: "8",
+              d: roundedTopRectPath(entity.x, entity.y, entity.width, HEADER_HEIGHT),
             }),
             element("line", {
               className: ["diagram-entity__rule"],

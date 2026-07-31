@@ -1,69 +1,156 @@
-# Agent Custom Callouts Guide
+# Agent Custom Callouts and Rich Blocks Guide
 
-Source of truth for rich Markdown in Posts, Projects, and Field Guides. It owns block
-syntax only; collection fields live in `docs/AGENT_CONTENT_TYPES_GUIDE.md` and cover
-rules live in `docs/AGENT_COVER_IMAGE_GUIDE.md`.
+Canonical authoring contract for rich Markdown in DataDreamer Posts, Projects, and
+Field Guides. This guide is derived from the production parser and renderer in
+`frontend/src/lib/markdown/`; do not invent block names, fields, or values.
 
-## Universal syntax
+Collection fields belong in `docs/AGENT_CONTENT_TYPES_GUIDE.md`. Cover-generation
+rules belong in `docs/AGENT_COVER_IMAGE_GUIDE.md`.
 
-Open a block on its own line, add the body, and close it with `:::` on its own line.
+## How custom blocks work
+
+Open and close every block with fences on their own lines:
 
 ```markdown
 :::note Optional title
-Markdown body.
+Normal Markdown body.
 :::
 ```
 
-`:::name{title="Optional title"}` is also accepted. The space-title form is preferred.
-Block names are lowercase and exact. A missing closing fence leaves the text unstyled.
+The alternative opener `:::note{title="Optional title"}` also works, but the
+space-title form is easier to read and is preferred. Rules:
 
-## Catalog
+- Block names and configuration field names are lowercase and exact.
+- The opener may have one plain-text title. Callouts supply their type name when the
+  title is omitted; most other blocks leave it blank or use the default noted below.
+- A missing closing fence leaves the source as ordinary, unstyled content.
+- Markdown-body blocks support paragraphs, H2/H3 headings, lists, links, tables,
+  images, inline code, and fenced code. Do not add an H1 to CMS body content.
+- Raw-body blocks parse only their documented lines or fields. Markdown emphasis,
+  links, lists, and nested custom blocks do not render inside raw bodies.
+- One custom block may be nested inside a top-level Markdown-body block. A third
+  level stays literal. Do not nest raw-body blocks.
+- External HTTP(S) links open in a new tab. Internal and fragment links stay in the
+  current tab.
 
-| Block | Use | Opener title | Body contract |
-|---|---|---|---|
-| `note` | Neutral context | Optional; defaults to “Note” | Markdown |
-| `info` | Supporting information | Optional; defaults to “Info” | Markdown |
-| `tip` | Practical shortcut | Optional; defaults to “Tip” | Markdown |
-| `warning` | Failure mode or important risk | Optional; defaults to “Warning” | Markdown |
-| `caution` | Destructive, security, or irreversible risk | Optional; defaults to “Caution” | Markdown |
-| `important` | A rule the reader must retain | Optional; defaults to “Important” | Markdown |
-| `example` | Representative input, output, or scenario | Optional; defaults to “Example” | Markdown |
-| `technical` | Implementation detail | Optional; defaults to “Technical” | Markdown |
-| `details` | Collapsible secondary material | Optional; defaults to “Details” | Markdown |
-| `quote` | Editorial pull quote | Ignored | Markdown quotation |
-| `text` | Bounded supporting prose panel | Optional | Markdown |
-| `imagegrid` | Two or more related images with lightbox | Optional | Markdown images |
-| `checklist` | State-coded task or review list | Optional | Plain marker lines |
-| `embed` | Sandboxed HTTPS iframe | Optional | URL/config or pasted safe embed markup |
-| `metric` | One compact measure | Optional | `key: value` fields |
-| `metrics` | A group of measures | Optional | Metric records separated by `---` |
-| `formula` | Display mathematics | Optional | LaTeX plus optional caption |
-| `divider` | Deliberate section transition | Optional fallback label | Divider fields |
-| `diagram` | Server-rendered flow or ERD | Optional fallback title | Diagram metadata and DSL |
+## Complete block catalog
 
-`detail` is a compatibility alias for `details`; do not use it in new content.
+| Block | Short purpose | Body |
+|---|---|---|
+| `note` | Neutral context | Markdown |
+| `info` | Supporting explanation | Markdown |
+| `tip` | Practical improvement or shortcut | Markdown |
+| `warning` | Likely failure mode or material risk | Markdown |
+| `caution` | Destructive, security, or irreversible risk | Markdown |
+| `important` | Rule the reader must retain | Markdown |
+| `example` | Representative input, output, or scenario | Markdown |
+| `technical` | Implementation detail that would interrupt the narrative | Markdown |
+| `details` | Collapsible secondary material | Markdown |
+| `quote` | Editorial quotation | Markdown |
+| `text` | Bounded supporting prose | Markdown |
+| `imagegrid` | Related images with a lightbox | Markdown images |
+| `checklist` | State-coded review or task list | Raw marker lines |
+| `embed` | Sandboxed external interactive content | Raw URL/config/embed markup |
+| `metric` | One compact measure | Raw fields |
+| `metrics` | Several compact measures | Raw records |
+| `formula` | Display mathematics | Raw LaTeX/config |
+| `divider` | Deliberate visual transition | Raw pattern/config |
+| `diagram` | Server-rendered flowchart or ERD | Raw metadata and DSL |
 
-## Callouts: `note`, `info`, `tip`, `warning`, `caution`, `important`, `example`, `technical`
+`detail` remains a compatibility alias for `details`. Never use the alias in new
+content.
 
-- Attributes: optional opener title only.
-- Body: normal Markdown—paragraphs, lists, links, inline code, fenced code, and images.
-- Rendering: semantic `aside` card with a type-specific icon and treatment.
-- Nesting: one custom block may be nested inside a top-level block. A third level is
-  treated as literal content. Avoid nesting unless the hierarchy is essential.
+## Semantic callouts
 
-Minimal:
+All eight callouts accept only an optional opener title. Their bodies are Markdown,
+and each renders as an accessible labelled aside with a distinct icon and treatment.
+Use the narrowest truthful type; ordinary paragraphs should remain ordinary text.
+
+### `note`
+
+Purpose: neutral context that helps interpretation but is not a warning or rule.
+Default title: `Note`.
 
 ```markdown
-:::warning
-Validate the row count before replacing the table.
+:::note Source boundary
+The extract contains closed opportunities only.
 :::
 ```
 
-Practical:
+### `info`
+
+Purpose: supporting information or background the reader may need.
+Default title: `Info`.
+
+```markdown
+:::info Refresh cadence
+The public dataset refreshes once each morning.
+:::
+```
+
+### `tip`
+
+Purpose: a practical shortcut, improvement, or easier way to complete a task.
+Default title: `Tip`.
+
+```markdown
+:::tip Validate early
+Reconcile the row count before adding calculated fields.
+:::
+```
+
+### `warning`
+
+Purpose: a likely failure mode, important risk, or condition that can make the result
+wrong. Default title: `Warning`.
+
+```markdown
+:::warning Filter scope
+Selecting multiple independent fiscal years combines separate waterfalls.
+:::
+```
+
+### `caution`
+
+Purpose: destructive, security-sensitive, costly, or difficult-to-reverse action.
+Default title: `Caution`. Do not use it for low-impact advice.
+
+```markdown
+:::caution Production change
+Back up the workbook before replacing the published data source.
+:::
+```
+
+### `important`
+
+Purpose: a durable rule or decision the reader must retain.
+Default title: `Important`.
+
+```markdown
+:::important Calculation boundary
+Keep movement classification separate from colour assignment.
+:::
+```
+
+### `example`
+
+Purpose: representative input, output, scenario, or worked application.
+Default title: `Example`.
+
+```markdown
+:::example Checkpoint row
+`Final Commit` is a total, so its bar begins at zero rather than at the prior balance.
+:::
+```
+
+### `technical`
+
+Purpose: implementation detail that is useful to practitioners but would interrupt
+the main editorial narrative. Default title: `Technical`.
 
 ````markdown
-:::technical Calculation boundary
-The display field and the aggregation field must remain separate.
+:::technical Query boundary
+Aggregate once at the reporting grain.
 
 ```sql
 select segment, sum(value) as total
@@ -73,29 +160,32 @@ group by segment;
 :::
 ````
 
-Use the narrowest truthful type. Do not turn ordinary paragraphs into decorative
-callouts, and never use `caution` for a low-impact suggestion.
-
 ## `details`
 
-- Attributes: optional opener title; defaults to “Details”.
-- Body: normal Markdown; one nested custom block is supported.
-- Rendering: closed native disclosure that the reader can expand.
+Short purpose: collapsible secondary evidence, assumptions, or extended explanation.
+
+- Opener title: optional; rendered summary defaults to `Details`.
+- Body: Markdown.
+- Nesting: one custom-block level is supported.
+- Initial state: closed; the reader expands the native disclosure.
 
 ```markdown
-:::details Inspect the raw assumptions
+:::details Inspect the assumptions
 - One fiscal year is selected.
 - Region is treated as an independent slice.
 :::
 ```
 
-Do not hide information required to understand or safely perform the main task.
+Never hide a prerequisite, safety warning, or fact required to understand the main
+argument.
 
 ## `quote`
 
-- Attributes: none; an opener title is accepted by the parser but is not rendered.
-- Body: normal Markdown, ideally one short quotation. Attribution may be a final line.
-- Rendering: editorial `figure` and `blockquote`.
+Short purpose: a genuine quotation or concise editorial pull quote.
+
+- Opener title: do not use one; the parser accepts it but the renderer does not show it.
+- Body: Markdown, ideally one short quotation. A final attribution line is allowed.
+- Rendering: `figure` containing a semantic `blockquote`.
 
 ```markdown
 :::quote
@@ -105,13 +195,16 @@ Good analysis makes the decision boundary visible.
 :::
 ```
 
-Do not use it to enlarge an ordinary sentence or fabricate a quotation.
+Do not fabricate an attribution or use this block merely to enlarge normal prose.
 
 ## `text`
 
-- Attributes: optional opener title.
-- Body: normal Markdown; one nested custom block is supported.
-- Rendering: bounded text panel with an optional label.
+Short purpose: visually bounded supporting prose with no warning, success, or other
+semantic state.
+
+- Opener title: optional.
+- Body: Markdown.
+- Nesting: one custom-block level is supported.
 
 ```markdown
 :::text Reading the result
@@ -119,30 +212,50 @@ Treat the final total as a checkpoint, not another movement.
 :::
 ```
 
-Use a callout instead when the content has a clear semantic state such as warning or tip.
+Choose a semantic callout instead when the content is truly a tip, warning, rule, or
+technical note.
 
 ## `imagegrid`
 
-- Attributes: optional opener title.
-- Body: Markdown images. Image title text becomes the lightbox caption.
-- Rendering: responsive thumbnail grid; each item opens the full-size transformed asset.
-- Nesting: do not nest custom blocks; non-image prose is ignored by the grid renderer.
+Short purpose: present related images as a responsive gallery with full-size lightbox
+viewing.
+
+- Opener title: optional; rendered as the gallery caption.
+- Body: Markdown image syntax only. Other prose is ignored by the gallery.
+- Image alt text: used for the image and its accessible “Open image” control.
+- Markdown image title: becomes the lightbox caption.
+- Image count: one is supported; use two or more when comparison or sequence is the
+  reason for choosing a grid. A standalone Markdown image is usually better for one.
+- Images are lazy-loaded; Directus assets receive optimized thumbnail/full transforms.
 
 ```markdown
 :::imagegrid Before and after
-![Unfiltered chart](/images/before.webp "Before validation")
-![Validated chart](/images/after.webp "After validation")
+![Unfiltered waterfall with broken totals](/images/before.webp "Before validation")
+![Validated waterfall with stable checkpoints](/images/after.webp "After validation")
 :::
 ```
 
-Use meaningful alt text. Do not use a one-image grid; use a normal Markdown image.
+Use specific alt text that describes what is visible, not a filename or the article
+title.
 
 ## `checklist`
 
-- Attributes: optional opener title.
-- Body: plain text, one item per line. Markdown inside items is not parsed.
-- Markers: `[x]` done, `[ ]` pending, `!` risk, `?` question, `*` highlight, `-` neutral.
-- Rendering: state-coded list with accessible text labels.
+Short purpose: show task, review, risk, and question states in one scannable list.
+
+- Opener title: optional.
+- Body: raw plain text, one item per nonblank line.
+- Markdown inside an item is not parsed.
+- An unmarked line renders as a neutral item.
+
+| Marker | State | Rendered mark |
+|---|---|---|
+| `[x]` or `[X]` | Done | ✓ |
+| `[ ]` | Pending | Empty status mark |
+| `! ` | Risk | ! |
+| `? ` | Question | ? |
+| `* ` | Highlight | ★ |
+| `- ` | Neutral | • |
+| No marker | Neutral | • |
 
 ```markdown
 :::checklist Release gate
@@ -150,30 +263,45 @@ Use meaningful alt text. Do not use a one-image grid; use a normal Markdown imag
 [ ] Mobile layout checked
 ! Confirm rollback ownership
 ? Has the publish date been approved?
+* Record the final decision
+- Keep the fallback simple
 :::
 ```
 
-Do not indent sublists or use task-list Markdown outside these exact markers.
+This is a display block, not an interactive task tracker; readers cannot toggle the
+items.
 
 ## `embed`
 
-- Attributes: optional opener title.
-- Body accepts one bare HTTPS URL; `url:`, `source:`, `height:`, and `ratio:` fields;
-  an HTTPS `iframe`/`embed`/`object`; or a legacy object snippet with usable metadata.
-- `height`: integer pixels from 240–1600. `ratio`: positive `width/height` or `width:height`.
-- Rendering: lazy, sandboxed iframe. Scripts from pasted snippets are never executed.
-  `source:` adds an “Open original” new-tab link.
-- Nesting: none; body is plain text.
+Short purpose: display provider-independent HTTPS interactive content in a responsive,
+sandboxed iframe.
 
-Minimal:
+### Supported input and precedence
 
-```markdown
-:::embed Interactive model
-https://example.org/public/view
-:::
-```
+The renderer extracts the iframe URL in this order:
 
-Practical:
+1. `url:` field;
+2. first body line containing only an HTTPS URL;
+3. `src` from an `<iframe>` or `<embed>` tag;
+4. `data` from an `<object>` tag;
+5. a legacy object snippet with valid `host_url`, `name`, and `embed_code_version`;
+6. first anchor `href` in pasted markup.
+
+Only HTTPS URLs without embedded usernames or passwords are accepted. If `url:` is
+present, it must be valid; an invalid explicit URL is not replaced by a later source.
+Pasted scripts are never executed.
+
+| Field | Required | Accepted value | Effect |
+|---|---:|---|---|
+| `url` | Recommended | Safe HTTPS embeddable URL | Iframe source |
+| `source` | Optional | Safe HTTPS public page | “Open original” link when different from `url`; link-only fallback when no iframe URL exists |
+| `height` | Optional | Integer or `px`, 240–1600 | Explicit frame height, capped by the viewport in CSS |
+| `ratio` | Optional | Positive `width/height` or `width:height` | Responsive aspect ratio; default `16/9` |
+
+An iframe/embed `width` and `height` between 240 and 1600 infer the ratio. A valid
+embedded height or legacy `.style.height` can supply height when no ratio was inferred.
+
+Preferred explicit form:
 
 ```markdown
 :::embed Interactive model
@@ -184,19 +312,50 @@ height: 720
 :::
 ```
 
-Only HTTPS is accepted. Prefer a direct embeddable URL; provider scripts, arbitrary
-HTML, credentials, and unsafe protocols are discarded. Some hosts may still block
-iframes through their own security headers—in that case keep a `source:` link.
+Minimal form:
 
-## `metric` and `metrics`
+```markdown
+:::embed Interactive model
+https://example.org/embed/model
+:::
+```
 
-- Attributes: optional opener title.
-- Record fields: `value` (required), `label`, `caption`, `symbol`, `tone`.
-- `tone`: `green`, `red`, `yellow`, `blue`, or `neutral`; unknown values become neutral.
-- `symbol`: literal text or `up`, `down`, `neutral`, `right`, `check`, `warning`,
-  `question`, or `star` and their common synonyms.
-- `metrics` separates records with a line containing at least three hyphens.
-- Body is plain text; Markdown is not parsed.
+Safe pasted iframe form:
+
+```markdown
+:::embed Product walkthrough
+<iframe width="800" height="450" src="https://media.example.org/embed/walkthrough"></iframe>
+:::
+```
+
+Use the direct embeddable URL whenever possible. Some providers forbid iframe display
+with their own security headers; always supply `source:` when a public viewing page is
+available so the reader has a reliable new-tab route.
+
+## `metric`
+
+Short purpose: show one factual measure with optional direction and context.
+
+| Field | Required | Accepted value |
+|---|---:|---|
+| `value` | Recommended | Plain text; missing value renders `—` |
+| `label` | Optional | Short measure name |
+| `caption` | Optional | Scope, denominator, period, or comparison context |
+| `symbol` | Optional | Literal text/symbol or a supported word below |
+| `tone` | Optional | `green`, `red`, `yellow`, `blue`, `neutral`; invalid values become `neutral` |
+
+Symbol words are case-insensitive:
+
+- `up`, `increase`, `increased`, `positive`, `higher` → ↑
+- `down`, `decrease`, `decreased`, `negative`, `lower` → ↓
+- `neutral`, `stable`, `same`, `unchanged` → —
+- `right`, `next`, `forward` → →
+- `check`, `done`, `success` → ✓
+- `warning`, `caution`, `risk` → !
+- `question`, `unknown` → ?
+- `star`, `highlight` → ★
+
+Any other `symbol` value is rendered literally.
 
 ```markdown
 :::metric Coverage
@@ -208,27 +367,48 @@ tone: green
 :::
 ```
 
+Do not present an estimated or invented value as measured fact.
+
+## `metrics`
+
+Short purpose: compare several measures using the same field contract as `metric`.
+
+- Opener title: optional.
+- Record fields: `value`, `label`, `caption`, `symbol`, and `tone` exactly as above.
+- Separate records with a line containing three or more hyphens.
+- Body: raw plain text; Markdown is not parsed.
+- Records containing no recognized fields are omitted.
+
 ```markdown
 :::metrics Outcome snapshot
 value: 38%
 label: Lower cycle time
 symbol: down
 tone: green
+
 ---
+
 value: 2
 label: Manual handoffs
+caption: After consolidation
 tone: neutral
 :::
 ```
 
-Do not use a metric for an unsupported claim; put scope or comparison context in
-`caption`.
+Keep all measures in one block conceptually related and give ambiguous values a
+caption.
 
 ## `formula`
 
-- Attributes: optional opener title.
-- Body: a bare LaTeX expression, or `value:` plus optional `caption:`. Markdown is not parsed.
-- Rendering: server-rendered KaTeX display math; invalid syntax is shown safely.
+Short purpose: render one display equation with server-side KaTeX.
+
+- Opener title: optional.
+- `value`: optional field containing the LaTeX expression. When absent, all plain
+  unrecognized lines are joined and used as the expression.
+- `caption`: optional plain-text explanation beneath the equation.
+- Body: raw LaTeX/config; Markdown is not parsed.
+- Do not wrap the expression in `$` or `$$` inside this block.
+- Invalid LaTeX is rendered safely rather than executing code.
 
 ```markdown
 :::formula Running total
@@ -237,52 +417,102 @@ caption: Each movement is applied to the previous checkpoint.
 :::
 ```
 
-Do not include display delimiters such as `$$`; provide the expression itself.
+Outside a custom block, standard inline `$…$` and display `$$…$$` math are also
+supported.
 
 ## `divider`
 
-- Attributes: optional opener title, used as the label when `label:` is absent.
-- Fields: `label`; `tone` = `accent`, `neutral`, or `muted`; `pattern` = `---`, `***`, or `-x-`.
-- Rendering: semantic separator. Invalid values fall back to neutral dashes.
+Short purpose: mark a deliberate phase or thematic transition when a heading would be
+too strong. Use sparingly; headings should carry most document structure.
+
+| Input | Accepted values | Default / precedence |
+|---|---|---|
+| Opener title | Plain text | Used as label only when `label:` is absent |
+| `label` | Plain text | Overrides opener title |
+| `pattern` | `---`, `***`, `-x-` | Defaults to `---` |
+| `tone` | `accent`, `neutral`, `muted` | Defaults to `neutral` |
+| Bare pattern line | `---`, `***`, `-x-` | Used when `pattern:` is absent |
+
+Invalid patterns fall back to `---`; invalid tones fall back to `neutral`. A `***` or
+`-x-` divider without a label shows a small center mark. These are all supported forms:
+
+Plain divider:
 
 ```markdown
 :::divider
-label: Implementation
-tone: accent
-pattern: ---
 :::
 ```
 
-Use sparingly. Headings should carry most structure.
+Title becomes the label:
+
+```markdown
+:::divider Next phase
+:::
+```
+
+Bare dash pattern:
+
+```markdown
+:::divider
+---
+:::
+```
+
+Bare star pattern:
+
+```markdown
+:::divider
+***
+:::
+```
+
+Bare x pattern:
+
+```markdown
+:::divider
+-x-
+:::
+```
+
+Fully configured:
+
+```markdown
+:::divider
+label: Phase two
+pattern: -x-
+tone: accent
+:::
+```
 
 ## `diagram`
 
-Diagrams are parsed, laid out, and rendered to inline SVG on the server. Directus
-stores only the raw source. The render cache identity is `sourceHash + rendererVersion`.
-No browser-side graph library or layout runtime is used.
+Short purpose: render a deterministic flowchart or entity-relationship diagram as
+inline SVG on the server. The browser receives no graph-layout runtime.
 
 ### Shared metadata
 
-Metadata comes first, followed by one blank line and the diagram body.
+Put metadata first, then the diagram body. The opener title is a fallback only when
+`title:` is absent.
 
-| Key | Required | Values |
+| Field | Required | Accepted value |
 |---|---:|---|
 | `type` | Yes | `flow` or `erd` |
-| `title` | Recommended | Plain-text accessible title, up to 120 characters |
-| `columns` | ERD only | Integer; clamped to 1–4, default 3 |
+| `title` | Recommended | Plain accessible title; truncated to 120 characters |
+| `columns` | ERD only | Integer; rounded and clamped to 1–4; default 3 |
 
-Supported color suffixes are `blue`, `yellow`, `orange`, `green`, and `purple`.
-Unknown colors safely use the default style.
+Node/entity color suffixes are `blue`, `yellow`, `orange`, `green`, and `purple`.
+Unknown colors use the default treatment.
 
-### Flow contract
+### Flow diagrams
 
-- Connect nodes with `->`. A label ending in `?` is rendered as a decision.
-- Indent branches by two spaces. The first token is the connector label (`yes`, `no`,
-  `fallback`, and so on).
-- Add a color to a declaration with `Node label: blue`.
-- Reuse a node with `@Existing node label`. Matching is case-insensitive. A terminal
-  decision `?` may be omitted in the reference; all other label text must match.
-- Limits: 80 nodes, 160 connectors, and 80 characters per node label.
+- Connect nodes with `->`.
+- A node label ending in `?` is a decision.
+- Indent a decision branch by two spaces. Its first token is the connector label such
+  as `yes`, `no`, or `fallback`.
+- Add colour with `Node label: blue`.
+- Reuse an existing node with `@Existing node label`. Matching is case-insensitive. A
+  terminal decision `?` may be omitted in the reference; otherwise labels must match.
+- Limits: 80 nodes, 160 connectors, 80 characters per node label.
 
 ```markdown
 :::diagram
@@ -295,33 +525,21 @@ Incoming data -> Valid?: yellow
 :::
 ```
 
-Retry example:
+Do not use Mermaid syntax or repeat a label when the intent is to reference the same
+node.
 
-```markdown
-:::diagram
-type: flow
-title: Tiered retry
+### ERD diagrams
 
-Send request -> Succeeded?: yellow
-  yes -> Store result: blue -> Complete: green
-  no -> Retry fast: orange -> @Send request
-
-Retry fast -> Recovered?: yellow
-  yes -> Store result
-  no -> Dead-letter queue: orange
-:::
-```
-
-Do not invent Mermaid syntax or duplicate a label to mean a new node. Wide diagrams remain readable inside a contained
-horizontal scroller rather than shrinking their text.
-
-### ERD contract
-
-- Declare entities at column zero in source order: `Entity: color`.
-- Indent each field by two spaces.
-- Prefix keys with `PK`, `FK`, or `UK`.
-- Only an `FK` may declare `-> Entity.field`; the entity and field must exist.
-- Placement is row-major using `columns`. Limits: 24 entities and 30 fields per entity.
+- Declare each entity at column zero as `Entity: color`.
+- Indent fields by two spaces.
+- Optional field prefixes are `PK`, `FK`, and `UK`.
+- Only an `FK` may reference `-> Entity.field`; both targets must exist.
+- Each `FK` renders as many-to-one: `M` beside the referencing entity and `1` beside
+  the referenced entity. Model many-to-many relationships with an explicit junction
+  entity containing two FKs.
+- Entity names are unique case-insensitively.
+- Entity placement follows source order, row-major, using `columns`.
+- Limits: 24 entities and 30 fields per entity.
 
 ```markdown
 :::diagram
@@ -342,28 +560,21 @@ Order: orange
 :::
 ```
 
-Entity color affects only the header treatment. PK remains orange, FK blue, and UK
-neutral. Relationships attach to exact field rows and route around unrelated entities.
+Entity colour affects its header and the relationships that originate from its FK
+fields, making dense models easier to trace. Hovering a relationship exposes its
+source and target field names. PK remains orange, FK blue, and UK neutral. Wide
+diagrams stay inside a keyboard-focusable horizontal scroller instead of overflowing
+the page.
 
-## Markdown and nesting rules
+## Agent authoring checklist
 
-- Normal Markdown bodies support paragraphs, H2/H3 headings, lists, links, fenced code,
-  tables, and images. Do not add another page H1 inside CMS body Markdown.
-- `checklist`, `embed`, `metric`, `metrics`, `formula`, `divider`, and `diagram` use raw
-  text contracts; Markdown formatting inside them is not interpreted.
-- One nested custom-block level is supported in Markdown-body blocks. A block nested
-  inside that nested block remains literal. Raw-body blocks should never contain blocks.
-- Put opening and closing fences on their own lines with blank lines around the block.
-- External HTTP(S) article links open in a new tab; internal and fragment links do not.
-
-## Validation checklist
-
-- [ ] Block name, title form, field names, and accepted values match this guide.
-- [ ] Every opening fence has one closing `:::` on its own line.
-- [ ] Raw-body blocks contain plain contract text, not formatted Markdown.
-- [ ] Nested blocks are no deeper than one level.
-- [ ] Images have useful alt text; code fences include a language.
-- [ ] Embed URLs use HTTPS and provide `source:` when the host may block framing.
-- [ ] Diagram references resolve to an existing label; only a terminal decision `?` may be omitted.
-- [ ] Diagram labels, nodes, final states, entities, and connectors are visible at
-  320px, 390px, tablet, and desktop widths without page-level overflow.
+- [ ] The chosen block adds meaning, not decoration.
+- [ ] Block name, title form, field names, and accepted values exactly match this guide.
+- [ ] Every opener has one closing `:::` on its own line.
+- [ ] Markdown-body blocks and raw-body blocks are not confused.
+- [ ] Nesting is no deeper than one level, and raw blocks contain no nested blocks.
+- [ ] Images have accurate alt text; fenced code includes a language.
+- [ ] Metrics are evidenced and captions state necessary scope.
+- [ ] Embed URLs are HTTPS and include a `source:` route when available.
+- [ ] Diagram references resolve and only valid flow/ERD syntax is used.
+- [ ] No page-level H1 is added inside CMS body Markdown.

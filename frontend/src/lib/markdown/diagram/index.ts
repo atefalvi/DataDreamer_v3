@@ -5,7 +5,7 @@ import { layoutErd, parseErd, renderErd } from "./erd";
 import { layoutFlow, parseFlow, renderFlow } from "./flow";
 import { DiagramSyntaxError, type DiagramMetadata } from "./types";
 
-export const DIAGRAM_RENDERER_VERSION = "diagram-v1";
+export const DIAGRAM_RENDERER_VERSION = "diagram-v4";
 const CACHE_LIMIT = 100;
 const renderCache = new Map<string, HastNode>();
 
@@ -119,7 +119,7 @@ export function diagramElement(source: string, fallbackTitle?: string): HastNode
           const layout = layoutErd(model);
           return {
             svg: renderErd(layout, title, markerPrefix),
-            description: `Entity relationship diagram with ${layout.entities.length} entities and ${layout.relations.length} relationships.`,
+            description: `Entity relationship diagram with ${layout.entities.length} entities and ${layout.relations.length} relationships. Each relationship shows M at the referencing entity and 1 at the referenced entity.`,
           };
         })();
 

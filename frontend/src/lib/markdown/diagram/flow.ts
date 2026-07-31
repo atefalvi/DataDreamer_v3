@@ -10,13 +10,13 @@ import {
   type LayoutFlowNode,
 } from "./types";
 
-const NODE_HEIGHT = 56;
-const MIN_NODE_WIDTH = 144;
-const MAX_NODE_WIDTH = 280;
-const COLUMN_GAP = 54;
+const NODE_HEIGHT = 52;
+const MIN_NODE_WIDTH = 112;
+const MAX_NODE_WIDTH = 232;
+const MIN_COLUMN_GAP = 56;
 const LANE_PITCH = 116;
-const PAD_X = 24;
-const PAD_Y = 30;
+const PAD_X = 18;
+const PAD_Y = 24;
 const LOOP_GAP = 32;
 const LOOP_CHANNEL_GAP = 18;
 const MAX_NODES = 80;
@@ -33,7 +33,12 @@ function keyFor(label: string): string {
 }
 
 function nodeWidth(label: string): number {
-  return Math.max(MIN_NODE_WIDTH, Math.min(MAX_NODE_WIDTH, 48 + [...label].length * 8.2));
+  return Math.max(MIN_NODE_WIDTH, Math.min(MAX_NODE_WIDTH, 36 + [...label].length * 7.4));
+}
+
+function edgeLabelGap(label: string | undefined): number {
+  if (!label) return MIN_COLUMN_GAP;
+  return Math.max(MIN_COLUMN_GAP, 18 + [...label.toUpperCase()].length * 7);
 }
 
 function cleanBranchLabel(value: string): string {
@@ -186,12 +191,23 @@ export function layoutFlow(graph: FlowGraph): FlowLayout {
   for (const node of graph.nodes) {
     rankWidths.set(node.rank, Math.max(rankWidths.get(node.rank) ?? 0, nodeWidth(node.label)));
   }
+  const graphNodesById = new Map(graph.nodes.map((node) => [node.id, node]));
+  const rankGaps = new Map<number, number>();
+  for (const edge of graph.edges) {
+    const source = graphNodesById.get(edge.source);
+    const target = graphNodesById.get(edge.target);
+    if (!source || !target || target.rank !== source.rank + 1) continue;
+    rankGaps.set(
+      source.rank,
+      Math.max(rankGaps.get(source.rank) ?? MIN_COLUMN_GAP, edgeLabelGap(edge.label)),
+    );
+  }
   const ranks = [...rankWidths.keys()].sort((a, b) => a - b);
   const rankX = new Map<number, number>();
   let cursorX = PAD_X;
   for (const rank of ranks) {
     rankX.set(rank, cursorX);
-    cursorX += (rankWidths.get(rank) ?? MIN_NODE_WIDTH) + COLUMN_GAP;
+    cursorX += (rankWidths.get(rank) ?? MIN_NODE_WIDTH) + (rankGaps.get(rank) ?? MIN_COLUMN_GAP);
   }
 
   const nodes: LayoutFlowNode[] = graph.nodes.map((node) => {
@@ -275,7 +291,12 @@ export function layoutFlow(graph: FlowGraph): FlowLayout {
 
   const maxNodeX = Math.max(...nodes.map((node) => node.x + node.width));
   return {
-    width: Math.ceil(Math.max(maxNodeX + PAD_X, cursorX - COLUMN_GAP + PAD_X)),
+    width: Math.ceil(
+      Math.max(
+        maxNodeX + PAD_X,
+        cursorX - (rankGaps.get(ranks.at(-1) ?? 0) ?? MIN_COLUMN_GAP) + PAD_X,
+      ),
+    ),
     height: Math.ceil(maxRouteY + PAD_Y + (loopChannel ? 12 : 0)),
     nodes,
     edges,
@@ -293,6 +314,13 @@ function element(tagName: string, properties: Record<string, unknown>, children:
 /** Render a completed flow layout as inline, server-generated SVG HAST. */
 export function renderFlow(layout: FlowLayout, title: string, markerPrefix: string): HastNode {
   const markerId = `${markerPrefix}-arrow`;
+  const accentMarkerId = `${markerPrefix}-arrow-accent`;
+  const marker = (id: string, className: string[]) =>
+    element(
+      "marker",
+      { id, markerWidth: "8", markerHeight: "8", refX: "7", refY: "4", orient: "auto" },
+      [element("path", { className, d: "M0 0L8 4L0 8Z" })],
+    );
   return element(
     "svg",
     {
@@ -307,11 +335,8 @@ export function renderFlow(layout: FlowLayout, title: string, markerPrefix: stri
     [
       element("title", {}, [text(title)]),
       element("defs", {}, [
-        element(
-          "marker",
-          { id: markerId, markerWidth: "8", markerHeight: "8", refX: "7", refY: "4", orient: "auto" },
-          [element("path", { className: ["diagram-arrow"], d: "M0 0L8 4L0 8Z" })],
-        ),
+        marker(markerId, ["diagram-arrow"]),
+        marker(accentMarkerId, ["diagram-arrow", "diagram-arrow--accent"]),
       ]),
       element(
         "g",
@@ -319,9 +344,13 @@ export function renderFlow(layout: FlowLayout, title: string, markerPrefix: stri
         layout.edges.map((edge) =>
           element("g", { className: ["diagram-edge-group"] }, [
             element("path", {
-              className: ["diagram-edge", `diagram-edge--${edge.routeKind}`],
+              className: [
+                "diagram-edge",
+                `diagram-edge--${edge.routeKind}`,
+                ...(edge.reference ? ["diagram-edge--reference"] : []),
+              ],
               d: edge.path,
-              markerEnd: `url(#${markerId})`,
+              markerEnd: `url(#${edge.reference ? accentMarkerId : markerId})`,
               dataTargetAnchor: edge.targetAnchor,
               ...(edge.loopChannel === undefined ? {} : { dataLoopChannel: String(edge.loopChannel) }),
             }),
@@ -358,7 +387,7 @@ export function renderFlow(layout: FlowLayout, title: string, markerPrefix: stri
                 y: fmt(node.y),
                 width: fmt(node.width),
                 height: fmt(node.height),
-                rx: node.decision ? "28" : "8",
+                rx: node.decision ? String(NODE_HEIGHT / 2) : "8",
               }),
               element(
                 "text",

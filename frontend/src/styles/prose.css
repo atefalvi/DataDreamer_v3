@@ -1357,7 +1357,6 @@
   padding: var(--space-5);
   background: var(--bg-0);
   overscroll-behavior-inline: contain;
-  scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1388,14 +1387,19 @@
   vector-effect: non-scaling-stroke;
 }
 
-.prose .diagram-edge--local-loop,
-.blog-content .diagram-edge--local-loop {
+.prose .diagram-edge--reference,
+.blog-content .diagram-edge--reference {
   stroke: color-mix(in srgb, var(--accent) 72%, var(--border-2));
 }
 
 .prose .diagram-arrow,
 .blog-content .diagram-arrow {
   fill: var(--border-2);
+}
+
+.prose .diagram-arrow--accent,
+.blog-content .diagram-arrow--accent {
+  fill: color-mix(in srgb, var(--accent) 72%, var(--border-2));
 }
 
 .prose .diagram-edge__label,
@@ -1456,13 +1460,49 @@
   stroke: color-mix(in srgb, var(--diagram-purple) 58%, var(--border-2));
 }
 
-.prose .diagram-crow,
-.blog-content .diagram-crow {
-  fill: none;
-  stroke: var(--border-2);
-  stroke-width: 1.35;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.prose .diagram-relation__cardinality,
+.blog-content .diagram-relation__cardinality {
+  fill: var(--text-2);
+  stroke: var(--bg-0);
+  stroke-width: 4px;
+  paint-order: stroke;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  dominant-baseline: central;
+}
+
+.prose .diagram-relation-group,
+.blog-content .diagram-relation-group {
+  --diagram-relation-color: var(--text-3);
+}
+
+.prose .diagram-relation-group--blue,
+.blog-content .diagram-relation-group--blue { --diagram-relation-color: var(--diagram-blue); }
+.prose .diagram-relation-group--yellow,
+.blog-content .diagram-relation-group--yellow { --diagram-relation-color: var(--diagram-yellow); }
+.prose .diagram-relation-group--orange,
+.blog-content .diagram-relation-group--orange { --diagram-relation-color: var(--diagram-orange); }
+.prose .diagram-relation-group--green,
+.blog-content .diagram-relation-group--green { --diagram-relation-color: var(--diagram-green); }
+.prose .diagram-relation-group--purple,
+.blog-content .diagram-relation-group--purple { --diagram-relation-color: var(--diagram-purple); }
+
+.prose .diagram-relation-group .diagram-relation,
+.blog-content .diagram-relation-group .diagram-relation {
+  stroke: color-mix(in srgb, var(--diagram-relation-color) 56%, var(--border-2));
+  transition: stroke 160ms ease-out;
+}
+
+.prose .diagram-relation-group:hover .diagram-relation,
+.blog-content .diagram-relation-group:hover .diagram-relation {
+  stroke: var(--diagram-relation-color);
+  stroke-width: 2;
+}
+
+.prose .diagram-relation__cardinality--many,
+.blog-content .diagram-relation__cardinality--many {
+  fill: var(--diagram-relation-color);
 }
 
 .prose .diagram-entity__box,
@@ -1566,6 +1606,14 @@
   .prose .diagram-block__viewport,
   .blog-content .diagram-block__viewport {
     padding: var(--space-4);
+  }
+}
+
+@media (min-width: 48rem) {
+  .prose .diagram-svg,
+  .blog-content .diagram-svg {
+    width: min(100%, var(--diagram-width));
+    max-width: 100%;
   }
 }
 

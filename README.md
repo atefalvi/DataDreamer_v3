@@ -6,7 +6,7 @@ homelab through Coolify behind Cloudflare, live at **[data-dreamer.net](https://
 The surface: homepage, posts (rich markdown blocks: callouts, checklists, metrics,
 KaTeX formulas, image grids), project case studies, Dream Team profiles with a
 specialty network graph, login-gated **Field Guides** (email + Google SSO, progress
-tracking), a self-service contributor account area, dynamic per-post/project OG
+tracking), a self-service contributor account area, dynamic Post/Project/Guide OG
 cards, RSS, and sitemap. The **Orby** chat assistant floats on top from its own
 service (see below).
 
@@ -72,6 +72,5 @@ prompts, models, limits) lives in the Directus `orby` collection.
   `docs/AGENT_PROJECT_INSTRUCTIONS_SNIPPET.md` is the copy-ready Project instruction.
 - **Dream Team taxonomy:** `docs/SPECIALTIES_TAXONOMY.md`
 - **Cloudflare cache:** `docs/CLOUDFLARE_CACHE.md`
-- **Frontend consolidation:** `docs/CODEBASE_CONSOLIDATION_PLAN.md`
 - **Directus schema:** `backend/snapshot.yaml` is the current production structure;
   role and policy changes are administered in Directus and documented with the feature.

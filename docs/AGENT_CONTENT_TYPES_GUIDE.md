@@ -1,69 +1,115 @@
 # Agent Content Types Guide
 
-Source of truth for creating Posts, Projects, and Field Guides in Directus. Field names
-match `backend/snapshot.yaml`; routes and behavior match the Astro application.
+Canonical record-creation contract for DataDreamer Posts, Projects, and Field Guides
+in Directus. Field names and choices come from `backend/snapshot.yaml`; public routes,
+fallbacks, and access behavior come from the Astro application.
 
-## Choose the content type
+Use `docs/AGENT_CUSTOM_CALLOUTS_GUIDE.md` for Markdown blocks and
+`docs/AGENT_COVER_IMAGE_GUIDE.md` for cover generation. Never invent a collection,
+field, relation, choice, or status.
 
-| Use | When the primary value is |
-|---|---|
-| Post | An argument, lesson, reflection, pattern, or time-bounded observation |
-| Project | Evidence of completed work: problem, decisions, implementation, outcome, and trade-offs |
-| Field Guide | An ordered, annotated learning path made from sections and resources |
+## Choose the correct collection
 
-All three use `draft`, `in_review`, `published`, or `archived`. Public routes only show
-published content. Ordinary CMS changes are served by SSR on the next request; no
-frontend rebuild is required.
+| Content type | Primary value | Collection / route |
+|---|---|---|
+| Post | An argument, lesson, reflection, pattern, or observation | `posts` → `/blog/<slug>` |
+| Project | Evidence of completed work: problem, decisions, implementation, outcome, and limits | `projects` → `/projects/<slug>` |
+| Field Guide | An ordered, annotated learning path made from phases and resources | `guides` → `/guides/<slug>` |
 
-“Required” below is the authoring requirement for a complete record. Directus may
-supply a database default (notably `draft` status and beginner guide difficulty), but
-agents should still set intentional values rather than rely on an implicit default.
+All three collections use exactly these statuses:
+
+- `draft`: working content, not public;
+- `in_review`: editorially ready for review, not public;
+- `published`: eligible for public queries and routes;
+- `archived`: retained in the CMS but not public.
+
+Directus defaults new records to `draft`, but agents should always set status
+intentionally. Ordinary content updates are server-rendered from Directus; no frontend
+build is needed.
+
+### Requirement labels in this guide
+
+- **Schema required**: Directus marks the field required/non-null.
+- **Publish required**: the schema may permit an empty value, but the public experience
+  would be incomplete, misleading, or unstable without it.
+- **Recommended**: supported and normally valuable, but content can publish without it.
+- **Optional**: use only when relevant.
+- **System**: Directus owns it; do not author it manually.
 
 ## Posts
 
 - Collection: `posts`
+- Body field: `content`
 - Public route: `/blog/<slug>`
-- Body field: `content` (Markdown)
+- Primary purpose: one focused editorial idea, lesson, or argument.
 
-| Field | Requirement | Type / operational rule |
+### Post fields
+
+| Field | Requirement | Exact contract |
 |---|---|---|
 | `id` | System | UUID assigned by Directus |
-| `title` | Required | String; specific human-readable title |
-| `slug` | Required | Unique permanent lowercase `kebab-case` segment |
-| `status` | Required | `draft`, `in_review`, `published`, `archived` |
-| `excerpt` | Required | Plain-text card and description summary; usually 120–160 characters |
-| `content` | Required | Markdown; the route already renders the record title, so begin at H2 |
-| `author` | Required | M2O relation to `authors` |
-| `published_at` | At publish | Datetime; original public launch time |
-| `topics` | Recommended | M2M relation through `posts_topics` |
-| `cover_image` | Recommended | M2O file; used on cards, detail page, and per-post OG image |
-| `featured` | Optional | Boolean; eligibility for featured placements |
-| `series_label` | Optional | Short string naming a series |
-| `post_number` | Optional | Integer series/index marker |
-| `seo_title` | Optional | Search/social override; otherwise `title` |
-| `seo_description` | Optional | Search/social override; otherwise `excerpt` |
-| `noindex` | Optional | Boolean; removes from indexing/sitemaps, not access control |
-| `date_created`, `date_updated` | System | Directus audit timestamps; do not author manually |
+| `status` | Schema required | `draft`, `in_review`, `published`, or `archived`; default `draft` |
+| `title` | Schema required | Specific human-readable title |
+| `slug` | Schema required | Unique, permanent lowercase `kebab-case` route segment |
+| `excerpt` | Publish required | Plain-text card/meta summary; concise enough to scan without truncating the idea |
+| `content` | Publish required | Markdown article body; start at H2 because the page supplies H1 |
+| `author` | Publish required | M2O relation to one `authors.id`; the CMS also marks this field required |
+| `published_at` | Publish required | Original public launch datetime; preserve it on later edits |
+| `topics` | Recommended | M2M relations to existing `topics` records |
+| `cover_image` | Recommended | M2O relation to one Directus file |
+| `featured` | Optional | Boolean; makes the Post eligible for featured placement; default `false` |
+| `series_label` | Optional | Short series name shown with editorial metadata |
+| `post_number` | Optional | Integer position/identifier within a series |
+| `seo_title` | Optional | Search/social title override; fallback is `title` |
+| `seo_description` | Optional | Search/social description override; fallback is `excerpt` |
+| `noindex` | Optional | Boolean indexing/sitemap control; default `false`; not access control |
+| `date_created` | System | Directus creation timestamp |
+| `date_updated` | System | Directus edit timestamp; also versions generated social cards |
 
-Minimal complete record:
+### Post SEO, social image, and cover behavior
+
+Posts do have dedicated SEO fields. Treat them as optional overrides, not duplicate
+required copy:
+
+- Browser/search/social title: `seo_title` when present, otherwise `title`.
+- Meta/social description: `seo_description` when present, otherwise `excerpt`.
+- Indexing: `noindex: true` adds noindex behavior and excludes the Post from sitemap
+  queries. It does not make the URL private.
+- Social image: the route generates `/og/blog/<slug>.png`. When `cover_image` exists,
+  the generated card uses that cover as its visual background; otherwise it uses the
+  default Posts artwork. Title and author treatment are generated by the site.
+- On-page/card cover alt: Directus file description when available, otherwise title.
+
+Leave SEO overrides blank when the normal title and excerpt are already stronger. Do
+not repeat keywords or write search-engine filler.
+
+### Minimal complete Post draft
 
 ```yaml
 collection: posts
+status: draft
 title: Data contracts fail at the handoff
 slug: data-contracts-fail-at-the-handoff
-status: draft
 excerpt: A practical look at why ownership and escalation matter as much as schema validation.
 author: <authors.id>
 topics:
   - <topics.id>
 cover_image: <directus_files.id>
 featured: false
-content: <Markdown from the body skeleton below>
-# Set only when publishing:
+noindex: false
+content: <Markdown from the body pattern below>
+# Add only at publication:
 published_at: 2026-07-30T14:00:00Z
 ```
 
-Recommended body skeleton:
+Optional SEO override example:
+
+```yaml
+seo_title: Why data contracts fail at operational handoffs
+seo_description: Schema checks cannot replace ownership, escalation, and decision rights at the point where data changes hands.
+```
+
+### Recommended Post body pattern
 
 ```markdown
 ## The situation
@@ -87,50 +133,80 @@ Describe the useful pattern, action, or conclusion.
 Name what remains uncertain and where the lesson does not apply.
 ```
 
-Write a Post around one central idea. If the piece mainly demonstrates a shipped
-system and its implementation, use a Project.
+Keep one central idea. If the main value is a shipped system and its implementation,
+create a Project instead.
 
 ## Projects
 
 - Collection: `projects`
+- Body field: `body`
 - Public route: `/projects/<slug>`
-- Body field: `body` (Markdown)
+- Primary purpose: a case study that proves how work moved from problem to outcome.
 
-| Field | Requirement | Type / operational rule |
+### Project fields
+
+| Field | Requirement | Exact contract |
 |---|---|---|
 | `id` | System | UUID assigned by Directus |
-| `title` | Required | String naming the project or system |
-| `slug` | Required | Unique permanent lowercase `kebab-case` segment |
-| `status` | Required | `draft`, `in_review`, `published`, `archived` |
-| `summary` | Required | Plain-text problem/value summary |
-| `body` | Required | Markdown case study; begin at H2 |
-| `author` | Recommended | M2O relation to `authors` |
-| `year` | Recommended | Integer year completed or meaningfully shipped |
-| `role` | Recommended | String describing the author’s responsibility |
-| `topics` | Recommended | M2M relation through `projects_topics` |
-| `tags` | Optional | JSON array of specific tools/platforms, not a relation |
-| `links` | Optional | JSON array of `{ "label": string, "url": string }` |
-| `cover_image` | Recommended | M2O file; used on cards, detail hero, and per-project OG image |
-| `cover_alt` | Recommended | Explicit image alt text when file description is insufficient |
-| `featured` | Optional | Boolean; eligibility for featured placements |
-| `sort` | Optional | Integer manual catalog order |
-| `published_at` | At publish | Datetime; original public launch time |
-| `seo_title` | Optional | Search/social override; otherwise `title` |
-| `seo_description` | Optional | Search/social override; otherwise `summary` |
-| `noindex` | Optional | Boolean; indexing control, not privacy |
-| `date_created`, `date_updated` | System | Directus audit timestamps |
+| `status` | Publish required | `draft`, `in_review`, `published`, or `archived`; default `draft` |
+| `title` | Schema required | Project/system name |
+| `slug` | Schema required | Unique, permanent lowercase `kebab-case` route segment |
+| `summary` | Publish required | Plain-text problem/value summary used in cards and metadata |
+| `body` | Publish required | Markdown case study; begin at H2 |
+| `author` | Publish required | M2O relation to one `authors.id` for the byline |
+| `year` | Publish required | Integer year completed or meaningfully shipped |
+| `role` | Publish required | Plain-text description of the author’s responsibility |
+| `published_at` | Publish required | Original public launch datetime |
+| `topics` | Recommended | M2M relations to shared editorial `topics` |
+| `tags` | Optional | JSON array of strings for tools/platforms/techniques |
+| `links` | Optional | JSON array of `{ "label": string, "url": string }` objects |
+| `cover_image` | Recommended | M2O relation to one Directus file |
+| `cover_alt` | Recommended | Explicit visible-image description; fallback is title |
+| `featured` | Optional | Boolean featured eligibility; default `false` |
+| `sort` | Optional | Integer manual catalogue order |
+| `seo_title` | Optional | Search/social title override; fallback is `title` |
+| `seo_description` | Optional | Search/social description override; fallback is `summary` |
+| `noindex` | Optional | Boolean indexing/sitemap control; default `false` |
+| `date_created` | System | Directus creation timestamp |
+| `date_updated` | System | Directus edit timestamp; also versions generated social cards |
 
 There is no separate technology relation, repository field, demo field, result field,
-or outcome field. Put technologies in `tags`, repository/demo URLs in `links`, and
-results/outcomes in `body`. Do not invent Project fields from the Post schema.
+or outcome field. Put specific tools in `tags`, repository/demo/public URLs in `links`,
+and results/outcomes in `body`. Do not borrow fields from Posts or Guides.
 
-Minimal complete record:
+### Exact Project JSON shapes
+
+```json
+{
+  "tags": ["Tableau", "Data Visualization"],
+  "links": [
+    {
+      "label": "Open the public visualization",
+      "url": "https://public.tableau.com/views/example/Main"
+    }
+  ]
+}
+```
+
+Every link needs both a useful label and a valid URL. Do not store a raw URL string in
+`links`.
+
+### Project SEO, social image, and cover behavior
+
+- Browser/search/social title: `seo_title` when present, otherwise `title`.
+- Meta/social description: `seo_description` when present, otherwise `summary`.
+- `noindex: true` excludes the Project from sitemap queries but does not make it private.
+- Social image: `/og/projects/<slug>.png`; a related `cover_image` becomes the generated
+  card background, otherwise the default Projects artwork is used.
+- On-page/card alt: `cover_alt` when present, otherwise title.
+
+### Minimal complete Project draft
 
 ```yaml
 collection: projects
+status: draft
 title: Building a reliable Tableau waterfall chart with Gantt bars
 slug: tableau-waterfall-chart-gantt-method
-status: draft
 summary: A case study in stable waterfall calculations, checkpoints, and filter behavior.
 year: 2026
 role: Analytics engineer and designer
@@ -144,14 +220,15 @@ links:
   - label: Open the public visualization
     url: https://public.tableau.com/views/example/Main
 cover_image: <directus_files.id>
-cover_alt: Offset waterfall bars connected across a dark measured grid.
+cover_alt: Offset waterfall bars connected across a measured slate field.
 featured: false
-body: <Markdown from the body skeleton below>
-# Set only when publishing:
+noindex: false
+body: <Markdown from the body pattern below>
+# Add only at publication:
 published_at: 2026-07-30T14:00:00Z
 ```
 
-Recommended case-study skeleton:
+### Recommended Project body pattern
 
 ```markdown
 ## The problem
@@ -164,10 +241,10 @@ Systems, data, stakeholders, time, risk, and assumptions.
 
 ## The approach
 
-Architecture, workflow, implementation, and decisions.
+Architecture, workflow, implementation, and key decisions.
 
 :::technical System boundary
-Explain the technical decision that would interrupt the main narrative.
+Explain the implementation detail that would interrupt the main narrative.
 :::
 
 ## Trade-offs
@@ -176,101 +253,118 @@ What was chosen, rejected, deferred, or simplified.
 
 ## Outcome
 
-State measured or observed change. Never invent a metric.
+State measured or directly observed change. Never invent a metric.
 
 ## What I would do next
 
-Limitations, lessons, and the next useful iteration.
+Limits, lessons, and the next useful iteration.
 ```
 
 ## Field Guides
 
-- Collections and hierarchy: `guides` → `guide_sections` → `guide_items`
+- Hierarchy: `guides` → `guide_sections` → `guide_items`
 - Public route: `/guides/<slug>`
-- Catalogue and preview are public. Resource URLs/assets, item body, curator notes, and
-  learner progress are gated to authenticated guide readers by the application/service
-  layer. `noindex` affects search discovery, not access.
+- Primary purpose: a sequenced learning path with curator judgment, not a pile of links.
+- Access: catalogue, hero, summary, route rationale, outcomes, audience, section names,
+  and item preview metadata are public. Resource URLs/assets, item bodies, curator
+  annotations, and progress are available to authenticated guide readers.
 
-### `guides`
+### `guides` fields
 
-| Field | Requirement | Type / operational rule |
+| Field | Requirement | Exact contract |
 |---|---|---|
 | `id` | System | UUID assigned by Directus |
-| `title` | Required | String naming the learning path |
-| `slug` | Required | Unique permanent lowercase `kebab-case` segment |
-| `status` | Required | `draft`, `in_review`, `published`, `archived` |
-| `summary` | Required | Plain-text catalog/meta summary |
-| `difficulty` | Recommended | `beginner`, `intermediate`, or `advanced`; schema default is `beginner` |
-| `why_this_path` | Required | Markdown public pitch and sequencing rationale |
-| `author` | Recommended | M2O primary curator relation to `authors`; set for a public byline |
-| `published_at` | At publish | Datetime; original public launch time |
+| `status` | Publish required | `draft`, `in_review`, `published`, or `archived`; default `draft` |
+| `title` | Schema required | Learning-path title |
+| `slug` | Schema required | Unique, permanent lowercase `kebab-case` route segment |
+| `summary` | Schema required | Plain-text catalogue/meta summary |
+| `difficulty` | Recommended | `beginner`, `intermediate`, or `advanced`; default `beginner` |
+| `why_this_path` | Schema required | Markdown public pitch and sequencing rationale |
 | `expected_outcome` | Recommended | Markdown describing what completion enables |
-| `recommended_audience` | Recommended | Plain-text audience/prerequisite line |
-| `estimated_duration_minutes` | Recommended | Integer honest total; not auto-summed |
-| `sections` | Required operationally | O2M alias to sorted `guide_sections` |
-| `authors` | Optional | M2M additional curators |
+| `recommended_audience` | Recommended | Plain-text audience and prerequisite guidance |
+| `estimated_duration_minutes` | Recommended | Integer total entered by the curator; not auto-summed |
+| `author` | Publish required | M2O primary curator relation to `authors` |
+| `authors` | Optional | M2M additional curators; the primary author remains first and duplicates are removed |
+| `sections` | Publish required | O2M alias to intentionally sorted `guide_sections` |
 | `topics` | Recommended | M2M shared editorial taxonomy |
-| `specialties` | Optional | M2M capabilities/disciplines |
-| `cover_image` | Recommended | M2O file used on cards, detail page, and per-guide OG image |
-| `featured` | Optional | Boolean; eligibility for featured placements |
-| `sort` | Optional | Integer manual catalog order |
-| `seo_title` | Optional | Search/social override; otherwise `title` |
-| `seo_description` | Optional | Search/social override; otherwise `summary` |
-| `noindex` | Optional | Boolean; indexing control only |
-| `date_created`, `date_updated` | System | Directus audit timestamps |
+| `specialties` | Optional | M2M capability/discipline connections |
+| `cover_image` | Recommended | M2O relation to one Directus file |
+| `featured` | Optional | Boolean featured eligibility; default `false` |
+| `sort` | Optional | Integer manual catalogue order |
+| `published_at` | Publish required | Original public launch datetime |
+| `seo_title` | Optional | Search/social title override; fallback is `title` |
+| `seo_description` | Optional | Search/social description override; fallback is `summary` |
+| `noindex` | Optional | Boolean indexing/sitemap control; default `false` |
+| `date_created` | System | Directus creation timestamp |
+| `date_updated` | System | Directus edit timestamp; also versions generated social cards |
 
-### `guide_sections`
+### Guide SEO, social image, and cover behavior
 
-| Field | Requirement | Type / operational rule |
+Guides have the same dedicated SEO controls as Posts and Projects:
+
+- Browser/search/social title: `seo_title` when present, otherwise `title`.
+- Meta/social description: `seo_description` when present, otherwise `summary`.
+- `noindex: true` controls search discovery only; it is not the guide access gate.
+- Social image: `/og/guides/<slug>.png`; a related `cover_image` becomes the generated
+  card background, otherwise the default Guides artwork is used.
+- Cover alt: Directus file description when available, otherwise title.
+
+### `guide_sections` fields
+
+| Field | Requirement | Exact contract |
 |---|---|---|
 | `id` | System | UUID assigned by Directus |
-| `guide` | Required | M2O parent relation to `guides` |
-| `title` | Required | String naming a phase of the path |
+| `guide` | Publish required | M2O parent relation to `guides.id` |
+| `title` | Schema required | Phase/section title |
 | `description` | Optional | Markdown section introduction |
-| `sort` | Required | Integer display order within the guide |
+| `sort` | Publish required | Integer order within the Guide |
 | `items` | Operational alias | O2M alias to sorted `guide_items` |
 
-### `guide_items`
+### `guide_items` fields
 
-| Field | Requirement | Type / operational rule |
+| Field | Requirement | Exact contract |
 |---|---|---|
-| `section` | Required | M2O parent relation to `guide_sections` |
-| `type` | Required | One exact value from the mapping below |
-| `title` | Required | String naming the resource or activity |
-| `description` | Recommended | Plain-text one-line description |
-| `url` | Conditional | HTTPS URL for link-like types |
-| `asset` | Conditional | M2O Directus file for file types |
-| `body` | Conditional | Markdown for inline types |
-| `why_included` | Recommended | Markdown curator rationale |
-| `focus_on` | Recommended | Markdown guidance on what to use or skip |
-| `notes` | Optional | Markdown gotchas, setup traps, or personal context |
-| `estimated_time_minutes` | Recommended | Integer per-item estimate used for remaining time |
-| `difficulty` | Optional | `beginner`, `intermediate`, or `advanced`; defaults to `beginner` when set implicitly |
-| `sort` | Required | Integer display order within the section |
-| `id` | System | UUID |
+| `id` | System | UUID assigned by Directus |
+| `section` | Publish required | M2O parent relation to `guide_sections.id` |
+| `type` | Schema required | One exact item type from the mapping below |
+| `title` | Schema required | Resource or activity title |
+| `description` | Recommended | Plain-text one-line public preview description |
+| `url` | Conditional | HTTPS URL for link-like item types |
+| `asset` | Conditional | M2O Directus file for file item types |
+| `body` | Conditional | Markdown for inline item types |
+| `why_included` | Recommended | Markdown curator rationale; reader-only |
+| `focus_on` | Recommended | Markdown explaining what to use or skip; reader-only |
+| `notes` | Optional | Markdown setup traps, gotchas, or personal context; reader-only |
+| `estimated_time_minutes` | Recommended | Integer item estimate used in remaining-time calculations |
+| `difficulty` | Optional | `beginner`, `intermediate`, or `advanced`; default `beginner` |
+| `sort` | Publish required | Integer order within the section |
+
+### Exact Guide item-type mapping
 
 | `type` | Required content field | Reader behavior |
 |---|---|---|
-| `youtube` | `url` | Privacy-friendly inline facade after interaction |
-| `external_url` | `url` | New-tab external link |
-| `github_repo` | `url` | New-tab repository link |
-| `docs_page` | `url` | New-tab documentation link |
-| `notebooklm` | `url` | New-tab NotebookLM link |
-| `pdf` | `asset` | Open/download file |
-| `uploaded_file` | `asset` | Download file |
+| `youtube` | `url` | Privacy-friendly video facade; loads after interaction |
+| `external_url` | `url` | New-tab external resource |
+| `github_repo` | `url` | New-tab repository |
+| `docs_page` | `url` | New-tab documentation page |
+| `notebooklm` | `url` | New-tab NotebookLM resource |
+| `pdf` | `asset` | Open/download related file |
+| `uploaded_file` | `asset` | Download related file |
 | `code_sample` | `body` | Rendered inline Markdown/code |
 | `cheat_sheet` | `body` | Rendered inline Markdown |
 | `personal_note` | `body` | Rendered inline Markdown |
-| `exercise` | `body` | Rendered inline Markdown |
+| `exercise` | `body` | Rendered inline Markdown activity |
 
-Minimal guide with one section and two items:
+Do not put a URL into `body` for a link type or an uploaded file ID into `url`.
+
+### Minimal Guide hierarchy
 
 ```yaml
 guide:
   collection: guides
+  status: draft
   title: A practical operating model for governed analytics
   slug: governed-analytics-operating-model
-  status: draft
   summary: A sequenced path from ownership and definitions to controls and adoption.
   difficulty: intermediate
   estimated_duration_minutes: 240
@@ -282,29 +376,41 @@ guide:
   why_this_path: <Markdown public pitch>
   expected_outcome: <Markdown completion outcome>
   recommended_audience: Analysts and delivery leads responsible for shared reporting.
+  cover_image: <directus_files.id>
+  featured: false
+  noindex: false
+  # Add only at publication:
+  published_at: 2026-07-30T14:00:00Z
+
 section:
   collection: guide_sections
   guide: <guide.id>
   title: Establish the operating boundary
   description: <Markdown section introduction>
   sort: 1
+
 items:
   - collection: guide_items
     section: <section.id>
     type: docs_page
     title: Define ownership and escalation
+    description: A practical decision-rights reference.
     url: https://example.org/ownership
     why_included: <Markdown curator rationale>
-    focus_on: The decision rights table and escalation path.
+    focus_on: The decision-rights table and escalation path.
     estimated_time_minutes: 25
+    difficulty: intermediate
     sort: 1
+
   - collection: guide_items
     section: <section.id>
     type: exercise
     title: Map one metric from owner to consumer
-    body: <Markdown inline exercise below>
-    why_included: Applies the operating model to a real handoff.
+    description: Apply the operating model to a live production metric.
+    body: <Markdown inline exercise>
+    why_included: Applies the model to a real handoff.
     estimated_time_minutes: 35
+    difficulty: intermediate
     sort: 2
 ```
 
@@ -326,41 +432,55 @@ Choose one production metric and record:
 :::
 ```
 
-The guide’s value is the route and curator judgment, not a pile of links. Fill
-`why_included` on most items and `focus_on` whenever a resource is long or partly irrelevant.
+The Guide’s value is its sequence and curator judgment. Fill `why_included` for most
+items and `focus_on` whenever a resource is long or only partly relevant.
 
-## Shared operating rules
+## Shared relation and taxonomy rules
 
-- Keep slugs stable after publication. Redirects are not created automatically.
-- Relate the real `authors` record and reuse existing `topics`; do not create a topic
-  for every tool. Projects use `tags` for tool-level detail.
-- Contributors work in `draft`, move ready work to `in_review`, and an administrator
-  sets `published_at` and `published`. Preserve the original publish date on later edits.
-- Leave SEO overrides blank when the normal title and summary/excerpt are stronger.
-- A cover is one Directus file relation. Follow `docs/AGENT_COVER_IMAGE_GUIDE.md` and
-  provide accurate alt text/file description.
-- Markdown fields use `docs/AGENT_CUSTOM_CALLOUTS_GUIDE.md`; never invent a block or field.
+- Relation fields use the existing Directus record IDs, not copied names.
+- Reuse existing `topics`; they are broad editorial categories, not one-off tool tags.
+- Projects use `tags` for tools and techniques. Posts and Guides do not have `tags`.
+- `specialties` connect Guides and authors to reusable cross-industry capabilities.
+- Use the real `authors` record. Do not create a second author record for the same person.
+- Keep slugs stable after publication; redirects are not created automatically.
 
-## Pre-publish checklists
+## Publication workflow
 
-Post:
+1. Create and validate the record in `draft`.
+2. Resolve all Publish required fields, relations, assets, links, and Markdown.
+3. Move it to `in_review` for editorial review.
+4. Set the original `published_at` and move to `published` only after approval.
+5. Preserve `published_at` on later edits. Directus manages `date_updated`.
 
-- [ ] One central idea; `title`, `excerpt`, `content`, author, topics, and date agree.
-- [ ] Claims have evidence; body starts at H2; cover/SEO/OG fallbacks are correct.
+`published` without a valid `published_at`, author, summary/excerpt, or body may still
+produce a technically reachable record with weak fallbacks. Treat the publication
+contract above as mandatory.
 
-Project:
+## Final validation
+
+### Post
+
+- [ ] One central idea; title, excerpt, content, author, topics, and date agree.
+- [ ] Body starts at H2; claims are evidenced; SEO overrides are intentional.
+- [ ] Cover/file description and generated social-card background are correct.
+
+### Project
 
 - [ ] Problem, role, constraints, decisions, trade-offs, evidence, outcome, and limits are clear.
-- [ ] `tags` and `links` use their exact JSON shapes; cover alt text is specific.
+- [ ] `tags` and `links` use their exact JSON shapes.
+- [ ] `cover_alt`, SEO overrides, and generated social-card background are correct.
 
-Field Guide:
+### Field Guide
 
-- [ ] Sections and items have intentional `sort` values and tell a coherent learning story.
-- [ ] Every item fills the field required by its `type`; gated details are not relied on in public copy.
-- [ ] Most items explain `why_included`; long resources explain `focus_on`; time estimates are honest.
+- [ ] Sections/items have intentional `sort` values and form a coherent route.
+- [ ] Every item fills the field required by its exact `type`.
+- [ ] Public preview copy is useful without exposing gated URLs or bodies.
+- [ ] Most items explain `why_included`; long resources explain `focus_on`.
+- [ ] SEO overrides and generated social-card background are correct.
 
-All:
+### All collections
 
-- [ ] `status`, stable slug, `published_at`, relations, SEO overrides, and `noindex` are intentional.
-- [ ] Every Markdown example/block renders in dark/light themes and at mobile width.
-- [ ] Placeholder IDs, URLs, assets, and unsupported claims are removed.
+- [ ] Status, stable slug, original `published_at`, relations, `featured`, and `noindex` are intentional.
+- [ ] Optional SEO fields are used as genuine improvements, not repeated copy.
+- [ ] Markdown uses only the blocks and attributes in the canonical custom-block guide.
+- [ ] Placeholder IDs, URLs, unsupported claims, and temporary notes are removed.

@@ -1,172 +1,174 @@
 # Agent Cover Image Guide
 
-Source of truth for generating one text-free cover for a DataDreamer Post, Project, or
-Field Guide. Collection fields live in `docs/AGENT_CONTENT_TYPES_GUIDE.md`.
+Canonical generation brief for DataDreamer Post, Project, and Field Guide covers.
+Use the content type, title, and summary to create a specific visual concept, but never
+render the title or any other text inside the image.
 
-## Inputs
+## Required inputs
 
-Use the supplied:
+- Content type: Post, Project, or Field Guide.
+- Exact title, for concept only.
+- Exact summary, for concept only.
+- Optional factual motif, process, object, or constraint that must be represented.
 
-- content type: Post, Project, or Field Guide;
-- title;
-- summary;
-- optional factual motif, object, process, or constraint that must be represented.
+Ask only when a required input is missing. Do not infer facts that are absent from the
+title and summary.
 
-Ask only for a missing input. The title and summary control the concept; they must not
-appear inside the image.
+## Required output
 
-## Output
+- Generate **three finished cover options** so the editor can choose the strongest
+  concept. They should be meaningfully different compositions, not colour swaps.
+- Use a different approved background colour for each option when possible.
+- Size each option at **2400 × 1500 px**, landscape **16:10**. Never go below
+  1600 × 1000 px.
+- Keep the essential motif inside the central 70% of the width and central 60% of the
+  height. The image must survive a 16:10 card, a wide 21:9 detail crop, and taller
+  mobile crops.
+- Deliver flat images with no built-in frame, rounded corners, border, shadow, or UI
+  chrome. The website supplies its own crop and card treatment.
+- Check every option at thumbnail size and beside both dark and light site surfaces.
 
-- Produce one finished cover by default. Generate alternatives only when the user asks.
-- Preferred size: **2400 × 1500 px**, landscape **16:10**. Minimum: 1600 × 1000 px.
-- Accepted upload formats: PNG, high-quality JPEG, or WebP.
-- Keep the essential motif within the central 70% of the width and central 60% of the
-  height. It must survive 16:10 cards, a wide 21:9 detail crop, and taller mobile crops.
-- Deliver a flat image: no built-in frame, border, rounded corners, shadow, or UI chrome.
-- It must remain deliberate against both dark and light site themes and readable at
-  thumbnail size.
+Universal exclusion: **no text of any kind**—no words, letters, numbers, labels,
+logos, watermarks, signatures, pseudo-text, or fake interface copy.
 
-Universal exclusion: **no text of any kind**—no words, letters, numbers, labels, logos,
-watermarks, signatures, pseudo-text, or fake UI copy.
+## Approved background palette
 
-## DataDreamer visual DNA
+Every cover must use exactly one of these colours as its dominant background field.
+These mid-value editorial colours were selected to remain composed in both light and
+dark themes. Do not replace them with black, white, a theme-specific background, or an
+unapproved gradient.
 
-Create a quiet technical editorial illustration, not advertising art. Use disciplined
-geometry, restrained depth, crisp or finely textured matte surfaces, generous negative
-space, and one clear focal idea. A viewer should be able to connect the image to the
-actual title and summary; never recycle a generic “data” or “AI” motif.
+```css
+:root {
+  --cover-paper-stone: #CBC6BC;
+  --cover-archive-sage: #55644F;
+  --cover-system-slate: #4F5E64;
+  --cover-rain-teal: #5E8287;
+  --cover-kiln-clay: #BE8A74;
+  --cover-violet-graphite: #4A4257;
+  --cover-mineral-grey: #4A4A4A;
+}
 
-Choose one primary metaphor and one visual route through it. Useful forms include
-measured paths, gates, steps, joins, layers, boundaries, timelines, matrices, contours,
-and sparse relational fields. Every mark and connection must serve the concept.
+/* HEX LIST
+Paper Stone: #CBC6BC
+Archive Sage: #55644F
+System Slate: #4F5E64
+Rain Teal: #5E8287
+Kiln Clay: #BE8A74
+Violet Graphite: #4A4257
+Mineral Grey: #4A4A4A
+*/
+```
 
-### Palette
-
-| Role | Token color | Use |
+| Background | Character | Good fit |
 |---|---|---|
-| Ink | `#0A0C10` | Dominant field and negative space |
-| Raised ink | `#0F1318`, `#161B22` | Restrained depth and planes |
-| Structure | `#2E3744` | Fine grids, rules, and secondary links |
-| Paper | `#EDEFF3` | Sparse high-contrast highlights |
-| Signal orange | `#FF5C38` | Primary accent and directional emphasis |
-| Data blue | `#5CA7FF` | Optional secondary category |
-| Data green | `#3ECF8E` | Optional success/completed state |
-| Data violet | `#C792EA` | Rare categorical contrast |
-| Data yellow | `#F5B83D` | Rare threshold/warning state |
+| Paper Stone `#CBC6BC` | Archival, quiet, analytical | Definitions, research, operating models |
+| Archive Sage `#55644F` | Governed, grounded, institutional | Governance, stewardship, durable process |
+| System Slate `#4F5E64` | Technical, structural, precise | Architecture, engineering, implementation |
+| Rain Teal `#5E8287` | Exploratory, connected, measured | Analysis, systems thinking, networks |
+| Kiln Clay `#BE8A74` | Human, material, reflective | People, decisions, practice, change |
+| Violet Graphite `#4A4257` | Conceptual, layered, investigative | Models, uncertainty, advanced methods |
+| Mineral Grey `#4A4A4A` | Neutral, rigorous, documentary | Case studies, tooling, restrained comparisons |
 
-Aim for 75–85% ink or quiet negative space. Signal orange usually occupies no more
-than 10–15%. Use at most one secondary data color unless the subject truly requires
-multiple categories. Avoid uncontrolled rainbow palettes. The deep-ink editorial plate
-is intentional in light mode; do not generate a washed-out “light-theme version.”
+The selected background should occupy roughly 75–90% of the composition. Use the
+site’s signal orange `#FF5C38` sparingly for one focal route, transition, or decision.
+Supporting marks may use warm paper `#EDEFF3` or deep ink `#0A0C10`, chosen for clear
+contrast against the selected background. One restrained secondary category colour
+is allowed only when the subject requires a real distinction. Do not use a rainbow
+palette.
 
-## Choose the concept by content type
+## Visual language
 
-| Type | Express | Useful vocabulary |
+Create a quiet technical editorial illustration that feels like one plate from a
+coherent systems atlas. Use:
+
+- disciplined geometry and accurate spatial relationships;
+- one primary metaphor and one clear focal idea;
+- meaningful paths, joins, gates, layers, boundaries, measures, or checkpoints;
+- generous negative space and strong hierarchy at card size;
+- matte, finely textured surfaces and restrained depth only when it clarifies order;
+- asymmetry when it improves composition, not random imbalance.
+
+Every mark must help explain the specific title and summary. A generic “data,” “AI,”
+or network motif is not enough.
+
+## Translate the content type
+
+| Type | Visualize | Useful structural vocabulary |
 |---|---|---|
-| Post | The central idea, tension, change, or argument | contrast, threshold, divergence, feedback, before/after state |
-| Project | The system, process, architecture, constraint, or result | workflow, dependency, boundary, measured build, resilient route |
-| Field Guide | Progression, learning path, sequence, map, or connected knowledge | ordered checkpoints, branching route, layers of mastery, curated constellation |
+| Post | The central argument, tension, lesson, or change | contrast, threshold, divergence, feedback, before/after |
+| Project | The built system, workflow, constraint, decision, or result | dependency, boundary, measured build, resilient route, transformation |
+| Field Guide | The ordered learning journey and curator logic | checkpoints, progression, branching route, layers of mastery, connected knowledge |
 
-Derive the metaphor from the specific content. For a waterfall-chart Project, use
-offset measures and a controlled cumulative path—not a dashboard screenshot. For a
-governance Guide, use traceable ownership boundaries and an ordered route—not random
-network particles.
+Examples of the distinction:
 
-## Composition rules
-
-- One primary metaphor and focal point; no competing centerpieces.
-- Strong silhouette and hierarchy at small card size.
-- Asymmetry is welcome when balanced by purposeful negative space.
-- Keep crop-critical nodes and transitions in the central safe area.
-- Use restrained depth or a small soft falloff only to clarify hierarchy.
-- Prefer visual behavior over literal industry props.
-- The image family should feel like plates from one editorial systems atlas, while each
-  cover remains specific to its content.
+- A waterfall-chart Project should use offset measures, a controlled cumulative path,
+  and stable checkpoints—not a screenshot of a dashboard.
+- A governance Field Guide should show traceable ownership boundaries and an ordered
+  route—not decorative connected dots.
+- A Post about a failed handoff should make the boundary and misalignment visible—not
+  show generic office collaboration.
 
 ## Hard exclusions
 
-Do not create glowing AI brains, robots, holograms, random network particles, fake
-dashboards, fake code, screens of decorative code, floating glass cards, glossy icon
-packs, stock-business scenes, staged teams or handshakes, generic globes, cloud/database
-montages, neon cyber maps, heavy lens flares, meaningless particles, dense charts,
-decorative clutter, or multiple unrelated visual metaphors.
+Never create glowing AI brains, robots, holograms, random network particles, fake
+dashboards, fake code, decorative screens, floating glass cards, glossy icon packs,
+stock-business scenes, staged teams or handshakes, generic globes, cloud/database
+montages, neon cyber maps, heavy lens flares, meaningless particles, dense unreadable
+charts, decorative clutter, or several unrelated metaphors.
 
-## Copy-ready prompt
+## Copy-ready generation prompt
 
 ```text
-Create one finished, text-free editorial cover for DataDreamer.
+Create three finished, text-free editorial covers for DataDreamer.
 
 Content type: [POST / PROJECT / FIELD GUIDE]
 Title, for concept only—do not render it: [TITLE]
 Summary, for concept only—do not render it: [SUMMARY]
-Required factual motif, if any: [OPTIONAL]
+Required factual motif or constraint, if supplied: [OPTIONAL]
 
-Translate the actual title and summary into one primary visual metaphor. For a Post,
-express the central idea, tension, change, or argument. For a Project, express the
-system, process, architecture, constraint, or result. For a Field Guide, express an
-ordered learning path, progression, map, or connected body of knowledge.
+Translate the exact title and summary into one primary visual metaphor per option.
+The three options must use meaningfully different compositions, not the same image in
+different colours. For a Post, express the argument, tension, lesson, or change. For a
+Project, express the system, workflow, implementation constraint, decision, or result.
+For a Field Guide, express an ordered learning path, progression, or connected body of
+knowledge.
 
-Use DataDreamer’s quiet technical editorial language: disciplined geometry, meaningful
-paths or measured structures, restrained matte depth, crisp fine lines, generous
-negative space, and one clear focal idea. Use a dominant #0A0C10 ink field, subtle
-#0F1318 and #161B22 depth, fine #2E3744 structure, sparse #EDEFF3 highlights, and a
-restrained #FF5C38 signal accent. Use at most one optional secondary data color.
+Use DataDreamer’s quiet technical editorial language: disciplined geometry,
+purposeful paths or measured structures, matte surfaces, restrained depth, generous
+negative space, and one clear focal idea. Each option must use exactly one approved
+dominant background and use three different backgrounds across the set when possible:
+Paper Stone #CBC6BC, Archive Sage #55644F, System Slate #4F5E64, Rain Teal #5E8287,
+Kiln Clay #BE8A74, Violet Graphite #4A4257, or Mineral Grey #4A4A4A. Use signal orange
+#FF5C38 only as a restrained focal accent. Use warm paper #EDEFF3 or deep ink #0A0C10
+for high-contrast structure as appropriate.
 
-Output one landscape 16:10 image at 2400×1500 px. Keep the essential motif inside the
-central 70% width and central 60% height so it survives 16:10 cards, a 21:9 detail crop,
-and mobile crops. It must read at thumbnail size and work unchanged against dark and
-light website surfaces. Do not add a frame, border, rounded corners, or shadow.
+Output each option at 2400×1500 px (16:10). Keep the essential motif inside the
+central 70% width and central 60% height so it survives 16:10 cards, a 21:9 detail
+crop, and mobile crops. It must read at thumbnail size and work unchanged beside both
+dark and light website themes. Do not add a frame, border, rounded corners, shadow, or
+UI chrome.
 
-No text of any kind, letters, numbers, labels, logos, watermarks, pseudo-text, UI copy,
-fake dashboard, fake code, generic AI imagery, glowing brain, robot, hologram, random
-network particles, floating glass cards, stock-business scene, rainbow palette, or
-decorative clutter. Return one finished cover. Create alternatives only if requested.
+No text of any kind: no words, letters, numbers, labels, logos, watermarks,
+pseudo-text, or interface copy. No fake dashboard, fake code, generic AI imagery,
+brain, robot, hologram, random network particles, floating glass cards,
+stock-business scene, rainbow palette, or decorative clutter.
 ```
 
-## Example prompts
+## QA before delivery
 
-Post:
-
-```text
-Create one DataDreamer cover for the Post “Data contracts fail at the handoff.” The
-summary explains that validation alone cannot replace ownership and escalation. Show
-one precise signal crossing a clearly measured boundary, with the handoff initially
-misaligned and then resolved by one restrained orange route. Use the full DataDreamer
-palette, crop, no-text, no-fake-UI, and single-focal-idea rules from this guide.
-```
-
-Project:
-
-```text
-Create one DataDreamer cover for the Project “Building a reliable Tableau waterfall
-chart with Gantt bars.” Express a cumulative system through offset measured bars tied
-to one stable baseline and a few checkpoints. Emphasize one transition in orange;
-communicate calculation stability without copying Tableau or showing a dashboard. Use
-the full DataDreamer palette, crop, no-text, and single-focal-idea rules from this guide.
-```
-
-Field Guide:
-
-```text
-Create one DataDreamer cover for the Field Guide “A practical operating model for
-governed analytics.” Show an ordered path moving through ownership, definition,
-control, and adoption as four purposeful boundaries or checkpoints. Connections must
-be sparse and traceable, not a random network. Use the full DataDreamer palette, crop,
-no-text, and single-focal-idea rules from this guide.
-```
-
-## QA and upload
-
-- [ ] The concept is specific to the title and summary, with one obvious focal idea.
+- [ ] Three options are supplied and differ in concept/composition, not only colour.
+- [ ] Each option uses one exact approved background colour.
+- [ ] The concept is specific to the supplied title and summary.
 - [ ] No text, pseudo-text, logo, watermark, fake UI, or excluded trope appears.
-- [ ] The key motif remains clear at thumbnail size.
+- [ ] The focal idea remains clear at thumbnail size.
 - [ ] Central content survives 16:10, 21:9, and mobile crops.
-- [ ] Palette and contrast feel intentional beside both dark and light site themes.
-- [ ] The image has no built-in card treatment.
-- [ ] Filename is descriptive, for example `tableau-waterfall-gantt-cover.webp`.
-- [ ] Directus file description/alt text describes visible content, not the article
-  title—for example: “Offset bars connected along a dark measured grid, with one orange
-  transition marking the cumulative path.”
+- [ ] Contrast remains deliberate beside both light and dark site themes.
+- [ ] No built-in card treatment is present.
+- [ ] Files have descriptive names such as `tableau-waterfall-gantt-cover-01.webp`.
+- [ ] The Directus file description/alt text describes visible content rather than
+  repeating the title—for example, “Offset bars follow a measured cumulative path on
+  a System Slate field, with one orange transition marking the key movement.”
 
-If a check fails, revise the image. Do not compensate with text, a logo, more effects,
-or more objects.
+If an option fails a check, revise the image. Do not compensate by adding text, more
+effects, or more objects.

@@ -113,6 +113,47 @@ describe("renderMarkdown v4 pipeline", () => {
     expect(html).toMatch(/<blockquote>[\s\S]*?<blockquote>/);
   });
 
+  it("renders every supported divider authoring form", async () => {
+    const cases = [
+      {
+        markdown: ":::divider\n:::",
+        classes: "divider-block divider-block--neutral divider-block--dash",
+        absent: "divider-block__label",
+      },
+      {
+        markdown: ":::divider Next phase\n:::",
+        classes: "divider-block divider-block--neutral divider-block--dash",
+        contains: 'aria-label="Next phase"><span class="divider-block__label">Next phase</span>',
+      },
+      {
+        markdown: ":::divider\n---\n:::",
+        classes: "divider-block divider-block--neutral divider-block--dash",
+      },
+      {
+        markdown: ":::divider\n***\n:::",
+        classes: "divider-block divider-block--neutral divider-block--star",
+        contains: '<span class="divider-block__mark" aria-hidden="true">✳</span>',
+      },
+      {
+        markdown: ":::divider\n-x-\n:::",
+        classes: "divider-block divider-block--neutral divider-block--x",
+        contains: '<span class="divider-block__mark" aria-hidden="true">×</span>',
+      },
+      {
+        markdown: ":::divider\nlabel: Phase two\npattern: -x-\ntone: accent\n:::",
+        classes: "divider-block divider-block--accent divider-block--x",
+        contains: 'aria-label="Phase two"><span class="divider-block__label">Phase two</span>',
+      },
+    ];
+
+    for (const testCase of cases) {
+      const { html } = await renderMarkdown(testCase.markdown);
+      expect(html).toContain(`class="${testCase.classes}"`);
+      if (testCase.contains) expect(html).toContain(testCase.contains);
+      if (testCase.absent) expect(html).not.toContain(testCase.absent);
+    }
+  });
+
   it("renders flow and ERD diagrams as server-side inline SVG", async () => {
     const result = await renderMarkdown(await fixture("diagram-blocks.md"));
     const html = result.html;

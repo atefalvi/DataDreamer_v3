@@ -102,12 +102,18 @@ export interface LayoutErdEntity extends ErdEntity, Rect {
 
 export interface LayoutErdRelation {
   id: string;
+  sourceColor: DiagramColor;
   sourceEntity: string;
   sourceField: string;
   targetEntity: string;
   targetField: string;
   sourceAnchor: Point;
   targetAnchor: Point;
+  sourceCardinality: "M";
+  targetCardinality: "1";
+  sourceLabelPoint: Point;
+  targetLabelPoint: Point;
+  points: Point[];
   path: string;
   channel: "direct" | "row-gutter" | "outer";
 }
