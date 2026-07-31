@@ -78,6 +78,7 @@ export const richBlockTypes = [
   "formula",
   "divider",
   "text",
+  "diagram",
 ] as const;
 
 export const markdownBlockTypes = [...calloutTypes, ...richBlockTypes] as const;

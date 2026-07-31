@@ -12,6 +12,7 @@ const fixtures = [
   "real-post-002-fine-tuning.md",
   "real-post-003-wysiwyg-cleanup.md",
   "rich-content-blocks.md",
+  "diagram-blocks.md",
 ];
 
 async function fixture(name: string): Promise<string> {
@@ -110,6 +111,20 @@ describe("renderMarkdown v4 pipeline", () => {
 
     // nested blockquote hierarchy survives
     expect(html).toMatch(/<blockquote>[\s\S]*?<blockquote>/);
+  });
+
+  it("renders flow and ERD diagrams as server-side inline SVG", async () => {
+    const result = await renderMarkdown(await fixture("diagram-blocks.md"));
+    const html = result.html;
+
+    expect(html.match(/class="diagram-block diagram-block--flow"/g)).toHaveLength(3);
+    expect(html.match(/class="diagram-block diagram-block--erd"/g)).toHaveLength(2);
+    expect(html).toContain('class="diagram-svg diagram-svg--flow"');
+    expect(html).toContain('class="diagram-svg diagram-svg--erd"');
+    expect(html).toContain('role="region"');
+    expect(html).toContain('data-target-anchor="middle-left"');
+    expect(html).toContain('data-diagram-cache-key=');
+    expect(html).not.toContain("Diagram unavailable");
   });
 
   it("normalizes Directus WYSIWYG block wrappers before parsing", async () => {

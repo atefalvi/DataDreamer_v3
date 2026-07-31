@@ -66,9 +66,10 @@ prompts, models, limits) lives in the Directus `orby` collection.
 - **Smoke:** `node scripts/release-smoke.mjs https://data-dreamer.net`
 - **Guides QA:** `docs/GUIDES_QA.md`
 - **CMS editorial workflow:** `docs/CMS_EDITORIAL_WORKFLOW.md`
-- **Agent authoring:** `docs/AGENT_BLOG_GUIDE.md`, `docs/AGENT_PROJECTS_GUIDE.md`,
-  `docs/AGENT_GUIDES_GUIDE.md`, the shared `docs/RICH_CONTENT_BLOCKS.md`, and
-  `docs/AGENT_COVER_IMAGE_GUIDE.md` for consistent text-free cover art
+- **Agent authoring:** `docs/AGENT_CONTENT_TYPES_GUIDE.md` for Directus records,
+  `docs/AGENT_CUSTOM_CALLOUTS_GUIDE.md` for rich Markdown and diagrams, and
+  `docs/AGENT_COVER_IMAGE_GUIDE.md` for cover generation. Treat these as canonical;
+  `docs/AGENT_PROJECT_INSTRUCTIONS_SNIPPET.md` is the copy-ready Project instruction.
 - **Dream Team taxonomy:** `docs/SPECIALTIES_TAXONOMY.md`
 - **Cloudflare cache:** `docs/CLOUDFLARE_CACHE.md`
 - **Frontend consolidation:** `docs/CODEBASE_CONSOLIDATION_PLAN.md`

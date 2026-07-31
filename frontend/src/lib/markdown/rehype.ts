@@ -2,6 +2,7 @@ import katex from "katex";
 import type { VFile } from "vfile";
 
 import { getCalloutIcon } from "./icons";
+import { diagramElement } from "./diagram";
 import { transformMarkdownImageUrl } from "./images";
 import type { CalloutType, HastNode, Heading, MarkdownBlockType, MdNode } from "./types";
 import { calloutTypes, walk } from "./types";
@@ -505,6 +506,7 @@ export const markdownBlockHandlers = {
     if (type === "metrics") return metricElement(node, true);
     if (type === "formula") return formulaElement(node);
     if (type === "divider") return dividerElement(node);
+    if (type === "diagram") return diagramElement(node.blockBody ?? "", node.blockTitle);
 
     if (type === "imagegrid") {
       const images = imageEntries(node);

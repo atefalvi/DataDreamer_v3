@@ -86,6 +86,7 @@ the diff, and commit it with the application change. Directus roles and permissi
 managed in the production instance and must be verified separately because they are not
 fully represented by the schema snapshot.
 
-See `docs/AGENT_BLOG_GUIDE.md`, `docs/AGENT_PROJECTS_GUIDE.md`,
-`docs/AGENT_GUIDES_GUIDE.md`, `docs/RICH_CONTENT_BLOCKS.md`, and
-`docs/ACCOUNT_MODEL.md` for type-specific instructions and access rules.
+See `docs/AGENT_CONTENT_TYPES_GUIDE.md` for records and workflow,
+`docs/AGENT_CUSTOM_CALLOUTS_GUIDE.md` for rich Markdown and diagrams,
+`docs/AGENT_COVER_IMAGE_GUIDE.md` for cover generation, and `docs/ACCOUNT_MODEL.md`
+for access rules. The three agent guides are canonical for authoring.

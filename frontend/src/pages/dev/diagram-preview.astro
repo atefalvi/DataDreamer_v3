@@ -1,0 +1,70 @@
+---
+/** DEV ONLY — canonical flow and ERD fixtures rendered through the production pipeline. */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { renderMarkdown } from '../../lib/markdown';
+import diagramFixture from '../../lib/markdown/__fixtures__/diagram-blocks.md?raw';
+import '../../styles/prose.css';
+
+if (import.meta.env.PROD) return Astro.rewrite('/404');
+
+const rendered = await renderMarkdown(diagramFixture);
+---
+
+<BaseLayout
+  title="Diagram renderer preview"
+  description="Development-only responsive QA for flow and ERD Markdown blocks."
+  noindex
+>
+  <main class="diagram-preview container-wide">
+    <header class="diagram-preview__head">
+      <p class="kicker">Markdown renderer · development fixture</p>
+      <h1>Flow and data-model diagrams</h1>
+      <p>
+        These five cases pass through the same parser, layout engine, SVG renderer,
+        and theme tokens used by posts, projects, and guides.
+      </p>
+    </header>
+
+    <article class="prose" set:html={rendered.html} />
+  </main>
+</BaseLayout>
+
+<style>
+  .diagram-preview {
+    padding-block: var(--page-top) var(--page-bottom);
+  }
+
+  .diagram-preview__head {
+    max-width: 52rem;
+    margin-bottom: var(--space-10);
+  }
+
+  .diagram-preview__head h1 {
+    max-width: 14ch;
+    margin-block: var(--space-3) var(--space-4);
+    font-family: var(--font-display);
+    font-size: clamp(2.75rem, 14vw, var(--fs-display));
+    line-height: var(--lh-display);
+    letter-spacing: var(--tracking-display);
+    overflow-wrap: break-word;
+  }
+
+  .diagram-preview__head > p:last-child {
+    color: var(--text-2);
+    font-size: var(--fs-lg);
+    line-height: var(--lh-body);
+  }
+
+  .diagram-preview :global(.prose) {
+    max-width: none;
+  }
+
+  .diagram-preview :global(.prose > h1) {
+    display: none;
+  }
+
+  .diagram-preview :global(.prose > h2) {
+    max-width: var(--measure);
+    margin-top: var(--space-10);
+  }
+</style>

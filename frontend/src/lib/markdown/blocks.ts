@@ -19,6 +19,7 @@ const rawBodyBlocks = new Set<MarkdownBlockType>([
   "metrics",
   "formula",
   "divider",
+  "diagram",
 ]);
 
 interface BlockOpen {

@@ -1296,3 +1296,293 @@
 .blog-content .image-grid-block .image-grid__title {
   margin-bottom: var(--space-3);
 }
+
+/* ═══ Server-rendered diagrams (flow + ERD) ═══ */
+
+.prose .diagram-block,
+.blog-content .diagram-block {
+  --diagram-blue: var(--info);
+  --diagram-yellow: var(--warning);
+  --diagram-orange: var(--accent);
+  --diagram-green: var(--success);
+  --diagram-purple: var(--viz-4);
+
+  overflow: hidden;
+  max-width: 100%;
+  margin-block: var(--space-7);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  background: var(--bg-1);
+}
+
+.prose .diagram-block__head,
+.blog-content .diagram-block__head {
+  display: grid;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-1);
+  background: color-mix(in srgb, var(--bg-2) 72%, var(--bg-1));
+}
+
+.prose .diagram-block__kind,
+.blog-content .diagram-block__kind {
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.prose .diagram-block__title,
+.blog-content .diagram-block__title {
+  color: var(--text-1);
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  line-height: var(--lh-lg);
+}
+
+.prose .diagram-block__viewport,
+.blog-content .diagram-block__viewport {
+  contain: inline-size;
+  overflow-x: auto;
+  max-width: 100%;
+  padding: var(--space-5);
+  background: var(--bg-0);
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+.prose .diagram-block__viewport:focus-visible,
+.blog-content .diagram-block__viewport:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -3px;
+}
+
+.prose .diagram-svg,
+.blog-content .diagram-svg {
+  display: block;
+  width: max(100%, var(--diagram-width));
+  max-width: none;
+  height: auto;
+  color: var(--text-1);
+}
+
+.prose .diagram-edge,
+.blog-content .diagram-edge,
+.prose .diagram-relation,
+.blog-content .diagram-relation {
+  fill: none;
+  stroke: var(--border-2);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.prose .diagram-edge--local-loop,
+.blog-content .diagram-edge--local-loop {
+  stroke: color-mix(in srgb, var(--accent) 72%, var(--border-2));
+}
+
+.prose .diagram-arrow,
+.blog-content .diagram-arrow {
+  fill: var(--border-2);
+}
+
+.prose .diagram-edge__label,
+.blog-content .diagram-edge__label {
+  fill: var(--text-3);
+  stroke: var(--bg-0);
+  stroke-width: 4px;
+  paint-order: stroke;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.prose .diagram-node rect,
+.blog-content .diagram-node rect {
+  fill: var(--bg-2);
+  stroke: var(--border-2);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.prose .diagram-node text,
+.blog-content .diagram-node text {
+  fill: var(--text-1);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.prose .diagram-node--blue rect,
+.blog-content .diagram-node--blue rect {
+  fill: color-mix(in srgb, var(--diagram-blue) 11%, var(--bg-2));
+  stroke: color-mix(in srgb, var(--diagram-blue) 52%, var(--border-2));
+}
+
+.prose .diagram-node--yellow rect,
+.blog-content .diagram-node--yellow rect {
+  fill: color-mix(in srgb, var(--diagram-yellow) 11%, var(--bg-2));
+  stroke: color-mix(in srgb, var(--diagram-yellow) 54%, var(--border-2));
+}
+
+.prose .diagram-node--orange rect,
+.blog-content .diagram-node--orange rect {
+  fill: color-mix(in srgb, var(--diagram-orange) 11%, var(--bg-2));
+  stroke: var(--diagram-orange);
+}
+
+.prose .diagram-node--green rect,
+.blog-content .diagram-node--green rect {
+  fill: color-mix(in srgb, var(--diagram-green) 11%, var(--bg-2));
+  stroke: color-mix(in srgb, var(--diagram-green) 52%, var(--border-2));
+}
+
+.prose .diagram-node--purple rect,
+.blog-content .diagram-node--purple rect {
+  fill: color-mix(in srgb, var(--diagram-purple) 13%, var(--bg-2));
+  stroke: color-mix(in srgb, var(--diagram-purple) 58%, var(--border-2));
+}
+
+.prose .diagram-crow,
+.blog-content .diagram-crow {
+  fill: none;
+  stroke: var(--border-2);
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.prose .diagram-entity__box,
+.blog-content .diagram-entity__box {
+  fill: var(--bg-2);
+  stroke: var(--border-2);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.prose .diagram-entity__head,
+.blog-content .diagram-entity__head {
+  fill: color-mix(in srgb, var(--text-3) 8%, var(--bg-2));
+}
+
+.prose .diagram-entity__head--blue,
+.blog-content .diagram-entity__head--blue { fill: color-mix(in srgb, var(--diagram-blue) 16%, var(--bg-2)); }
+.prose .diagram-entity__head--yellow,
+.blog-content .diagram-entity__head--yellow { fill: color-mix(in srgb, var(--diagram-yellow) 16%, var(--bg-2)); }
+.prose .diagram-entity__head--orange,
+.blog-content .diagram-entity__head--orange { fill: color-mix(in srgb, var(--diagram-orange) 16%, var(--bg-2)); }
+.prose .diagram-entity__head--green,
+.blog-content .diagram-entity__head--green { fill: color-mix(in srgb, var(--diagram-green) 16%, var(--bg-2)); }
+.prose .diagram-entity__head--purple,
+.blog-content .diagram-entity__head--purple { fill: color-mix(in srgb, var(--diagram-purple) 18%, var(--bg-2)); }
+
+.prose .diagram-entity__rule,
+.blog-content .diagram-entity__rule {
+  stroke: var(--border-2);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.prose .diagram-entity__title,
+.blog-content .diagram-entity__title,
+.prose .diagram-entity__field,
+.blog-content .diagram-entity__field,
+.prose .diagram-entity__key,
+.blog-content .diagram-entity__key {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.prose .diagram-entity__title,
+.blog-content .diagram-entity__title {
+  fill: var(--text-1);
+  font-weight: 700;
+  letter-spacing: 0.035em;
+}
+
+.prose .diagram-entity__field,
+.blog-content .diagram-entity__field {
+  fill: var(--text-2);
+  font-weight: 500;
+}
+
+.prose .diagram-entity__key,
+.blog-content .diagram-entity__key {
+  fill: var(--text-3);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.prose .diagram-entity__key--pk,
+.blog-content .diagram-entity__key--pk { fill: var(--accent); }
+.prose .diagram-entity__key--fk,
+.blog-content .diagram-entity__key--fk { fill: var(--info); }
+.prose .diagram-entity__key--uk,
+.blog-content .diagram-entity__key--uk { fill: var(--viz-4); }
+
+.prose .diagram-block--invalid,
+.blog-content .diagram-block--invalid {
+  padding: var(--space-5);
+  border-style: dashed;
+}
+
+.prose .diagram-block--invalid .diagram-block__title,
+.blog-content .diagram-block--invalid .diagram-block__title {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.prose .diagram-block__error,
+.blog-content .diagram-block__error {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+}
+
+@media (max-width: 47.999rem) {
+  .prose .diagram-block,
+  .blog-content .diagram-block {
+    margin-block: var(--space-6);
+  }
+
+  .prose .diagram-block__head,
+  .blog-content .diagram-block__head {
+    padding: var(--space-4);
+  }
+
+  .prose .diagram-block__viewport,
+  .blog-content .diagram-block__viewport {
+    padding: var(--space-4);
+  }
+}
+
+@media print {
+  .prose .diagram-block,
+  .blog-content .diagram-block {
+    break-inside: avoid;
+    border: 1pt solid CanvasText;
+  }
+
+  .prose .diagram-block__viewport,
+  .blog-content .diagram-block__viewport {
+    overflow: visible;
+  }
+
+  .prose .diagram-svg,
+  .blog-content .diagram-svg {
+    width: 100%;
+  }
+}
