@@ -24,8 +24,14 @@ const {
 } = Astro.props;
 ---
 
-<article class:list={['editorial-card', className]} data-guide-card={dataGuideSlug ? true : undefined} data-slug={dataGuideSlug}>
-  <a href={href} class="editorial-card__link">
+<article
+  class:list={['editorial-card', className]}
+  data-guide-card={dataGuideSlug ? true : undefined}
+  data-slug={dataGuideSlug}
+  data-reveal="card"
+  data-reveal-group={`${kind}-archive`}
+>
+  <a href={href} class="editorial-card__link" data-border-light>
     <div class="editorial-card__visual">
       <EditorialCover
         image={image}

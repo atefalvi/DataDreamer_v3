@@ -79,8 +79,10 @@ const orbyWidgetUrl = (() => {
     <SiteFooter />
 
     <script>
+      import { initBorderLight } from '../lib/motion/borderLight';
       import { initReveal } from '../lib/motion/reveal';
       import { initHeadingLinks } from '../lib/markdown/headingLinks';
+      initBorderLight();
       initReveal();
       initHeadingLinks();
     </script>

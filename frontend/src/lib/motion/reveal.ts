@@ -31,7 +31,8 @@ export function initReveal(): void {
           delay = Math.min(i, 4) * 60; // cap the stagger (04 §12)
           groupIndex.set(group, i + 1);
         }
-        window.setTimeout(() => el.classList.add('is-visible'), delay);
+        el.style.setProperty('--reveal-delay', `${delay}ms`);
+        el.classList.add('is-visible');
         io.unobserve(el);
       }
     },

@@ -71,7 +71,7 @@ const teamSentence =
       <h2>Data work beyond dashboards.</h2>
     </div>
     <div class="home-studio__cards">
-      <article class="home-studio-card">
+      <article class="home-studio-card" data-reveal="signal" data-reveal-group="home-studio">
         <div class="home-studio-card__meta">
           <span>01</span>
           <span>Business context</span>
@@ -81,7 +81,7 @@ const teamSentence =
           <p>Understand the business question, source systems, definitions, and assumptions before choosing a solution.</p>
         </div>
       </article>
-      <article class="home-studio-card">
+      <article class="home-studio-card" data-reveal="signal" data-reveal-group="home-studio">
         <div class="home-studio-card__meta">
           <span>02</span>
           <span>Technical systems</span>
@@ -91,7 +91,7 @@ const teamSentence =
           <p>Turn raw inputs into reliable models, pipelines, automations, and understandable interfaces.</p>
         </div>
       </article>
-      <article class="home-studio-card">
+      <article class="home-studio-card" data-reveal="signal" data-reveal-group="home-studio">
         <div class="home-studio-card__meta">
           <span>03</span>
           <span>Decisions and people</span>
@@ -118,7 +118,7 @@ const teamSentence =
     ) : (
       <div class="home-writing" data-collection-view="grid">
         {posts.map((post) => (
-          <div data-reveal data-reveal-group="home-posts">
+          <div>
             <PostCard post={post} variant="index" />
           </div>
         ))}
