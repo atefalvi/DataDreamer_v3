@@ -1,8 +1,7 @@
 ---
-/**
- * AuthShell — centered card chrome for the login/signup surfaces (05 §17). Premium,
- * minimal, Observatory-dark. Slots: default (form) and `footer` (swap link).
- */
+/** Focused login/signup shell. Slots: default (form) and `footer` (account switch). */
+import BrandMark from '../global/BrandMark.astro';
+import AuthSignalField from './AuthSignalField.astro';
 interface Props {
   title: string;
   subtitle?: string;
@@ -11,32 +10,66 @@ interface Props {
 const { title, subtitle } = Astro.props;
 ---
 
-<section class="auth">
+<section class="auth" aria-labelledby="auth-title">
+  <AuthSignalField />
   <div class="auth__card">
-    <h1 class="auth__title">{title}</h1>
-    {subtitle && <p class="auth__subtitle">{subtitle}</p>}
-    <slot />
+    <header class="auth__header">
+      <span class="auth__mark" aria-hidden="true"><BrandMark /></span>
+      <h1 id="auth-title" class="auth__title">{title}</h1>
+      {subtitle && <p class="auth__subtitle">{subtitle}</p>}
+    </header>
+    <div class="auth__body"><slot /></div>
+    <footer class="auth__foot"><slot name="footer" /></footer>
   </div>
-  <p class="auth__foot"><slot name="footer" /></p>
 </section>
 
 <style>
   .auth {
-    min-height: calc(100vh - var(--nav-height));
+    position: relative;
     display: grid;
-    align-content: center;
-    justify-items: center;
-    gap: var(--space-5);
-    padding: calc(var(--nav-height) + var(--space-7)) var(--gutter) var(--space-8);
+    min-height: 100svh;
+    isolation: isolate;
+    overflow: hidden;
+    place-items: center;
+    padding: calc(var(--nav-height) + var(--space-4)) var(--gutter) var(--space-4);
+    background:
+      radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 27rem),
+      var(--bg-0);
+  }
+
+  .auth::after {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: radial-gradient(ellipse 32rem 36rem at 50% 48%, transparent 45%, color-mix(in srgb, var(--bg-0) 78%, transparent) 100%);
+    content: '';
+    pointer-events: none;
   }
 
   .auth__card {
-    width: min(100%, 26rem);
-    padding: var(--space-7);
+    position: relative;
+    z-index: 1;
+    width: min(100%, 29rem);
+    display: grid;
+    padding: var(--space-6);
     border: 1px solid var(--border-2);
     border-radius: var(--radius-lg);
-    background: var(--bg-1);
-    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.24);
+    background: color-mix(in srgb, var(--bg-1) 97%, var(--bg-0));
+    box-shadow: 0 24px 72px -30px rgba(0, 0, 0, 0.72);
+  }
+
+  .auth__header {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .auth__mark {
+    display: block;
+    width: 2rem;
+    height: 2rem;
+    margin-bottom: var(--space-5);
+    color: var(--text-1);
   }
 
   .auth__title {
@@ -47,25 +80,25 @@ const { title, subtitle } = Astro.props;
     letter-spacing: -0.01em;
   }
 
-  .auth__card::before {
-    display: block;
-    width: 3.5rem;
-    height: 2px;
-    margin-bottom: var(--space-6);
-    background: var(--accent);
-    content: '';
-  }
-
   .auth__subtitle {
+    max-width: 34ch;
     margin-top: var(--space-2);
     color: var(--text-2);
     font-size: var(--fs-sm);
     line-height: var(--lh-sm);
   }
 
+  .auth__body {
+    min-width: 0;
+  }
+
   .auth__foot {
+    margin-top: var(--space-5);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-1);
     color: var(--text-3);
     font-size: var(--fs-sm);
+    text-align: center;
   }
 
   .auth__foot :global(a) {
@@ -76,19 +109,32 @@ const { title, subtitle } = Astro.props;
   .auth__foot :global(a:hover) {
     text-decoration: underline;
   }
+
+  @media (max-width: 35rem) {
+    .auth {
+      align-items: start;
+      min-height: 100svh;
+      overflow: visible;
+      padding: calc(var(--nav-height) + var(--space-5)) var(--gutter) var(--space-5);
+    }
+
+    .auth__card {
+      padding: var(--space-5);
+    }
+  }
 </style>
 
 <style is:global>
   /* Form chrome shared by /login and /signup (markup lives in the page). */
   .auth-form {
     display: grid;
-    gap: var(--space-4);
-    margin-top: var(--space-6);
+    gap: var(--space-3);
+    margin-top: var(--space-5);
   }
 
   .auth-form .field {
     display: grid;
-    gap: var(--space-2);
+    gap: 6px;
   }
 
   .auth-form label {
@@ -99,6 +145,7 @@ const { title, subtitle } = Astro.props;
 
   .auth-form input {
     width: 100%;
+    min-height: 3rem;
     padding: var(--space-3) var(--space-4);
     border: 1px solid var(--border-2);
     border-radius: var(--radius-md);
@@ -121,8 +168,8 @@ const { title, subtitle } = Astro.props;
   }
 
   .auth-submit {
-    margin-top: var(--space-2);
-    min-height: 2.875rem;
+    margin-top: var(--space-1);
+    min-height: 3rem;
     border: none;
     border-radius: var(--radius-md);
     background: var(--accent);
@@ -141,7 +188,7 @@ const { title, subtitle } = Astro.props;
   }
 
   .auth-notice {
-    margin-top: var(--space-5);
+    margin-top: var(--space-4);
     padding: var(--space-3) var(--space-4);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-2);

@@ -1,0 +1,106 @@
+---
+/** Decorative, deterministic data-signal matrix for the authentication surface. */
+const pulses = [
+  { x: 7, y: 12, delay: -0.4, duration: 3.2, tone: 'neutral' },
+  { x: 16, y: 31, delay: -1.7, duration: 4.1, tone: 'neutral' },
+  { x: 11, y: 72, delay: -2.1, duration: 3.7, tone: 'accent' },
+  { x: 24, y: 86, delay: -0.8, duration: 4.6, tone: 'neutral' },
+  { x: 29, y: 18, delay: -2.8, duration: 4.3, tone: 'neutral' },
+  { x: 36, y: 64, delay: -1.1, duration: 3.4, tone: 'neutral' },
+  { x: 43, y: 8, delay: -3.2, duration: 4.8, tone: 'accent' },
+  { x: 47, y: 91, delay: -1.9, duration: 3.8, tone: 'neutral' },
+  { x: 56, y: 23, delay: -0.6, duration: 4.2, tone: 'neutral' },
+  { x: 63, y: 78, delay: -2.4, duration: 3.5, tone: 'neutral' },
+  { x: 69, y: 11, delay: -1.3, duration: 4.7, tone: 'neutral' },
+  { x: 76, y: 39, delay: -3.1, duration: 4, tone: 'accent' },
+  { x: 83, y: 84, delay: -0.9, duration: 3.6, tone: 'neutral' },
+  { x: 91, y: 19, delay: -2.6, duration: 4.5, tone: 'neutral' },
+  { x: 94, y: 61, delay: -1.5, duration: 3.9, tone: 'neutral' },
+  { x: 21, y: 53, delay: -3.4, duration: 4.4, tone: 'neutral' },
+  { x: 78, y: 68, delay: -2.2, duration: 3.3, tone: 'neutral' },
+  { x: 88, y: 47, delay: -0.3, duration: 4.9, tone: 'accent' },
+];
+---
+
+<div class="auth-signal" aria-hidden="true">
+  <div class="auth-signal__matrix"></div>
+  {pulses.map((pulse) => (
+    <span
+      class:list={['auth-signal__pulse', { 'auth-signal__pulse--accent': pulse.tone === 'accent' }]}
+      style={`--signal-x:${pulse.x}%;--signal-y:${pulse.y}%;--signal-delay:${pulse.delay}s;--signal-duration:${pulse.duration}s`}
+    ></span>
+  ))}
+</div>
+
+<style>
+  .auth-signal {
+    position: absolute;
+    inset: var(--space-4);
+    z-index: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--border-1) 72%, transparent);
+    pointer-events: none;
+  }
+
+  .auth-signal__matrix {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--text-3) 38%, transparent) 1px,
+      transparent 1.25px
+    );
+    background-position: center;
+    background-size: 18px 18px;
+    -webkit-mask-image: radial-gradient(ellipse 78% 82% at 50% 48%, #000 28%, transparent 88%);
+    mask-image: radial-gradient(ellipse 78% 82% at 50% 48%, #000 28%, transparent 88%);
+    opacity: 0.52;
+  }
+
+  .auth-signal__pulse {
+    position: absolute;
+    top: var(--signal-y);
+    left: var(--signal-x);
+    width: 3px;
+    height: 3px;
+    background: var(--text-1);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--text-1) 48%, transparent);
+    opacity: 0.08;
+    animation: auth-signal-pulse var(--signal-duration) linear var(--signal-delay) infinite;
+  }
+
+  .auth-signal__pulse--accent {
+    background: var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 62%, transparent);
+  }
+
+  @keyframes auth-signal-pulse {
+    0%, 100% { opacity: 0.06; }
+    16% { opacity: 0.82; }
+    24% { opacity: 0.16; }
+    58% { opacity: 0.36; }
+    72% { opacity: 0.08; }
+  }
+
+  @media (max-width: 35rem) {
+    .auth-signal {
+      inset: var(--space-2);
+    }
+
+    .auth-signal__matrix {
+      background-size: 16px 16px;
+      opacity: 0.38;
+    }
+
+    .auth-signal__pulse:nth-of-type(n + 13) {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-signal__pulse {
+      animation: none;
+      opacity: 0.2;
+    }
+  }
+</style>
