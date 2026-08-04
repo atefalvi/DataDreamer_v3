@@ -320,6 +320,16 @@ https://example.org/embed/model
 :::
 ```
 
+Ordinary YouTube watch, share, Shorts, and live URLs are accepted in the minimal form.
+The renderer converts them to a privacy-enhanced video player and keeps the pasted URL
+as the “Open original” link:
+
+```markdown
+:::embed Airflow in three minutes
+https://www.youtube.com/watch?v=AHMm1wfGuHE
+:::
+```
+
 Safe pasted iframe form:
 
 ```markdown

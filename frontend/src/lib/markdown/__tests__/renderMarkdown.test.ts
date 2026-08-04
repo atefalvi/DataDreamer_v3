@@ -213,6 +213,39 @@ describe("renderMarkdown v4 pipeline", () => {
     });
   });
 
+  it("converts public YouTube URLs into privacy-enhanced player URLs", async () => {
+    const markdown = `
+:::embed Airflow in three minutes
+https://www.youtube.com/watch?v=AHMm1wfGuHE
+:::
+`;
+    const result = await renderMarkdown(markdown);
+
+    expect(extractEmbedUrl("https://youtu.be/AHMm1wfGuHE?t=1m30s")).toBe(
+      "https://www.youtube-nocookie.com/embed/AHMm1wfGuHE?start=90&rel=0",
+    );
+    expect(extractEmbedUrl("https://www.youtube.com/shorts/AHMm1wfGuHE")).toBe(
+      "https://www.youtube-nocookie.com/embed/AHMm1wfGuHE?rel=0",
+    );
+    expect(extractEmbedConfig(markdown)).toEqual({
+      src: "https://www.youtube-nocookie.com/embed/AHMm1wfGuHE?rel=0",
+      source: "https://www.youtube.com/watch?v=AHMm1wfGuHE",
+      height: undefined,
+      ratio: "16 / 9",
+    });
+    expect(result.html).toContain(
+      'src="https://www.youtube-nocookie.com/embed/AHMm1wfGuHE?rel=0"',
+    );
+    expect(result.html).toContain(
+      'href="https://www.youtube.com/watch?v=AHMm1wfGuHE" target="_blank" rel="noopener noreferrer">Open original',
+    );
+  });
+
+  it("rejects YouTube pages that do not identify an embeddable video", () => {
+    expect(extractEmbedUrl("https://www.youtube.com/watch")).toBeUndefined();
+    expect(extractEmbedUrl("https://www.youtube.com/@DataDreamer")).toBeUndefined();
+  });
+
   it("uses a standard HTTPS fallback link from a legacy provider snippet", () => {
     const snippet = `
       <div class="provider-placeholder">

@@ -192,6 +192,58 @@ function safeEmbedUrl(value: string | undefined): string | undefined {
   }
 }
 
+const YOUTUBE_HOSTS = new Set([
+  "youtube.com",
+  "www.youtube.com",
+  "m.youtube.com",
+  "music.youtube.com",
+  "youtube-nocookie.com",
+  "www.youtube-nocookie.com",
+  "youtu.be",
+  "www.youtu.be",
+]);
+
+function youtubeStartSeconds(value: string | null): number | undefined {
+  if (!value) return undefined;
+  if (/^\d+$/.test(value)) return Number.parseInt(value, 10);
+
+  const match = value.toLowerCase().match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/);
+  if (!match || !match.slice(1).some(Boolean)) return undefined;
+  return Number(match[1] ?? 0) * 3600 + Number(match[2] ?? 0) * 60 + Number(match[3] ?? 0);
+}
+
+/** Turn public YouTube page/share URLs into the privacy-enhanced player URL that
+ * can actually be framed. Other HTTPS providers continue through unchanged. */
+function embeddableUrl(value: string | undefined): string | undefined {
+  const safeUrl = safeEmbedUrl(value);
+  if (!safeUrl) return undefined;
+
+  const url = new URL(safeUrl);
+  const host = url.hostname.toLowerCase();
+  if (!YOUTUBE_HOSTS.has(host)) return safeUrl;
+
+  let videoId: string | undefined;
+  if (host === "youtu.be" || host === "www.youtu.be") {
+    videoId = url.pathname.split("/").filter(Boolean)[0];
+  } else if (url.pathname === "/watch") {
+    videoId = url.searchParams.get("v") ?? undefined;
+  } else {
+    const pathMatch = url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/);
+    videoId = pathMatch?.[1];
+  }
+
+  if (!videoId || !/^[A-Za-z0-9_-]{11}$/.test(videoId)) return undefined;
+
+  const embed = new URL(`https://www.youtube-nocookie.com/embed/${videoId}`);
+  const start = youtubeStartSeconds(url.searchParams.get("start") ?? url.searchParams.get("t"));
+  if (start && start > 0) embed.searchParams.set("start", String(start));
+
+  const list = url.searchParams.get("list");
+  if (list && /^[A-Za-z0-9_-]+$/.test(list)) embed.searchParams.set("list", list);
+  embed.searchParams.set("rel", "0");
+  return embed.toString();
+}
+
 /** Convert legacy object metadata into a normal iframe URL without executing the
  * provider script. The strict host/name/version signature keeps arbitrary object
  * parameters from becoming navigable URLs. */
@@ -249,7 +301,7 @@ function safeRatio(value: string | undefined): string | undefined {
   return width > 0 && height > 0 ? `${width} / ${height}` : undefined;
 }
 
-export function extractEmbedUrl(rawText: string): string | undefined {
+function extractRawEmbedUrl(rawText: string): string | undefined {
   const decoded = decodeHtmlEntities(rawText);
   const { fields, lines } = parseBody(decoded);
   const bareUrl = lines.find((line) => /^https:\/\/\S+$/i.test(line));
@@ -266,6 +318,10 @@ export function extractEmbedUrl(rawText: string): string | undefined {
   );
 }
 
+export function extractEmbedUrl(rawText: string): string | undefined {
+  return embeddableUrl(extractRawEmbedUrl(rawText));
+}
+
 function scriptedEmbedHeight(rawText: string): number | undefined {
   for (const match of rawText.matchAll(/\.style\.height\s*=\s*["'](\d+(?:px)?)["']/gi)) {
     const height = positiveDimension(match[1]);
@@ -277,7 +333,8 @@ function scriptedEmbedHeight(rawText: string): number | undefined {
 export function extractEmbedConfig(rawText: string): EmbedConfig | undefined {
   const decoded = decodeHtmlEntities(rawText);
   const { fields } = parseBody(decoded);
-  const src = extractEmbedUrl(decoded);
+  const rawSrc = extractRawEmbedUrl(decoded);
+  const src = embeddableUrl(rawSrc);
   if (!src) return undefined;
 
   const iframeWidth = positiveDimension(tagAttribute(decoded, ["iframe", "embed"], "width"));
@@ -287,7 +344,7 @@ export function extractEmbedConfig(rawText: string): EmbedConfig | undefined {
 
   return {
     src,
-    source: safeEmbedUrl(fields.source),
+    source: safeEmbedUrl(fields.source) ?? (rawSrc !== src ? rawSrc : undefined),
     height: positiveDimension(fields.height) ?? (inferredRatio ? undefined : iframeHeight ?? legacyHeight),
     ratio: safeRatio(fields.ratio) ?? inferredRatio ?? "16 / 9",
   };
