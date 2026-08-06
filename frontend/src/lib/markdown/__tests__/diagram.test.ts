@@ -23,6 +23,37 @@ function collinearOverlap(a: Point, b: Point, c: Point, d: Point): number {
 }
 
 describe("flow diagram parser and layout", () => {
+  it("lays out repeated-source hierarchy declarations without stacking siblings", () => {
+    const layout = layoutFlow(parseFlow(`
+Priya Shah — Director: purple -> Daniel Kim — Senior Manager: blue
+
+Daniel Kim — Senior Manager -> Marcus Lee — Manager: yellow
+Daniel Kim — Senior Manager -> Elena Rodriguez — Manager: yellow
+
+Marcus Lee — Manager -> Jordan Patel — Senior IC: green
+Marcus Lee — Manager -> Mia Thompson — IC: green
+Marcus Lee — Manager -> Noah Williams — IC: green
+
+Elena Rodriguez — Manager -> Chloe Brown — Senior IC: green
+Elena Rodriguez — Manager -> Ethan Davis — IC: green
+Elena Rodriguez — Manager -> Olivia Wilson — IC: green
+`));
+
+    expect(layout.nodes).toHaveLength(10);
+    expect(layout.edges).toHaveLength(9);
+    expect(layout.nodes.filter((node) => node.rank === 0)).toHaveLength(1);
+    expect(layout.nodes.filter((node) => node.rank === 1)).toHaveLength(1);
+    expect(layout.nodes.filter((node) => node.rank === 2)).toHaveLength(2);
+    expect(layout.nodes.filter((node) => node.rank === 3)).toHaveLength(6);
+    expect(layout.edges.every((edge) => edge.routeKind !== "local-loop")).toBe(true);
+
+    for (const [index, node] of layout.nodes.entries()) {
+      for (const other of layout.nodes.slice(index + 1).filter((candidate) => candidate.rank === node.rank)) {
+        expect(node.y + node.height <= other.y || other.y + other.height <= node.y).toBe(true);
+      }
+    }
+  });
+
   it("reuses @ExistingNode references without duplicating nodes", () => {
     const graph = parseFlow(`
 Incoming data -> Valid?: yellow

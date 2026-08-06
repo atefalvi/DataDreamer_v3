@@ -94,6 +94,19 @@ function cleanBranchLabel(value: string): string {
   return value.replace(/:$/, "").trim();
 }
 
+function separateSharedRankLanes(nodes: FlowNode[]): void {
+  const occupiedByRank = new Map<number, Set<number>>();
+
+  for (const node of [...nodes].sort((a, b) => a.order - b.order)) {
+    const occupied = occupiedByRank.get(node.rank) ?? new Set<number>();
+    let lane = node.lane;
+    while (occupied.has(lane)) lane += 1;
+    node.lane = lane;
+    occupied.add(lane);
+    occupiedByRank.set(node.rank, occupied);
+  }
+}
+
 /** Parse the constrained, indentation-aware DataDreamer flow DSL. */
 export function parseFlow(source: string): FlowGraph {
   const nodes: FlowNode[] = [];
@@ -227,6 +240,10 @@ export function parseFlow(source: string): FlowGraph {
   }
 
   if (!nodes.length) throw new DiagramSyntaxError("Flow diagram has no nodes.");
+  // Repeated-source declarations are a convenient way to author trees and DAGs.
+  // They initially inherit their source lane, so separate siblings that land in
+  // the same rank/lane cell while preserving declaration order and branch intent.
+  separateSharedRankLanes(nodes);
   return { nodes, edges };
 }
 

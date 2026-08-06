@@ -520,8 +520,11 @@ Unknown colors use the default treatment.
 - Indent a decision branch by two spaces. Its first token is the connector label such
   as `yes`, `no`, or `fallback`.
 - Add colour with `Node label: blue`.
-- Reuse an existing node with `@Existing node label`. Matching is case-insensitive. A
-  terminal decision `?` may be omitted in the reference; otherwise labels must match.
+- Repeating an existing label reuses the same node. This supports hierarchy-style
+  declarations where one source appears on several separate lines.
+- Use `@Existing node label` to make an intentional link back to an earlier node
+  explicit. Matching is case-insensitive. A terminal decision `?` may be omitted in
+  the reference; otherwise labels must match.
 - Limits: 80 nodes, 160 connectors, 80 characters per node label.
 
 ```markdown
@@ -535,8 +538,17 @@ Incoming data -> Valid?: yellow
 :::
 ```
 
-Do not use Mermaid syntax or repeat a label when the intent is to reference the same
-node.
+For a hierarchy, repeat the parent as the source of each relationship:
+
+```markdown
+Director: purple -> Senior manager: blue
+Senior manager -> Manager A: yellow
+Senior manager -> Manager B: yellow
+Manager A -> Team member 1: green
+Manager A -> Team member 2: green
+```
+
+Do not use Mermaid syntax or reuse one label for two different nodes.
 
 ### ERD diagrams
 

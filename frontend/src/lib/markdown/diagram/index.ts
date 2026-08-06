@@ -5,7 +5,7 @@ import { layoutErd, parseErd, renderErd } from "./erd";
 import { layoutFlow, parseFlow, renderFlow } from "./flow";
 import { DiagramSyntaxError, type DiagramMetadata } from "./types";
 
-export const DIAGRAM_RENDERER_VERSION = "diagram-v5";
+export const DIAGRAM_RENDERER_VERSION = "diagram-v6";
 const CACHE_LIMIT = 100;
 const renderCache = new Map<string, HastNode>();
 
