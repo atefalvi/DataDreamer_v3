@@ -17,6 +17,8 @@ export interface MdNode {
   lang?: string | null;
   blockType?: MarkdownBlockType;
   blockTitle?: string;
+  /** Optional plain-text attribution extracted from the final line of a quote block. */
+  blockAuthor?: string;
   /** Raw markdown body for plain-text blocks (checklist/metric/formula/…). */
   blockBody?: string;
   /** A single HTTPS link immediately following an embed block. The link remains

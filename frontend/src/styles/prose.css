@@ -638,26 +638,90 @@
 .blog-content .pull-quote,
 .prose figure.pull-quote,
 .blog-content figure.pull-quote {
-  padding-block: var(--space-7);
-  border-block: 3px solid var(--border-2);
+  display: grid;
+  justify-items: center;
+  gap: var(--space-5);
+  padding: var(--space-8) clamp(var(--space-4), 7vw, var(--space-8));
+  border-block: 1px solid var(--border-2);
   color: var(--text-1);
-  font-family: var(--font-display);
-  font-size: var(--fs-3xl);
-  line-height: var(--lh-3xl);
-  text-wrap: balance;
+  text-align: center;
 }
 
 .prose .pull-quote blockquote,
 .blog-content .pull-quote blockquote {
-  padding: 0;
+  position: relative;
+  width: 100%;
+  max-width: 46rem;
+  padding: 0 clamp(2.25rem, 8vw, 5.5rem);
   border: 0;
   background: transparent;
-  font: inherit;
+  color: inherit;
 }
 
-.prose .pull-quote p,
-.blog-content .pull-quote p {
+.prose .pull-quote__body,
+.blog-content .pull-quote__body {
   color: inherit;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+  font-weight: 520;
+  letter-spacing: -0.018em;
+  line-height: 1.16;
+  text-wrap: balance;
+}
+
+.prose .pull-quote__body p,
+.blog-content .pull-quote__body p {
+  max-width: 32ch;
+  margin-inline: auto;
+}
+
+.prose .pull-quote__mark,
+.blog-content .pull-quote__mark {
+  position: absolute;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: clamp(3.25rem, 8vw, 5.5rem);
+  font-weight: 620;
+  line-height: 0.72;
+  user-select: none;
+}
+
+.prose .pull-quote__mark--open,
+.blog-content .pull-quote__mark--open {
+  inset-block-start: 0;
+  inset-inline-start: 0;
+}
+
+.prose .pull-quote__mark--close,
+.blog-content .pull-quote__mark--close {
+  inset-inline-end: 0;
+  inset-block-end: -0.12em;
+}
+
+.prose .pull-quote .pull-quote__attribution,
+.blog-content .pull-quote .pull-quote__attribution {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  margin: 0;
+  color: var(--text-2);
+  text-align: center;
+}
+
+.prose .pull-quote__attribution-mark,
+.blog-content .pull-quote__attribution-mark {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.2em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.prose .pull-quote__attribution cite,
+.blog-content .pull-quote__attribution cite {
+  font-style: normal;
 }
 
 .prose .image-grid,

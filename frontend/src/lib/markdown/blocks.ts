@@ -63,12 +63,46 @@ export function wysiwygNormalize(raw: string): string {
 
 function nodeText(node: MdNode): string {
   if (typeof node.value === "string") return node.value;
+  if (node.type === "break") return "\n";
   return node.children?.map(nodeText).join("") ?? "";
 }
 
 function paragraphText(node: MdNode): string | null {
   if (node.type !== "paragraph") return null;
   return nodeText(node).trim();
+}
+
+function removeInlineQuoteAttribution(node: MdNode): boolean {
+  if (!node.children?.length) return false;
+  for (let index = node.children.length - 1; index >= 0; index -= 1) {
+    const child = node.children[index];
+    if (typeof child.value === "string") {
+      const stripped = child.value.replace(/\n\s*(?:author:\s*|[—–]\s*).+\s*$/i, "").trimEnd();
+      if (stripped !== child.value) {
+        child.value = stripped;
+        return true;
+      }
+      if (/^(?:author:\s*|[—–]\s*).+$/i.test(child.value.trim())) {
+        node.children.splice(index, 1);
+        if (node.children[index - 1]?.type === "break") node.children.splice(index - 1, 1);
+        return true;
+      }
+    }
+    if (removeInlineQuoteAttribution(child)) return true;
+  }
+  return false;
+}
+
+function quoteAttribution(children: MdNode[]): { author?: string; children: MdNode[] } {
+  const finalParagraph = children.at(-1);
+  const finalText = finalParagraph ? paragraphText(finalParagraph) : null;
+  const match = finalText?.match(/(?:^|\n)\s*(?:author:\s*|[—–]\s*)([^\n]+)\s*$/i);
+  const author = match?.[1]?.trim().slice(0, 120);
+  if (!author || !finalParagraph) return { children };
+
+  if (match?.index === 0) return { author, children: children.slice(0, -1) };
+  removeInlineQuoteAttribution(finalParagraph);
+  return { author, children };
 }
 
 function sentenceCase(value: string): string {
@@ -157,11 +191,17 @@ function transformBlockChildren(children: MdNode[], source: string, depth = 0): 
       continue;
     }
 
+    const transformedChildren = depth < 1 ? transformBlockChildren(blockChildren, source, depth + 1) : blockChildren;
+    const quote = blockOpen.type === "quote"
+      ? quoteAttribution(transformedChildren)
+      : { children: transformedChildren };
+
     nextChildren.push({
       type: "customBlock",
       blockType: blockOpen.type,
       blockTitle: blockOpen.title,
-      children: depth < 1 ? transformBlockChildren(blockChildren, source, depth + 1) : blockChildren,
+      blockAuthor: quote.author,
+      children: quote.children,
     });
   }
 

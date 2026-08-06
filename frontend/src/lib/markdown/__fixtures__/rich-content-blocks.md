@@ -56,11 +56,15 @@ Quote callout authoring:
 ```md
 :::quote
 Simple systems are easier to trust.
+
+author: Example author
 :::
 ```
 
 :::quote
 Simple systems are easier to trust.
+
+author: Example author
 :::
 
 :::formula Renewal rate

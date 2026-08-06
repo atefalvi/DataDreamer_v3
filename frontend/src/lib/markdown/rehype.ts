@@ -26,6 +26,45 @@ function element(tagName: string, properties: Record<string, unknown>, children:
   return { type: "element", tagName, properties, children };
 }
 
+function boundaryText(nodes: HastNode[], fromEnd = false): HastNode | undefined {
+  const ordered = fromEnd ? [...nodes].reverse() : nodes;
+  for (const node of ordered) {
+    if (node.type === "text" && node.value?.trim()) return node;
+    if (node.children?.length) {
+      const nested = boundaryText(node.children, fromEnd);
+      if (nested) return nested;
+    }
+  }
+  return undefined;
+}
+
+function pullQuoteElement(state: HandlerState, node: MdNode): HastNode {
+  const quoteBody = state.all(node);
+  const first = boundaryText(quoteBody);
+  const last = boundaryText(quoteBody, true);
+
+  // Existing articles sometimes include their own paired quotation marks. The
+  // component supplies the visual marks, so remove one outer pair when present.
+  if (first?.value && last?.value && /^\s*[“"]/.test(first.value) && /[”"]\s*$/.test(last.value)) {
+    first.value = first.value.replace(/^(\s*)[“"]/, "$1");
+    last.value = last.value.replace(/[”"](\s*)$/, "$1");
+  }
+
+  return element("figure", { className: ["pull-quote"] }, [
+    element("blockquote", {}, [
+      element("span", { className: ["pull-quote__mark", "pull-quote__mark--open"], ariaHidden: "true" }, [textNode("“")]),
+      element("div", { className: ["pull-quote__body"] }, quoteBody),
+      element("span", { className: ["pull-quote__mark", "pull-quote__mark--close"], ariaHidden: "true" }, [textNode("”")]),
+    ]),
+    ...(node.blockAuthor
+      ? [element("figcaption", { className: ["pull-quote__attribution"] }, [
+          element("span", { className: ["pull-quote__attribution-mark"], ariaHidden: "true" }, [textNode("~")]),
+          element("cite", {}, [textNode(node.blockAuthor)]),
+        ])]
+      : []),
+  ]);
+}
+
 function raw(value: string): HastNode {
   return { type: "raw", value };
 }
@@ -545,9 +584,7 @@ export const markdownBlockHandlers = {
     }
 
     if (type === "quote") {
-      return element("figure", { className: ["pull-quote"] }, [
-        element("blockquote", {}, state.all(node)),
-      ]);
+      return pullQuoteElement(state, node);
     }
 
     if (type === "text") {

@@ -109,8 +109,36 @@ describe("renderMarkdown v4 pipeline", () => {
     expect(html).toContain('data-caption="Main dashboard view"');
     expect(html).toContain('class="image-grid__title"');
 
+    // quote — editorial marks are decorative; an explicit author becomes semantic attribution
+    expect(html).toContain('class="pull-quote__mark pull-quote__mark--open" aria-hidden="true">“</span>');
+    expect(html).toContain('<figcaption class="pull-quote__attribution"><span class="pull-quote__attribution-mark" aria-hidden="true">~</span><cite>Example author</cite></figcaption>');
+    expect(html).not.toContain('<p>author: Example author</p>');
+
     // nested blockquote hierarchy survives
     expect(html).toMatch(/<blockquote>[\s\S]*?<blockquote>/);
+  });
+
+  it("renders quote attribution and replaces an existing outer quote pair", async () => {
+    const result = await renderMarkdown(`:::quote
+“Clarity earns attention.”
+
+— Example source
+:::`);
+
+    expect(result.html).toContain('<div class="pull-quote__body"><p>Clarity earns attention.</p></div>');
+    expect(result.html).toContain('<figcaption class="pull-quote__attribution"><span class="pull-quote__attribution-mark" aria-hidden="true">~</span><cite>Example source</cite></figcaption>');
+    expect(result.html).not.toContain('<p>— Example source</p>');
+  });
+
+  it("accepts an author field without requiring a blank separator line", async () => {
+    const result = await renderMarkdown(`:::quote
+Clarity earns attention.
+author: Compact source
+:::`);
+
+    expect(result.html).toContain('<div class="pull-quote__body"><p>Clarity earns attention.</p></div>');
+    expect(result.html).toContain('<figcaption class="pull-quote__attribution"><span class="pull-quote__attribution-mark" aria-hidden="true">~</span><cite>Compact source</cite></figcaption>');
+    expect(result.html).not.toContain("author: Compact source");
   });
 
   it("renders every supported divider authoring form", async () => {

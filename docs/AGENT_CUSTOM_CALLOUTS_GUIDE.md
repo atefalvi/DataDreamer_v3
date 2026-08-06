@@ -184,16 +184,23 @@ argument.
 Short purpose: a genuine quotation or concise editorial pull quote.
 
 - Opener title: do not use one; the parser accepts it but the renderer does not show it.
-- Body: Markdown, ideally one short quotation. A final attribution line is allowed.
-- Rendering: `figure` containing a semantic `blockquote`.
+- Body: Markdown, ideally one short quotation.
+- `author`: optional final plain-text field. It renders as the quote attribution.
+- Compatibility: a final standalone line beginning with an em dash (`—`) is also
+  treated as the attribution.
+- Rendering: centered `figure` containing a semantic `blockquote`; an author adds a
+  semantic `figcaption` and `cite`.
 
 ```markdown
 :::quote
 Good analysis makes the decision boundary visible.
 
-— Project retrospective
+author: Project retrospective
 :::
 ```
+
+When supplied, the attribution renders beneath the quotation as `~ Project
+retrospective`; the `author:` field label itself is not shown.
 
 Do not fabricate an attribution or use this block merely to enlarge normal prose.
 
