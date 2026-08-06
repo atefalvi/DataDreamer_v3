@@ -61,6 +61,36 @@ Start -> Valid?: yellow
     expect(branch?.targetAnchor).toBe("middle-left");
   });
 
+  it("aligns branch labels with their destination rows and wraps long node text", () => {
+    const layout = layoutFlow(parseFlow(`
+Presentation -> Functionality -> Integrity
+  presentation -> Test what the user sees: green
+  functionality -> Understand behaviour and dependencies: yellow
+  integrity -> Trace the data evidence and failure path: orange
+`));
+    const branches = layout.edges.filter((edge) => edge.label);
+
+    expect(branches.map((edge) => edge.labelPoint?.y)).toEqual(
+      branches.map((edge) => layout.nodes.find((node) => node.id === edge.target)!.centerY - 12),
+    );
+    expect(branches.map((edge) => edge.labelPoint?.y)).toEqual(
+      [...branches.map((edge) => edge.labelPoint!.y)].sort((a, b) => a - b),
+    );
+    expect(layout.nodes.find((node) => node.label === "Understand behaviour and dependencies")?.lines)
+      .toEqual(["Understand behaviour and", "dependencies"]);
+    expect(layout.nodes.find((node) => node.label === "Trace the data evidence and failure path")?.lines.length)
+      .toBeGreaterThan(1);
+  });
+
+  it("renders flow connector hover targets and multiline tspans", () => {
+    const layout = layoutFlow(parseFlow("Start -> Trace the data evidence and failure path: orange"));
+    const rendered = JSON.stringify(renderFlow(layout, "Integrity flow", "test-flow"));
+
+    expect(rendered).toContain("diagram-edge__hit-area");
+    expect(rendered).toContain("diagram-edge-group--orange");
+    expect(rendered).toContain('"tagName":"tspan"');
+  });
+
   it("uses local, separate retry channels for multiple back edges", () => {
     const layout = layoutFlow(parseFlow(`
 Send -> Valid?: yellow

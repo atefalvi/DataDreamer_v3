@@ -158,7 +158,7 @@ describe("renderMarkdown v4 pipeline", () => {
     const result = await renderMarkdown(await fixture("diagram-blocks.md"));
     const html = result.html;
 
-    expect(html.match(/class="diagram-block diagram-block--flow"/g)).toHaveLength(3);
+    expect(html.match(/class="diagram-block diagram-block--flow"/g)).toHaveLength(4);
     expect(html.match(/class="diagram-block diagram-block--erd"/g)).toHaveLength(2);
     expect(html).toContain('class="diagram-svg diagram-svg--flow"');
     expect(html).toContain('class="diagram-svg diagram-svg--erd"');

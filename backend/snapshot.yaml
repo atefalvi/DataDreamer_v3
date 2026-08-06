@@ -3205,7 +3205,7 @@ fields:
       foreign_key_column: null
   - collection: guides
     field: seo_title
-    type: string
+    type: text
     meta:
       collection: guides
       conditions: null
@@ -3229,9 +3229,9 @@ fields:
     schema:
       name: seo_title
       table: guides
-      data_type: character varying
+      data_type: text
       default_value: null
-      max_length: 70
+      max_length: null
       numeric_precision: null
       numeric_scale: null
       is_nullable: true
@@ -3245,7 +3245,7 @@ fields:
       foreign_key_column: null
   - collection: guides
     field: seo_description
-    type: string
+    type: text
     meta:
       collection: guides
       conditions: null
@@ -3269,9 +3269,9 @@ fields:
     schema:
       name: seo_description
       table: guides
-      data_type: character varying
+      data_type: text
       default_value: null
-      max_length: 170
+      max_length: null
       numeric_precision: null
       numeric_scale: null
       is_nullable: true
@@ -5809,7 +5809,7 @@ fields:
       foreign_key_column: null
   - collection: posts
     field: seo_title
-    type: string
+    type: text
     meta:
       collection: posts
       conditions: null
@@ -5833,9 +5833,9 @@ fields:
     schema:
       name: seo_title
       table: posts
-      data_type: character varying
+      data_type: text
       default_value: null
-      max_length: 70
+      max_length: null
       numeric_precision: null
       numeric_scale: null
       is_nullable: true
@@ -5849,7 +5849,7 @@ fields:
       foreign_key_column: null
   - collection: posts
     field: seo_description
-    type: string
+    type: text
     meta:
       collection: posts
       conditions: null
@@ -5873,9 +5873,9 @@ fields:
     schema:
       name: seo_description
       table: posts
-      data_type: character varying
+      data_type: text
       default_value: null
-      max_length: 170
+      max_length: null
       numeric_precision: null
       numeric_scale: null
       is_nullable: true
@@ -6761,7 +6761,7 @@ fields:
       foreign_key_column: null
   - collection: projects
     field: seo_title
-    type: string
+    type: text
     meta:
       collection: projects
       conditions: null
@@ -6785,9 +6785,9 @@ fields:
     schema:
       name: seo_title
       table: projects
-      data_type: character varying
+      data_type: text
       default_value: null
-      max_length: 70
+      max_length: null
       numeric_precision: null
       numeric_scale: null
       is_nullable: true
@@ -6801,7 +6801,7 @@ fields:
       foreign_key_column: null
   - collection: projects
     field: seo_description
-    type: string
+    type: text
     meta:
       collection: projects
       conditions: null
@@ -6825,9 +6825,9 @@ fields:
     schema:
       name: seo_description
       table: projects
-      data_type: character varying
+      data_type: text
       default_value: null
-      max_length: 170
+      max_length: null
       numeric_precision: null
       numeric_scale: null
       is_nullable: true

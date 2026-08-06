@@ -1,5 +1,5 @@
 /**
- * Reconcile the production Directus relationship rules and Specialty taxonomy.
+ * Reconcile the production Directus relationship rules, SEO storage, and Specialty taxonomy.
  *
  * Dry-run is the default:
  *   node --env-file=.env.cms scripts/cms-model-maintenance.mjs
@@ -44,6 +44,9 @@ const relationRules = [
   ['guides_topics', 'guides_id', 'CASCADE', 'delete'],
   ['guides_topics', 'topics_id', 'CASCADE', 'delete'],
 ];
+
+const seoStorageFields = ['seo_title', 'seo_description'];
+const seoStorageCollections = ['posts', 'projects', 'guides'];
 
 async function login() {
   if (staticToken) return staticToken;
@@ -106,6 +109,30 @@ async function reconcileRelations() {
   return changes;
 }
 
+async function reconcileSeoStorage() {
+  const changes = [];
+  for (const collection of seoStorageCollections) {
+    for (const field of seoStorageFields) {
+      const current = await request(`/fields/${collection}/${field}`);
+      const type = current.type === 'text' ? {} : { type: 'text' };
+      const schema = changedFields(current.schema, { data_type: 'text', max_length: null });
+      if (!Object.keys(type).length && !Object.keys(schema).length) continue;
+
+      changes.push({ collection, field, type, schema });
+      if (apply) {
+        await request(`/fields/${collection}/${field}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            ...type,
+            ...(Object.keys(schema).length ? { schema } : {}),
+          }),
+        });
+      }
+    }
+  }
+  return changes;
+}
+
 async function reconcileSpecialties() {
   const current = await request('/items/specialties?fields=id,status,name,slug,description,color_key,sort&limit=-1');
   const bySlug = new Map(current.map((item) => [item.slug, item]));
@@ -141,11 +168,16 @@ async function reconcileSpecialties() {
 }
 
 const relationChanges = await reconcileRelations();
+const seoStorageChanges = await reconcileSeoStorage();
 const specialtyChanges = await reconcileSpecialties();
 
 console.log(`${apply ? 'Applied' : 'Planned'} relationship changes: ${relationChanges.length}`);
 for (const change of relationChanges) {
   console.log(`  ${change.collection}.${change.field}`, { ...change.schema, ...change.meta });
+}
+console.log(`${apply ? 'Applied' : 'Planned'} SEO storage changes: ${seoStorageChanges.length}`);
+for (const change of seoStorageChanges) {
+  console.log(`  ${change.collection}.${change.field}`, { ...change.type, ...change.schema });
 }
 console.log(`${apply ? 'Applied' : 'Planned'} Specialty changes: ${specialtyChanges.length}`);
 for (const change of specialtyChanges) {

@@ -13,7 +13,30 @@ function relationBlock(snapshot: string, collection: string, field: string): str
   return snapshot.slice(start, end < 0 ? undefined : end);
 }
 
+function fieldBlock(snapshot: string, collection: string, field: string): string {
+  const marker = `  - collection: ${collection}\n    field: ${field}\n`;
+  const fieldsStart = snapshot.indexOf('fields:');
+  const relationsStart = snapshot.indexOf('relations:');
+  const start = snapshot.indexOf(marker, fieldsStart);
+  if (start < 0 || start >= relationsStart) throw new Error(`Missing field ${collection}.${field}`);
+  const end = snapshot.indexOf('\n  - collection:', start + marker.length);
+  return snapshot.slice(start, end < 0 || end > relationsStart ? relationsStart : end);
+}
+
 describe('CMS relationship and Specialty contract', () => {
+  it('stores SEO overrides as text so editorial guidance cannot cause a database length error', async () => {
+    const snapshot = await readFile(join(repositoryRoot, 'backend/snapshot.yaml'), 'utf8');
+
+    for (const collection of ['posts', 'projects', 'guides']) {
+      for (const field of ['seo_title', 'seo_description']) {
+        const block = fieldBlock(snapshot, collection, field);
+        expect(block, `${collection}.${field} must use non-truncating storage`).toContain('type: text');
+        expect(block, `${collection}.${field} must map to PostgreSQL text`).toContain('data_type: text');
+        expect(block, `${collection}.${field} must not have a varchar limit`).toContain('max_length: null');
+      }
+    }
+  });
+
   it('cascades all many-to-many junction foreign keys and deletes deselected links', async () => {
     const snapshot = await readFile(join(repositoryRoot, 'backend/snapshot.yaml'), 'utf8');
     const relations = [

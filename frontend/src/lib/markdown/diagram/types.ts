@@ -46,6 +46,7 @@ export type FlowRouteKind = "same-lane" | "branch-down" | "direct-vertical" | "l
 export interface LayoutFlowNode extends FlowNode, Rect {
   centerX: number;
   centerY: number;
+  lines: string[];
 }
 
 export interface LayoutFlowEdge extends FlowEdge {

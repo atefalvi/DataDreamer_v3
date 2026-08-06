@@ -10,13 +10,16 @@ import {
   type LayoutFlowNode,
 } from "./types";
 
-const NODE_HEIGHT = 52;
+const MIN_NODE_HEIGHT = 52;
 const MIN_NODE_WIDTH = 112;
 const MAX_NODE_WIDTH = 232;
 const MIN_COLUMN_GAP = 56;
-const LANE_PITCH = 116;
+const LANE_GAP = 64;
 const PAD_X = 18;
 const PAD_Y = 24;
+const NODE_TEXT_INSET = 18;
+const NODE_TEXT_LINE_HEIGHT = 16;
+const APPROX_CHARACTER_WIDTH = 7.4;
 const LOOP_GAP = 32;
 const LOOP_CHANNEL_GAP = 18;
 const MAX_NODES = 80;
@@ -32,8 +35,54 @@ function keyFor(label: string): string {
   return label.replace(/\s+/g, " ").trim().toLocaleLowerCase("en-US");
 }
 
-function nodeWidth(label: string): number {
-  return Math.max(MIN_NODE_WIDTH, Math.min(MAX_NODE_WIDTH, 36 + [...label].length * 7.4));
+function approximateTextWidth(value: string): number {
+  return [...value].length * APPROX_CHARACTER_WIDTH;
+}
+
+function splitLongWord(word: string, maxWidth: number): string[] {
+  const characters = [...word];
+  const chunkSize = Math.max(1, Math.floor(maxWidth / APPROX_CHARACTER_WIDTH));
+  const chunks: string[] = [];
+  for (let index = 0; index < characters.length; index += chunkSize) {
+    chunks.push(characters.slice(index, index + chunkSize).join(""));
+  }
+  return chunks;
+}
+
+function wrapNodeLabel(label: string): string[] {
+  const maxWidth = MAX_NODE_WIDTH - NODE_TEXT_INSET * 2;
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of label.trim().split(/\s+/).filter(Boolean)) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (approximateTextWidth(candidate) <= maxWidth) {
+      current = candidate;
+      continue;
+    }
+
+    if (current) {
+      lines.push(current);
+      current = "";
+    }
+
+    const chunks = approximateTextWidth(word) > maxWidth ? splitLongWord(word, maxWidth) : [word];
+    lines.push(...chunks.slice(0, -1));
+    current = chunks.at(-1) ?? "";
+  }
+
+  if (current) lines.push(current);
+  return lines.length ? lines : [label];
+}
+
+function nodeGeometry(label: string): { width: number; height: number; lines: string[] } {
+  const lines = wrapNodeLabel(label);
+  const width = Math.max(
+    MIN_NODE_WIDTH,
+    Math.min(MAX_NODE_WIDTH, NODE_TEXT_INSET * 2 + Math.max(...lines.map(approximateTextWidth))),
+  );
+  const height = Math.max(MIN_NODE_HEIGHT, 20 + lines.length * NODE_TEXT_LINE_HEIGHT);
+  return { width, height, lines };
 }
 
 function edgeLabelGap(label: string | undefined): number {
@@ -187,9 +236,10 @@ function fmt(value: number): string {
 
 /** Deterministic layered layout: fixed ranks/lanes, measured columns, orthogonal edges. */
 export function layoutFlow(graph: FlowGraph): FlowLayout {
+  const nodeGeometries = new Map(graph.nodes.map((node) => [node.id, nodeGeometry(node.label)]));
   const rankWidths = new Map<number, number>();
   for (const node of graph.nodes) {
-    rankWidths.set(node.rank, Math.max(rankWidths.get(node.rank) ?? 0, nodeWidth(node.label)));
+    rankWidths.set(node.rank, Math.max(rankWidths.get(node.rank) ?? 0, nodeGeometries.get(node.id)!.width));
   }
   const graphNodesById = new Map(graph.nodes.map((node) => [node.id, node]));
   const rankGaps = new Map<number, number>();
@@ -210,19 +260,36 @@ export function layoutFlow(graph: FlowGraph): FlowLayout {
     cursorX += (rankWidths.get(rank) ?? MIN_NODE_WIDTH) + (rankGaps.get(rank) ?? MIN_COLUMN_GAP);
   }
 
+  const laneHeights = new Map<number, number>();
+  for (const node of graph.nodes) {
+    laneHeights.set(
+      node.lane,
+      Math.max(laneHeights.get(node.lane) ?? MIN_NODE_HEIGHT, nodeGeometries.get(node.id)!.height),
+    );
+  }
+  const laneY = new Map<number, number>();
+  let cursorY = PAD_Y;
+  for (const lane of [...laneHeights.keys()].sort((a, b) => a - b)) {
+    laneY.set(lane, cursorY);
+    cursorY += (laneHeights.get(lane) ?? MIN_NODE_HEIGHT) + LANE_GAP;
+  }
+
   const nodes: LayoutFlowNode[] = graph.nodes.map((node) => {
-    const width = nodeWidth(node.label);
+    const geometry = nodeGeometries.get(node.id)!;
+    const { width, height, lines } = geometry;
     const columnWidth = rankWidths.get(node.rank) ?? width;
     const x = (rankX.get(node.rank) ?? PAD_X) + (columnWidth - width) / 2;
-    const y = PAD_Y + node.lane * LANE_PITCH;
+    const laneHeight = laneHeights.get(node.lane) ?? height;
+    const y = (laneY.get(node.lane) ?? PAD_Y) + (laneHeight - height) / 2;
     return {
       ...node,
       x,
       y,
       width,
-      height: NODE_HEIGHT,
+      height,
+      lines,
       centerX: x + width / 2,
-      centerY: y + NODE_HEIGHT / 2,
+      centerY: y + height / 2,
     };
   });
   const byId = new Map(nodes.map((node) => [node.id, node]));
@@ -271,7 +338,7 @@ export function layoutFlow(graph: FlowGraph): FlowLayout {
         routeKind: "branch-down",
         targetAnchor: "middle-left",
         labelPoint: edge.label
-          ? { x: source.centerX + 24, y: (startY + target.centerY) / 2 }
+          ? { x: (source.centerX + endX) / 2, y: target.centerY - 12 }
           : undefined,
       };
     }
@@ -315,6 +382,7 @@ function element(tagName: string, properties: Record<string, unknown>, children:
 export function renderFlow(layout: FlowLayout, title: string, markerPrefix: string): HastNode {
   const markerId = `${markerPrefix}-arrow`;
   const accentMarkerId = `${markerPrefix}-arrow-accent`;
+  const nodesById = new Map(layout.nodes.map((node) => [node.id, node]));
   const marker = (id: string, className: string[]) =>
     element(
       "marker",
@@ -341,8 +409,21 @@ export function renderFlow(layout: FlowLayout, title: string, markerPrefix: stri
       element(
         "g",
         { className: ["diagram-edges"] },
-        layout.edges.map((edge) =>
-          element("g", { className: ["diagram-edge-group"] }, [
+        layout.edges.map((edge) => {
+          const source = nodesById.get(edge.source)!;
+          const target = nodesById.get(edge.target)!;
+          return element("g", {
+            className: ["diagram-edge-group", `diagram-edge-group--${target.color}`],
+            dataSourceNode: edge.source,
+            dataTargetNode: edge.target,
+          }, [
+            element("title", {}, [
+              text(`${source.label} to ${target.label}${edge.label ? ` via ${edge.label}` : ""}`),
+            ]),
+            element("path", {
+              className: ["diagram-edge__hit-area"],
+              d: edge.path,
+            }),
             element("path", {
               className: [
                 "diagram-edge",
@@ -368,8 +449,8 @@ export function renderFlow(layout: FlowLayout, title: string, markerPrefix: stri
                   ),
                 ]
               : []),
-          ]),
-        ),
+          ]);
+        }),
       ),
       element(
         "g",
@@ -387,12 +468,25 @@ export function renderFlow(layout: FlowLayout, title: string, markerPrefix: stri
                 y: fmt(node.y),
                 width: fmt(node.width),
                 height: fmt(node.height),
-                rx: node.decision ? String(NODE_HEIGHT / 2) : "8",
+                rx: node.decision ? fmt(node.height / 2) : "8",
               }),
               element(
                 "text",
                 { x: fmt(node.centerX), y: fmt(node.centerY), textAnchor: "middle", dominantBaseline: "middle" },
-                [text(node.label)],
+                node.lines.length === 1
+                  ? [text(node.lines[0])]
+                  : node.lines.map((line, index) =>
+                      element(
+                        "tspan",
+                        {
+                          x: fmt(node.centerX),
+                          dy: fmt(index === 0
+                            ? -((node.lines.length - 1) * NODE_TEXT_LINE_HEIGHT) / 2
+                            : NODE_TEXT_LINE_HEIGHT),
+                        },
+                        [text(line)],
+                      ),
+                    ),
               ),
             ],
           ),

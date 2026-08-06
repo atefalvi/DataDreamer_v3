@@ -11,6 +11,18 @@ Incoming data -> Valid?: yellow
   no -> Remediate: orange -> @Load
 :::
 
+## Consequence layers
+
+:::diagram
+type: flow
+title: Understanding should deepen as the consequences increase
+
+Presentation -> Functionality -> Integrity
+  presentation -> Test what the user sees: green
+  functionality -> Understand behaviour and dependencies: yellow
+  integrity -> Trace the data evidence and failure path: orange
+:::
+
 ## Tiered API retry
 
 :::diagram

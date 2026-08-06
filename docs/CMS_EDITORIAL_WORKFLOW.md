@@ -56,6 +56,10 @@ Posts, projects, and guides share three editorial SEO controls:
 - `noindex`: removes the detail page from XML sitemaps and emits a `noindex` directive.
   It does not make content private.
 
+The 60-character title and 120–160-character description ranges shown in Directus are
+editorial recommendations, not storage limits. Longer drafts save successfully so an
+editor can shorten them deliberately instead of losing the update to a database error.
+
 Slugs are permanent public identifiers. Choose a short, descriptive, lowercase
 `kebab-case` slug and avoid changing it after publication. A slug change requires a
 redirect plan outside Directus.

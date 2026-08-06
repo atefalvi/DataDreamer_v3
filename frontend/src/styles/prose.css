@@ -1387,6 +1387,50 @@
   vector-effect: non-scaling-stroke;
 }
 
+.prose .diagram-edge__hit-area,
+.blog-content .diagram-edge__hit-area {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+  pointer-events: stroke;
+}
+
+.prose .diagram-edge-group,
+.blog-content .diagram-edge-group {
+  --diagram-edge-color: var(--text-2);
+}
+
+.prose .diagram-edge-group--blue,
+.blog-content .diagram-edge-group--blue { --diagram-edge-color: var(--diagram-blue); }
+.prose .diagram-edge-group--yellow,
+.blog-content .diagram-edge-group--yellow { --diagram-edge-color: var(--diagram-yellow); }
+.prose .diagram-edge-group--orange,
+.blog-content .diagram-edge-group--orange { --diagram-edge-color: var(--diagram-orange); }
+.prose .diagram-edge-group--green,
+.blog-content .diagram-edge-group--green { --diagram-edge-color: var(--diagram-green); }
+.prose .diagram-edge-group--purple,
+.blog-content .diagram-edge-group--purple { --diagram-edge-color: var(--diagram-purple); }
+
+.prose .diagram-edge-group .diagram-edge,
+.blog-content .diagram-edge-group .diagram-edge,
+.prose .diagram-edge-group .diagram-edge__label,
+.blog-content .diagram-edge-group .diagram-edge__label {
+  transition:
+    fill 160ms ease-out,
+    stroke 160ms ease-out;
+}
+
+.prose .diagram-edge-group:hover .diagram-edge,
+.blog-content .diagram-edge-group:hover .diagram-edge {
+  stroke: var(--diagram-edge-color);
+  stroke-width: 2;
+}
+
+.prose .diagram-edge-group:hover .diagram-edge__label,
+.blog-content .diagram-edge-group:hover .diagram-edge__label {
+  fill: var(--diagram-edge-color);
+}
+
 .prose .diagram-edge--reference,
 .blog-content .diagram-edge--reference {
   stroke: color-mix(in srgb, var(--accent) 72%, var(--border-2));
